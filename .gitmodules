@@ -1,0 +1,63 @@
+[submodule "vim/bundle/vim-endwise"]
+	path = vim/bundle/vim-endwise
+	url = https://github.com/tpope/vim-endwise.git
+[submodule "vim/bundle/vim-rake"]
+	path = vim/bundle/vim-rake
+	url = https://github.com/tpope/vim-rake.git
+[submodule "vim/bundle/vim-fugitive"]
+	path = vim/bundle/vim-fugitive
+	url = https://github.com/tpope/vim-fugitive.git
+[submodule "vim/bundle/nerdcommenter"]
+	path = vim/bundle/nerdcommenter
+	url = https://github.com/scrooloose/nerdcommenter.git
+[submodule "vim/bundle/scss-syntax"]
+	path = vim/bundle/scss-syntax
+	url = https://github.com/cakebaker/scss-syntax.vim.git
+[submodule "vim/bundle/vim-ragtag"]
+	path = vim/bundle/vim-ragtag
+	url = https://github.com/tpope/vim-ragtag.git
+[submodule "vim/bundle/vim-jquery"]
+	path = vim/bundle/vim-jquery
+	url = https://github.com/itspriddle/vim-jquery.git
+[submodule "vim/bundle/vim-ruby-sinatra"]
+	path = vim/bundle/vim-ruby-sinatra
+	url = https://github.com/hallison/vim-ruby-sinatra.git
+[submodule "vim/bundle/vim-node"]
+	path = vim/bundle/vim-node
+	url = https://github.com/mmalecki/vim-node.js.git
+[submodule "vim/bundle/vim-javascript"]
+	path = vim/bundle/vim-javascript
+	url = https://github.com/pangloss/vim-javascript.git
+[submodule "vim/bundle/vim-markdown"]
+	path = vim/bundle/vim-markdown
+	url = https://github.com/tpope/vim-markdown.git
+[submodule "vim/bundle/vim-cucumber"]
+	path = vim/bundle/vim-cucumber
+	url = https://github.com/tpope/vim-cucumber.git
+[submodule "vim/bundle/vim-ruby"]
+	path = vim/bundle/vim-ruby
+	url = https://github.com/vim-ruby/vim-ruby.git
+[submodule "vim/bundle/jshint"]
+	path = vim/bundle/jshint
+	url = https://github.com/manalang/jshint.vim.git
+[submodule "vim/bundle/ctrlp"]
+	path = vim/bundle/ctrlp
+	url = https://github.com/kien/ctrlp.vim.git
+[submodule "vim/bundle/nerdtree"]
+	path = vim/bundle/nerdtree
+	url = https://github.com/scrooloose/nerdtree.git
+[submodule "vim/bundle/vim-powerline"]
+	path = vim/bundle/vim-powerline
+	url = https://github.com/Lokaltog/vim-powerline.git
+[submodule "vim/bundle/delimitMate"]
+	path = vim/bundle/delimitMate
+	url = https://github.com/Raimondi/delimitMate.git
+[submodule "vim/bundle/vim-less"]
+	path = vim/bundle/vim-less
+	url = https://github.com/groenewege/vim-less.git
+[submodule "vim/bundle/ZoomWin"]
+	path = vim/bundle/ZoomWin
+	url = https://github.com/vim-scripts/ZoomWin.git
+[submodule "vim/bundle/Kwbd"]
+	path = vim/bundle/Kwbd
+	url = https://github.com/rgarver/Kwbd.vim.git
