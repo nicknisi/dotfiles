@@ -61,3 +61,6 @@
 [submodule "vim/bundle/Kwbd"]
 	path = vim/bundle/Kwbd
 	url = https://github.com/rgarver/Kwbd.vim.git
+[submodule "vim/bundle/vitality"]
+	path = vim/bundle/vitality
+	url = https://github.com/sjl/vitality.vim.git
