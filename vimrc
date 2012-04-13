@@ -30,8 +30,18 @@ set shiftwidth=4
 set tabstop=4
 set softtabstop=4
 
+"set notimeout
+"set ttimeout
+"set ttimeoutlen=10
+
+" faster redrawing
+set ttyfast
+
 " allow matching of if/end, etc. with %
 runtime macros/matchit.vim
+
+" highlight conflicts
+match ErrorMsg '^\(<\|=\|>\)\{7\}\([^=].\+\)\?$'
 
 " Enable file type detection and do language dependent indenting
 filetype plugin indent on
@@ -157,6 +167,8 @@ endfunction
 " General mappings/shortcuts for functionality
 " Additional, plugin-specific mappings are located under
 " the plugins section
+"
+nnoremap K :q<cr>
 
 " fast saving
 nmap <leader>w :w!<cr>
