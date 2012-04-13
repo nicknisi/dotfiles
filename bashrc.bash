@@ -8,6 +8,7 @@ export MY_BIN=~/bin
 export PATH=$MY_BIN:$PATH
 
 export MY_EDITOR="mvim -v";
+export EDITOR="vim"
 
 # export EDITOR='subl -w'
 # add ~/.node_libraries to the node path

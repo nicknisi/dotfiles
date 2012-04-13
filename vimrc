@@ -47,6 +47,8 @@ if has("autocmd")
     " automatically resize panes on resize
     autocmd VimResized * exe "normal! \<c-w>="
     "autocmd BufWritePost .vimrc source $MYVIMRC
+    " save all files on focus lost, ignoring warnings about untitled buffers
+    autocmd FocusLost * silent! wa
 endif
 
 " code folding settings
@@ -83,6 +85,12 @@ set magic " Set magic on, for regex
 
 set showmatch " show matching braces
 set mat=2 " how many tenths of a second to blink
+
+" switch to line when editing and block when not
+let cursor_to_bar   = "\<Esc>]50;CursorShape=1\x7"
+let cursor_to_block = "\<Esc>]50;CursorShape=0\x7"
+let &t_SI = cursor_to_bar
+let &t_EI = cursor_to_block
 
 " error bells
 set noerrorbells
