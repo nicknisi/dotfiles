@@ -170,6 +170,12 @@ endfunction
 "
 nnoremap K :q<cr>
 
+" remove extra whitespace
+nmap <leader><space> :%s/\s\+$<cr>
+
+" set paste toggle
+set pastetoggle=<F6>
+
 " fast saving
 nmap <leader>w :w!<cr>
 
