@@ -273,7 +273,7 @@ nmap <D-0> g^
 nnoremap <leader>i :set cursorline!<cr>
 
 " map ; to : in normal mode
-nnoremap ; :
+"nnoremap ; :
 
 " remap jj in insert mode to ESC
 "inoremap jj <Esc>
