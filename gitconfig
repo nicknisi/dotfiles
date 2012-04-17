@@ -22,6 +22,7 @@
     sp = stash pop
     sw = stash save
     sl = stash list
+    sh = show --pretty="format:" --name-only
 
     # grep commands
     
