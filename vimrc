@@ -113,12 +113,12 @@ syntax on
 
 set background=dark
 "colorscheme molokai 
-colorscheme ir_black
+"colorscheme ir_black
 "colorscheme mango
 "colorscheme mustang
 "colorscheme vividchalk
 "colorscheme desert
-"colorscheme solarized
+colorscheme solarized
 
 set number " show line numbers
 
