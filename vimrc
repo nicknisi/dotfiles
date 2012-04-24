@@ -24,8 +24,8 @@ let g:mapleader = ","
 set history=10000
 
 " Tab control
-set smarttab 
-set expandtab 
+set smarttab
+set expandtab
 set shiftwidth=4
 set tabstop=4
 set softtabstop=4
@@ -112,7 +112,7 @@ set tm=500
 syntax on
 
 set background=dark
-"colorscheme molokai 
+"colorscheme molokai
 "colorscheme ir_black
 "colorscheme mango
 "colorscheme mustang
@@ -312,8 +312,8 @@ let g:Powerline_stl_path_style = 'filename'
 
 " Toggle NERDTree
 nmap <silent> <leader>k :NERDTreeToggle<cr>
-" expand to the path of the file in the current buffer 
-nmap <silent> <leader>y :NERDTreeFind<cr>  
+" expand to the path of the file in the current buffer
+nmap <silent> <leader>y :NERDTreeFind<cr>
 
 " map fuzzyfinder (CtrlP) plugin
 nmap <silent> <leader>t :CtrlP<cr>

@@ -1,6 +1,7 @@
 # aliases
 alias ll='ls -l'
-alias ta='tmux attach'
+alias lld='ls -l | grep ^d'
+alias ta='tmux attach -f'
 alias rmf='rm -rf'
 
 # custom scripts
