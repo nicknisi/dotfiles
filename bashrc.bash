@@ -1,7 +1,7 @@
 # aliases
 alias ll='ls -l'
 alias lld='ls -l | grep ^d'
-alias ta='tmux attach -f'
+alias ta='tmux attach'
 alias rmf='rm -rf'
 
 # custom scripts
@@ -23,4 +23,5 @@ fi
 
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && . "$HOME/.rvm/scripts/rvm" # Load RVM function
 
+# setting a custom prompt, with git branch info
 export PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
