@@ -38,7 +38,7 @@ end
 
 desc "remove all files added"
 task :uninstall do
-  linkable do |linkable, file, target|
+  linkables do |linkable, file, target|
     if File.symlink?(target)
       FileUtils.rm(target)
     end
