@@ -16,7 +16,8 @@ setopt APPEND_HISTORY
 
 setopt COMPLETE_ALIASES
 
-export PS1='%3~ ☠ '
+#export PS1='%3~ ☠ '
+#export PS1='%3~$(git_info_for_prompt) ☠ '
 
 # make terminal command navigation sane again
 bindkey '^[^[[D' backward-word

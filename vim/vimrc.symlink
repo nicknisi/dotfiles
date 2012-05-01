@@ -112,7 +112,7 @@ set tm=500
 syntax on
 
 set background=dark
-colorscheme jellybeans
+"colorscheme jellybeans
 "colorscheme xorium
 "colorscheme molokai
 "colorscheme ir_black
@@ -121,6 +121,7 @@ colorscheme jellybeans
 "colorscheme vividchalk
 "colorscheme desert
 "colorscheme solarized
+colorscheme smyck
 
 set number " show line numbers
 
@@ -174,6 +175,8 @@ nnoremap K :q<cr>
 
 " remove extra whitespace
 nmap <leader><space> :%s/\s\+$<cr>
+
+nmap <leader>, :w<cr>
 
 " set paste toggle
 set pastetoggle=<F6>
