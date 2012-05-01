@@ -73,6 +73,6 @@
 [submodule "vim/vim.symlink/bundle/vim-rails"]
 	path = vim/vim.symlink/bundle/vim-rails
 	url = https://github.com/tpope/vim-rails.git
-[submodule "vim/vim.symlink/bundle/vim-xorium"]
-	path = vim/vim.symlink/bundle/vim-xorium
-	url = https://github.com/vim-scripts/xorium.vim.git
+[submodule "vim/vim.symlink/bundle/jellybeans"]
+	path = vim/vim.symlink/bundle/jellybeans
+	url = https://github.com/nanotech/jellybeans.vim.git
