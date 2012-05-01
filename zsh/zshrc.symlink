@@ -1,0 +1,27 @@
+export ZSH=$HOME/.dotfiles
+
+if [[ -d ~/gitprojects ]]; then
+    export PROJECTS=~/gitprojects
+else
+    export PROJECTS=~/projects
+fi
+
+# load all zsh config files
+for config ($ZSH/**/*.zsh) source $config
+
+if [[ -a ~/.localrc ]]; then
+    source ~/.localrc
+fi
+
+# initialize autocomplete
+autoload -U compinit
+compinit
+
+for config ($ZSH/**/completion.sh) source $config
+
+export EDITOR='vim'
+
+# check for custom bin directory and add to path
+if [[ -d ~/bin ]]; then
+    export PATH=~/bin:$PATH
+fi
