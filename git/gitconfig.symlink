@@ -3,11 +3,7 @@
 [user]
     name = Nick Nisi
     email = nick@nisi.org
-[github]
-    user = "nicknisi"
-    token = "a56935f3a5cece2592cb96a32a3d5a00"
 [alias]
-    # aa = !git ls-files -d | xargs -r git rm && git ls-files -m -o --exclude-standard | xargs -r git add
     ci = commit -a
     co = checkout
     s = status --short
@@ -25,7 +21,7 @@
     sh = show --pretty="format:" --name-only
 
     # grep commands
-    
+
     # 'diff grep'
     dg = "!sh -c 'git ls-files -m | grep $1 | xargs git diff' -"
     # 'checkout grep'
@@ -67,4 +63,4 @@
     renames = copies
     mnemonicprefix = true
 [core]
-    excludesfile = /Users/pollen/.gitignore_global
+    excludesfile = ~/.gitignore_global
