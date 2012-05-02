@@ -20,6 +20,10 @@
     sl = stash list
     sh = show --pretty="format:" --name-only
 
+    # submodule shortcuts
+    si = submodule init
+    su = submodule update
+
     # grep commands
 
     # 'diff grep'
