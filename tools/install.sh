@@ -1,17 +1,10 @@
-#!/bin/sh
-
-# clone the repository
+echo "cloning repo to ~/.dotfiles"
 git clone git@github.com:nicknisi/dotfiles.git ~/.dotfiles
-
-# cd into directory
 cd ~/.dotfiles
-
-# initialize submodules
+echo "initializing git submodules"
 git submodule init
 git submodule update
-
-# backup existing configuration
+echo "running backup"
 rake backup
-
-# run the install
+echo "creating symlinks"
 rake install
