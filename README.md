@@ -17,7 +17,7 @@ The organization of this project is similar to [Zach Holman's ](http://github.co
 
 ### Automatic Installation
 
-	wget 
+	curl -L https://raw.github.com/nicknisi/dotfiles/master/tools/install.sh | sh
 
 ### Manual Installation
 
