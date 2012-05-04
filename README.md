@@ -15,6 +15,12 @@ These are my dotfiles, which contain my custom system configuration preferences.
 
 The organization of this project is similar to [Zach Holman's ](http://github.com/holman/dotfiles) setup.
 
+### Automatic Installation
+
+	wget 
+
+### Manual Installation
+
 #### Clone
 
 First, clone the repository to your home directory and name it ".dotfiles"
@@ -24,6 +30,13 @@ First, clone the repository to your home directory and name it ".dotfiles"
 Then cd into that directory
 
 	cd ~/.dotfiles
+
+#### Init Submodules
+
+The vim configuration relies on a couple of vim plugins, which are loaded in as git submodules.
+
+	git submodule init
+	git submodule update
 	
 #### Backup
 
