@@ -24,7 +24,13 @@ compinit
 
 export EDITOR='vim'
 
+export PATH=/usr/local/bin:$PATH
+
 # check for custom bin directory and add to path
 if [[ -d ~/bin ]]; then
     export PATH=~/bin:$PATH
 fi
+
+# load RVM
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && . "$HOME/.rvm/scripts/rvm"
+
