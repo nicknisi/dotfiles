@@ -15,7 +15,8 @@ These are my dotfiles, which contain my custom system configuration preferences.
 
 The organization of this project is similar to [Zach Holman's ](http://github.com/holman/dotfiles) setup.
 
-### Clone
+#### Clone
+
 First, clone the repository to your home directory and name it ".dotfiles"
 
 	git clone git@github.com:nicknisi/dotfiles.git ~/.dotfiles
@@ -23,13 +24,14 @@ First, clone the repository to your home directory and name it ".dotfiles"
 Then cd into that directory
 
 	cd ~/.dotfiles
-	#### Backup
+	
+#### Backup
 
 A backup task is included. This will find all the files that will be replaced and make a backup of them. For example, if you currently have a ".zshrc" file, it will be moved to ".zshrc.backup"
 	
 	rake backup
 	
-### Install
+#### Install
 
 Symlink the necessary files. The task will perform a search  for all files in the *.dotfiles* directory that have the ".symlink" suffix and create a symbolic link in the home directory that drops the suffix and prefixes with a '.'
 
@@ -39,7 +41,11 @@ Symlink the necessary files. The task will perform a search  for all files in th
 
 If you would like to bring back your previous configuration, run the uninstalll task. This will remove the created symlinks.
 
+#### Uninstall
+
 	rake uninstall
+	
+#### Restore
 	
 Then, if you would like to restore your previous configuration, run the restore task.
 	
