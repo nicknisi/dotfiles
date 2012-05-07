@@ -209,6 +209,8 @@ nmap <leader>] >>
 nmap <leader>n :bn<cr> " go to next buffer
 nmap <leader>p :bp<cr> " go to prev buffer
 nmap <leader>q :bd<cr> " close the current buffer
+" switch between two file buffers
+nmap <leader>. <c-^>
 
 " disable arrow keys (forced learning)
 "noremap <Up> ""
