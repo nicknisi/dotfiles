@@ -13,6 +13,8 @@
     lg = log --graph --pretty=oneline --abbrev-commit --decorate
     # show files that have changed between two branches (git dbr master..branch)
     dbr = diff --name-status
+    # show diff of cached files
+    gdc = diff --cached
 
     # stash shortcuts
     sp = stash pop
