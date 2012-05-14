@@ -26,11 +26,12 @@ export EDITOR='vim'
 
 export PATH=/usr/local/bin:$PATH
 
+# load rvm
+if [[ -d ~/.rvm ]]; then
+    source ~/.rvm/scripts/rvm
+fi
+
 # check for custom bin directory and add to path
 if [[ -d ~/bin ]]; then
     export PATH=~/bin:$PATH
 fi
-
-# load RVM
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && . "$HOME/.rvm/scripts/rvm"
-
