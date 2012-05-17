@@ -115,12 +115,13 @@ set background=dark
 "colorscheme jellybeans
 "colorscheme xorium
 "colorscheme molokai
-colorscheme ir_black
+"colorscheme ir_black
 "colorscheme mango
 "colorscheme mustang
 "colorscheme vividchalk
 "colorscheme desert
 "colorscheme solarized
+colorscheme smyck
 
 set number " show line numbers
 
