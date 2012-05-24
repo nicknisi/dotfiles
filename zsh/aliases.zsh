@@ -12,3 +12,5 @@ alias grep='grep --color=auto'
 alias df='df -h' # disk free, in Gigabytes, not bytes
 alias du='du -h -c' # calculate disk usage for a folder
 
+# Applications
+alias mou='open -a Mou.app'
