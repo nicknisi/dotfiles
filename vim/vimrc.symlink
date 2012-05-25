@@ -59,6 +59,7 @@ if has("autocmd")
     "autocmd BufWritePost .vimrc source $MYVIMRC
     " save all files on focus lost, ignoring warnings about untitled buffers
     autocmd FocusLost * silent! wa
+    autocmd BufNewFile,BufRead *.ejs set filetype=html
 endif
 
 " code folding settings
