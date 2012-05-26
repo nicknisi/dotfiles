@@ -332,3 +332,12 @@ let g:ctrlp_custom_ignore = '\.git$|\.hg$|\.svn$'
 
 " Kwbd
 nmap <leader>qq :Kwbd<cr>
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => Local vimrc
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" load a custom, per machine vimrc if available
+if filereadable(glob("~/.vimrc.local"))
+    source ~/.vimrc.local
+endif
