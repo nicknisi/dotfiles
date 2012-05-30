@@ -15,6 +15,8 @@
     dbr = diff --name-status
     # show diff of cached files
     gdc = diff --cached
+    # show changed files for a commit
+    cf = show --pretty="format:" --name-only
 
     # stash shortcuts
     sp = stash pop
