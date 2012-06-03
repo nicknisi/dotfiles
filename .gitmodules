@@ -76,3 +76,6 @@
 [submodule "vim/vim.symlink/bundle/jellybeans"]
 	path = vim/vim.symlink/bundle/jellybeans
 	url = https://github.com/nanotech/jellybeans.vim.git
+[submodule "vim/vim.symlink/bundle/tcomment_vim"]
+	path = vim/vim.symlink/bundle/tcomment_vim
+	url = https://github.com/tomtom/tcomment_vim.git
