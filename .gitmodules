@@ -7,9 +7,6 @@
 [submodule "vim/vim.symlink/bundle/vim-fugitive"]
 	path = vim/vim.symlink/bundle/vim-fugitive
 	url = https://github.com/tpope/vim-fugitive.git
-[submodule "vim/vim.symlink/bundle/nerdcommenter"]
-	path = vim/vim.symlink/bundle/nerdcommenter
-	url = https://github.com/scrooloose/nerdcommenter.git
 [submodule "vim/vim.symlink/bundle/scss-syntax"]
 	path = vim/vim.symlink/bundle/scss-syntax
 	url = https://github.com/cakebaker/scss-syntax.vim.git
