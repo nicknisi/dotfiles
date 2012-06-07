@@ -1,4 +1,3 @@
-# Nick Nisi
 # gitconfig
 [user]
     name = Nick Nisi
@@ -72,3 +71,4 @@
     mnemonicprefix = true
 [core]
     excludesfile = ~/.gitignore_global
+    pager = less -FXRS -x2
