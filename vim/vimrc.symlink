@@ -2,6 +2,7 @@
 
 " Pathogen
 " loads all plugins places in the ~/.vim/bundle directory
+runtime bundle/vim-pathogen/autoload/pathogen.vim
 call pathogen#infect()
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -80,7 +81,7 @@ set showcmd " show incomplete commands
 set noshowmode " don't show which mode disabled for PowerLine
 set wildmode=list:longest " complete files like a shell
 set scrolloff=3 " lines of text around cursor
-set shell=/bin/bash
+set shell=/bin/zsh
 set ruler " show postiion in file
 set cmdheight=1 " command bar height
 
@@ -183,9 +184,6 @@ nmap <leader>, :w<cr>
 " set paste toggle
 set pastetoggle=<F6>
 
-" fast saving
-nmap <leader>w :w!<cr>
-
 " edit ~/.vimrc
 map <leader>e :e! ~/.vimrc<cr>
 
@@ -212,7 +210,7 @@ nmap <leader>] >>
 nmap <leader>n :bn<cr> " go to next buffer
 nmap <leader>p :bp<cr> " go to prev buffer
 nmap <leader>q :bd<cr> " close the current buffer
-" switch between two file buffers
+" switch between current and last buffer
 nmap <leader>. <c-^>
 
 " disable arrow keys (forced learning)
@@ -246,7 +244,6 @@ map <silent> <C-k> :call WinMove('k')<cr>
 map <silent> <C-l> :call WinMove('l')<cr>
 
 map <leader>wc :wincmd q<cr>
-map <leader>wr <C-W>r
 
 " window movement shortcuts
 "map <C-h> <C-w>h " go to window left
@@ -267,29 +264,19 @@ map <leader>et :tabe %%
 
 " Moving shortcuts
 " Instead of pressing g$, press command
-vmap <D-j> gj
-vmap <D-k> gk
-vmap <D-4> g$
-vmap <D-6> g^
-vmap <D-0> g^
-nmap <D-j> gj
-nmap <D-k> gk
-nmap <D-4> g$
-nmap <D-6> g^
-nmap <D-0> g^
+" vmap <D-j> gj
+" vmap <D-k> gk
+" vmap <D-4> g$
+" vmap <D-6> g^
+" vmap <D-0> g^
+" nmap <D-j> gj
+" nmap <D-k> gk
+" nmap <D-4> g$
+" nmap <D-6> g^
+" nmap <D-0> g^
 
 " toggle cursor line
 nnoremap <leader>i :set cursorline!<cr>
-
-" map ; to : in normal mode
-"nnoremap ; :
-
-" remap jj in insert mode to ESC
-"inoremap jj <Esc>
-
-" use space bar to toggle folds
-"nnoremap <Space> za
-"vnoremap <Space> za
 
 " scroll the viewport faster
 nnoremap <C-e> 3<C-e>
@@ -302,21 +289,14 @@ nnoremap <silent> k gk
 " toggle paste
 map <leader>v :set paste!<cr>
 
-" find out what syntax group the selected text belongs to
-nmap <A-S-P> :call SynStack()<cr>
-function! SynStack()
-    if !exists("*Synstack")
-        return
-    endif
-    echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name"')
-endfunction
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Plugins
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " Powerline settings
-let g:Powerline_symbols = 'fancy'
+" must have modified font installed to enable fancy
+" let g:Powerline_symbols = 'fancy'
+
 let g:Powerline_stl_path_style = 'filename'
 
 " Toggle NERDTree
@@ -330,9 +310,6 @@ nmap <silent> <leader>r :CtrlPBuffer<cr>
 
 " CtrlP ignore patterns
 let g:ctrlp_custom_ignore = '\.git$|\.hg$|\.svn$'
-
-" Kwbd
-nmap <leader>qq :Kwbd<cr>
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

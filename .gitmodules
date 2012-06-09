@@ -76,3 +76,6 @@
 [submodule "vim/vim.symlink/bundle/tcomment_vim"]
 	path = vim/vim.symlink/bundle/tcomment_vim
 	url = https://github.com/tomtom/tcomment_vim.git
+[submodule "vim/vim.symlink/bundle/vim-pathogen"]
+	path = vim/vim.symlink/bundle/vim-pathogen
+	url = https://github.com/tpope/vim-pathogen.git
