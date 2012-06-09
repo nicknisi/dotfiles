@@ -55,9 +55,6 @@
 [submodule "vim/vim.symlink/bundle/ZoomWin"]
 	path = vim/vim.symlink/bundle/ZoomWin
 	url = https://github.com/vim-scripts/ZoomWin.git
-[submodule "vim/vim.symlink/bundle/Kwbd"]
-	path = vim/vim.symlink/bundle/Kwbd
-	url = https://github.com/rgarver/Kwbd.vim.git
 [submodule "vim/vim.symlink/bundle/vitality"]
 	path = vim/vim.symlink/bundle/vitality
 	url = https://github.com/sjl/vitality.vim.git
