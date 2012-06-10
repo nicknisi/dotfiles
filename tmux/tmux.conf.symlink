@@ -4,7 +4,7 @@ set -g prefix C-a
 bind C-a send-prefix
 
 # reattach to user namespace
-set-option -g default-command "reattach-to-user-namespace -l zsh"
+# set-option -g default-command "reattach-to-user-namespace -l zsh"
 
 # make delay shorter
 set -sg escape-time 0
