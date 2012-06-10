@@ -35,3 +35,5 @@ fi
 if [[ -d ~/bin ]]; then
     export PATH=~/bin:$PATH
 fi
+
+[ -z "$TMUX" ] && export TERM=xterm-256color
