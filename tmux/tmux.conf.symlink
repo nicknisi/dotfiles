@@ -23,6 +23,10 @@ bind r source-file ~/.tmux.conf \; display "Config Reloaded!"
 # quickly open a new window
 bind N new-window
 
+# Activity
+setw -g monitor-activity on
+set -g visual-activity off
+
 # split window
 bind | split-window -h
 bind - split-window -v
@@ -57,42 +61,6 @@ bind Up new-window -d -n fullscreen \; swap-pane -s fullscreen.1 \; select-windo
 unbind Down
 bind Down last-window \; swap-pane -s fullscreen.1 \; kill-window -t fullscreen
 
-######################
-### Color Settings ###
-######################
-
-#### COLOUR
-
-# default statusbar colors
-set-option -g status-bg colour235 #base02
-set-option -g status-fg colour51 #blue
-set-option -g status-attr default
-
-# default window title colors
-set-window-option -g window-status-fg colour244
-set-window-option -g window-status-bg default
-#set-window-option -g window-status-attr dim
-
-# active window title colors
-set-window-option -g window-status-current-fg colour51 #blue
-set-window-option -g window-status-current-bg default
-#set-window-option -g window-status-current-attr bright
-
-# pane border
-set-option -g pane-border-fg colour235 #base02
-set-option -g pane-active-border-fg colour240 #base01
-
-# message text
-set-option -g message-bg colour235 #base02
-set-option -g message-fg colour51 #blue
-
-# pane number display
-set-option -g display-panes-active-colour colour33 #blue
-set-option -g display-panes-colour colour166 #orange
-
-# clock
-set-window-option -g clock-mode-colour colour64 #green
-
 # set vi mode for copy mode
 setw -g mode-keys vi
 # more settings to make copy-mode more vim-like
@@ -102,3 +70,48 @@ unbind p
 bind p paste-buffer
 bind -t vi-copy 'v' begin-selection
 bind -t vi-copy 'y' copy-selection
+
+######################
+### Color Settings ###
+######################
+
+#### COLOUR
+
+# default statusbar colors
+set-option -g status-bg colour234
+set-option -g status-fg colour39
+set-option -g status-attr default
+
+# default window title colors
+set-window-option -g window-status-fg colour244
+set-window-option -g window-status-bg default
+#set-window-option -g window-status-attr dim
+
+# active window title colors
+set-window-option -g window-status-current-fg colour39
+set-window-option -g window-status-current-bg default
+#set-window-option -g window-status-current-attr bright
+
+# pane border
+set-option -g pane-border-fg colour245
+set-option -g pane-active-border-fg colour240
+
+# message text
+set-option -g message-bg colour234
+set-option -g message-fg colour124
+
+# pane number display
+set-option -g display-panes-active-colour colour33
+set-option -g display-panes-colour colour166
+
+# clock
+set-window-option -g clock-mode-colour colour39
+# 
+set -g status-left-length 32
+set -g status-right-length 150
+set -g status-interval 5
+set -g window-status-format "#[fg=colour239,bg=colour234] #I #W "
+set -g window-status-current-format "#[fg=colour234,bg=colour39]⮀#[fg=colour16,bg=colour39,noreverse,bold] #I ⮁ #W #[fg=colour39,bg=colour234,nobold]⮀"
+set -g status-left '#[fg=colour39,bg=colour234,bold] #S'
+set -g status-right '#[fg=colour245]⮃ %R ⮃ %d %b #[fg=colour39,bg=colour234,bold] #h '
+
