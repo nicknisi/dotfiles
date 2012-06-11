@@ -32,7 +32,9 @@ end
 desc "create all the symlinks"
 task :install do
   linkables do |linkable, file, target|
-    `ln -s "$PWD/#{linkable}" "#{target}"`
+    unless File.exists?(target)
+      `ln -s "$PWD/#{linkable}" "#{target}"`
+    end
   end
 end
 
