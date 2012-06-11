@@ -126,7 +126,8 @@ set background=dark
 "colorscheme solarized
 colorscheme smyck
 
-set number " show line numbers
+" set number " show line numbers
+set relativenumber " show relative line numbers
 
 set wrap " turn on line wrapping
 "set nowrap "turn off line wrapping
