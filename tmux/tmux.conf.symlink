@@ -98,7 +98,7 @@ set-option -g pane-active-border-fg colour240
 
 # message text
 set-option -g message-bg colour234
-set-option -g message-fg colour124
+set-option -g message-fg colour39
 
 # pane number display
 set-option -g display-panes-active-colour colour33
