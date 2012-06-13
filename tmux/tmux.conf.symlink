@@ -106,12 +106,26 @@ set-option -g display-panes-colour colour166
 
 # clock
 set-window-option -g clock-mode-colour colour39
-# 
+
+##################
+#### Plugins #####
+##################
+
+# current Spotify track
+spotify_track='#[fg=colour82]#(osascript ~/.dotfiles/bin/spotify.applescript)'
+# current iTunes track
+itunes_track='#[fg=colour27]#(osascript ~/.dotfiles/bin/itunes.applescript)'
+
+tm_date='#[fg=colour245]⮃ %R ⮃ %d %b'
+tm_host='#[fg=colour39,bg=colour234,bold]#h'
+
 set -g status-left-length 32
 set -g status-right-length 150
 set -g status-interval 5
 set -g window-status-format "#[fg=colour239,bg=colour234] #I #W "
+
+
 set -g window-status-current-format "#[fg=colour234,bg=colour39]⮀#[fg=colour16,bg=colour39,noreverse,bold] #I ⮁ #W #[fg=colour39,bg=colour234,nobold]⮀"
 set -g status-left '#[fg=colour39,bg=colour234,bold] #S'
-set -g status-right '#[fg=colour82]#(osascript ~/.dotfiles/bin/spotify.applescript) #[fg=colour245]⮃ %R ⮃ %d %b #[fg=colour39,bg=colour234,bold] #h '
+set -g status-right $itunes_track' '$spotify_track' '$tm_date' '$tm_host
 
