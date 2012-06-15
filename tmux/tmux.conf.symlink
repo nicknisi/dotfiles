@@ -47,10 +47,10 @@ bind -r K resize-pane -U 10
 bind -r L resize-pane -R 10
 
 # enable mouse mode
-setw -g mode-mouse on
-set -g mouse-select-pane on
-set -g mouse-resize-pane on
-set -g mouse-select-window on
+setw -g mode-mouse off
+set -g mouse-select-pane off
+set -g mouse-resize-pane off
+set -g mouse-select-window off
 
 # tmux display things in 256 colors
 set -g default-terminal "screen-256color"
