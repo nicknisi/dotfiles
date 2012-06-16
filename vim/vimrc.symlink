@@ -331,3 +331,11 @@ let g:ctrlp_custom_ignore = '\.git$|\.hg$|\.svn$'
 if filereadable(glob("~/.vimrc.local"))
     source ~/.vimrc.local
 endif
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => Local, Per Project vimrc
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+if filereadable(".vimrc.local")
+    source ./.vimrc.local
+endif
