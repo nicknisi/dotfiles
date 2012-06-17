@@ -1,3 +1,8 @@
+# tmux display things in 256 colors
+set -g default-terminal "screen-256color"
+
+set -g history-limit 20000
+
 # unbind default prefix and set it to Ctrl+a
 unbind C-b
 set -g prefix C-a
@@ -9,8 +14,12 @@ bind C-a send-prefix
 # make delay shorter
 set -sg escape-time 0
 
+# tile all windows
+unbind =
+bind = select-layout tiled
+
 # cycle through panes
-unbind ^A
+unbind C-a
 unbind o # this is the default key for cycling panes
 bind ^A select-pane -t:.+
 
@@ -56,9 +65,6 @@ setw -g mode-mouse off
 set -g mouse-select-pane off
 set -g mouse-resize-pane off
 set -g mouse-select-window off
-
-# tmux display things in 256 colors
-set -g default-terminal "screen-256color"
 
 # maximizing and restoring windows
 unbind Up
