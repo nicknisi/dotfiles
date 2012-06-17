@@ -132,7 +132,7 @@ tm_host='#[fg=colour39,bg=colour234,bold]#h'
 
 set -g status-left-length 32
 set -g status-right-length 150
-set -g status-interval 5
+set -g status-interval 20
 set -g window-status-format "#[fg=colour239,bg=colour234] #I #W "
 
 

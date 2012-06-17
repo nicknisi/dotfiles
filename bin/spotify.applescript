@@ -5,7 +5,7 @@ if application "Spotify" is running then
     set theAlbum to album of the current track
     set theUrl to spotify url of the current track
     try
-      return theName & " - " & theArtist
+      return "♫ " & theName & " - " & theArtist
     on error err
     end try
   end tell
