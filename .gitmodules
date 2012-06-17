@@ -34,9 +34,6 @@
 [submodule "vim/vim.symlink/bundle/vim-ruby"]
 	path = vim/vim.symlink/bundle/vim-ruby
 	url = https://github.com/vim-ruby/vim-ruby.git
-[submodule "vim/vim.symlink/bundle/jshint"]
-	path = vim/vim.symlink/bundle/jshint
-	url = https://github.com/manalang/jshint.vim.git
 [submodule "vim/vim.symlink/bundle/ctrlp"]
 	path = vim/vim.symlink/bundle/ctrlp
 	url = https://github.com/kien/ctrlp.vim.git
