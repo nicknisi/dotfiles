@@ -28,7 +28,7 @@ need_push() {
   then
     echo " "
   else
-    echo " with %{$fg_bold[magenta]%}☁%{$reset_color%} "
+    echo " %{$fg_bold[magenta]%}☁%{$reset_color%} "
   fi
 }
 
