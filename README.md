@@ -67,3 +67,7 @@ Then, if you would like to restore your previous configuration, run the restore 
 ## ZSH Plugins
 
 By default, the *.zshrc* file will source any file within .dotfiles that has the *".zsh"* suffix.
+
+## Vim Per Machine and Per Project Configuration
+
+The vimrc in this project will check for the existence of a `~/.vimrc.local`, as well as a `./.vimrc.project` allowing per-machine and per-project vim configurations.

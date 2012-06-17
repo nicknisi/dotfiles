@@ -336,6 +336,6 @@ endif
 " => Local, Per Project vimrc
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-if filereadable(".vimrc.local")
+if filereadable(".vimrc.project")
     source ./.vimrc.local
 endif
