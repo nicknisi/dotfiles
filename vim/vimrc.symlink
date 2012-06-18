@@ -337,5 +337,5 @@ endif
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 if filereadable(".vimrc.project")
-    source ./.vimrc.local
+    source .vimrc.project
 endif
