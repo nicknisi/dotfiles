@@ -15,8 +15,6 @@ These are my dotfiles, which contain my custom system configuration preferences.
 
 ## Install
 
-The organization of this project is similar to [Zach Holman's ](http://github.com/holman/dotfiles) setup.
-
 ### Automatic Installation
 
 	curl -L https://raw.github.com/nicknisi/dotfiles/master/tools/install.sh | sh
