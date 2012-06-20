@@ -2,6 +2,8 @@
 
 These are my dotfiles, which contain my custom system configuration preferences. 
 
+![dotfiles](http://nicknisi.com/images/dotfiles.png)
+
 ## Contents
 
 + zsh configuration
