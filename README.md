@@ -2,7 +2,7 @@
 
 These are my dotfiles, which contain my custom system configuration preferences. 
 
-![dotfiles](http://nicknisi.com/images/dotfiles.png)
+![dotfiles](https://github.com/nicknisi/dotfiles/raw/master/dotfiles.png)
 
 ## Contents
 
