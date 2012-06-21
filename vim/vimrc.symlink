@@ -31,10 +31,6 @@ set shiftwidth=4
 set tabstop=4
 set softtabstop=4
 
-"set notimeout
-"set ttimeout
-"set ttimeoutlen=10
-
 " faster redrawing
 set ttyfast
 
@@ -56,9 +52,10 @@ if has("autocmd")
     autocmd FileType jade setlocal ts=2 sts=2 sw=2 noexpandtab
     "autocmd WinEnter * setlocal cursorline
     "autocmd WinLeave * setlocal nocursorline
+
     " automatically resize panes on resize
     autocmd VimResized * exe "normal! \<c-w>="
-    "autocmd BufWritePost .vimrc source $MYVIMRC
+    autocmd BufWritePost .vimrc source $MYVIMRC
     " save all files on focus lost, ignoring warnings about untitled buffers
     autocmd FocusLost * silent! wa
     autocmd BufNewFile,BufRead *.json set filetype=javascript
@@ -116,15 +113,6 @@ set tm=500
 syntax on
 
 set background=dark
-"colorscheme jellybeans
-"colorscheme xorium
-"colorscheme molokai
-"colorscheme ir_black
-"colorscheme mango
-"colorscheme mustang
-"colorscheme vividchalk
-"colorscheme desert
-"colorscheme solarized
 colorscheme smyck
 
 " set number " show line numbers
@@ -145,8 +133,6 @@ try
 catch
 endtry
 
-" set ffs=unix,mac,dos "default file types
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Files, backups, and undo
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -163,12 +149,8 @@ set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 set laststatus=2 " show the satus line all the time
 
-"set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ %{fugitive#statusline()}\ Dir:%r%{CurDir()}%h\ \ \ Line:%l/%L\ Column:%c
-" set statusline=[%n]\ %<%.99f\ %h%w%m%r%y\ %{fugitive#statusline()}%=%-16(\ %l:%L,\ %c-%v\ %)%P
-function! CurDir()
-    let curdir = getcwd()
-    return curdir
-endfunction
+" the status line is set by the powerline plugin
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Mappings
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -185,6 +167,9 @@ nmap <leader>, :w<cr>
 
 " set paste toggle
 set pastetoggle=<F6>
+
+" toggle paste
+map <leader>v :set paste!<cr>
 
 " edit ~/.vimrc
 map <leader>e :e! ~/.vimrc<cr>
@@ -204,26 +189,12 @@ vmap <leader>] >gv
 nmap <leader>[ <<
 nmap <leader>] >>
 
-" easier begin/end nav map
-"noremap HH ^
-"noremap LL $
-
 " buffer shortcuts
 nmap <leader>n :bn<cr> " go to next buffer
 nmap <leader>p :bp<cr> " go to prev buffer
 nmap <leader>q :bd<cr> " close the current buffer
 " switch between current and last buffer
 nmap <leader>. <c-^>
-
-" disable arrow keys (forced learning)
-"noremap <Up> ""
-"noremap! <Up> <Esc>
-"noremap <Down> ""
-"noremap! <Down> <Esc>
-"noremap  <Left> ""
-"noremap! <Left> <Esc>
-"noremap  <Right> ""
-"noremap! <Right> <Esc>
 
 " Window movement shortcuts
 " move to the window in the direction shown, or create a new window
@@ -247,12 +218,6 @@ map <silent> <C-l> :call WinMove('l')<cr>
 
 map <leader>wc :wincmd q<cr>
 
-" window movement shortcuts
-"map <C-h> <C-w>h " go to window left
-"map <C-j> <C-w>j " go to window down
-"map <C-k> <C-w>k " go to window up
-"map <C-l> <C-w>l " go to window right
-
 " equalize windows
 map <leader>= <C-w>=
 
@@ -264,19 +229,6 @@ map <leader>es :sp %%
 map <leader>ev :vsp %%
 map <leader>et :tabe %%
 
-" Moving shortcuts
-" Instead of pressing g$, press command
-" vmap <D-j> gj
-" vmap <D-k> gk
-" vmap <D-4> g$
-" vmap <D-6> g^
-" vmap <D-0> g^
-" nmap <D-j> gj
-" nmap <D-k> gk
-" nmap <D-4> g$
-" nmap <D-6> g^
-" nmap <D-0> g^
-
 " toggle cursor line
 nnoremap <leader>i :set cursorline!<cr>
 
@@ -287,9 +239,6 @@ nnoremap <C-y> 3<C-y>
 " moving up and down work as you would expect
 nnoremap <silent> j gj
 nnoremap <silent> k gk
-
-" toggle paste
-map <leader>v :set paste!<cr>
 
 function! ToggleNuMode()
     if (&rnu == 1)
