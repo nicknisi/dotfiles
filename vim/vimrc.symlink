@@ -162,7 +162,7 @@ nnoremap K :q<cr>
 
 " remap esc and disable to force learning
 inoremap jk <esc>
-inoremap <esc> <nop>
+" inoremap <esc> <nop>
 
 " remove extra whitespace
 nmap <leader><space> :%s/\s\+$<cr>

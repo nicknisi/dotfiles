@@ -82,3 +82,6 @@
 [submodule "vim/vim.symlink/bundle/vim-html5"]
 	path = vim/vim.symlink/bundle/vim-html5
 	url = https://github.com/othree/html5.vim.git
+[submodule "vim/vim.symlink/bundle/vim-matchit"]
+	path = vim/vim.symlink/bundle/vim-matchit
+	url = https://github.com/tsaleh/vim-matchit.git
