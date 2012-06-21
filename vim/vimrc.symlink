@@ -160,6 +160,10 @@ set laststatus=2 " show the satus line all the time
 "
 nnoremap K :q<cr>
 
+" remap esc and disable to force learning
+inoremap jk <esc>
+inoremap <esc> <nop>
+
 " remove extra whitespace
 nmap <leader><space> :%s/\s\+$<cr>
 
