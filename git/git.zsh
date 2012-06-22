@@ -20,7 +20,3 @@ function git_rename() {
     git mv $1 "${2}-"
     git mv "${2}-" $2
 }
-
-if which hub &> /dev/null; then
-    eval "$(hub alias -s)"
-fi
