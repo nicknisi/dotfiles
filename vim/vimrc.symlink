@@ -276,6 +276,13 @@ nmap <silent> <leader>r :CtrlPBuffer<cr>
 " CtrlP ignore patterns
 let g:ctrlp_custom_ignore = '\.git$|\.hg$|\.svn$'
 
+" vim-fugitive mappings
+nmap <leader>gb :Gblame<cr>
+nmap <leader>gw :Gwrite<cr>
+nmap <leader>gr :Gread<cr>
+nmap <leader>gc :Gcommit<cr>
+nmap <leader>gbr :Gbrowse<cr>
+nmap <leader>gd :Gdiff<cr>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Local vimrc
