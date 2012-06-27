@@ -113,7 +113,7 @@ set tm=500
 syntax on
 
 set background=dark
-colorscheme ir_black
+colorscheme smyck
 
 " set number " show line numbers
 set relativenumber " show relative line numbers
