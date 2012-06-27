@@ -89,7 +89,7 @@ bind -t vi-copy 'y' copy-selection
 #### COLOUR
 
 # default statusbar colors
-set-option -g status-bg colour0
+set-option -g status-bg colour234
 set-option -g status-fg colour39
 set-option -g status-attr default
 
@@ -108,7 +108,7 @@ set-option -g pane-border-fg colour245
 set-option -g pane-active-border-fg colour240
 
 # message text
-set-option -g message-bg colour0
+set-option -g message-bg colour234
 set-option -g message-fg colour39
 
 # pane number display
@@ -128,15 +128,15 @@ spotify_track='#[fg=colour82]#(osascript ~/.dotfiles/bin/spotify.applescript)'
 itunes_track='#[fg=colour27]#(osascript ~/.dotfiles/bin/itunes.applescript)'
 
 tm_date='#[fg=colour245]⮃ %R ⮃ %d %b'
-tm_host='#[fg=colour39,bg=colour0,bold]#h'
+tm_host='#[fg=colour39,bg=colour234,bold]#h'
 
 set -g status-left-length 32
 set -g status-right-length 150
 set -g status-interval 20
-set -g window-status-format "#[fg=colour239,bg=colour0] #I #W "
+set -g window-status-format "#[fg=colour239,bg=colour234] #I #W "
 
 
-set -g window-status-current-format "#[fg=colour0,bg=colour39]⮀#[fg=colour16,bg=colour39,noreverse,bold] #I ⮁ #W #[fg=colour39,bg=colour0,nobold]⮀"
-set -g status-left '#[fg=colour39,bg=colour0,bold] #S'
+set -g window-status-current-format "#[fg=colour234,bg=colour39]⮀#[fg=colour16,bg=colour39,noreverse,bold] #I ⮁ #W #[fg=colour39,bg=colour234,nobold]⮀"
+set -g status-left '#[fg=colour39,bg=colour234,bold] #S'
 set -g status-right $itunes_track' '$spotify_track' '$tm_date' '$tm_host
 
