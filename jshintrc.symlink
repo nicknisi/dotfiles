@@ -32,7 +32,7 @@
     "noempty": false,
     "nonew": false,
     "nomen": false,
-    "onevar": true,
+    "onevar": false,
     "plusplus": false,
     "regexp": false,
     "undef": true,
