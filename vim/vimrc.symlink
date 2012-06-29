@@ -246,9 +246,9 @@ nnoremap <silent> k gk
 
 function! ToggleNuMode()
     if (&rnu == 1)
-        set nu
+        setlocal nu
     else
-        set rnu
+        setlocal rnu
     endif
 endfunction
 
