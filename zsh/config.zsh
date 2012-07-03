@@ -27,3 +27,6 @@ bindkey '^[[5C' end-of-line
 bindkey '^[[3~' delete-char
 bindkey '^[^N' newtab
 bindkey '^?' backward-delete-char
+
+fpath=($ZSH/zsh/functions $fpath)
+autoload -U $ZSH/zsh/functions/*(:t)

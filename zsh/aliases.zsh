@@ -1,3 +1,6 @@
+# reload zsh config
+alias reload!='source ~/.zshrc'
+
 # Filesystem aliases
 alias ..='cd ..'
 alias ...='cd ../..'

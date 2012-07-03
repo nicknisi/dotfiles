@@ -1,5 +1,7 @@
 export ZSH=$HOME/.dotfiles
 
+export PROJECTS=~/projects
+
 if [[ -d ~/gitprojects ]]; then
     export PROJECTS=~/gitprojects
 else
@@ -13,14 +15,12 @@ if [[ -a ~/.localrc ]]; then
     source ~/.localrc
 fi
 
-# reload zsh config
-alias reload!='source ~/.zshrc'
 
 # initialize autocomplete
 autoload -U compinit
 compinit
 
-# for config ($ZSH/**/completion.sh) source $config
+for config ($ZSH/**/completion.sh) source $config
 
 export EDITOR='vim'
 

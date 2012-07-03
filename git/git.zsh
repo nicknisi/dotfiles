@@ -15,9 +15,10 @@ alias grn='git_rename'
 alias glog="git log --graph --pretty=format:'%Cred%h%Creset %an: %s - %Creset %C(yellow)%d%Creset %Cgreen(%cr)%Creset' --abbrev-commit --date=relative"
 
 alias sub-pull='git submodule foreach git pull origin master'
+
 # a simple git rename file function
 # git does not track case-sensitive changes to a filename.
-function git_rename() {
+function git-rename() {
     git mv $1 "${2}-"
     git mv "${2}-" $2
 }
