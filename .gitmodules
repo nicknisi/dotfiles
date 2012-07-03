@@ -49,9 +49,6 @@
 [submodule "vim/vim.symlink/bundle/vim-less"]
 	path = vim/vim.symlink/bundle/vim-less
 	url = https://github.com/groenewege/vim-less.git
-[submodule "vim/vim.symlink/bundle/ZoomWin"]
-	path = vim/vim.symlink/bundle/ZoomWin
-	url = https://github.com/vim-scripts/ZoomWin.git
 [submodule "vim/vim.symlink/bundle/vitality"]
 	path = vim/vim.symlink/bundle/vitality
 	url = https://github.com/sjl/vitality.vim.git
