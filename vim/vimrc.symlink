@@ -3,6 +3,7 @@
 " Pathogen
 " loads all plugins places in the ~/.vim/bundle directory
 runtime bundle/vim-pathogen/autoload/pathogen.vim
+let g:pathogen_disabled=[]
 call pathogen#infect()
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
