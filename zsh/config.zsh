@@ -6,18 +6,20 @@ setopt LOCAL_TRAPS
 #setopt IGNORE_EOF
 setopt PROMPT_SUBST
 
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+
 # history
 setopt HIST_VERIFY
 setopt EXTENDED_HISTORY
 setopt HIST_REDUCE_BLANKS
+setopt SHARE_HISTORY
 setopt HIST_IGNORE_ALL_DUPS
 setopt INC_APPEND_HISTORY SHARE_HISTORY
 setopt APPEND_HISTORY
 
 setopt COMPLETE_ALIASES
-
-#export PS1='%3~ ☠ '
-#export PS1='%3~$(git_info_for_prompt) ☠ '
 
 # make terminal command navigation sane again
 bindkey '^[^[[D' backward-word

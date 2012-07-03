@@ -1,7 +1,5 @@
 export ZSH=$HOME/.dotfiles
 
-export PROJECTS=~/projects
-
 if [[ -d ~/gitprojects ]]; then
     export PROJECTS=~/gitprojects
 else
