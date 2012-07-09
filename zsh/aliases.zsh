@@ -20,3 +20,4 @@ alias rake="noglob rake"
 
 # Applications
 alias mou='open -a Mou.app'
+alias mark='open -a Marked.app'
