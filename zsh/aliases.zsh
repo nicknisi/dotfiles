@@ -21,3 +21,4 @@ alias rake="noglob rake"
 # Applications
 alias mou='open -a Mou.app'
 alias mark='open -a Marked.app'
+alias ios='open -a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app'
