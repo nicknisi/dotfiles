@@ -275,7 +275,13 @@ nmap <silent> <leader>t :CtrlP<cr>
 nmap <silent> <leader>r :CtrlPBuffer<cr>
 
 " CtrlP ignore patterns
-let g:ctrlp_custom_ignore = '\.git$|\.hg$|\.svn$'
+let g:ctrlp_custom_ignore = {
+    \ 'dir': '\.git$\|node_modules$\|\.hg$\|\.svn$',
+    \ 'file': '\.exe$\|\.so$'
+\ }
+
+" search the nearest ancestor that contains .git, .hg, .svn
+let g:ctrlp_working_path_mode = 2
 
 " vim-fugitive mappings
 nmap <leader>gb :Gblame<cr>
