@@ -263,7 +263,7 @@ nnoremap <leader>/ :call ToggleNuMode()<cr>
 " must have modified font installed to enable fancy
 " let g:Powerline_symbols = 'fancy'
 
-let g:Powerline_stl_path_style = 'filename'
+" let g:Powerline_stl_path_style = 'filename'
 
 " Toggle NERDTree
 nmap <silent> <leader>k :NERDTreeToggle<cr>
