@@ -90,7 +90,7 @@ bind -t vi-copy 'y' copy-selection
 
 # default statusbar colors
 set-option -g status-bg colour234
-set-option -g status-fg colour39
+set-option -g status-fg colour26
 set-option -g status-attr default
 
 # default window title colors
@@ -99,7 +99,7 @@ set-window-option -g window-status-bg default
 #set-window-option -g window-status-attr dim
 
 # active window title colors
-set-window-option -g window-status-current-fg colour39
+set-window-option -g window-status-current-fg colour26
 set-window-option -g window-status-current-bg default
 #set-window-option -g window-status-current-attr bright
 
@@ -109,26 +109,26 @@ set-option -g pane-active-border-fg colour240
 
 # message text
 set-option -g message-bg colour234
-set-option -g message-fg colour39
+set-option -g message-fg colour26
 
 # pane number display
 set-option -g display-panes-active-colour colour33
 set-option -g display-panes-colour colour166
 
 # clock
-set-window-option -g clock-mode-colour colour39
+set-window-option -g clock-mode-colour colour26
 
 ##################
 #### Plugins #####
 ##################
 
 # current Spotify track
-spotify_track='#[fg=colour82]#(osascript ~/.dotfiles/bin/spotify.applescript)'
+spotify_track='#[fg=colour2]#(osascript ~/.dotfiles/bin/spotify.applescript)'
 # current iTunes track
 itunes_track='#[fg=colour27]#(osascript ~/.dotfiles/bin/itunes.applescript)'
 
 tm_date='#[fg=colour245]⮃ %R ⮃ %d %b'
-tm_host='#[fg=colour39,bg=colour234,bold]#h'
+tm_host='#[fg=colour45,bg=colour234,bold]#h'
 
 set -g status-left-length 32
 set -g status-right-length 150
@@ -136,7 +136,7 @@ set -g status-interval 20
 set -g window-status-format "#[fg=colour239,bg=colour234] #I #W "
 
 
-set -g window-status-current-format "#[fg=colour234,bg=colour39]⮀#[fg=colour16,bg=colour39,noreverse,bold] #I ⮁ #W #[fg=colour39,bg=colour234,nobold]⮀"
-set -g status-left '#[fg=colour39,bg=colour234,bold] #S'
+set -g window-status-current-format "#[fg=colour234,bg=colour26]⮀#[fg=colour16,bg=colour26,noreverse,bold] #I ⮁ #W #[fg=colour26,bg=colour234,nobold]⮀"
+set -g status-left '#[fg=colour26,bg=colour234,bold] #S'
 set -g status-right $itunes_track' '$spotify_track' '$tm_date' '$tm_host
 
