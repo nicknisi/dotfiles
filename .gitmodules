@@ -82,3 +82,6 @@
 [submodule "vim/vim.symlink/bundle/vim-commentary"]
 	path = vim/vim.symlink/bundle/vim-commentary
 	url = https://github.com/tpope/vim-commentary.git
+[submodule "vim/vim.symlink/bundle/vim-ack"]
+	path = vim/vim.symlink/bundle/vim-ack
+	url = https://github.com/mileszs/ack.vim.git
