@@ -58,9 +58,6 @@
 [submodule "vim/vim.symlink/bundle/vim-rails"]
 	path = vim/vim.symlink/bundle/vim-rails
 	url = https://github.com/tpope/vim-rails.git
-[submodule "vim/vim.symlink/bundle/tcomment_vim"]
-	path = vim/vim.symlink/bundle/tcomment_vim
-	url = https://github.com/tomtom/tcomment_vim.git
 [submodule "vim/vim.symlink/bundle/vim-pathogen"]
 	path = vim/vim.symlink/bundle/vim-pathogen
 	url = https://github.com/tpope/vim-pathogen.git
@@ -82,3 +79,6 @@
 [submodule "vim/vim.symlink/bundle/vim-surround"]
 	path = vim/vim.symlink/bundle/vim-surround
 	url = https://github.com/tpope/vim-surround.git
+[submodule "vim/vim.symlink/bundle/vim-commentary"]
+	path = vim/vim.symlink/bundle/vim-commentary
+	url = https://github.com/tpope/vim-commentary.git
