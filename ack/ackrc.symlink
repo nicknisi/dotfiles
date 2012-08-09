@@ -8,3 +8,6 @@
 
 # ignore directories
 --ignore-dir=node_modules
+
+# added file types
+--type-set=less=.less
