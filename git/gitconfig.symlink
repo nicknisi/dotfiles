@@ -7,7 +7,7 @@
     co = checkout
     s = status --short
     ss  = status
-    br = branch
+    br = branch -v
     # show a pretty log graph
     lg = log --graph --pretty=oneline --abbrev-commit --decorate
     # show files that have changed between two branches (git dbr master..branch)
