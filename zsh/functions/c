@@ -1,1 +1,1 @@
-cd $PROJECTS/$1
+cd $CODE_DIR/$1

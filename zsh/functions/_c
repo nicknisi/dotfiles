@@ -1,2 +1,2 @@
 #compdef c
-_files -W $PROJECTS -/
+_files -W $CODE_DIR -/

@@ -1,9 +1,9 @@
 export ZSH=$HOME/.dotfiles
 
 if [[ -d ~/gitprojects ]]; then
-    export PROJECTS=~/gitprojects
+    export CODE_DIR=~/gitprojects
 else
-    export PROJECTS=~/projects
+    export CODE_DIR=~/projects
 fi
 
 # load all zsh config files
