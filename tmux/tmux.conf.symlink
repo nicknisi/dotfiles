@@ -141,8 +141,8 @@ itunes_track='#[fg=colour27]#(osascript ~/.dotfiles/bin/itunes.applescript)'
 # current Rdio track
 rdio_track='#[fg=colour127]#(osascript ~/.dotfiles/bin/rdio.applescript)'
 
-tm_date='#[fg=colour245]⮃ %R ⮃ %d %b'
-tm_host='#[fg=colour45,bg=colour234,bold]#h'
+tm_date='#[fg=colour245] %R  %d %b'
+tm_host='#[fg=colour198,bg=colour234,bold]#h'
 
 set -g status-left-length 32
 set -g status-right-length 150
@@ -150,7 +150,7 @@ set -g status-interval 20
 set -g window-status-format "#[fg=colour239,bg=colour234] #I #W "
 
 
-set -g window-status-current-format "#[fg=colour234,bg=colour26]⮀#[fg=colour16,bg=colour26,noreverse,bold] #I ⮁ #W #[fg=colour26,bg=colour234,nobold]⮀"
-set -g status-left '#[fg=colour26,bg=colour234,bold] #S'
-set -g status-right $itunes_track' '$spotify_track' '$rdio_track' '$tm_date' '$tm_host
+set -g window-status-current-format "#[fg=colour234,bg=colour26]#[fg=colour16,bg=colour26,noreverse,bold] #I  #W #[fg=colour26,bg=colour234,nobold]"
+set -g status-left '#[fg=colour198,bg=colour234,bold] #S'
+set -g status-right $itunes_track' '$spotify_track' '$tm_date' '$tm_host
 
