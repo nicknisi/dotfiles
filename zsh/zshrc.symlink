@@ -28,6 +28,11 @@ if [[ -d ~/.rvm ]]; then
     source ~/.rvm/scripts/rvm
 fi
 
+# add /usr/local/sbin
+if [[ -d /usr/local/sbin ]]; then
+    export PATH=/usr/local/sbin:$PATH
+fi
+
 # check for custom bin directory and add to path
 if [[ -d ~/bin ]]; then
     export PATH=~/bin:$PATH
