@@ -134,9 +134,9 @@ set-window-option -g clock-mode-colour colour26
 #### Plugins #####
 ##################
 
-tm_spotify_track='#[fg=colour2]#(osascript ~/.dotfiles/bin/spotify.applescript)'
-tm_itunes_track='#[fg=colour27]#(osascript ~/.dotfiles/bin/itunes.applescript)'
-tm_rdio_track='#[fg=colour127]#(osascript ~/.dotfiles/bin/rdio.applescript)'
+tm_spotify_track='#[fg=colour2]#(osascript ~/.dotfiles/bin/spotify.scpt)'
+tm_itunes_track='#[fg=colour27]#(osascript ~/.dotfiles/bin/itunes.scpt)'
+tm_rdio_track='#[fg=colour127]#(osascript ~/.dotfiles/bin/rdio.scpt)'
 
 tm_date='#[fg=colour245] %R  %d %b'
 tm_host='#[fg=colour198,bg=colour232,bold]#h'
