@@ -114,7 +114,7 @@ set tm=500
 syntax on
 
 set background=dark
-colorscheme ir_whack
+colorscheme ir-whack
 
 " set number " show line numbers
 set relativenumber " show relative line numbers

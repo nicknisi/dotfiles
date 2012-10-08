@@ -85,3 +85,6 @@
 [submodule "vim/vim.symlink/bundle/vim-ack"]
 	path = vim/vim.symlink/bundle/vim-ack
 	url = https://github.com/mileszs/ack.vim.git
+[submodule "vim/vim.symlink/bundle/ir-whack"]
+	path = vim/vim.symlink/bundle/ir-whack
+	url = git@github.com:nicknisi/ir-whack.git
