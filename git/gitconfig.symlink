@@ -31,6 +31,8 @@
 
     # 'diff grep'
     dg = "!sh -c 'git ls-files -m | grep $1 | xargs git diff' -"
+    # diff grep changes between two commits
+    dgc = "!sh -c 'git ls-files -m | grep $1 | xargs git diff $2 $3 -- ' -"
     # 'checkout grep'
     cg = "!sh -c 'git ls-files -m | grep $1 | xargs git checkout ' -"
     # add grep
