@@ -9,5 +9,8 @@ defaults write com.apple.terminal StringEncodings -array 4
 # expand save dialog by default
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
 
+# show the ~/Library folder in Finder
+chflags nohidden ~/Library
+
 # disable resume system wide
 # defaults write NSGlobalDomainNSQuitAlwaysKeepWindows -bool false
