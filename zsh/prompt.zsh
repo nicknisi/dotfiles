@@ -38,9 +38,18 @@ need_push() {
   fi
 }
 
+suspended_jobs() {
+    sj=$(jobs 2>/dev/null | tail -n 1)
+    if [[ $sj == "" ]]; then
+        echo ""
+    else
+        echo "%{$FG[208]%}✱%{$reset_color%}"
+    fi
+}
+
 directory_name(){
   echo "%{$fg_bold[cyan]%}%1/%\/%{$reset_color%}"
 }
 
 export PROMPT=$'%{$FG[199]%}♥%{$reset_color%} $(directory_name) %{$fg_bold[magenta]%}➜%{$reset_color%} '
-export RPROMPT=$'$(git_dirty)$(need_push)'
+export RPROMPT=$'$(git_dirty)$(need_push)$(suspended_jobs)'
