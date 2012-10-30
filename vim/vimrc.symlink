@@ -255,6 +255,14 @@ endfunction
 
 nnoremap <leader>/ :call ToggleNuMode()<cr>
 
+nmap <leader>s :call <SID>SynStack()<cr>
+function <SID>SynStack()
+    if !exists("*synstack")
+        return
+    endif
+    echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+endfunction
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Plugins
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
