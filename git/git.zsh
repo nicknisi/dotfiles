@@ -14,7 +14,15 @@ alias grm='git rm'
 alias grn='git-rename'
 alias glog="git log --graph --pretty=format:'%Cred%h%Creset %an: %s - %Creset %C(yellow)%d%Creset %Cgreen(%cr)%Creset' --abbrev-commit --date=relative"
 
+alias git-amend='git commit --amend -C HEAD'
+alias git-undo='git reset --soft HEAD~1'
+alias git-count='git shortlog -sn'
+
 alias sub-pull='git submodule foreach git pull origin master'
+
+funciton get-credit() {
+    git commit --amend --author $1 <$2> -C HEAD
+}
 
 # a simple git rename file function
 # git does not track case-sensitive changes to a filename.
