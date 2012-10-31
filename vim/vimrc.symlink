@@ -221,6 +221,11 @@ map <silent> <C-j> :call WinMove('j')<cr>
 map <silent> <C-k> :call WinMove('k')<cr>
 map <silent> <C-l> :call WinMove('l')<cr>
 
+" nnoremap <C-S-H> :vertical resize -5<cr>
+" nnoremap <C-S-J> :resize +5<cr>
+" nnoremap <C-S-K> :resize -5<cr>
+" nnoremap <C-S-L> :vertical resize +5<cr>
+
 map <leader>wc :wincmd q<cr>
 
 " equalize windows
