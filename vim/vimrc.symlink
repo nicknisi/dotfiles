@@ -304,9 +304,6 @@ nmap <leader>gc :Gcommit<cr>
 nmap <leader>gbr :Gbrowse<cr>
 nmap <leader>gd :Gdiff<cr>
 
-" toggle syntastic syntax checking
-nmap <leader>o :SyntasticToggleMode<cr>
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Local vimrc
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
