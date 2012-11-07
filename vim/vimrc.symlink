@@ -296,14 +296,6 @@ let g:ctrlp_custom_ignore = {
 " search the nearest ancestor that contains .git, .hg, .svn
 let g:ctrlp_working_path_mode = 2
 
-" vim-fugitive mappings
-nmap <leader>gb :Gblame<cr>
-nmap <leader>gw :Gwrite<cr>
-nmap <leader>gr :Gread<cr>
-nmap <leader>gc :Gcommit<cr>
-nmap <leader>gbr :Gbrowse<cr>
-nmap <leader>gd :Gdiff<cr>
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Local vimrc
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

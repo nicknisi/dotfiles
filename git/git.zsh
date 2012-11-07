@@ -17,13 +17,13 @@ alias glog="git log --graph --pretty=format:'%Cred%h%Creset %an: %s - %Creset %C
 alias git-amend='git commit --amend -C HEAD'
 alias git-undo='git reset --soft HEAD~1'
 alias git-count='git shortlog -sn'
-alias undopush="git push -f origin HEAD^:master"
+alias git-undopush="git push -f origin HEAD^:master"
 # git root
 alias gr='[ ! -z `git rev-parse --show-cdup` ] && cd `git rev-parse --show-cdup || pwd`'
 
 alias sub-pull='git submodule foreach git pull origin master'
 
-funciton give-credit() {
+function give-credit() {
     git commit --amend --author $1 <$2> -C HEAD
 }
 

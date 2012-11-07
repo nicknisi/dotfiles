@@ -27,6 +27,12 @@
     si = submodule init
     su = submodule update
 
+    # show number of commits per contributer, sorted
+    count = shortlog -sn
+
+    undo = reset --soft HEAD~1
+    amend = git commit --amend -C HEAD
+
     # grep commands
 
     # 'diff grep'
