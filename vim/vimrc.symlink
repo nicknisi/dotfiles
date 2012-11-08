@@ -260,6 +260,7 @@ endfunction
 
 nnoremap <leader>/ :call ToggleNuMode()<cr>
 
+" find out what syntax stack a statement belongs to
 nmap <leader>s :call <SID>SynStack()<cr>
 function <SID>SynStack()
     if !exists("*synstack")
@@ -267,6 +268,25 @@ function <SID>SynStack()
     endif
     echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
 endfunction
+
+function! ApplyLocalSettings(dirname)
+    " convert windows paths to unix style
+    let l:curDir = substitute(a:dirname, "\\", "/", "g")
+
+    " walk to the top of the dir tree
+    let l:parentDir = strpart(l:curDir, 0, strridx(l:curDir, "/"))
+    if isdirectory(l:parentDir)
+        call ApplyLocalSettings(l:parentDir)
+    endif
+
+    " now walk back down the path and source .vimsettings as you find them.
+    " child directories can inherit from their parents
+    let l:settingsFile = a:dirname . "/.vimrc.local"
+    if filereadable(l:settingsFile)
+        exec ":source" . l:settingsFile
+    endif
+endfunction
+autocmd! BufEnter * call ApplyLocalSettings(expand("<afile>:p:h"))
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Plugins
@@ -295,19 +315,3 @@ let g:ctrlp_custom_ignore = {
 
 " search the nearest ancestor that contains .git, .hg, .svn
 let g:ctrlp_working_path_mode = 2
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Local vimrc
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" load a custom, per machine vimrc if available
-if filereadable(glob("~/.vimrc.local"))
-    source ~/.vimrc.local
-endif
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Local, Per Project vimrc
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-if filereadable(".vimrc.project")
-    source .vimrc.project
-endif
