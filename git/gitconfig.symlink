@@ -10,6 +10,8 @@
     br = branch -v
     # show a pretty log graph
     lg = log --graph --pretty=oneline --abbrev-commit --decorate
+    # slight variation of pretty log graph
+    l = log --graph --pretty=format:'%Cred%h%Creset %an: %s - %Creset %C(yellow)%d%Creset %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
     # show files that have changed between two branches (git dbr master..branch)
     dbr = diff --name-status
     # show diff of cached files
