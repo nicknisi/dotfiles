@@ -82,3 +82,6 @@
 [submodule "vim/vim.symlink/bundle/ir-whack"]
 	path = vim/vim.symlink/bundle/ir-whack
 	url = git@github.com:nicknisi/ir-whack.git
+[submodule "vim/vim.symlink/bundle/scratch"]
+	path = vim/vim.symlink/bundle/scratch
+	url = git://github.com/vim-scripts/scratch.vim.git
