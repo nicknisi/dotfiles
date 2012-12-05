@@ -12,9 +12,9 @@ git_dirty() {
   else
     if [[ $st == "nothing to commit (working directory clean)" ]]
     then
-      echo "%{$fg_bold[green]%}☺ $(git_prompt_info)%{$reset_color%}"
+      echo "%{$fg_bold[green]%}✔ $(git_prompt_info)%{$reset_color%}"
     else
-      echo "%{$fg_bold[red]%}☠ $(git_prompt_info)%{$reset_color%}"
+      echo "%{$fg_bold[red]%}✗ $(git_prompt_info)%{$reset_color%}"
     fi
   fi
 }
@@ -38,9 +38,18 @@ need_push() {
   fi
 }
 
+suspended_jobs() {
+    sj=$(jobs 2>/dev/null | tail -n 1)
+    if [[ $sj == "" ]]; then
+        echo ""
+    else
+        echo "%{$FG[208]%}✱%{$reset_color%}"
+    fi
+}
+
 directory_name(){
   echo "%{$fg_bold[cyan]%}%1/%\/%{$reset_color%}"
 }
 
-export PROMPT=$'%{$fg_bold[blue]%}%n%{$reset_color%}:$(directory_name) %{$fg_bold[cyan]%}➜%{$reset_color%} '
-export RPROMPT=$'$(git_dirty)$(need_push)'
+export PROMPT=$'%{$FG[199]%}♥%{$reset_color%} $(directory_name) %{$fg_bold[magenta]%}➜%{$reset_color%} '
+export RPROMPT=$'$(git_dirty)$(need_push)$(suspended_jobs)'
