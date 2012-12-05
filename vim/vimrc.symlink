@@ -201,6 +201,9 @@ nmap <leader>q :bd<cr> " close the current buffer
 " switch between current and last buffer
 nmap <leader>. <c-^>
 
+" enable . command in visual mode
+vnoremap . :normal .<cr>
+
 " Window movement shortcuts
 " move to the window in the direction shown, or create a new window
 function! WinMove(key)
@@ -310,6 +313,7 @@ function! Smart_TabComplete()
     endif
 endfunction
 inoremap <tab> <c-r>=Smart_TabComplete()<CR>
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Plugins
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
