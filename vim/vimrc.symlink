@@ -114,7 +114,7 @@ set tm=500
 syntax on
 
 set background=dark
-colorscheme ir-whack
+colorscheme Tomorrow-Night-Bright
 
 " set number " show line numbers
 set relativenumber " show relative line numbers
@@ -201,6 +201,9 @@ nmap <leader>q :bd<cr> " close the current buffer
 " switch between current and last buffer
 nmap <leader>. <c-^>
 
+" enable . command in visual mode
+vnoremap . :normal .<cr>
+
 " Window movement shortcuts
 " move to the window in the direction shown, or create a new window
 function! WinMove(key)
@@ -220,6 +223,11 @@ map <silent> <C-h> :call WinMove('h')<cr>
 map <silent> <C-j> :call WinMove('j')<cr>
 map <silent> <C-k> :call WinMove('k')<cr>
 map <silent> <C-l> :call WinMove('l')<cr>
+
+" nnoremap <C-S-H> :vertical resize -5<cr>
+" nnoremap <C-S-J> :resize +5<cr>
+" nnoremap <C-S-K> :resize -5<cr>
+" nnoremap <C-S-L> :vertical resize +5<cr>
 
 map <leader>wc :wincmd q<cr>
 
@@ -255,6 +263,57 @@ endfunction
 
 nnoremap <leader>/ :call ToggleNuMode()<cr>
 
+" find out what syntax stack a statement belongs to
+nmap <leader>s :call <SID>SynStack()<cr>
+function <SID>SynStack()
+    if !exists("*synstack")
+        return
+    endif
+    echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+endfunction
+
+function! ApplyLocalSettings(dirname)
+    " convert windows paths to unix style
+    let l:curDir = substitute(a:dirname, "\\", "/", "g")
+
+    " walk to the top of the dir tree
+    let l:parentDir = strpart(l:curDir, 0, strridx(l:curDir, "/"))
+    if isdirectory(l:parentDir)
+        call ApplyLocalSettings(l:parentDir)
+    endif
+
+    " now walk back down the path and source .vimsettings as you find them.
+    " child directories can inherit from their parents
+    let l:settingsFile = a:dirname . "/.vimrc.local"
+    if filereadable(l:settingsFile)
+        exec ":source" . l:settingsFile
+    endif
+endfunction
+autocmd! BufEnter * call ApplyLocalSettings(expand("<afile>:p:h"))
+
+" smart tab completion
+function! Smart_TabComplete()
+    let line = getline('.')                         " current line
+
+    let substr = strpart(line, -1, col('.')+1)      " from the start of the current
+    " line to one character right
+    " of the cursor
+    let substr = matchstr(substr, "[^ \t]*$")       " word till cursor
+    if (strlen(substr)==0)                          " nothing to match on empty string
+        return "\<tab>"
+    endif
+    let has_period = match(substr, '\.') != -1      " position of period, if any
+    let has_slash = match(substr, '\/') != -1       " position of slash, if any
+    if (!has_period && !has_slash)
+        return "\<C-X>\<C-P>"                         " existing text matching
+    elseif ( has_slash )
+        return "\<C-X>\<C-F>"                         " file matching
+    else
+        return "\<C-X>\<C-O>"                         " plugin matching
+    endif
+endfunction
+inoremap <tab> <c-r>=Smart_TabComplete()<CR>
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Plugins
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -276,36 +335,9 @@ nmap <silent> <leader>r :CtrlPBuffer<cr>
 
 " CtrlP ignore patterns
 let g:ctrlp_custom_ignore = {
-    \ 'dir': '\.git$\|node_modules$\|\.hg$\|\.svn$',
-    \ 'file': '\.exe$\|\.so$'
-\ }
+            \ 'dir': '\.git$\|node_modules$\|\.hg$\|\.svn$',
+            \ 'file': '\.exe$\|\.so$'
+            \ }
 
 " search the nearest ancestor that contains .git, .hg, .svn
 let g:ctrlp_working_path_mode = 2
-
-" vim-fugitive mappings
-nmap <leader>gb :Gblame<cr>
-nmap <leader>gw :Gwrite<cr>
-nmap <leader>gr :Gread<cr>
-nmap <leader>gc :Gcommit<cr>
-nmap <leader>gbr :Gbrowse<cr>
-nmap <leader>gd :Gdiff<cr>
-
-" toggle syntastic syntax checking
-nmap <leader>o :SyntasticToggleMode<cr>
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Local vimrc
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" load a custom, per machine vimrc if available
-if filereadable(glob("~/.vimrc.local"))
-    source ~/.vimrc.local
-endif
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Local, Per Project vimrc
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-if filereadable(".vimrc.project")
-    source .vimrc.project
-endif
