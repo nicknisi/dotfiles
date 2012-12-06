@@ -85,3 +85,6 @@
 [submodule "vim/vim.symlink/bundle/scratch"]
 	path = vim/vim.symlink/bundle/scratch
 	url = git@github.com:duff/vim-scratch.git
+[submodule "vim/vim.symlink/bundle/syntastic"]
+	path = vim/vim.symlink/bundle/syntastic
+	url = git@github.com:scrooloose/syntastic.git
