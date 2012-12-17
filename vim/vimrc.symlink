@@ -10,6 +10,10 @@ call pathogen#infect()
 " => General
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+"""" Abbreviations
+abbr funciton function
+abbr teh the
+
 "set winwidth=120
 
 set nocompatible " not compatible with vi
