@@ -20,8 +20,6 @@ Bundle 'othree/html5.vim'
 Bundle 'pangloss/vim-javascript'
 Bundle 'itspriddle/vim-jquery'
 Bundle 'tpope/vim-markdown'
-Bundle 'tsaleh/vim-matchit'
-Bundle 'juvenn/mustache.vim'
 Bundle 'mmalecki/vim-node.js'
 Bundle 'Lokaltog/vim-powerline'
 Bundle 'tpope/vim-ragtag'
@@ -30,6 +28,9 @@ Bundle 'sjl/vitality.vim'
 Bundle 'duff/vim-scratch'
 Bundle 'cakebaker/scss-syntax.vim'
 Bundle 'kchmck/vim-coffee-script'
+Bundle 'groenewege/vim-less'
+Bundle 'nono/vim-handlebars'
+Bundle 'tsaleh/vim-matchit'
 
 filetype plugin indent on
 
