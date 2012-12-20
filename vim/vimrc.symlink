@@ -68,7 +68,7 @@ set softtabstop=4
 set ttyfast
 
 " allow matching of if/end, etc. with %
-runtime macros/matchit.vim
+" runtime macros/matchit.vim
 
 " highlight conflicts
 match ErrorMsg '^\(<\|=\|>\)\{7\}\([^=].\+\)\?$'
@@ -191,7 +191,7 @@ set laststatus=2 " show the satus line all the time
 " Additional, plugin-specific mappings are located under
 " the plugins section
 "
-nnoremap K :q<cr>
+" nnoremap K :q<cr>
 
 " remap esc and disable to force learning
 inoremap jk <esc>
