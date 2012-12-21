@@ -1,10 +1,39 @@
 " vim settings
 
-" Pathogen
-" loads all plugins places in the ~/.vim/bundle directory
-runtime bundle/vim-pathogen/autoload/pathogen.vim
-let g:pathogen_disabled=[]
-call pathogen#infect()
+filetype off
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+
+" let vundle manage vundle
+Bundle 'gmarik/vundle'
+
+" my vim plugins
+Bundle 'kien/ctrlp.vim'
+Bundle 'scrooloose/nerdtree'
+Bundle 'mileszs/ack.vim'
+Bundle 'scrooloose/syntastic'
+Bundle 'Raimondi/delimitMate'
+Bundle 'tpope/vim-commentary'
+Bundle 'tpope/vim-endwise'
+Bundle 'tpope/vim-fugitive'
+Bundle 'othree/html5.vim'
+Bundle 'pangloss/vim-javascript'
+Bundle 'itspriddle/vim-jquery'
+Bundle 'tpope/vim-markdown'
+Bundle 'mmalecki/vim-node.js'
+Bundle 'Lokaltog/vim-powerline'
+Bundle 'tpope/vim-ragtag'
+Bundle 'tpope/vim-surround'
+Bundle 'sjl/vitality.vim'
+Bundle 'duff/vim-scratch'
+Bundle 'cakebaker/scss-syntax.vim'
+Bundle 'kchmck/vim-coffee-script'
+Bundle 'groenewege/vim-less'
+Bundle 'nono/vim-handlebars'
+Bundle 'tsaleh/vim-matchit'
+
+filetype plugin indent on
+
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => General
@@ -40,7 +69,7 @@ set softtabstop=4
 set ttyfast
 
 " allow matching of if/end, etc. with %
-runtime macros/matchit.vim
+" runtime macros/matchit.vim
 
 " highlight conflicts
 match ErrorMsg '^\(<\|=\|>\)\{7\}\([^=].\+\)\?$'
@@ -103,10 +132,10 @@ set showmatch " show matching braces
 set mat=2 " how many tenths of a second to blink
 
 " switch to line when editing and block when not
-let cursor_to_bar   = "\<Esc>]50;CursorShape=1\x7"
-let cursor_to_block = "\<Esc>]50;CursorShape=0\x7"
-let &t_SI = cursor_to_bar
-let &t_EI = cursor_to_block
+" let cursor_to_bar   = "\<Esc>]50;CursorShape=1\x7"
+" let cursor_to_block = "\<Esc>]50;CursorShape=0\x7"
+" let &t_SI = cursor_to_bar
+" let &t_EI = cursor_to_block
 
 " error bells
 set noerrorbells
@@ -163,7 +192,7 @@ set laststatus=2 " show the satus line all the time
 " Additional, plugin-specific mappings are located under
 " the plugins section
 "
-nnoremap K :q<cr>
+" nnoremap K :q<cr>
 
 " remap esc and disable to force learning
 inoremap jk <esc>
