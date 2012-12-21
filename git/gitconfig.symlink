@@ -18,6 +18,8 @@
     gdc = diff --cached
     # show changed files for a commit
     cf = show --pretty="format:" --name-only
+    # undo a commit
+    undo = reset --soft
 
     # stash shortcuts
     sp = stash pop
@@ -82,3 +84,5 @@
 [core]
     excludesfile = ~/.gitignore_global
     pager = less -FXRS -x2
+[rerere]
+	enabled = true
