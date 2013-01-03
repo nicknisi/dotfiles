@@ -31,6 +31,8 @@ Bundle 'kchmck/vim-coffee-script'
 Bundle 'groenewege/vim-less'
 Bundle 'nono/vim-handlebars'
 Bundle 'tsaleh/vim-matchit'
+Bundle 'benmills/vimux'
+Bundle 'mattn/zencoding-vim'
 
 filetype plugin indent on
 
