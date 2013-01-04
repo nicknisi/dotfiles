@@ -359,6 +359,8 @@ inoremap <tab> <c-r>=Smart_TabComplete()<CR>
 
 " let g:Powerline_stl_path_style = 'filename'
 
+" close NERDTree after a file is opened
+let g:NERDTreeQuitOnOpen=1
 " Toggle NERDTree
 nmap <silent> <leader>k :NERDTreeToggle<cr>
 " expand to the path of the file in the current buffer
