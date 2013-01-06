@@ -370,6 +370,9 @@ nmap <silent> <leader>y :NERDTreeFind<cr>
 nmap <silent> <leader>t :CtrlP<cr>
 nmap <silent> <leader>r :CtrlPBuffer<cr>
 
+" Fugitive Shortcuts
+nmap <silent> <leader>gs :Gstatus<cr>
+
 " CtrlP ignore patterns
 let g:ctrlp_custom_ignore = {
             \ 'dir': '\.git$\|node_modules$\|\.hg$\|\.svn$',
