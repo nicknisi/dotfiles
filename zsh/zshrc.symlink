@@ -33,6 +33,9 @@ if [[ -d /usr/local/sbin ]]; then
     export PATH=/usr/local/sbin:$PATH
 fi
 
+# adding path directory for custom scripts
+export PATH=$ZSH/bin:$PATH
+
 # check for custom bin directory and add to path
 if [[ -d ~/bin ]]; then
     export PATH=~/bin:$PATH
