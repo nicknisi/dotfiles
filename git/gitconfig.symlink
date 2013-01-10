@@ -20,6 +20,8 @@
     cf = show --pretty="format:" --name-only
     # undo a commit
     undo = reset --soft
+    # show what I did today
+    day = "!sh -c 'git log --no-merges --branches=* --date=local --after=yesterday --author=\"`git config --get user.name`\"'"
 
     # stash shortcuts
     sp = stash pop
@@ -85,4 +87,4 @@
     excludesfile = ~/.gitignore_global
     pager = less -FXRS -x2
 [rerere]
-	enabled = true
+	enabled = false
