@@ -21,7 +21,7 @@
     # undo a commit
     undo = reset --soft
     # show what I did today
-    day = "!sh -c 'git log --no-merges --branches=* --date=local --after=\"yesterday 11:59PM\" --author=\"`git config --get user.name`\"'"
+    day = "!sh -c 'git log --reverse --no-merges --branches=* --date=local --after=\"yesterday 11:59PM\" --author=\"`git config --get user.name`\"'"
 
     # stash shortcuts
     sp = stash pop
