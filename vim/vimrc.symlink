@@ -24,7 +24,7 @@ Bundle 'mmalecki/vim-node.js'
 Bundle 'Lokaltog/vim-powerline'
 Bundle 'tpope/vim-ragtag'
 Bundle 'tpope/vim-surround'
-Bundle 'sjl/vitality.vim'
+" Bundle 'sjl/vitality.vim'
 Bundle 'duff/vim-scratch'
 Bundle 'cakebaker/scss-syntax.vim'
 Bundle 'kchmck/vim-coffee-script'
@@ -44,6 +44,7 @@ filetype plugin indent on
 """" Abbreviations
 abbr funciton function
 abbr teh the
+abbr tempalte template
 
 "set winwidth=120
 
