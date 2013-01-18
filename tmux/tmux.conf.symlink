@@ -1,6 +1,7 @@
 set -g default-command "reattach-to-user-namespace -l zsh"
 # tmux display things in 256 colors
 set -g default-terminal "screen-256color"
+set -g status-utf8 on
 
 set -g history-limit 20000
 
@@ -147,6 +148,7 @@ tm_date='#[fg=colour245] %R  %d %b'
 tm_host='#[fg=colour198,bg=colour232,bold]#h'
 tm_session_name='#[fg=colour198,bg=colour232,bold] ❤ #S'
 tm_mail='#[fg=colour196,bold]✉ #(~/.dotfiles/applescripts/mail.scpt -ug)'
+tm_battery='#(~/.dotfiles/bin/battery_indicator.sh)'
 
 set -g status-left-length 32
 set -g status-right-length 150
@@ -157,5 +159,5 @@ set -g window-status-format "#[fg=colour239,bg=colour232] #I #W "
 # set -g window-status-current-format "#[fg=colour232,bg=colour26]#[fg=colour16,bg=colour26,noreverse,bold] #I #W #[fg=colour26,bg=colour232,nobold]"
 set -g window-status-current-format "#[fg=colour232,bg=colour26]#[fg=colour16,bg=colour26,noreverse,bold] #I #W #[fg=colour26,bg=colour232,nobold]"
 set -g status-left $tm_session_name 
-set -g status-right $tm_itunes_track' '$tm_rdio_track' '$tm_date' '$tm_host
+set -g status-right $tm_battery' '$tm_itunes_track' '$tm_rdio_track' '$tm_date' '$tm_host
 
