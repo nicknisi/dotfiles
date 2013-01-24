@@ -8,6 +8,7 @@
     s = status --short
     ss  = status
     br = branch -v
+    brt = "!sh -c gbrt"
     # show a pretty log graph
     lg = log --graph --pretty=oneline --abbrev-commit --decorate
     # slight variation of pretty log graph
