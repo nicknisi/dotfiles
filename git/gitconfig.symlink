@@ -38,7 +38,7 @@
     count = shortlog -sn
 
     undo = reset --soft HEAD~1
-    amend = git commit --amend -C HEAD
+    amend = commit --amend -C HEAD
 
     # grep commands
 
@@ -58,26 +58,10 @@
     diff = auto
     status = auto
     branch = auto
-    interactive = auto
-    ui = auto
-[color "branch"]
-    current = green bold
-    local = green
-    remote = red bold
-[color "diff"]
-    meta = yellow bold
-    frag = magenta bold
-    old = red bold
-    new = green bold
-[color "status"]
-    added = green bold
-    changed = yellow bold
-    untracked = red
-[color "sh"]
-    branch = yellow
+    ui = true
 [push]
-    # push will only do the current branch, not all branches
-    default = current
+    # push to the upstream branch but only if it is the same name
+    default = simple
 [branch]
     # set up 'git pull' to rebase instead of merge
     autosetuprebase = always
@@ -87,5 +71,12 @@
 [core]
     excludesfile = ~/.gitignore_global
     pager = less -FXRS -x2
+    editor = vim
+[apply]
+    # turn off trailing whitespace warning
+    whitespace = nowarn
+[mergetool]
+    # remove backup files after a successful merge
+    keepBackup = false
 [rerere]
 	enabled = false
