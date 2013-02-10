@@ -11,7 +11,7 @@ Bundle 'gmarik/vundle'
 Bundle 'kien/ctrlp.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'mileszs/ack.vim'
-Bundle 'scrooloose/syntastic'
+" Bundle 'scrooloose/syntastic'
 Bundle 'Raimondi/delimitMate'
 Bundle 'tpope/vim-commentary'
 Bundle 'tpope/vim-endwise'
@@ -33,6 +33,7 @@ Bundle 'nono/vim-handlebars'
 Bundle 'tsaleh/vim-matchit'
 Bundle 'benmills/vimux'
 Bundle 'mattn/zencoding-vim'
+Bundle 'int3/vim-taglist-plus'
 
 filetype plugin indent on
 
@@ -194,16 +195,17 @@ set laststatus=2 " show the satus line all the time
 " General mappings/shortcuts for functionality
 " Additional, plugin-specific mappings are located under
 " the plugins section
-"
-" nnoremap K :q<cr>
 
-" remap esc and disable to force learning
+" clear search results on escape
+nnoremap <silent> <esc> :nohlsearch<cr><esc>
+
+" remap esc
 inoremap jk <esc>
-" inoremap <esc> <nop>
 
 " remove extra whitespace
 nmap <leader><space> :%s/\s\+$<cr>
 
+" shortcut to save
 nmap <leader>, :w<cr>
 
 " set paste toggle
@@ -260,23 +262,10 @@ map <silent> <C-j> :call WinMove('j')<cr>
 map <silent> <C-k> :call WinMove('k')<cr>
 map <silent> <C-l> :call WinMove('l')<cr>
 
-" nnoremap <C-S-H> :vertical resize -5<cr>
-" nnoremap <C-S-J> :resize +5<cr>
-" nnoremap <C-S-K> :resize -5<cr>
-" nnoremap <C-S-L> :vertical resize +5<cr>
-
 map <leader>wc :wincmd q<cr>
 
 " equalize windows
 map <leader>= <C-w>=
-
-" Edit Shortcuts
-" these automatically populate the current filepath
-cnoremap %% <C-R>=expand('%:h').'/'<cr>
-map <leader>ew :e %%
-map <leader>es :sp %%
-map <leader>ev :vsp %%
-map <leader>et :tabe %%
 
 " toggle cursor line
 nnoremap <leader>i :set cursorline!<cr>
