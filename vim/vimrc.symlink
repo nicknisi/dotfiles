@@ -151,7 +151,7 @@ set tm=500
 syntax on
 
 set background=dark
-colorscheme Tomorrow-Night-Bright
+colorscheme smyck
 
 " set number " show line numbers
 set relativenumber " show relative line numbers
