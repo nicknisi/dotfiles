@@ -1,5 +1,5 @@
 " set font and colorscheme
-colorscheme ir_black
+colorscheme smyck
 set guifont=*
 set guifont=Inconsolata:h14
 

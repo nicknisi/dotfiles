@@ -34,6 +34,8 @@ Bundle 'tsaleh/vim-matchit'
 Bundle 'benmills/vimux'
 Bundle 'mattn/zencoding-vim'
 Bundle 'int3/vim-taglist-plus'
+Bundle 'airblade/vim-gitgutter'
+Bundle 'ap/vim-css-color'
 
 filetype plugin indent on
 
@@ -86,7 +88,7 @@ if has("autocmd")
     autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
     autocmd FileType make setlocal ts=8 sts=8 sw=8 noexpandtab
     autocmd FileType ruby setlocal ts=2 sts=2 sw=2 expandtab
-    autocmd FileType html setlocal ts=4 sts=4 sw=4 expandtab
+    autocmd FileType html setlocal ts=4 sts=4 sw=4 expandtab indentkeys-=*<return>
     autocmd FileType jade setlocal ts=2 sts=2 sw=2 noexpandtab
     "autocmd WinEnter * setlocal cursorline
     "autocmd WinLeave * setlocal nocursorline
@@ -357,8 +359,11 @@ nmap <silent> <leader>k :NERDTreeToggle<cr>
 nmap <silent> <leader>y :NERDTreeFind<cr>
 
 " map fuzzyfinder (CtrlP) plugin
-nmap <silent> <leader>t :CtrlP<cr>
+" nmap <silent> <leader>t :CtrlP<cr>
 nmap <silent> <leader>r :CtrlPBuffer<cr>
+let g:ctrlp_map='<leader>t'
+let g:ctrlp_dotfiles=1
+let g:ctrlp_working_path_mode = 'ra'
 
 " Fugitive Shortcuts
 nmap <silent> <leader>gs :Gstatus<cr>
