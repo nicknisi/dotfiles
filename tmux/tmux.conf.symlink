@@ -61,7 +61,7 @@ bind | split-window -h
 bind - split-window -v
 
 # synchronize all panes in a window
-bind z setw synchronize-panes
+# bind z setw synchronize-panes
 
 # pane movement shortcuts
 bind h select-pane -L
@@ -107,7 +107,7 @@ bind -t vi-copy 'y' copy-selection
 #### COLOUR
 
 # default statusbar colors
-set-option -g status-bg colour234
+# set-option -g status-bg colour0
 set-option -g status-fg colour26
 set-option -g status-attr default
 
@@ -126,7 +126,7 @@ set-option -g pane-border-fg colour245
 set-option -g pane-active-border-fg colour240
 
 # message text
-set-option -g message-bg colour234
+# set-option -g message-bg colour0
 set-option -g message-fg colour26
 
 # pane number display
@@ -144,20 +144,20 @@ tm_spotify_track='#[fg=colour2]#(osascript ~/.dotfiles/applescripts/spotify.scpt
 tm_itunes_track='#[fg=colour27]#(osascript ~/.dotfiles/applescripts/itunes.scpt)'
 tm_rdio_track='#[fg=colour127]#(osascript ~/.dotfiles/applescripts/rdio.scpt)'
 
-tm_date='#[fg=colour245] %R  %d %b'
-tm_host='#[fg=colour198,bg=colour234,bold]#h'
-tm_session_name='#[fg=colour198,bg=colour234,bold] ❤ #S'
+tm_date='#[fg=colour210] %R  %d %b'
+tm_host='#[fg=colour202,bold]#h'
+tm_session_name='#[fg=colour226,bold] ♘ #S'
 tm_mail='#[fg=colour196,bold]✉ #(~/.dotfiles/applescripts/mail.scpt -ug)'
 tm_battery='#(~/.dotfiles/bin/battery_indicator.sh)'
 
 set -g status-left-length 32
 set -g status-right-length 150
 set -g status-interval 5
-set -g window-status-format "#[fg=colour239,bg=colour234] #I #W "
+set -g window-status-format "#[fg=colour239] #I #W "
 
 
-# set -g window-status-current-format "#[fg=colour234,bg=colour26]#[fg=colour16,bg=colour26,noreverse,bold] #I #W #[fg=colour26,bg=colour234,nobold]"
-set -g window-status-current-format "#[fg=colour234,bg=colour26]#[fg=colour16,bg=colour26,noreverse,bold] #I #W #[fg=colour26,bg=colour234,nobold]"
+# set -g window-status-current-format "#[fg=colour0,bg=colour26]#[fg=colour16,bg=colour26,noreverse,bold] #I #W #[fg=colour26,nobold]"
+set -g window-status-current-format "#[fg=colour0]#[fg=colour202,noreverse,bold] #I #W #[fg=colour26,nobold]"
 set -g status-left $tm_session_name 
 set -g status-right $tm_battery' '$tm_itunes_track' '$tm_rdio_track' '$tm_date' '$tm_host
 
