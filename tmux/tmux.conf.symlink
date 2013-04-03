@@ -144,9 +144,9 @@ tm_spotify_track='#[fg=colour2]#(osascript ~/.dotfiles/applescripts/spotify.scpt
 tm_itunes_track='#[fg=colour27]#(osascript ~/.dotfiles/applescripts/itunes.scpt)'
 tm_rdio_track='#[fg=colour127]#(osascript ~/.dotfiles/applescripts/rdio.scpt)'
 
-tm_date='#[fg=colour210] %R  %d %b'
+tm_date='#[fg=colour212] %R %d %b'
 tm_host='#[fg=colour202,bold]#h'
-tm_session_name='#[fg=colour226,bold] ♘ #S'
+tm_session_name='#[fg=colour226,bold]♘ #S'
 tm_mail='#[fg=colour196,bold]✉ #(~/.dotfiles/applescripts/mail.scpt -ug)'
 tm_battery='#(~/.dotfiles/bin/battery_indicator.sh)'
 
@@ -159,5 +159,5 @@ set -g window-status-format "#[fg=colour239] #I #W "
 # set -g window-status-current-format "#[fg=colour0,bg=colour26]#[fg=colour16,bg=colour26,noreverse,bold] #I #W #[fg=colour26,nobold]"
 set -g window-status-current-format "#[fg=colour0]#[fg=colour202,noreverse,bold] #I #W #[fg=colour26,nobold]"
 set -g status-left $tm_session_name 
-set -g status-right $tm_battery' '$tm_itunes_track' '$tm_rdio_track' '$tm_date' '$tm_host
+set -g status-right $tm_itunes_track' '$tm_rdio_track' '$tm_battery' '$tm_date' '$tm_host
 
