@@ -42,9 +42,3 @@ if [[ -d ~/bin ]]; then
 fi
 
 [ -z "$TMUX" ] && export TERM=xterm-256color
-
-# completion for grunt
-function grunt_tasks {
-    reply=(`grunt --no-color list`)
-}
-compctl -K grunt_tasks grunt
