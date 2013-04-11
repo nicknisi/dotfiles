@@ -109,6 +109,7 @@ bind -t vi-copy 'y' copy-selection
 # default statusbar colors
 # set-option -g status-bg colour0
 set-option -g status-fg colour26
+set-option -g status-bg colour0
 set-option -g status-attr default
 
 # default window title colors
