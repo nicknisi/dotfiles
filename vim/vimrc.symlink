@@ -11,7 +11,6 @@ Bundle 'gmarik/vundle'
 Bundle 'kien/ctrlp.vim'
 Bundle 'scrooloose/nerdtree'
 Bundle 'mileszs/ack.vim'
-" Bundle 'scrooloose/syntastic'
 Bundle 'Raimondi/delimitMate'
 Bundle 'tpope/vim-commentary'
 Bundle 'tpope/vim-endwise'
@@ -24,7 +23,6 @@ Bundle 'mmalecki/vim-node.js'
 Bundle 'Lokaltog/vim-powerline'
 Bundle 'tpope/vim-ragtag'
 Bundle 'tpope/vim-surround'
-" Bundle 'sjl/vitality.vim'
 Bundle 'duff/vim-scratch'
 Bundle 'cakebaker/scss-syntax.vim'
 Bundle 'kchmck/vim-coffee-script'
@@ -34,8 +32,8 @@ Bundle 'tsaleh/vim-matchit'
 Bundle 'benmills/vimux'
 Bundle 'mattn/zencoding-vim'
 Bundle 'int3/vim-taglist-plus'
-Bundle 'airblade/vim-gitgutter'
 Bundle 'ap/vim-css-color'
+Bundle 'nicknisi/ir-whack'
 
 filetype plugin indent on
 
@@ -153,7 +151,7 @@ set tm=500
 syntax on
 
 set background=dark
-colorscheme smyck
+colorscheme ir-whack
 
 " set number " show line numbers
 set relativenumber " show relative line numbers

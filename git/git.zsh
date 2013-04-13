@@ -1,5 +1,4 @@
 # git aliases
-alias g='git'
 alias ga='git add'
 alias gb='git branch'
 alias gl='git pull'
@@ -32,4 +31,14 @@ function give-credit() {
 function git-rename() {
     git mv $1 "${2}-"
     git mv "${2}-" $2
+}
+
+function g() {
+    if [[ $# > 0 ]]; then
+        # if there are arguments, send them to git
+        git $@
+    else
+        # otherwise, run git status
+        git s
+    fi
 }
