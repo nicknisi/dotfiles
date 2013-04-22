@@ -2,6 +2,8 @@
 [user]
     name = Nick Nisi
     email = nick@nisi.org
+[github]
+    user = nicknisi
 [alias]
     ci = commit -a
     co = checkout
@@ -39,6 +41,8 @@
 
     undo = reset --soft HEAD~1
     amend = commit --amend -C HEAD
+
+    cleanup = "!git remote prune origin && git gc && git clean -df && git stash clear"
 
     # grep commands
 
@@ -94,4 +98,4 @@
     pager = less -FXRS -x2
     editor = vim
 [rerere]
-	enabled = false
+    enabled = true
