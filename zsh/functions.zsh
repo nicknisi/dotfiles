@@ -91,3 +91,9 @@ function extract() {
         echo "'$1' is not a valid file"
     fi
 }
+
+function scpp() {
+    scp "$1" nnisi@nisi.org:~/nisi.org/i;
+    echo "http://nicknisi.com/i/$1" | pbcopy;
+    echo "Copied to clipboard: http://nicknisi.com/i/$1"
+}
