@@ -34,6 +34,7 @@ Bundle 'mattn/zencoding-vim'
 Bundle 'int3/vim-taglist-plus'
 Bundle 'ap/vim-css-color'
 Bundle 'nicknisi/ir-whack'
+Bundle 'editorconfig/editorconfig-vim'
 
 filetype plugin indent on
 
