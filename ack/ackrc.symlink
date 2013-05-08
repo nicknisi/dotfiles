@@ -14,3 +14,4 @@
 --type-set=less=.less
 --type-set=html=.html,.mustache,.handlebars,.tmpl
 --type-set=json=.json
+--type-set=md=.markdown,.md
