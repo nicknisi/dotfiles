@@ -1,4 +1,4 @@
-"M7 vim settings
+" vim settings
 
 filetype off
 set rtp+=~/.vim/bundle/vundle/
@@ -25,7 +25,7 @@ Bundle 'Lokaltog/vim-powerline'
 Bundle 'tpope/vim-ragtag'
 Bundle 'tpope/vim-surround'
 Bundle 'duff/vim-scratch'
-Bundle 'sjl/vitality.vim'
+" Bundle 'sjl/vitality.vim'
 Bundle 'cakebaker/scss-syntax.vim'
 Bundle 'kchmck/vim-coffee-script'
 Bundle 'groenewege/vim-less'
@@ -140,12 +140,6 @@ set magic " Set magic on, for regex
 
 set showmatch " show matching braces
 set mat=2 " how many tenths of a second to blink
-
-" switch to line when editing and block when not
-" let cursor_to_bar   = "\<Esc>]50;CursorShape=1\x7"
-" let cursor_to_block = "\<Esc>]50;CursorShape=0\x7"
-" let &t_SI = cursor_to_bar
-" let &t_EI = cursor_to_block
 
 " error bells
 set noerrorbells
