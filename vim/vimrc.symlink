@@ -1,4 +1,4 @@
-" vim settings
+"M7 vim settings
 
 filetype off
 set rtp+=~/.vim/bundle/vundle/
@@ -25,6 +25,7 @@ Bundle 'Lokaltog/vim-powerline'
 Bundle 'tpope/vim-ragtag'
 Bundle 'tpope/vim-surround'
 Bundle 'duff/vim-scratch'
+Bundle 'sjl/vitality.vim'
 Bundle 'cakebaker/scss-syntax.vim'
 Bundle 'kchmck/vim-coffee-script'
 Bundle 'groenewege/vim-less'
@@ -69,6 +70,10 @@ set expandtab
 set shiftwidth=4
 set tabstop=4
 set softtabstop=4
+
+" if has('mouse')
+"     set mouse=a
+" endif
 
 " faster redrawing
 set ttyfast
@@ -118,7 +123,7 @@ set showcmd " show incomplete commands
 set noshowmode " don't show which mode disabled for PowerLine
 set wildmode=list:longest " complete files like a shell
 set scrolloff=3 " lines of text around cursor
-set shell=/bin/zsh
+set shell=$SHELL
 set ruler " show postiion in file
 set cmdheight=1 " command bar height
 

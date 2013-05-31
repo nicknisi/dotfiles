@@ -17,11 +17,8 @@ bind C-a send-prefix
 setw -g monitor-activity off
 set -g visual-activity off
 
-# reattach to user namespace
-# set-option -g default-command "reattach-to-user-namespace -l zsh"
-
-# Rather than constraining window size to the maximum size of any client 
-# connected to the *session*, constrain window size to the maximum size of any 
+# Rather than constraining window size to the maximum size of any client
+# connected to the *session*, constrain window size to the maximum size of any
 # client connected to *that window*. Much more reasonable.
 setw -g aggressive-resize on
 
@@ -55,10 +52,6 @@ bind r source-file ~/.tmux.conf \; display "Config Reloaded!"
 # quickly open a new window
 bind N new-window
 
-# Activity
-setw -g monitor-activity on
-set -g visual-activity off
-
 # split window
 bind | split-window -h
 bind - split-window -v
@@ -81,11 +74,11 @@ bind -r J resize-pane -D 10
 bind -r K resize-pane -U 10
 bind -r L resize-pane -R 10
 
-# enable mouse mode
-setw -g mode-mouse off
-set -g mouse-select-pane off
-set -g mouse-resize-pane off
-set -g mouse-select-window off
+# set mouse mode
+setw -g mode-mouse on
+set -g mouse-select-pane on
+set -g mouse-resize-pane on
+set -g mouse-select-window on
 
 # maximizing and restoring windows
 unbind Up
@@ -102,6 +95,10 @@ unbind p
 bind p paste-buffer
 bind -t vi-copy 'v' begin-selection
 bind -t vi-copy 'y' copy-selection
+
+# Buffers to/from Mac clipboard, yay tmux book from pragprog
+bind C-c run "tmux save-buffer - | reattach-to-user-namespace pbcopy"
+bind C-v run "tmux set-buffer $(reattach-to-user-namespace pbpaste); tmux paste-buffer")
 
 ######################
 ### Color Settings ###
@@ -162,6 +159,6 @@ set -g window-status-format "#[fg=colour239] #I #W "
 
 # set -g window-status-current-format "#[fg=colour0,bg=colour26]#[fg=colour16,bg=colour26,noreverse,bold] #I #W #[fg=colour26,nobold]"
 set -g window-status-current-format "#[fg=colour0]#[fg=colour202,noreverse,bold] #I #W #[fg=colour26,nobold]"
-set -g status-left $tm_session_name 
+set -g status-left $tm_session_name
 set -g status-right $tm_itunes_track' '$tm_rdio_track' '$tm_battery' '$tm_date' '$tm_host
 
