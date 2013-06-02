@@ -104,38 +104,7 @@ bind C-v run "tmux set-buffer $(reattach-to-user-namespace pbpaste); tmux paste-
 ### Color Settings ###
 ######################
 
-#### COLOUR
-
-# default statusbar colors
-# set-option -g status-bg colour0
-set-option -g status-fg colour26
-set-option -g status-bg colour0
-set-option -g status-attr default
-
-# default window title colors
-set-window-option -g window-status-fg colour244
-set-window-option -g window-status-bg default
-#set-window-option -g window-status-attr dim
-
-# active window title colors
-set-window-option -g window-status-current-fg colour26
-set-window-option -g window-status-current-bg default
-#set-window-option -g window-status-current-attr bright
-
-# pane border
-set-option -g pane-border-fg colour245
-set-option -g pane-active-border-fg colour240
-
-# message text
-# set-option -g message-bg colour0
-set-option -g message-fg colour26
-
-# pane number display
-set-option -g display-panes-active-colour colour33
-set-option -g display-panes-colour colour166
-
-# clock
-set-window-option -g clock-mode-colour colour26
+source ~/.dotfiles/tmux/whack.tmuxcolors
 
 ##################
 #### Plugins #####
@@ -155,7 +124,6 @@ set -g status-left-length 32
 set -g status-right-length 150
 set -g status-interval 5
 set -g window-status-format "#[fg=colour239] #I #W "
-
 
 # set -g window-status-current-format "#[fg=colour0,bg=colour26]#[fg=colour16,bg=colour26,noreverse,bold] #I #W #[fg=colour26,nobold]"
 set -g window-status-current-format "#[fg=colour0]#[fg=colour202,noreverse,bold] #I #W #[fg=colour26,nobold]"
