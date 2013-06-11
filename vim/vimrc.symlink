@@ -1,43 +1,46 @@
 " vim settings
 
-filetype off
-set rtp+=~/.vim/bundle/vundle/
-call vundle#rc()
+if (!exists('vimrc_already_sourced'))
+    filetype off
+    set rtp+=~/.vim/bundle/vundle/
+    call vundle#rc()
 
-" let vundle manage vundle
-Bundle 'gmarik/vundle'
+    " let vundle manage vundle
+    Bundle 'gmarik/vundle'
 
-" my vim plugins
-Bundle 'kien/ctrlp.vim'
-Bundle 'scrooloose/nerdtree'
-Bundle 'mileszs/ack.vim'
-Bundle 'Raimondi/delimitMate'
-Bundle 'tpope/vim-commentary'
-Bundle 'tpope/vim-unimpaired'
-Bundle 'tpope/vim-endwise'
-Bundle 'tpope/vim-fugitive'
-Bundle 'othree/html5.vim'
-Bundle 'pangloss/vim-javascript'
-Bundle 'itspriddle/vim-jquery'
-Bundle 'tpope/vim-markdown'
-Bundle 'mmalecki/vim-node.js'
-Bundle 'Lokaltog/vim-powerline'
-Bundle 'tpope/vim-ragtag'
-Bundle 'tpope/vim-surround'
-Bundle 'duff/vim-scratch'
-" Bundle 'sjl/vitality.vim'
-Bundle 'cakebaker/scss-syntax.vim'
-Bundle 'kchmck/vim-coffee-script'
-Bundle 'groenewege/vim-less'
-Bundle 'tsaleh/vim-matchit'
-Bundle 'benmills/vimux'
-Bundle 'mattn/zencoding-vim'
-Bundle 'ap/vim-css-color'
-Bundle 'nicknisi/ir-whack'
-Bundle 'editorconfig/editorconfig-vim'
-Bundle 'juvenn/mustache.vim'
+    " my vim plugins
+    Bundle 'kien/ctrlp.vim'
+    Bundle 'scrooloose/nerdtree'
+    Bundle 'mileszs/ack.vim'
+    Bundle 'Raimondi/delimitMate'
+    Bundle 'tpope/vim-commentary'
+    Bundle 'tpope/vim-unimpaired'
+    Bundle 'tpope/vim-endwise'
+    Bundle 'tpope/vim-fugitive'
+    Bundle 'othree/html5.vim'
+    Bundle 'pangloss/vim-javascript'
+    Bundle 'itspriddle/vim-jquery'
+    Bundle 'tpope/vim-markdown'
+    Bundle 'mmalecki/vim-node.js'
+    " Bundle 'Lokaltog/vim-powerline'
+    Bundle 'tpope/vim-ragtag'
+    Bundle 'tpope/vim-surround'
+    Bundle 'duff/vim-scratch'
+    " Bundle 'sjl/vitality.vim'
+    Bundle 'cakebaker/scss-syntax.vim'
+    Bundle 'kchmck/vim-coffee-script'
+    Bundle 'groenewege/vim-less'
+    Bundle 'tsaleh/vim-matchit'
+    Bundle 'benmills/vimux'
+    Bundle 'mattn/zencoding-vim'
+    Bundle 'ap/vim-css-color'
+    " Bundle 'nicknisi/ir-whack'
+    Bundle 'flazz/vim-colorschemes'
+    Bundle 'editorconfig/editorconfig-vim'
+    Bundle 'juvenn/mustache.vim'
 
-filetype plugin indent on
+    filetype plugin indent on
+endif
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -75,6 +78,8 @@ set softtabstop=4
 "     set mouse=a
 " endif
 
+set clipboard=unnamed
+
 " faster redrawing
 set ttyfast
 
@@ -83,9 +88,6 @@ set ttyfast
 
 " highlight conflicts
 match ErrorMsg '^\(<\|=\|>\)\{7\}\([^=].\+\)\?$'
-
-" Enable file type detection and do language dependent indenting
-filetype plugin indent on
 
 " file type specific settings
 if has("autocmd")
@@ -99,7 +101,8 @@ if has("autocmd")
 
     " automatically resize panes on resize
     autocmd VimResized * exe "normal! \<c-w>="
-    autocmd BufWritePost .vimrc source $MYVIMRC
+    autocmd BufWritePost .vimrc source %
+    autocmd BufWritePost .vimrc.local source %
     " save all files on focus lost, ignoring warnings about untitled buffers
     autocmd FocusLost * silent! wa
     autocmd BufNewFile,BufRead *.json set filetype=javascript
@@ -125,6 +128,7 @@ set wildmode=list:longest " complete files like a shell
 set scrolloff=3 " lines of text around cursor
 set shell=$SHELL
 set ruler " show postiion in file
+set rulerformat=%30(%=\:b%n%y%m%r%w\ %l,%c%V\ %P%) " a ruler on steroids"
 set cmdheight=1 " command bar height
 
 set title " set terminal title
@@ -150,8 +154,10 @@ set tm=500
 " switch syntax highlighting on
 syntax on
 
+set encoding=utf8
+set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
 set background=dark
-colorscheme ir-whack
+colorscheme jellybeans
 
 " set number " show line numbers
 set relativenumber " show relative line numbers
@@ -164,8 +170,6 @@ set showbreak=… " show ellipsis at breaking
 
 set autoindent " automatically set indent of new line
 
-set encoding=utf8
-set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
 try
     lang en_US
 catch
@@ -185,9 +189,36 @@ set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => StatusLine
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-set laststatus=2 " show the satus line all the time
 
-" the status line is set by the powerline plugin
+set laststatus=2 " show the satus line all the time
+" set statusline=%f\ %y%m%r%=%-20.(%{fugitive#statusline()}%)%-15.(%l,%c%V%)\ %P
+set statusline=\ "
+set statusline+=%-25.80f%*\ " file name minimum 25, maximum 80 (right justified)
+set statusline+=
+set statusline+=%h " help file flag
+set statusline+=%r " read only flag
+set statusline+=%m " modified flag
+set statusline+=%w " preview flag
+set statusline+=%*\ "
+set statusline+=%y " filetype
+set statusline+=%= " right align
+set statusline+=<%{fugitive#head()}%*>\ " Fugitive
+set statusline+=%-14.(%l,%c%V%)\ %<%P%* " offset
+
+function! InsertStatuslineColor(mode)
+    if a:mode == 'i'
+        hi statusline ctermbg=magenta
+    elseif a:mode == 'r'
+        hi statusline ctermbg=blue
+    else
+        hi statusline ctermbg=red
+    endif
+endfunction
+
+autocmd InsertEnter * call InsertStatuslineColor(v:insertmode)
+autocmd InsertChange * call InsertStatuslineColor(v:insertmode)
+autocmd InsertLeave * hi statusline ctermbg=DarkGray
+hi statusline ctermbg=DarkGray
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Mappings
@@ -290,7 +321,7 @@ nnoremap <leader>/ :call ToggleNuMode()<cr>
 
 " find out what syntax stack a statement belongs to
 nmap <leader>s :call <SID>SynStack()<cr>
-function <SID>SynStack()
+function! <SID>SynStack()
     if !exists("*synstack")
         return
     endif
@@ -339,6 +370,23 @@ function! Smart_TabComplete()
 endfunction
 inoremap <tab> <c-r>=Smart_TabComplete()<CR>
 
+map <leader>r :call RunCustomCommand()<cr>
+map <leader>s :call SetCustomCommand()<cr>
+let g:silent_custom_command = 0
+
+function! RunCustomCommand()
+    up
+    if g:silent_custom_command
+        execute 'silent !' . s:customcommand
+    else
+        execute '!' . s:customcommand
+    endif
+endfunction
+
+function! SetCustomCommand()
+    let s:customcommand = input('Enter Custom Command$ ')
+endfunction
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Plugins
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -375,3 +423,5 @@ let g:ctrlp_custom_ignore = {
 
 " search the nearest ancestor that contains .git, .hg, .svn
 let g:ctrlp_working_path_mode = 2
+
+let vimrc_already_sourced = 1
