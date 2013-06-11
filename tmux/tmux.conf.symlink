@@ -74,7 +74,9 @@ bind -r J resize-pane -D 10
 bind -r K resize-pane -U 10
 bind -r L resize-pane -R 10
 
-# set mouse mode
+# enable mouse support for switching panes/windows
+# NOTE: This breaks selecting/copying text on OSX
+# To select text as expected, hold Option to disable it (iTerm2)
 setw -g mode-mouse on
 set -g mouse-select-pane on
 set -g mouse-resize-pane on
