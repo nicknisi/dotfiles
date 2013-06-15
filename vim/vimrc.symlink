@@ -38,6 +38,7 @@ if (!exists('vimrc_already_sourced'))
     Bundle 'flazz/vim-colorschemes'
     Bundle 'editorconfig/editorconfig-vim'
     Bundle 'juvenn/mustache.vim'
+    Bundle 'tclem/vim-arduino'
 
     filetype plugin indent on
 endif
