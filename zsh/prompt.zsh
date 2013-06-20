@@ -1,26 +1,37 @@
+# heavily inspired by the wonderful pure theme
+# https://github.com/sindresorhus/pure
+
+# For my own and others sanity
+# git:
+# %b => current branch
+# %a => current action (rebase/merge)
+# prompt:
+# %F => color dict
+# %f => reset color
+# %~ => current path
+# %* => time
+# %n => username
+# %m => shortname host
+# %(?..) => prompt conditional - %(condition.true.false)
+
+autoload -Uz vcs_info
+zstyle ':vcs_info:*' enable git # You can add hg too if needed: `git hg`
+zstyle ':vcs_info:git*' formats ' %b'
+zstyle ':vcs_info:git*' actionformats ' %b|%a'
+
 autoload colors && colors
 
-git_branch() {
-  echo $(/usr/bin/git symbolic-ref HEAD 2>/dev/null | awk -F/ {'print $NF'})
-}
-
 git_dirty() {
-  st=$(/usr/bin/git status 2>/dev/null | tail -n 1)
-  if [[ $st == "" ]]
-  then
-    echo ""
-  else
-    if [[ $st == "nothing to commit (working directory clean)" ]]
-    then
-      echo "%{$fg_bold[green]%}✔ $(git_prompt_info)%{$reset_color%}"
-    else
-      echo "%{$fg_bold[red]%}✗ $(git_prompt_info)%{$reset_color%}"
-    fi
-  fi
-}
+    # check if we're in a git repo
+    command git rev-parse --is-inside-work-tree &>/dev/null || return
 
-unpushed() {
-  /usr/bin/git cherry -v @{upstream} 2>/dev/null
+    # check if it's dirty
+    command git diff --quiet --ignore-submodules HEAD &>/dev/null;
+    if [[ $? -eq 1 ]]; then
+        echo "%F{red}✗%f"
+    else
+        echo "%F{green}✔%f"
+    fi
 }
 
 git_prompt_info() {
@@ -29,8 +40,8 @@ git_prompt_info() {
  echo "${ref#refs/heads/}"
 }
 
-need_push() {
-  if [[ $(unpushed) == "" ]]
+needs_push() {
+  if [[ $(git cherry -v @{upstream} 2>/dev/null) == "" ]]
   then
     echo " "
   else
@@ -38,6 +49,7 @@ need_push() {
   fi
 }
 
+# indicate a job (for example, vim) has been backgrounded
 suspended_jobs() {
     sj=$(jobs 2>/dev/null | tail -n 1)
     if [[ $sj == "" ]]; then
@@ -47,9 +59,10 @@ suspended_jobs() {
     fi
 }
 
-directory_name(){
-  echo "%{$fg_bold[cyan]%}%1/%\/%{$reset_color%}"
+precmd() {
+    vcs_info
+    print -P '\n%F{blue}%~ `git_dirty`%F{236}$vcs_info_msg_0_%f'
 }
 
-export PROMPT=$'$(directory_name) %{$fg_bold[magenta]%}➜%{$reset_color%} '
-export RPROMPT=$'$(git_dirty)$(need_push)$(suspended_jobs)'
+export PROMPT='%(?.%F{magenta}.%F{red})❯%f '
+export RPROMPT='`suspended_jobs`'
