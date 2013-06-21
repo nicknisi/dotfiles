@@ -43,9 +43,9 @@ git_prompt_info() {
 needs_push() {
   if [[ $(git cherry -v @{upstream} 2>/dev/null) == "" ]]
   then
-    echo " "
+    echo ""
   else
-    echo " %{$fg_bold[magenta]%}☁%{$reset_color%} "
+    echo "%{$fg_bold[magenta]%}☁%{$reset_color%} "
   fi
 }
 
@@ -61,7 +61,7 @@ suspended_jobs() {
 
 precmd() {
     vcs_info
-    print -P '\n%F{blue}%~ `git_dirty`%F{236}$vcs_info_msg_0_%f'
+    print -P '\n%F{013}%~ `git_dirty`%F{236}$vcs_info_msg_0_%f `needs_push`'
 }
 
 export PROMPT='%(?.%F{magenta}.%F{red})❯%f '
