@@ -26,6 +26,10 @@
     # show what I did today
     day = "!sh -c 'git log --reverse --no-merges --branches=* --date=local --after=\"yesterday 11:59PM\" --author=\"`git config --get user.name`\"'"
 
+    fixup = !sh -c 'git commit --fixup=$1' -
+    squash = !sh -c 'git commit --squash=$1' -
+    ri = rebase --interactive --autosquash
+
     # stash shortcuts
     sp = stash pop
     sw = stash save
