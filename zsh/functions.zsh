@@ -97,3 +97,13 @@ function scpp() {
     echo "http://nicknisi.com/i/$1" | pbcopy;
     echo "Copied to clipboard: http://nicknisi.com/i/$1"
 }
+
+# install a grunt plugin and save to devDependencies
+function gi() {
+    npm install --save-dev grunt-"$@"
+}
+
+# install a grunt-contrib plugin and save to devDependencies
+function gci() {
+    npm install --save-dev grunt-contrib-"$@"
+}
