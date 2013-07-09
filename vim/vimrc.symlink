@@ -39,6 +39,7 @@ if (!exists('vimrc_already_sourced'))
     Bundle 'editorconfig/editorconfig-vim'
     Bundle 'juvenn/mustache.vim'
     Bundle 'tclem/vim-arduino'
+    Bundle 'bling/vim-airline'
 
     filetype plugin indent on
 endif
@@ -192,34 +193,6 @@ set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 set laststatus=2 " show the satus line all the time
-" set statusline=%f\ %y%m%r%=%-20.(%{fugitive#statusline()}%)%-15.(%l,%c%V%)\ %P
-set statusline=\ "
-set statusline+=%-25.80f%*\ " file name minimum 25, maximum 80 (right justified)
-set statusline+=
-set statusline+=%h " help file flag
-set statusline+=%r " read only flag
-set statusline+=%m " modified flag
-set statusline+=%w " preview flag
-set statusline+=%*\ "
-set statusline+=%y " filetype
-set statusline+=%= " right align
-set statusline+=<%{fugitive#head()}%*>\ " Fugitive
-set statusline+=%-14.(%l,%c%V%)\ %<%P%* " offset
-
-function! InsertStatuslineColor(mode)
-    if a:mode == 'i'
-        hi statusline ctermbg=magenta
-    elseif a:mode == 'r'
-        hi statusline ctermbg=blue
-    else
-        hi statusline ctermbg=red
-    endif
-endfunction
-
-autocmd InsertEnter * call InsertStatuslineColor(v:insertmode)
-autocmd InsertChange * call InsertStatuslineColor(v:insertmode)
-autocmd InsertLeave * hi statusline ctermbg=DarkGray
-hi statusline ctermbg=DarkGray
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Mappings
@@ -424,5 +397,10 @@ let g:ctrlp_custom_ignore = {
 
 " search the nearest ancestor that contains .git, .hg, .svn
 let g:ctrlp_working_path_mode = 2
+
+" airline options
+let g:airline_left_sep=''
+let g:airline_right_sep=''
+let g:airline_theme='dark'
 
 let vimrc_already_sourced = 1
