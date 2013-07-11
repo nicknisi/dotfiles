@@ -40,6 +40,7 @@ if (!exists('vimrc_already_sourced'))
     Bundle 'juvenn/mustache.vim'
     Bundle 'tclem/vim-arduino'
     Bundle 'bling/vim-airline'
+    " Bundle 'scrooloose/syntastic'
 
     filetype plugin indent on
 endif
@@ -160,7 +161,7 @@ syntax on
 set encoding=utf8
 set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
 set background=dark
-colorscheme ir_black
+colorscheme solarized
 
 " set number " show line numbers
 set relativenumber " show relative line numbers
@@ -229,6 +230,7 @@ noremap <space> :set hlsearch! hlsearch?<cr>
 " toggle invisible characters
 set invlist
 set listchars=tab:▸\ ,eol:¬,trail:⋅,extends:❯,precedes:❮
+highlight SpecialKey ctermbg=none " make the highlighting of tabs less annoying
 set showbreak=↪
 nmap <leader>l :set list!<cr>
 
@@ -402,6 +404,6 @@ let g:ctrlp_working_path_mode = 2
 " airline options
 let g:airline_left_sep=''
 let g:airline_right_sep=''
-let g:airline_theme='dark'
+let g:airline_theme='solarized2'
 
 let vimrc_already_sourced = 1
