@@ -37,3 +37,6 @@ Bundle 'juvenn/mustache.vim'
 Bundle 'tclem/vim-arduino'
 Bundle 'bling/vim-airline'
 " Bundle 'scrooloose/syntastic'
+Bundle "MarcWeber/vim-addon-mw-utils"
+Bundle "tomtom/tlib_vim"
+Bundle 'garbas/vim-snipmate'

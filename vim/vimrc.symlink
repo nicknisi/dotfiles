@@ -242,7 +242,7 @@ nnoremap <leader>/ :call ToggleNuMode()<cr>
 nmap <leader>s :call <SID>SynStack()<cr>
 autocmd! BufEnter * call ApplyLocalSettings(expand("<afile>:p:h"))
 
-inoremap <tab> <c-r>=Smart_TabComplete()<CR>
+" inoremap <tab> <c-r>=Smart_TabComplete()<CR>
 
 map <leader>r :call RunCustomCommand()<cr>
 map <leader>s :call SetCustomCommand()<cr>
@@ -286,8 +286,9 @@ let g:ctrlp_custom_ignore = {
 let g:ctrlp_working_path_mode = 2
 
 " airline options
-let g:airline_left_sep=''
-let g:airline_right_sep=''
-let g:airline_theme='solarized2'
+" let g:airline_left_sep=''
+" let g:airline_right_sep=''
+let g:airline_theme='light'
+let g:airline_powerline_fonts=1
 
 let vimrc_already_sourced = 1

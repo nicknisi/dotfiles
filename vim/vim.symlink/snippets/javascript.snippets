@@ -1,0 +1,27 @@
+snippet def
+	define([
+		${1}
+	], function (${2}) {
+		${3}
+	});
+
+snippet req
+	require([
+		${1}
+	], function (${2}) {
+		${3}
+	});
+
+snippet :
+	${1:key}: ${2:value}
+
+snippet :f
+	${1:method_name}: function (${2:args}) {
+	}
+
+snippet fun
+	function ${1:name}(${2:args}) {
+	}
+
+snippet log
+	console.log(${1:""})
