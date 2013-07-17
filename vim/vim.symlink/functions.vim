@@ -85,3 +85,6 @@ function! SetCustomCommand()
     let s:customcommand = input('Enter Custom Command$ ')
 endfunction
 
+function! TrimWhiteSpace()
+	%s/\s\+$//e
+endfunction
