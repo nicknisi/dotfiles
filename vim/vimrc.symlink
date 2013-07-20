@@ -76,6 +76,7 @@ if has("autocmd") && !exists("autocommands_loaded")
     autocmd FocusLost * silent! wa
     autocmd BufNewFile,BufRead *.json set filetype=javascript
     autocmd BufNewFile,BufRead *.ejs set filetype=html
+    autocmd BufNewFile,BufRead *.ino set filetype=c
 endif
 
 " code folding settings
