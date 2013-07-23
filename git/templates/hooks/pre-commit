@@ -1,0 +1,22 @@
+#!/bin/sh
+
+EXIT_CODE=0
+
+repo=$( git rev-parse --show-toplevel )
+HOOKS=~/.dotfiles/git/hooks
+
+echo "Executing PRE-COMMIT hook(s)"
+
+for hook in $HOOKS/*.pre-commit; do
+	echo ""
+	echo "${COLOR_LIGHTPURPLE}Executing ${hook}${COLOR_NONE}"
+	${hook}
+	EXIT_CODE=$((${EXIT_CODE} + $?))
+done
+
+if [[ ${EXIT_CODE} -ne 0 ]]; then
+	echo ""
+	echo "${COLOR_RED}Commit Failed.${COLOR_NONE}"
+fi
+
+exit $((${EXIT_CODE}))

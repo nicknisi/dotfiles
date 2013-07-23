@@ -4,6 +4,8 @@
     email = nick@nisi.org
 [github]
     user = nicknisi
+[init]
+    templatedir = ~/.dotfiles/git/templates
 [alias]
     ci = commit -a
     co = checkout

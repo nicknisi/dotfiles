@@ -1,0 +1,26 @@
+#!/bin/zsh
+# Banned Words
+# If the file(s) being commited contain any of the below banned words
+# then fail the commit
+
+COLOR_RED="\x1B[31m"
+COLOR_GREEN="\x1B[32m"
+COLOR_NONE="\x1B[0m"
+
+LIST="debugger\|console\|TODO\|FIXME\|BANNED"
+
+if `git rev-parse --verify HEAD >/dev/null 2>&1`; then
+    against=HEAD
+else
+    against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+fi
+
+for FILE in `git diff-index --name-status --cached $against -- | cut -c3-` ; do
+    # check if the fil contains one fo the words in the list
+    if grep -w $LIST $FILE; then
+        echo ""
+        echo "${COLOR_RED}✘ ${FILE} contains a banned word.${COLOR_NONE}"
+        exit 1
+    fi
+done
+echo "${COLOR_GREEN}✔ No banned words detected${COLOR_NONE}"
