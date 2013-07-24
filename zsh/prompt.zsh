@@ -61,8 +61,8 @@ suspended_jobs() {
 
 precmd() {
     vcs_info
-    print -P '\n%F{013}%~ `git_dirty`%F{236}$vcs_info_msg_0_%f `needs_push`'
+    print -P '\n%F{013}%~'
 }
 
 export PROMPT='%(?.%F{magenta}.%F{red})❯%f '
-export RPROMPT='`suspended_jobs`'
+export RPROMPT='`git_dirty`%F{236}$vcs_info_msg_0_%f `needs_push``suspended_jobs`'
