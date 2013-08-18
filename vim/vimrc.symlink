@@ -172,6 +172,9 @@ set laststatus=2 " show the satus line all the time
 " clear search results on escape
 nnoremap <silent> <esc> :nohlsearch<cr><esc>
 
+" Close the current buffer
+noremap <C-x> :q<cr>
+
 " remap esc
 inoremap jk <esc>
 
@@ -289,7 +292,7 @@ let g:ctrlp_working_path_mode = 2
 " airline options
 " let g:airline_left_sep=''
 " let g:airline_right_sep=''
-let g:airline_theme='light'
 let g:airline_powerline_fonts=1
+let g:airline_theme='solarized'
 
 let vimrc_already_sourced = 1

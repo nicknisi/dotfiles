@@ -10,7 +10,8 @@
 --ignore-dir=node_modules
 
 # added file types
---type-set=css=.css,.less,.scss
+--type-set=css=.css,.less,.scss,.styl
+--type-set=styl=.styl
 --type-set=less=.less
 --type-set=html=.html,.mustache,.handlebars,.tmpl
 --type-set=json=.json
