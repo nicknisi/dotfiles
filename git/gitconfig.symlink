@@ -7,7 +7,7 @@
 [init]
     templatedir = ~/.dotfiles/git/templates
 [alias]
-    ci = commit -a
+    cnv = commit --no-verify
     co = checkout
     s = status --short
     ss  = status
