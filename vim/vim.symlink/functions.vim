@@ -13,15 +13,6 @@ function! WinMove(key)
     endif
 endfunction
 
-" toggle relative line numbers
-function! ToggleNuMode()
-    if (&rnu == 1)
-        setlocal nu
-    else
-        setlocal rnu
-    endif
-endfunction
-
 " tell me what syntax group the word below the cursor belongs to
 function! <SID>SynStack()
     if !exists("*synstack")

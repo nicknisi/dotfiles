@@ -132,6 +132,7 @@ colorscheme solarized
 
 " set number " show line numbers
 set relativenumber " show relative line numbers
+set number
 
 set wrap " turn on line wrapping
 "set nowrap "turn off line wrapping
