@@ -128,7 +128,7 @@ syntax on
 set encoding=utf8
 set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
 set background=dark
-colorscheme solarized
+colorscheme smyck
 
 " set number " show line numbers
 set relativenumber " show relative line numbers
@@ -295,6 +295,6 @@ let g:ctrlp_working_path_mode = 2
 " let g:airline_left_sep=''
 " let g:airline_right_sep=''
 let g:airline_powerline_fonts=1
-let g:airline_theme='solarized'
+let g:airline_theme='dark'
 
 let vimrc_already_sourced = 1

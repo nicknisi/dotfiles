@@ -41,3 +41,6 @@ Bundle 'scrooloose/syntastic'
 Bundle "MarcWeber/vim-addon-mw-utils"
 Bundle "tomtom/tlib_vim"
 Bundle 'garbas/vim-snipmate'
+Bundle 'terryma/vim-multiple-cursors'
+Bundle 'tpope/vim-repeat'
+Bundle 'tonchis/to-github-vim'
