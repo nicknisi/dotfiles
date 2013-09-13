@@ -1,7 +1,7 @@
 #### COLOUR
 
 tm_color_active=colour201
-tm_color_inactive=colour11
+tm_color_inactive=colour241
 tm_color_feature=colour202
 
 # separators
