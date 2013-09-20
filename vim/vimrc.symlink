@@ -66,6 +66,7 @@ if has("autocmd") && !exists("autocommands_loaded")
     autocmd FileType ruby setlocal ts=2 sts=2 sw=2 expandtab
     autocmd FileType html setlocal ts=4 sts=4 sw=4 noexpandtab indentkeys-=*<return>
     autocmd FileType jade setlocal ts=2 sts=2 sw=2 noexpandtab
+	autocmd FileType *.md.js :call SyntasticReset<cr>
     "autocmd WinEnter * setlocal cursorline
     "autocmd WinLeave * setlocal nocursorline
 
@@ -245,13 +246,13 @@ nnoremap <silent> k gk
 nnoremap <leader>/ :call ToggleNuMode()<cr>
 
 " find out what syntax stack a statement belongs to
-nmap <leader>s :call <SID>SynStack()<cr>
+" nmap <leader>s :call <SID>SynStack()<cr>
 autocmd! BufEnter * call ApplyLocalSettings(expand("<afile>:p:h"))
 
 " inoremap <tab> <c-r>=Smart_TabComplete()<CR>
 
 map <leader>r :call RunCustomCommand()<cr>
-map <leader>s :call SetCustomCommand()<cr>
+" map <leader>s :call SetCustomCommand()<cr>
 let g:silent_custom_command = 0
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -282,6 +283,9 @@ let g:ctrlp_working_path_mode = 'ra'
 nmap <silent> <leader>gs :Gstatus<cr>
 nmap <leader>ge :Gedit<cr>
 
+" toggle syntastic
+nmap <leader>s :SyntasticToggleMode<cr>
+
 " CtrlP ignore patterns
 let g:ctrlp_custom_ignore = {
             \ 'dir': '\.git$\|node_modules$\|\.hg$\|\.svn$',
@@ -299,9 +303,12 @@ let g:airline_theme='dark'
 
 if (has("gui_running"))
     set guioptions=egmrt
+    set background=light
+    colorscheme solarized
     let g:airline_left_sep=''
     let g:airline_right_sep=''
     let g:airline_powerline_fonts=0
+    let g:airline_theme='solarized'
 endif
 
 let vimrc_already_sourced = 1
