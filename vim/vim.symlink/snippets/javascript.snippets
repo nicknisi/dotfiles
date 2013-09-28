@@ -1,3 +1,4 @@
+# dojo/AMD snippets
 snippet def
 	define([
 		${1}
@@ -8,6 +9,9 @@ snippet req
 		${1}
 	], function (${2}) {
 	});
+snippet inh
+	this.inherited(arguments);
+# basic snippets
 snippet :
 	${1:key}: ${2:value}
 snippet :f
@@ -16,6 +20,7 @@ snippet :f
 snippet fun
 	function ${1:name}(${2:args}) {
 	}
+# log snippets
 snippet log
 	console.log(${1});
 snippet lred
