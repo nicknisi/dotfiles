@@ -57,7 +57,7 @@ bind | split-window -h
 bind - split-window -v
 
 # synchronize all panes in a window
-# bind z setw synchronize-panes
+bind y setw synchronize-panes
 
 # pane movement shortcuts
 bind h select-pane -L
