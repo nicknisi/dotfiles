@@ -4,6 +4,9 @@ snippet def
 		${1}
 	], function (${2}) {
 	});
+snippet dec
+	declare(${1}, {
+	});
 snippet req
 	require([
 		${1}
@@ -20,6 +23,9 @@ snippet :f
 snippet fun
 	function ${1:name}(${2:args}) {
 	}
+snippet iife
+	(function () {
+	})();
 # log snippets
 snippet log
 	console.log(${1});

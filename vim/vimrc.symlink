@@ -76,9 +76,12 @@ if has("autocmd") && !exists("autocommands_loaded")
     autocmd BufWritePost .vimrc.local source %
     " save all files on focus lost, ignoring warnings about untitled buffers
     autocmd FocusLost * silent! wa
-    autocmd BufNewFile,BufRead *.json set filetype=javascript
     autocmd BufNewFile,BufRead *.ejs set filetype=html
     autocmd BufNewFile,BufRead *.ino set filetype=c
+
+	" make quickfix windows take all the lower section of the screen when there
+	" are multiple windows open
+	autocmd FileType qf wincmd J
 endif
 
 " code folding settings
@@ -142,6 +145,7 @@ set linebreak " set soft wrapping
 set showbreak=… " show ellipsis at breaking
 
 set autoindent " automatically set indent of new line
+set smartindent 
 
 try
     lang en_US
