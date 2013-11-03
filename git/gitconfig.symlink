@@ -7,6 +7,7 @@
 [init]
     templatedir = ~/.dotfiles/git/templates
 [alias]
+    diff = diff --ignore-space-at-eol -b -w --ignore-blank-lines
     cnv = commit --no-verify
     co = checkout
     s = status --short
