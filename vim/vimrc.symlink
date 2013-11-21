@@ -33,7 +33,7 @@ let g:mapleader = ","
 
 " change history to 1000
 set history=10000
-set textwidth=80
+" set textwidth=80
 
 " Tab control
 set noexpandtab " insert tabs rather than spaces for <Tab>
@@ -129,6 +129,9 @@ set tm=500
 " switch syntax highlighting on
 syntax on
 
+highlight ColorColumn ctermbg=magenta
+call matchadd('ColorColumn', '\%81v', 100)
+
 set encoding=utf8
 set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
 set background=dark
@@ -145,7 +148,7 @@ set linebreak " set soft wrapping
 set showbreak=… " show ellipsis at breaking
 
 set autoindent " automatically set indent of new line
-set smartindent 
+set smartindent
 
 try
     lang en_US
