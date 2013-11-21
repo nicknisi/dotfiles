@@ -66,7 +66,7 @@ if has("autocmd") && !exists("autocommands_loaded")
     autocmd FileType ruby setlocal ts=2 sts=2 sw=2 expandtab
     autocmd FileType html setlocal ts=4 sts=4 sw=4 noexpandtab indentkeys-=*<return>
     autocmd FileType jade setlocal ts=2 sts=2 sw=2 noexpandtab
-	autocmd FileType *.md.js :call SyntasticReset<cr>
+    autocmd FileType *.md.js :call SyntasticReset<cr>
     "autocmd WinEnter * setlocal cursorline
     "autocmd WinLeave * setlocal nocursorline
 
@@ -79,9 +79,9 @@ if has("autocmd") && !exists("autocommands_loaded")
     autocmd BufNewFile,BufRead *.ejs set filetype=html
     autocmd BufNewFile,BufRead *.ino set filetype=c
 
-	" make quickfix windows take all the lower section of the screen when there
-	" are multiple windows open
-	autocmd FileType qf wincmd J
+    " make quickfix windows take all the lower section of the screen when there
+    " are multiple windows open
+    autocmd FileType qf wincmd J
 endif
 
 " code folding settings
@@ -206,6 +206,9 @@ map <leader>e :e! ~/.vimrc<cr>
 " clear highlighted search
 noremap <space> :set hlsearch! hlsearch?<cr>
 
+" activate spell-checking alternatives
+nmap ;s :set invspell spelllang=en<cr>
+
 " toggle invisible characters
 set invlist
 set listchars=tab:▸\ ,eol:¬,trail:⋅,extends:❯,precedes:❮
@@ -319,3 +322,4 @@ if (has("gui_running"))
 endif
 
 let vimrc_already_sourced = 1
+
