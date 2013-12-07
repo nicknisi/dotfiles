@@ -61,6 +61,6 @@
 	"yui": false,
 	"indent": 4,
 	"predef": [ "require", "define" ],
-	"quotmark": "single",
+	"quotmark": true,
 	"maxcomplexity": 10
 }
