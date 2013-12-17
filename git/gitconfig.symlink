@@ -18,6 +18,8 @@
     lg = log --graph --pretty=oneline --abbrev-commit --decorate
     # slight variation of pretty log graph
     l = log --graph --pretty=format:'%Cred%h%Creset %an: %s - %Creset %C(yellow)%d%Creset %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+    # list all aliases
+    la = "!git config -l | grep alias | cut -c 7-"
     # show files that have changed between two branches (git dbr master..branch)
     dbr = diff --name-status
     # show diff of cached files
@@ -53,6 +55,16 @@
 
     # rebase the current branch with changes from upstream remote
     update = !git fetch upstream && git rebase upstream/`git rev-parse --abbrev-ref HEAD`
+
+    # tag aliases
+    # show the last tag
+    lasttag = describe --tags --abbrev=0
+
+    # assume aliases
+    assume = update-index --assume-unchanged
+    unassume = update-index --no-assume-unchanged
+    assumed = "!git ls-files -v | grep ^h | cut -c 3-"
+    unassumeall = "!git assumed | xargs git update-index --no-assume-unchanged"
 
     # grep commands
 
