@@ -205,6 +205,10 @@ map <leader>v :set paste!<cr>
 
 " edit ~/.vimrc
 map <leader>e :e! ~/.vimrc<cr>
+" edit vim plugins
+map <leader>ep :e! ~/.vim/plugins.vim<cr>
+" edit vim plugins
+map <leader>ef :e! ~/.vim/functions.vim<cr>
 
 " clear highlighted search
 noremap <space> :set hlsearch! hlsearch?<cr>
