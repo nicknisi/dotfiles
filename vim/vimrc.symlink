@@ -135,7 +135,7 @@ call matchadd('ColorColumn', '\%81v', 100)
 set encoding=utf8
 set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
 set background=dark
-colorscheme jellybeans
+colorscheme hybrid
 
 " set number " show line numbers
 set relativenumber " show relative line numbers
