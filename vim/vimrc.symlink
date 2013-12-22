@@ -179,9 +179,6 @@ set laststatus=2 " show the satus line all the time
 " Additional, plugin-specific mappings are located under
 " the plugins section
 
-" clear search results on escape
-nnoremap <silent> <esc> :nohlsearch<cr><esc>
-
 " Close the current buffer
 noremap <C-x> :q<cr>
 
