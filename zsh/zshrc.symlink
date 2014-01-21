@@ -38,7 +38,11 @@ fi
 
 [ -z "$TMUX" ] && export TERM=xterm-256color
 
-PATH=$HOME/.rvm/bin:$PATH # Add RVM to PATH for scripting
+
+if [[ -d ~/.rvm ]]; then
+    PATH=$HOME/.rvm/bin:$PATH # Add RVM to PATH for scripting
+	source ~/.rvm/scripts/rvm
+fi
 
 if [[ -d ~/.nvm ]]; then
 	source ~/.nvm/nvm.sh
