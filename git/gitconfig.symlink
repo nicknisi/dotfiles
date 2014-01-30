@@ -19,9 +19,7 @@
     br = branch -v
     brt = "!sh -c gbrt"
     # show a pretty log graph
-    lg = log --graph --pretty=oneline --abbrev-commit --decorate
-    # slight variation of pretty log graph
-    l = log --graph --pretty=format:'%Cred%h%Creset %an: %s - %Creset %C(yellow)%d%Creset %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+    lg = log --graph --abbrev-commit --decorate --date=relative --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
     # list all aliases
     la = "!git config -l | grep alias | cut -c 7-"
     # show files that have changed between two branches (git dbr master..branch)
