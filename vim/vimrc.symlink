@@ -43,9 +43,10 @@ set softtabstop=4 " edit as if the tabs are 4 characters wide
 set shiftwidth=4 " number of spaces to use for indent and unindent
 set shiftround " round indent to a multiple of 'shiftwidth'
 
-" if has('mouse')
-"     set mouse=a
-" endif
+if has('mouse')
+    set mouse=a
+    set ttymouse=xterm2
+endif
 
 set clipboard=unnamed
 
@@ -76,8 +77,10 @@ if has("autocmd") && !exists("autocommands_loaded")
     autocmd BufWritePost .vimrc.local source %
     " save all files on focus lost, ignoring warnings about untitled buffers
     autocmd FocusLost * silent! wa
+
     autocmd BufNewFile,BufRead *.ejs set filetype=html
     autocmd BufNewFile,BufRead *.ino set filetype=c
+	autocmd BufNewFile,BufRead *.svg set filetype=xml
 
     " make quickfix windows take all the lower section of the screen when there
     " are multiple windows open
