@@ -132,3 +132,5 @@
     editor = vim
 [rerere]
     enabled = true
+[gitsh]
+	defaultCommand = s
