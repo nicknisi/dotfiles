@@ -1,25 +1,17 @@
-" vim settings
-
-if (!exists('vimrc_already_sourced'))
-    filetype off
-    source ~/.vim/plugins.vim
-    filetype plugin indent on
-endif
-
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => General
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+" load plugins from vundle
+source ~/.vim/plugins.vim
+
 " load functions
 source ~/.vim/functions.vim
 
-"""" Abbreviations
+" Abbreviations
 abbr funciton function
 abbr teh the
 abbr tempalte template
-
-"set winwidth=120
 
 set nocompatible " not compatible with vi
 set autoread " detect when a file is changed
@@ -31,8 +23,7 @@ set backspace=indent,eol,start
 let mapleader = ","
 let g:mapleader = ","
 
-" change history to 1000
-set history=10000
+set history=10000 " change history to 1000
 " set textwidth=80
 
 " Tab control
@@ -80,7 +71,7 @@ if has("autocmd") && !exists("autocommands_loaded")
 
     autocmd BufNewFile,BufRead *.ejs set filetype=html
     autocmd BufNewFile,BufRead *.ino set filetype=c
-	autocmd BufNewFile,BufRead *.svg set filetype=xml
+    autocmd BufNewFile,BufRead *.svg set filetype=xml
 
     " make quickfix windows take all the lower section of the screen when there
     " are multiple windows open
@@ -328,6 +319,3 @@ if (has("gui_running"))
     let g:airline_powerline_fonts=0
     let g:airline_theme='solarized'
 endif
-
-let vimrc_already_sourced = 1
-
