@@ -33,9 +33,9 @@ unbind =
 bind = select-layout tiled
 
 # cycle through panes
-unbind C-a
-unbind o # this is the default key for cycling panes
-bind ^A select-pane -t:.+
+# unbind C-a
+# unbind o # this is the default key for cycling panes
+# bind ^A select-pane -t:.+
 
 # make window/pane index start with 1
 set -g base-index 1
