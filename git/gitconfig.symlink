@@ -91,6 +91,7 @@
     aa = !git ls-files -d | xargs git rm && git ls-files -m -o --exclude-standard | xargs git add
     # remove grep - Remove found files that are NOT under version control
     rg = "!sh -c 'git ls-files --others --exclude-standard | grep $1 | xargs rm' -"
+    g = grep --break --heading --line-number
 [color]
     diff = auto
     status = auto
@@ -133,4 +134,7 @@
 [rerere]
     enabled = true
 [gitsh]
-	defaultCommand = s
+    defaultCommand = s
+[grep]
+    extendRegexp = true
+    lineNumber = true
