@@ -55,6 +55,7 @@
     # submodule shortcuts
     si = submodule init
     su = submodule update
+    sub = "!git submodule sync && git submodule update"
 
     # show number of commits per contributer, sorted
     count = shortlog -sn
