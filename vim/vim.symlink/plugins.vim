@@ -31,6 +31,7 @@ Bundle "MarcWeber/vim-addon-mw-utils"
 Bundle "tomtom/tlib_vim"
 Bundle 'sotte/presenting.vim'
 Bundle 'ervandew/supertab'
+Bundle 'tpope/vim-dispatch'
 
 " colorschemes
 Bundle 'ap/vim-css-color'
