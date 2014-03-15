@@ -1,4 +1,5 @@
-export ZSH=$HOME/.dotfiles
+export DOTFILES=$HOME/.dotfiles
+export ZSH=$DOTFILES/zsh
 
 # define the code directory
 if [[ -d ~/code ]]; then
@@ -6,7 +7,7 @@ if [[ -d ~/code ]]; then
 fi
 
 # load all zsh config files
-for config ($ZSH/zsh/**/*.zsh) source $config
+for config ($ZSH/**/*.zsh) source $config
 
 if [[ -a ~/.localrc ]]; then
     source ~/.localrc
@@ -17,7 +18,7 @@ fi
 autoload -U compinit
 compinit
 
-for config ($ZSH/zsh/**/*completion.sh) source $config
+for config ($ZSH/**/*completion.sh) source $config
 
 export EDITOR='vim'
 
@@ -29,7 +30,7 @@ if [[ -d /usr/local/sbin ]]; then
 fi
 
 # adding path directory for custom scripts
-export PATH=$ZSH/bin:$PATH
+export PATH=$DOTFILES/bin:$PATH
 
 # check for custom bin directory and add to path
 if [[ -d ~/bin ]]; then
