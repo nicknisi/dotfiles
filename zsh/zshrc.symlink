@@ -6,7 +6,7 @@ if [[ -d ~/code ]]; then
 fi
 
 # load all zsh config files
-for config ($ZSH/**/*.zsh) source $config
+for config ($ZSH/zsh/**/*.zsh) source $config
 
 if [[ -a ~/.localrc ]]; then
     source ~/.localrc
@@ -17,7 +17,7 @@ fi
 autoload -U compinit
 compinit
 
-for config ($ZSH/**/completion.sh) source $config
+for config ($ZSH/zsh/**/*completion.sh) source $config
 
 export EDITOR='vim'
 
