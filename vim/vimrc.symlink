@@ -310,6 +310,9 @@ let g:ctrlp_working_path_mode = 2
 let g:airline_powerline_fonts=1
 let g:airline_theme='dark'
 
+
+let g:SuperTabCrMapping = 0
+
 if (has("gui_running"))
     set guioptions=egmrt
     set background=light
