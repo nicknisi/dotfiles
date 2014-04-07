@@ -60,7 +60,10 @@
 	"wsh": false,
 	"yui": false,
 	"indent": 4,
-	"predef": [ "require", "define" ],
+	"globals": {
+		"require": true,
+		"define": true
+	},
 	"quotmark": true,
 	"maxcomplexity": 10
 }
