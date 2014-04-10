@@ -39,6 +39,7 @@ Bundle 'ap/vim-css-color'
 Bundle 'flazz/vim-colorschemes'
 Bundle 'nanotech/jellybeans.vim'
 Bundle 'w0ng/vim-hybrid'
+Bundle 'chriskempson/base16-vim'
 
 " languages
 Bundle 'othree/html5.vim'
