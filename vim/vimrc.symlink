@@ -253,6 +253,9 @@ nnoremap <silent> k gk
 
 nnoremap <leader>/ :call ToggleNuMode()<cr>
 
+" search for word under the cursor
+nnoremap <leader>/ "fyiw :/<c-r>f<cr>
+
 " find out what syntax stack a statement belongs to
 " nmap <leader>s :call <SID>SynStack()<cr>
 autocmd! BufEnter * call ApplyLocalSettings(expand("<afile>:p:h"))
@@ -291,6 +294,9 @@ let g:ctrlp_working_path_mode = 'ra'
 nmap <silent> <leader>gs :Gstatus<cr>
 nmap <leader>ge :Gedit<cr>
 nmap <silent><leader>gr :Gread<cr>
+
+nmap <leader>m :MarkedOpen!<cr>
+nmap <leader>mq :MarkedQuit<cr>
 
 " toggle syntastic
 nmap <leader>s :SyntasticToggleMode<cr>
