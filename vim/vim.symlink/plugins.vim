@@ -35,6 +35,7 @@ Plugin 'mtth/scratch.vim'
 Plugin 'itspriddle/vim-marked'
 Plugin 'tpope/vim-vinegar'
 Plugin 'ap/vim-css-color'
+Plugin 'davidoc/taskpaper.vim'
 
 " colorschemes
 Plugin 'flazz/vim-colorschemes'
