@@ -90,7 +90,7 @@
     # 'checkout grep'
     cg = "!sh -c 'git ls-files -m | grep $1 | xargs git checkout ' -"
     # add grep
-    ag = "!sh -c 'git ls-files -m -o --exclude-standard | grep $1 | xargs git add' -"
+    ag = "!sh -c 'git ls-files -m -o --exclude-standard | grep $1 | xargs git add --all' -"
     # add all
     aa = !git ls-files -d | xargs git rm && git ls-files -m -o --exclude-standard | xargs git add
     # remove grep - Remove found files that are NOT under version control
