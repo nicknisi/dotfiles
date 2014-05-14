@@ -19,9 +19,7 @@ Plugin 'tpope/vim-surround'
 Plugin 'benmills/vimux'
 Plugin 'bling/vim-airline'
 Plugin 'scrooloose/syntastic'
-Plugin 'ciaranm/detectindent'
 Plugin 'tpope/vim-fugitive'
-Plugin 'terryma/vim-multiple-cursors'
 Plugin 'tpope/vim-repeat'
 Plugin 'garbas/vim-snipmate'
 Plugin 'mattn/emmet-vim'
@@ -58,7 +56,7 @@ Plugin 'leafgarland/typescript-vim'
 " Plugin 'dart-lang/dart-vim-plugin'
 Plugin 'cakebaker/scss-syntax.vim'
 " Plugin 'kchmck/vim-coffee-script'
-Plugin 'tclem/vim-arduino'
+" Plugin 'tclem/vim-arduino'
 
 call vundle#end()
 filetype plugin indent on
