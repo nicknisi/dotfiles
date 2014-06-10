@@ -49,3 +49,16 @@ snippet des
 snippet it
 	it('${1}', function () {
 	});
+# dojo snippets
+snippet widget
+	define([
+		'dojo/_base/declare',
+		'dijit/_WidgetBase',
+		'dijit/_TemplatedMixin',
+		'dijit/_WidgetsInTemplateMixin',
+		'dojo/text!./templates/${1}.html'
+	], function (declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, template) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template
+		});
+	});
