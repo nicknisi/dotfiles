@@ -47,6 +47,7 @@ Plugin 'chriskempson/base16-vim'
 " languages
 Plugin 'othree/html5.vim'
 Plugin 'pangloss/vim-javascript'
+Plugin 'jelera/vim-javascript-syntax'
 Plugin 'tpope/vim-markdown'
 Plugin 'wavded/vim-stylus'
 Plugin 'groenewege/vim-less'
@@ -60,6 +61,7 @@ Plugin 'leafgarland/typescript-vim'
 Plugin 'cakebaker/scss-syntax.vim'
 " Plugin 'kchmck/vim-coffee-script'
 " Plugin 'tclem/vim-arduino'
+Plugin 'timcharper/textile.vim'
 
 call vundle#end()
 filetype plugin indent on
