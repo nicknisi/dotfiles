@@ -37,6 +37,7 @@ Plugin 'davidoc/taskpaper.vim'
 Plugin 'tpope/vim-abolish'
 Plugin 'AndrewRadev/splitjoin.vim'
 Plugin 'godlygeek/tabular'
+Plugin 'gbigwood/Clippo'
 
 " colorschemes
 Plugin 'flazz/vim-colorschemes'
