@@ -118,3 +118,14 @@ function gi() {
 function gci() {
     npm install --save-dev grunt-contrib-"$@"
 }
+
+# syntax highlight the contents of a file or the clipboard and place the result on the clipboard
+function hl() {
+    if [ -z "$2" ]; then
+        src=$( pbpaste )
+    else
+        src=$( cat $2 )
+    fi
+
+    echo $src | highlight -O rtf --syntax $1 --font Inconsoloata --style moria --font-size 24 | pbcopy
+}

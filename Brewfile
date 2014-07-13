@@ -16,6 +16,7 @@ install macvim --override-system-vim
 install reattach-to-user-namespace
 install tmux
 install zsh
+install highlight
 
 # gitsh
 tap thoughtbot/formulae
