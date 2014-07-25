@@ -1,6 +1,6 @@
 # Dotfiles
 
-These are my dotfiles, which contain my custom system configuration preferences. 
+Welcome to my world.
 
 ## Contents
 
@@ -9,7 +9,8 @@ These are my dotfiles, which contain my custom system configuration preferences.
 + tmux configuration
 + git configuration
 + osx configuration
-+ bash configuration
++ Node.js setup (nvm)
++ Homebrew files (Brewfile)
 
 ## Install
 
@@ -64,4 +65,4 @@ Then, if you would like to restore your previous configuration, run the restore 
 	
 ## ZSH Plugins
 
-By default, the *.zshrc* file will source any file within .dotfiles that has the *".zsh"* suffix.
+By default, the *.zshrc* file will source any file within `.dotfiles/zsh` that has the *".zsh"* suffix.
