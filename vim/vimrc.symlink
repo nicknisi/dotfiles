@@ -20,8 +20,8 @@ set autoread " detect when a file is changed
 set backspace=indent,eol,start
 
 " set a map leader for more key combos
-let mapleader = ","
-let g:mapleader = ","
+let mapleader = ','
+let g:mapleader = ','
 
 set history=10000 " change history to 1000
 " set textwidth=80
@@ -44,14 +44,11 @@ set clipboard=unnamed
 " faster redrawing
 set ttyfast
 
-" allow matching of if/end, etc. with %
-" runtime macros/matchit.vim
-
 " highlight conflicts
 match ErrorMsg '^\(<\|=\|>\)\{7\}\([^=].\+\)\?$'
 
 " file type specific settings
-if has("autocmd") && !exists("autocommands_loaded")
+if has('autocmd') && !exists('autocommands_loaded')
     let autocommands_loaded = 1
     autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
     autocmd FileType make setlocal ts=8 sts=8 sw=8 noexpandtab
@@ -64,7 +61,7 @@ if has("autocmd") && !exists("autocommands_loaded")
     "autocmd WinLeave * setlocal nocursorline
 
     " automatically resize panes on resize
-    autocmd VimResized * exe "normal! \<c-w>="
+    autocmd VimResized * exe 'normal! \<c-w>='
     autocmd BufWritePost .vimrc source %
     autocmd BufWritePost .vimrc.local source %
     " save all files on focus lost, ignoring warnings about untitled buffers
@@ -77,6 +74,8 @@ if has("autocmd") && !exists("autocommands_loaded")
     " make quickfix windows take all the lower section of the screen when there
     " are multiple windows open
     autocmd FileType qf wincmd J
+
+    autocmd! BufEnter * call ApplyLocalSettings(expand('<afile>:p:h'))
 endif
 
 " code folding settings
@@ -97,8 +96,6 @@ set noshowmode " don't show which mode disabled for PowerLine
 set wildmode=list:longest " complete files like a shell
 set scrolloff=3 " lines of text around cursor
 set shell=$SHELL
-set ruler " show postiion in file
-set rulerformat=%30(%=\:b%n%y%m%r%w\ %l,%c%V\ %P%) " a ruler on steroids"
 set cmdheight=1 " command bar height
 
 set title " set terminal title
@@ -124,9 +121,6 @@ set tm=500
 " switch syntax highlighting on
 syntax on
 
-highlight ColorColumn ctermbg=magenta
-call matchadd('ColorColumn', '\%81v', 100)
-
 set encoding=utf8
 set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
 set background=dark
@@ -134,21 +128,15 @@ colorscheme hybrid
 
 " set number " show line numbers
 set relativenumber " show relative line numbers
-set number
+set number " show the current line number"
 
-set wrap " turn on line wrapping
-"set nowrap "turn off line wrapping
+set nowrap "turn off line wrapping
 set wrapmargin=8 " wrap lines when coming within n characters from side
 set linebreak " set soft wrapping
 set showbreak=… " show ellipsis at breaking
 
 set autoindent " automatically set indent of new line
 set smartindent
-
-try
-    lang en_US
-catch
-endtry
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Files, backups, and undo
@@ -186,21 +174,23 @@ nmap <leader><space> :%s/\s\+$<cr>
 " shortcut to save
 nmap <leader>, :w<cr>
 
-" disable Visual mode
+" disable Ex mode
 noremap Q <NOP>
 
 " set paste toggle
 set pastetoggle=<F6>
 
-" toggle paste
+" toggle paste mode
 map <leader>v :set paste!<cr>
 
 " edit ~/.vimrc
-map <leader>e :e! ~/.vimrc<cr>
+map <leader>ev :e! ~/.vimrc<cr>
 " edit vim plugins
-map <leader>ep :e! ~/.vim/plugins.vim<cr>
-" edit vim plugins
-map <leader>ef :e! ~/.vim/functions.vim<cr>
+map <leader>evp :e! ~/.vim/plugins.vim<cr>
+" edit vim functions
+map <leader>evf :e! ~/.vim/functions.vim<cr>
+" edit gitconfig
+map <leader>eg :e! ~/.gitconfig<cr>
 
 " clear highlighted search
 noremap <space> :set hlsearch! hlsearch?<cr>
@@ -221,10 +211,6 @@ vmap <leader>] >gv
 nmap <leader>[ <<
 nmap <leader>] >>
 
-" buffer shortcuts
-nmap <leader>n :bn<cr> " go to next buffer
-nmap <leader>p :bp<cr> " go to prev buffer
-nmap <leader>q :bd<cr> " close the current buffer
 " switch between current and last buffer
 nmap <leader>. <c-^>
 
@@ -238,9 +224,6 @@ map <silent> <C-l> :call WinMove('l')<cr>
 
 map <leader>wc :wincmd q<cr>
 
-" equalize windows
-map <leader>= <C-w>=
-
 " toggle cursor line
 nnoremap <leader>i :set cursorline!<cr>
 
@@ -252,14 +235,8 @@ nnoremap <C-y> 3<C-y>
 nnoremap <silent> j gj
 nnoremap <silent> k gk
 
-nnoremap <leader>/ :call ToggleNuMode()<cr>
-
 " search for word under the cursor
 nnoremap <leader>/ "fyiw :/<c-r>f<cr>
-
-" find out what syntax stack a statement belongs to
-" nmap <leader>s :call <SID>SynStack()<cr>
-autocmd! BufEnter * call ApplyLocalSettings(expand("<afile>:p:h"))
 
 " inoremap <tab> <c-r>=Smart_TabComplete()<CR>
 
@@ -270,12 +247,6 @@ let g:silent_custom_command = 0
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Plugins
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-" Powerline settings
-" must have modified font installed to enable fancy
-" let g:Powerline_symbols = 'fancy'
-
-" let g:Powerline_stl_path_style = 'filename'
 
 " close NERDTree after a file is opened
 let g:NERDTreeQuitOnOpen=1
