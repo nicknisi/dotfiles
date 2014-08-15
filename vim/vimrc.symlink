@@ -127,7 +127,7 @@ colorscheme hybrid
 set relativenumber " show relative line numbers
 set number " show the current line number"
 
-set nowrap "turn off line wrapping
+set wrap "turn on line wrapping
 set wrapmargin=8 " wrap lines when coming within n characters from side
 set linebreak " set soft wrapping
 set showbreak=… " show ellipsis at breaking
@@ -400,7 +400,7 @@ let g:ctrlp_working_path_mode = 2
 " let g:airline_left_sep=''
 " let g:airline_right_sep=''
 let g:airline_powerline_fonts=1
-let g:airline_theme='dark'
+let g:airline_theme='badwolf'
 
 
 let g:SuperTabCrMapping = 0
