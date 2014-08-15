@@ -38,6 +38,8 @@ Plugin 'tpope/vim-abolish'
 Plugin 'AndrewRadev/splitjoin.vim'
 Plugin 'godlygeek/tabular'
 Plugin 'gbigwood/Clippo'
+Plugin 'vim-scripts/matchit.zip'
+Plugin 'gregsexton/MatchTag'
 
 " colorschemes
 Plugin 'flazz/vim-colorschemes'
