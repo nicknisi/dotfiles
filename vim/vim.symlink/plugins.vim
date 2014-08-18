@@ -40,6 +40,7 @@ Plugin 'godlygeek/tabular'
 Plugin 'gbigwood/Clippo'
 Plugin 'vim-scripts/matchit.zip'
 Plugin 'gregsexton/MatchTag'
+Plugin 'tpope/vim-sleuth' " detect indent style (tabs vs. spaces)
 
 " colorschemes
 Plugin 'flazz/vim-colorschemes'
