@@ -17,6 +17,7 @@ install reattach-to-user-namespace
 install tmux
 install zsh
 install highlight
+install nvm
 
 # gitsh
 tap thoughtbot/formulae
