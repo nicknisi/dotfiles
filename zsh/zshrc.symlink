@@ -45,6 +45,4 @@ if [[ -d ~/.rvm ]]; then
 	source ~/.rvm/scripts/rvm
 fi
 
-if [[ -d ~/.nvm ]]; then
-	source ~/.nvm/nvm.sh
-fi
+source $(brew --prefix nvm)/nvm.sh
