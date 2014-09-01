@@ -160,7 +160,7 @@ set laststatus=2 " show the satus line all the time
 " the plugins section
 
 " Close the current buffer
-noremap <C-x> :q<cr>
+" noremap <C-x> :q<cr>
 
 " remap esc
 inoremap jk <esc>
@@ -401,6 +401,9 @@ let g:ctrlp_working_path_mode = 2
 " let g:airline_right_sep=''
 let g:airline_powerline_fonts=1
 let g:airline_theme='badwolf'
+
+" don't hide quotes in json files
+let g:vim_json_syntax_conceal = 0
 
 
 let g:SuperTabCrMapping = 0
