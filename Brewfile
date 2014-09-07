@@ -18,6 +18,7 @@ install tmux
 install zsh
 install highlight
 install nvm
+install z
 
 # gitsh
 tap thoughtbot/formulae

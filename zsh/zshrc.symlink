@@ -46,3 +46,4 @@ if [[ -d ~/.rvm ]]; then
 fi
 
 source $(brew --prefix nvm)/nvm.sh
+source `brew --prefix`/etc/profile.d/z.sh
