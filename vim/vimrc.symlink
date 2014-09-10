@@ -53,7 +53,7 @@ if has('autocmd') && !exists('autocommands_loaded')
     autocmd FileType html setlocal ts=4 sts=4 sw=4 noexpandtab indentkeys-=*<return>
     autocmd FileType jade setlocal ts=2 sts=2 sw=2 noexpandtab
     autocmd FileType *.md.js :call SyntasticReset<cr>
-    autocmd FileType markdown,textile setlocal textwidth=0 wrapmargin=0 wrap
+    autocmd FileType markdown,textile setlocal textwidth=0 wrapmargin=0 wrap spell
     "autocmd WinEnter * setlocal cursorline
     "autocmd WinLeave * setlocal nocursorline
 
@@ -363,6 +363,8 @@ hi def InterestingWord6 guifg=#000000 ctermfg=16 guibg=#ff2c4b ctermbg=195
 
 " close NERDTree after a file is opened
 let g:NERDTreeQuitOnOpen=1
+" show hidden files in NERDTree
+let NERDTreeShowHidden=1
 " Toggle NERDTree
 nmap <silent> <leader>k :NERDTreeToggle<cr>
 " expand to the path of the file in the current buffer
