@@ -6,7 +6,7 @@ defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 # echo "show hidden files by default"
 defaults write com.apple.Finder AppleShowAllFiles -bool false
 
-# echo "only use UTF-8 ub Terminal.app"
+# echo "only use UTF-8 in Terminal.app"
 defaults write com.apple.terminal StringEncodings -array 4
 
 # echo "expand save dialog by default"
