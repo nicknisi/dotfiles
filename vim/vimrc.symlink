@@ -168,6 +168,9 @@ inoremap jk <esc>
 " remove extra whitespace
 nmap <leader><space> :%s/\s\+$<cr>
 
+" wipout buffer
+nmap <silent> <leader>b :bw<cr>
+
 " shortcut to save
 nmap <leader>, :w<cr>
 
@@ -240,6 +243,10 @@ nnoremap <leader>/ "fyiw :/<c-r>f<cr>
 map <leader>r :call RunCustomCommand()<cr>
 " map <leader>s :call SetCustomCommand()<cr>
 let g:silent_custom_command = 0
+
+" helpers for dealing with other people's code
+nmap \t :set ts=4 sts=4 sw=4 noet<cr>
+nmap \s :set ts=4 sts=4 sw=4 et<cr>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Functions
