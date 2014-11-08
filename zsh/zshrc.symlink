@@ -45,5 +45,10 @@ if [[ -d ~/.rvm ]]; then
 	source ~/.rvm/scripts/rvm
 fi
 
+# alias git to hub
+eval "$(hub alias -s)"
+
+# source nvm
 source $(brew --prefix nvm)/nvm.sh
+
 source `brew --prefix`/etc/profile.d/z.sh
