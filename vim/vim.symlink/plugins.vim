@@ -43,15 +43,16 @@ Plugin 'gregsexton/MatchTag'
 Plugin 'tpope/vim-sleuth' " detect indent style (tabs vs. spaces)
 
 " colorschemes
-Plugin 'flazz/vim-colorschemes'
-Plugin 'nanotech/jellybeans.vim'
-Plugin 'w0ng/vim-hybrid'
-Plugin 'chriskempson/base16-vim'
+" Plugin 'flazz/vim-colorschemes'
+" Plugin 'nanotech/jellybeans.vim'
+" Plugin 'w0ng/vim-hybrid'
+" Plugin 'chriskempson/base16-vim'
+Plugin 'nicknisi/vim-colors-pencil'
 
 " languages
 Plugin 'othree/html5.vim'
 Plugin 'pangloss/vim-javascript'
-Plugin 'jelera/vim-javascript-syntax'
+" Plugin 'jelera/vim-javascript-syntax'
 Plugin 'tpope/vim-markdown'
 Plugin 'wavded/vim-stylus'
 Plugin 'groenewege/vim-less'
@@ -66,6 +67,7 @@ Plugin 'cakebaker/scss-syntax.vim'
 " Plugin 'kchmck/vim-coffee-script'
 " Plugin 'tclem/vim-arduino'
 Plugin 'timcharper/textile.vim'
+Plugin 'mxw/vim-jsx'
 
 call vundle#end()
 filetype plugin indent on
