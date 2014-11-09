@@ -10,59 +10,14 @@ Welcome to my world.
 + git configuration
 + osx configuration
 + Node.js setup (nvm)
-+ Homebrew files (Brewfile)
++ Homebrew files (Brewfile.sh)
 
 ## Install
 
-### Automatic Installation
+1. `git clone https://github.com/nicknisi/dotfiles.git ~/.dotfiles`
+1. `cd ~/.dotfiles`
+1. `./install.sh`
 
-	curl -L https://raw.github.com/nicknisi/dotfiles/master/tools/install.sh | sh
-
-### Manual Installation
-
-#### Clone
-
-First, clone the repository to your home directory and name it ".dotfiles"
-
-	git clone git@github.com:nicknisi/dotfiles.git ~/.dotfiles
-
-Then cd into that directory
-
-	cd ~/.dotfiles
-
-#### Init Submodules
-
-The vim configuration relies on a couple of vim plugins, which are loaded in as git submodules.
-
-	git submodule init
-	git submodule update
-	
-#### Backup
-
-A backup task is included. This will find all the files that will be replaced and make a backup of them. For example, if you currently have a ".zshrc" file, it will be moved to ".zshrc.backup"
-	
-	rake backup
-	
-#### Install
-
-Symlink the necessary files. The task will perform a search  for all files in the *.dotfiles* directory that have the ".symlink" suffix and create a symbolic link in the home directory that drops the suffix and prefixes with a '.'
-
-	rake install
-	
-## Uninstall
-
-If you would like to bring back your previous configuration, run the uninstalll task. This will remove the created symlinks.
-
-#### Uninstall
-
-	rake uninstall
-	
-#### Restore
-	
-Then, if you would like to restore your previous configuration, run the restore task.
-	
-	rake restore
-	
 ## ZSH Plugins
 
-By default, the *.zshrc* file will source any file within `.dotfiles/zsh` that has the *".zsh"* suffix.
+By default, the `.zshrc` file will source any file within `.dotfiles/zsh` that have the `.zsh` extension.
