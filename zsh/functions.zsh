@@ -121,11 +121,17 @@ function gci() {
 
 # syntax highlight the contents of a file or the clipboard and place the result on the clipboard
 function hl() {
-    if [ -z "$2" ]; then
+    if [ -z "$3" ]; then
         src=$( pbpaste )
     else
-        src=$( cat $2 )
+        src=$( cat $3 )
     fi
 
-    echo $src | highlight -O rtf --syntax $1 --font Inconsoloata --style moria --font-size 24 | pbcopy
+    if [ -z "$2" ]; then
+        style="moria"
+    else
+        style="$2"
+    fi
+
+    echo $src | highlight -O rtf --syntax $1 --font Inconsoloata --style $style --line-number --font-size 24 | pbcopy
 }
