@@ -119,9 +119,10 @@ set tm=500
 syntax on
 
 set encoding=utf8
+let base16colorspace=256  " Access colors present in 256 colorspace"
 set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
 set background=dark
-colorscheme pencil
+colorscheme base16-eighties
 
 " set number " show line numbers
 set relativenumber " show relative line numbers
@@ -396,6 +397,9 @@ nmap <leader>mq :MarkedQuit<cr>
 " toggle syntastic
 nmap <leader>s :SyntasticToggleMode<cr>
 
+" allow es5 mode when looking at TypeScript
+let g:syntastic_typescript_tsc_args = '--module amd --target ES5'
+
 " CtrlP ignore patterns
 let g:ctrlp_custom_ignore = {
             \ 'dir': '\.git$\|node_modules$\|\.hg$\|\.svn$',
@@ -405,11 +409,12 @@ let g:ctrlp_custom_ignore = {
 " search the nearest ancestor that contains .git, .hg, .svn
 let g:ctrlp_working_path_mode = 2
 
+
 " airline options
 " let g:airline_left_sep=''
 " let g:airline_right_sep=''
 let g:airline_powerline_fonts=1
-let g:airline_theme='badwolf'
+let g:airline_theme='base16'
 
 " don't hide quotes in json files
 let g:vim_json_syntax_conceal = 0

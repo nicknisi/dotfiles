@@ -42,7 +42,7 @@ fi
 
 if [[ -d ~/.rvm ]]; then
     PATH=$HOME/.rvm/bin:$PATH # Add RVM to PATH for scripting
-	source ~/.rvm/scripts/rvm
+    source ~/.rvm/scripts/rvm
 fi
 
 # alias git to hub
@@ -52,3 +52,10 @@ eval "$(hub alias -s)"
 source $(brew --prefix nvm)/nvm.sh
 
 source `brew --prefix`/etc/profile.d/z.sh
+
+
+# Base16 Shell
+export THEME="base16-harmonic16"
+export BACKGROUND="dark"
+BASE16_SHELL="$DOTFILES/.config/base16-shell/$THEME.$BACKGROUND.sh"
+[[ -s $BASE16_SHELL ]] && source $BASE16_SHELL

@@ -46,12 +46,14 @@ Plugin 'tpope/vim-sleuth' " detect indent style (tabs vs. spaces)
 " Plugin 'flazz/vim-colorschemes'
 " Plugin 'nanotech/jellybeans.vim'
 " Plugin 'w0ng/vim-hybrid'
-" Plugin 'chriskempson/base16-vim'
+Plugin 'chriskempson/base16-vim'
 Plugin 'nicknisi/vim-colors-pencil'
 
 " languages
 Plugin 'othree/html5.vim'
-Plugin 'pangloss/vim-javascript'
+" Plugin 'pangloss/vim-javascript'
+Plugin 'jason0x43/vim-js-syntax'
+Plugin 'jason0x43/vim-js-indent'
 " Plugin 'jelera/vim-javascript-syntax'
 Plugin 'tpope/vim-markdown'
 Plugin 'wavded/vim-stylus'
