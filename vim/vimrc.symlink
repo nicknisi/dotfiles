@@ -121,8 +121,8 @@ syntax on
 set encoding=utf8
 let base16colorspace=256  " Access colors present in 256 colorspace"
 set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
-set background=dark
-colorscheme base16-eighties
+execute "set background=".$BACKGROUND
+execute "colorscheme ".$THEME
 
 " set number " show line numbers
 set relativenumber " show relative line numbers

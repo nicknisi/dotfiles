@@ -55,7 +55,7 @@ source `brew --prefix`/etc/profile.d/z.sh
 
 
 # Base16 Shell
-export THEME="base16-harmonic16"
+export THEME="base16-pop"
 export BACKGROUND="dark"
 BASE16_SHELL="$DOTFILES/.config/base16-shell/$THEME.$BACKGROUND.sh"
 [[ -s $BASE16_SHELL ]] && source $BASE16_SHELL
