@@ -7,3 +7,7 @@ indent_size = 4
 [{*.rb,Rakefile}]
 indent_style = space
 indent_size = 2
+
+[*.snippets]
+indent_style = tab
+indent_size = 4
