@@ -43,11 +43,7 @@ Plugin 'gregsexton/MatchTag'
 Plugin 'tpope/vim-sleuth' " detect indent style (tabs vs. spaces)
 
 " colorschemes
-" Plugin 'flazz/vim-colorschemes'
-" Plugin 'nanotech/jellybeans.vim'
-" Plugin 'w0ng/vim-hybrid'
 Plugin 'chriskempson/base16-vim'
-Plugin 'nicknisi/vim-colors-pencil'
 
 " languages
 Plugin 'othree/html5.vim'
