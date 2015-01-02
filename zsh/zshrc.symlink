@@ -49,13 +49,15 @@ fi
 eval "$(hub alias -s)"
 
 # source nvm
+export NVM_DIR=~/.nvm
 source $(brew --prefix nvm)/nvm.sh
 
 source `brew --prefix`/etc/profile.d/z.sh
 
 
 # Base16 Shell
-export THEME="base16-pop"
+export THEME="base16-paraiso"
 export BACKGROUND="dark"
 BASE16_SHELL="$DOTFILES/.config/base16-shell/$THEME.$BACKGROUND.sh"
-[[ -s $BASE16_SHELL ]] && source $BASE16_SHELL
+# [[ -s $BASE16_SHELL ]] && source $BASE16_SHELL
+source $BASE16_SHELL
