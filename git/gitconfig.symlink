@@ -28,6 +28,9 @@
     # order files by number of commits, ascending
     churn = "!f() { git log --all -M -C --name-only --format='format:' \"$@\" | sort | grep -v '^$' | uniq -c | sort | awk 'BEGIN {print \"count\tfile\"} {print $1 \"\t\" $2}' | sort -g; }; f"
 
+    # show all deleted files in the repo
+    deleted = "!git log --diff-filter=D --summary | grep delete"
+
     # current branch
     cbr = rev-parse --abbrev-ref HEAD
 
