@@ -56,8 +56,13 @@ source `brew --prefix`/etc/profile.d/z.sh
 
 
 # Base16 Shell
-export THEME="base16-paraiso"
-export BACKGROUND="dark"
+if [ -z "$THEME" ]; then
+    export THEME="base16-atelierlakeside"
+fi
+if [ -z "$BACKGROUND" ]; then
+    export BACKGROUND="dark"
+fi
+
 BASE16_SHELL="$DOTFILES/.config/base16-shell/$THEME.$BACKGROUND.sh"
 # [[ -s $BASE16_SHELL ]] && source $BASE16_SHELL
 source $BASE16_SHELL

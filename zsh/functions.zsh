@@ -135,3 +135,12 @@ function hl() {
 
     echo $src | highlight -O rtf --syntax $1 --font Inconsoloata --style $style --line-number --font-size 24 | pbcopy
 }
+
+# set the background color to light
+function light() {
+    export BACKGROUND="light" && reload!
+}
+
+function dark() {
+    export BACKGROUND="dark" && reload!
+}
