@@ -1,0 +1,34 @@
+server {
+    listen      80;
+    server_name app localhost .dev;
+
+    # the location of our projects directory
+    set $basepath "/Users/nicknisi/code";
+
+    set $domain $host;
+    if ($domain ~ "^(.*)\.dev$") {
+        set $domain $1;
+    }
+    set $rootpath "${domain}";
+    if (-d $basepath/$domain/public) {
+        set $rootpath "${domain}/public";
+    }
+    if (-f $basepath/$domain/index.html) {
+        set $rootpath $domain;
+    }
+
+    root $basepath/$rootpath;
+
+    location / {
+        # enable index view of the directory
+        autoindex on;
+        # a 405 is thrown when posting to a static file. this corrects it
+        error_page 405 = $uri;
+    }
+
+    # redirect server error pages to the static page /50x.html
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root html;
+    }
+}
