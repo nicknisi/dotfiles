@@ -5,13 +5,7 @@ echo "installing dotfiles"
 echo "initializing submodule(s)"
 git submodule update --init --recursive
 
-echo "creating symlinks"
-linkables=$( ls -1 -d **/*.symlink )
-for file in $linkables ; do
-    target="$HOME/.$( basename $file ".symlink" )"
-    echo "creating symlink for $file"
-    ln -s $file $target
-done
+source install/link.sh
 
 if [ "$(uname)" == "Darwin" ]; then
     echo "running on OSX"
