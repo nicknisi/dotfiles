@@ -399,7 +399,9 @@ nmap <leader>mq :MarkedQuit<cr>
 nmap <leader>s :SyntasticToggleMode<cr>
 
 " allow es5 mode when looking at TypeScript
-let g:syntastic_typescript_tsc_args = '--module amd --target ES5'
+let g:syntastic_typescript_tsc_args = '--module amd --target ES5 --noImplicitAny'
+let g:syntastic_typescript_checkers = ['tslint']
+let g:syntastic_javascript_checkers = ['jshint', 'jscs']
 
 " CtrlP ignore patterns
 let g:ctrlp_custom_ignore = {
