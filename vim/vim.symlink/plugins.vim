@@ -41,12 +41,13 @@ Plugin 'gbigwood/Clippo'
 Plugin 'vim-scripts/matchit.zip'
 Plugin 'gregsexton/MatchTag'
 Plugin 'tpope/vim-sleuth' " detect indent style (tabs vs. spaces)
+Plugin 'sickill/vim-pasta'
 
 " colorschemes
 Plugin 'chriskempson/base16-vim'
 
 " languages
-Plugin 'othree/html5.vim'
+" Plugin 'othree/html5.vim'
 " Plugin 'pangloss/vim-javascript'
 Plugin 'jason0x43/vim-js-syntax'
 Plugin 'jason0x43/vim-js-indent'
