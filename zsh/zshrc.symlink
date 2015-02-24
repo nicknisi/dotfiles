@@ -59,7 +59,7 @@ source `brew --prefix`/etc/profile.d/z.sh
 
 # Base16 Shell
 if [ -z "$THEME" ]; then
-    export THEME="base16-atelier-forest"
+    export THEME="base16-atelierforest"
 fi
 if [ -z "$BACKGROUND" ]; then
     export BACKGROUND="dark"
