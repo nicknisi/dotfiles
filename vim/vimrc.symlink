@@ -239,6 +239,8 @@ nnoremap <C-y> 3<C-y>
 " moving up and down work as you would expect
 nnoremap <silent> j gj
 nnoremap <silent> k gk
+nnoremap <silent> ^ g^
+nnoremap <silent> $ g$
 
 " search for word under the cursor
 nnoremap <leader>/ "fyiw :/<c-r>f<cr>
@@ -252,6 +254,8 @@ let g:silent_custom_command = 0
 " helpers for dealing with other people's code
 nmap \t :set ts=4 sts=4 sw=4 noet<cr>
 nmap \s :set ts=4 sts=4 sw=4 et<cr>
+
+nmap <leader>w :setf textile<cr> :Goyo<cr>
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Functions
