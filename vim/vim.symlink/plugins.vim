@@ -43,6 +43,7 @@ Plugin 'vim-scripts/matchit.zip'
 Plugin 'gregsexton/MatchTag'
 Plugin 'tpope/vim-sleuth' " detect indent style (tabs vs. spaces)
 Plugin 'sickill/vim-pasta'
+Plugin 'junegunn/goyo.vim'
 
 " colorschemes
 Plugin 'chriskempson/base16-vim'
