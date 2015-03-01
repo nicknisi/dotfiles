@@ -73,6 +73,9 @@ if has('autocmd') && !exists('autocommands_loaded')
     " are multiple windows open
     autocmd FileType qf wincmd J
 
+    autocmd BufNewFile,BufReadPost *.md set filetype=markdown
+    let g:markdown_fenced_languages = ['css', 'javascript', 'js=javascript', 'json=javascript', 'stylus', 'html']
+
     autocmd! BufEnter * call ApplyLocalSettings(expand('<afile>:p:h'))
 endif
 
