@@ -49,6 +49,7 @@ Plugin 'junegunn/goyo.vim'
 Plugin 'chriskempson/base16-vim'
 
 " JavaScript
+Plugin 'hail2u/vim-css3-syntax'
 Plugin 'othree/html5.vim'
 Plugin 'pangloss/vim-javascript'
 Plugin 'jelera/vim-javascript-syntax'
