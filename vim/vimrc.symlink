@@ -420,7 +420,7 @@ let g:syntastic_javascript_checkers = ['jshint', 'jscs']
 
 " CtrlP ignore patterns
 let g:ctrlp_custom_ignore = {
-            \ 'dir': '\.git$\|node_modules$\|\.hg$\|\.svn$',
+            \ 'dir': '\.git$\|node_modules$\|bower_components$\|\.hg$\|\.svn$',
             \ 'file': '\.exe$\|\.so$'
             \ }
 
