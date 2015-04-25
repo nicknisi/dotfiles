@@ -76,7 +76,7 @@ if has('autocmd') && !exists('autocommands_loaded')
     autocmd BufNewFile,BufReadPost *.md set filetype=markdown
     let g:markdown_fenced_languages = ['css', 'javascript', 'js=javascript', 'json=javascript', 'stylus', 'html']
 
-    autocmd! BufEnter * call ApplyLocalSettings(expand('<afile>:p:h'))
+    " autocmd! BufEnter * call ApplyLocalSettings(expand('<afile>:p:h'))
 endif
 
 " code folding settings
@@ -433,8 +433,6 @@ let g:ctrlp_working_path_mode = 2
 
 
 " airline options
-" let g:airline_left_sep=''
-" let g:airline_right_sep=''
 let g:airline_powerline_fonts=1
 let g:airline_left_sep=''
 let g:airline_right_sep=''
@@ -455,3 +453,5 @@ if (has("gui_running"))
     let g:airline_powerline_fonts=0
     let g:airline_theme='solarized'
 endif
+
+call ApplyLocalSettings(expand('.'))
