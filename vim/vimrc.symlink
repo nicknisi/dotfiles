@@ -20,7 +20,7 @@ set backspace=indent,eol,start
 let mapleader = ','
 let g:mapleader = ','
 
-set history=10000 " change history to 1000
+set history=1000 " change history to 1000
 " set textwidth=80
 
 " Tab control
