@@ -40,7 +40,9 @@ fi
 [ -z "$TMUX" ] && export TERM=xterm-256color
 
 # install rbenv
-if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+if hash rbenv 2>/dev/null; then
+    eval "$(rbenv init -)"
+fi
 
 if [[ -d ~/.rvm ]]; then
     PATH=$HOME/.rvm/bin:$PATH # Add RVM to PATH for scripting
@@ -48,13 +50,17 @@ if [[ -d ~/.rvm ]]; then
 fi
 
 # alias git to hub
-eval "$(hub alias -s)"
+if hash hub 2>/dev/null; then
+    eval "$(hub alias -s)"
+fi
 
 # source nvm
 export NVM_DIR=~/.nvm
-source $(brew --prefix nvm)/nvm.sh
 
-source `brew --prefix`/etc/profile.d/z.sh
+if hash brew 2>/dev/null; then
+    source $(brew --prefix nvm)/nvm.sh
+    source `brew --prefix`/etc/profile.d/z.sh
+fi
 
 
 # Base16 Shell
@@ -68,3 +74,4 @@ fi
 BASE16_SHELL="$DOTFILES/.config/base16-shell/$THEME.$BACKGROUND.sh"
 # [[ -s $BASE16_SHELL ]] && source $BASE16_SHELL
 source $BASE16_SHELL
+
