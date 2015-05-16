@@ -21,7 +21,7 @@ let mapleader = ','
 let g:mapleader = ','
 
 set history=1000 " change history to 1000
-" set textwidth=80
+set textwidth=120
 
 " Tab control
 set noexpandtab " insert tabs rather than spaces for <Tab>
@@ -30,6 +30,7 @@ set tabstop=4 " the visible width of tabs
 set softtabstop=4 " edit as if the tabs are 4 characters wide
 set shiftwidth=4 " number of spaces to use for indent and unindent
 set shiftround " round indent to a multiple of 'shiftwidth'
+set completeopt+=longest
 
 if has('mouse')
     set mouse=a
@@ -204,7 +205,7 @@ noremap <space> :set hlsearch! hlsearch?<cr>
 nmap ;s :set invspell spelllang=en<cr>
 
 " toggle invisible characters
-set invlist
+" set invlist
 set listchars=tab:▸\ ,eol:¬,trail:⋅,extends:❯,precedes:❮
 highlight SpecialKey ctermbg=none " make the highlighting of tabs less annoying
 set showbreak=↪
