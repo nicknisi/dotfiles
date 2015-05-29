@@ -18,3 +18,4 @@
 --type-set=md=.markdown,.md
 --type-set=svg=.svg
 --type-set=ts=.ts
+--type-set=style=.scss,.sass,.styl,.less,.css
