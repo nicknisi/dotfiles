@@ -1,5 +1,4 @@
 #!/bin/sh
-# give me what I need, brew!
 
 # cli tools
 brew install ack
@@ -20,7 +19,4 @@ brew install zsh
 brew install highlight
 brew install nvm
 brew install z
-
-# gitsh
-brew tap thoughtbot/formulae
-brew install gitsh
+brew instal markdown
