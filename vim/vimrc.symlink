@@ -171,6 +171,9 @@ set laststatus=2 " show the satus line all the time
 " remap esc
 inoremap jk <esc>
 
+" markdown to html
+nmap <leader>md :%!markdown --html4tags <cr>
+
 " remove extra whitespace
 nmap <leader><space> :%s/\s\+$<cr>
 
