@@ -19,4 +19,4 @@ brew install zsh
 brew install highlight
 brew install nvm
 brew install z
-brew instal markdown
+brew install markdown
