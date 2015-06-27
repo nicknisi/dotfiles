@@ -45,7 +45,7 @@ needs_push() {
   then
     echo ""
   else
-    echo "%{$fg_bold[magenta]%}☁%{$reset_color%} "
+    echo "%{$fg_bold[magenta]%}☁%f "
   fi
 }
 
@@ -55,13 +55,13 @@ suspended_jobs() {
     if [[ $sj == "" ]]; then
         echo ""
     else
-        echo "%{$FG[208]%}✱%{$reset_color%}"
+        echo "%{$FG[208]%}✱%f"
     fi
 }
 
 precmd() {
     vcs_info
-    print -P '\n%F{013}%~'
+    print -P '\n%F{207}%~'
 }
 
 export PROMPT='%(?.%F{magenta}.%F{red})❯%f '
