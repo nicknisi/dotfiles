@@ -419,6 +419,9 @@ nmap <leader>mq :MarkedQuit<cr>
 " toggle syntastic
 nmap <leader>s :SyntasticToggleMode<cr>
 
+" toggle Limelight
+nmap <leader>f :Limelight!!<cr>
+
 " allow es5 mode when looking at TypeScript
 let g:syntastic_typescript_tsc_args = '--module amd --target ES5 --noImplicitAny'
 let g:syntastic_typescript_checkers = ['tslint']
