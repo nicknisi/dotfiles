@@ -77,6 +77,7 @@
 
     # Kaleidoscope commands
     dkal = difftool -y -t Kaleidoscope
+    mkal = mergetool -y -t Kaleidoscope
     remotes = remote -v
 
     # check out a local copy of a PR. https://gist.github.com/gnarf/5406589
