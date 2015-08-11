@@ -5,6 +5,10 @@ call plug#begin('~/.vim/plugged')
 
 " let vundle manage vundle
 " Plugin 'gmarik/vundle'
+"
+" colorschemes
+Plug 'chriskempson/base16-vim'
+
 
 " utilities
 Plug 'kien/ctrlp.vim'
@@ -22,7 +26,6 @@ Plug 'scrooloose/syntastic'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-repeat'
 Plug 'garbas/vim-snipmate'
-Plug 'mattn/emmet-vim'
 Plug 'editorconfig/editorconfig-vim'
 Plug 'MarcWeber/vim-addon-mw-utils'
 Plug 'tomtom/tlib_vim'
@@ -30,50 +33,39 @@ Plug 'sotte/presenting.vim'
 Plug 'ervandew/supertab'
 Plug 'tpope/vim-dispatch'
 " Plug 'mtth/scratch.vim'
-Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' }
 Plug 'tpope/vim-vinegar'
-Plug 'ap/vim-css-color'
-Plug 'davidoc/taskpaper.vim'
-Plug 'tpope/vim-abolish'
+" Plug 'tpope/vim-abolish'
 Plug 'AndrewRadev/splitjoin.vim'
-Plug 'godlygeek/tabular'
 Plug 'vim-scripts/matchit.zip'
-Plug 'gregsexton/MatchTag'
 Plug 'tpope/vim-sleuth' " detect indent style (tabs vs. spaces)
-Plug 'sickill/vim-pasta'
-Plug 'junegunn/goyo.vim'
-Plug 'junegunn/limelight.vim'
+Plug 'sickill/vim-pasta' " context-aware pasting
+Plug 'junegunn/goyo.vim', { 'on': 'Goyo' } " distraction-free writing
+Plug 'junegunn/limelight.vim', { 'on': 'Limelight' } " focus tool. Good for presentating with vim
 
-" colorschemes
-Plug 'chriskempson/base16-vim'
-
-" JavaScript
-Plug 'hail2u/vim-css3-syntax', { 'for': 'css' }
+" language-specific plugins
+Plug 'mattn/emmet-vim', { 'for': 'html' }
+Plug 'gregsexton/MatchTag', { 'for': 'html' }
 Plug 'othree/html5.vim', { 'for': 'html' }
 Plug 'pangloss/vim-javascript', { 'for': 'javascript' }
+Plug 'moll/vim-node', { 'for': 'javascript' }
 Plug 'jelera/vim-javascript-syntax', { 'for': 'javascript' }
-" Plug 'jason0x43/vim-js-syntax'
-" Plug 'jason0x43/vim-js-indent'
+Plug 'mxw/vim-jsx', { 'for': 'jsx' }
+Plug 'elzr/vim-json', { 'for': 'json' }
+Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
+Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
+Plug 'juvenn/mustache.vim', { 'for': 'mustache' }
+Plug 'digitaltoad/vim-jade', { 'for': 'jade' }
+Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }
 Plug 'wavded/vim-stylus', { 'for': 'stylus' }
 Plug 'groenewege/vim-less', { 'for': 'less' }
-Plug 'digitaltoad/vim-jade', { 'for': 'jade' }
-Plug 'juvenn/mustache.vim', { 'for': 'mustache' }
-Plug 'moll/vim-node', { 'for': 'javascript' }
-Plug 'elzr/vim-json', { 'for': 'json' }
-Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
-Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
-" Plug 'mxw/vim-jsx'
-Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }
-" Plug 'dart-lang/dart-vim-plugin'
-" Plug 'kchmck/vim-coffee-script'
-" Plug 'Valloric/YouCompleteMe'
-" Plug 'marijnh/tern_for_vim'
-
-" languages
+Plug 'ap/vim-css-color', { 'for': 'css' }
+Plug 'hail2u/vim-css3-syntax', { 'for': 'css' }
+Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' }
 Plug 'tpope/vim-markdown', { 'for': 'markdown' }
 Plug 'fatih/vim-go', { 'for': 'go' }
-" Plug 'tclem/vim-arduino'
 Plug 'timcharper/textile.vim', { 'for': 'textile' }
+" Plug 'tclem/vim-arduino'
+" Plug 'davidoc/taskpaper.vim'
 
 call plug#end()
 filetype plugin indent on
