@@ -1,6 +1,6 @@
 # Dotfiles
 
-Welcome to my world.
+Welcome to my world. This is a collection of vim, tmux, and zsh configurations.
 
 ## Contents
 
@@ -21,3 +21,7 @@ Welcome to my world.
 ## ZSH Plugins
 
 By default, the `.zshrc` file will source any file within `.dotfiles/zsh` that have the `.zsh` extension.
+
+## Vim Plugins
+
+Vim plugins are managed with [vim-plug](https://github.com/junegunn/vim-plug). To install, run `vim +PlugInstall`.

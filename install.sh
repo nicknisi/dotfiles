@@ -10,26 +10,25 @@ source install/link.sh
 if [ "$(uname)" == "Darwin" ]; then
     echo "Running on OSX"
 
-    echo "Installing homebrew"
-    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-
     echo "Brewing all the things"
-    source scripts/brew.sh
+    source install/brew.sh
 
     echo "Updating OSX settings"
-    source scripts/osx.sh
+    source installosx.sh
 
     echo "Installing node (from nvm)"
-    nvm install stable
-    nvm alias default stable
+    source install/nvm.sh
 
     echo "Configuring nginx"
     # create a backup of the original nginx.conf
     mv /usr/local/etc/nginx/nginx.conf /usr/local/etc/nginx/nginx.original
-    ln -s nginx/nginx.conf /usr/local/etc/nginx/nginx.conf
+    ln -s ~/.dotfiles/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf
     # symlink the code.dev from dotfiles
-    ln -s nginx/code.dev /usr/local/etc/nginx/sites-enabled/code.dev
+    ln -s ~/.dotfiles/nginx/code.dev /usr/local/etc/nginx/sites-enabled/code.dev
 fi
+
+echo "creating vim directories"
+mkdir -p ~/.vim-tmp
 
 
 echo "Configuring zsh as default shell"
