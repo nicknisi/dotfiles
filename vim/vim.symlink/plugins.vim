@@ -1,80 +1,79 @@
 filetype off
 
-set rtp+=~/.vim/bundle/vundle/
-call vundle#begin()
+" set rtp+=~/.vim/bundle/vundle/
+call plug#begin('~/.vim/plugged')
 
 " let vundle manage vundle
-Plugin 'gmarik/vundle'
+" Plugin 'gmarik/vundle'
 
 " utilities
-Plugin 'kien/ctrlp.vim'
-Plugin 'scrooloose/nerdtree'
-Plugin 'Xuyuanp/nerdtree-git-plugin'
-Plugin 'mileszs/ack.vim'
-Plugin 'Raimondi/delimitMate'
-Plugin 'tpope/vim-commentary'
-Plugin 'tpope/vim-unimpaired'
-Plugin 'tpope/vim-endwise'
-Plugin 'tpope/vim-ragtag'
-Plugin 'tpope/vim-surround'
-Plugin 'benmills/vimux'
-Plugin 'bling/vim-airline'
-Plugin 'scrooloose/syntastic'
-Plugin 'tpope/vim-fugitive'
-Plugin 'tpope/vim-repeat'
-Plugin 'garbas/vim-snipmate'
-Plugin 'mattn/emmet-vim'
-Plugin 'editorconfig/editorconfig-vim'
-Plugin 'MarcWeber/vim-addon-mw-utils'
-Plugin 'tomtom/tlib_vim'
-Plugin 'sotte/presenting.vim'
-Plugin 'ervandew/supertab'
-Plugin 'tpope/vim-dispatch'
-Plugin 'mtth/scratch.vim'
-Plugin 'itspriddle/vim-marked'
-Plugin 'tpope/vim-vinegar'
-Plugin 'ap/vim-css-color'
-Plugin 'davidoc/taskpaper.vim'
-Plugin 'tpope/vim-abolish'
-Plugin 'AndrewRadev/splitjoin.vim'
-Plugin 'godlygeek/tabular'
-Plugin 'gbigwood/Clippo'
-Plugin 'vim-scripts/matchit.zip'
-Plugin 'gregsexton/MatchTag'
-Plugin 'tpope/vim-sleuth' " detect indent style (tabs vs. spaces)
-Plugin 'sickill/vim-pasta'
-Plugin 'junegunn/goyo.vim'
-Plugin 'junegunn/limelight.vim'
+Plug 'kien/ctrlp.vim'
+Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' } | Plug 'Xuyuanp/nerdtree-git-plugin' | Plug 'ryanoasis/vim-devicons'
+Plug 'mileszs/ack.vim'
+Plug 'Raimondi/delimitMate'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-unimpaired'
+Plug 'tpope/vim-endwise'
+Plug 'tpope/vim-ragtag'
+Plug 'tpope/vim-surround'
+Plug 'benmills/vimux'
+Plug 'bling/vim-airline'
+Plug 'scrooloose/syntastic'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-repeat'
+Plug 'garbas/vim-snipmate'
+Plug 'mattn/emmet-vim'
+Plug 'editorconfig/editorconfig-vim'
+Plug 'MarcWeber/vim-addon-mw-utils'
+Plug 'tomtom/tlib_vim'
+Plug 'sotte/presenting.vim'
+Plug 'ervandew/supertab'
+Plug 'tpope/vim-dispatch'
+" Plug 'mtth/scratch.vim'
+Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' }
+Plug 'tpope/vim-vinegar'
+Plug 'ap/vim-css-color'
+Plug 'davidoc/taskpaper.vim'
+Plug 'tpope/vim-abolish'
+Plug 'AndrewRadev/splitjoin.vim'
+Plug 'godlygeek/tabular'
+Plug 'vim-scripts/matchit.zip'
+Plug 'gregsexton/MatchTag'
+Plug 'tpope/vim-sleuth' " detect indent style (tabs vs. spaces)
+Plug 'sickill/vim-pasta'
+Plug 'junegunn/goyo.vim'
+Plug 'junegunn/limelight.vim'
 
 " colorschemes
-Plugin 'chriskempson/base16-vim'
+Plug 'chriskempson/base16-vim'
 
 " JavaScript
-Plugin 'hail2u/vim-css3-syntax'
-Plugin 'othree/html5.vim'
-Plugin 'pangloss/vim-javascript'
-Plugin 'jelera/vim-javascript-syntax'
-" Plugin 'jason0x43/vim-js-syntax'
-" Plugin 'jason0x43/vim-js-indent'
-Plugin 'wavded/vim-stylus'
-Plugin 'groenewege/vim-less'
-Plugin 'digitaltoad/vim-jade'
-Plugin 'juvenn/mustache.vim'
-Plugin 'moll/vim-node'
-Plugin 'elzr/vim-json'
-Plugin 'leafgarland/typescript-vim'
-Plugin 'mxw/vim-jsx'
-Plugin 'cakebaker/scss-syntax.vim'
-" Plugin 'dart-lang/dart-vim-plugin'
-" Plugin 'kchmck/vim-coffee-script'
-" Plugin 'Valloric/YouCompleteMe'
-" Plugin 'marijnh/tern_for_vim'
+Plug 'hail2u/vim-css3-syntax', { 'for': 'css' }
+Plug 'othree/html5.vim', { 'for': 'html' }
+Plug 'pangloss/vim-javascript', { 'for': 'javascript' }
+Plug 'jelera/vim-javascript-syntax', { 'for': 'javascript' }
+" Plug 'jason0x43/vim-js-syntax'
+" Plug 'jason0x43/vim-js-indent'
+Plug 'wavded/vim-stylus', { 'for': 'stylus' }
+Plug 'groenewege/vim-less', { 'for': 'less' }
+Plug 'digitaltoad/vim-jade', { 'for': 'jade' }
+Plug 'juvenn/mustache.vim', { 'for': 'mustache' }
+Plug 'moll/vim-node', { 'for': 'javascript' }
+Plug 'elzr/vim-json', { 'for': 'json' }
+Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
+Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
+" Plug 'mxw/vim-jsx'
+Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }
+" Plug 'dart-lang/dart-vim-plugin'
+" Plug 'kchmck/vim-coffee-script'
+" Plug 'Valloric/YouCompleteMe'
+" Plug 'marijnh/tern_for_vim'
 
 " languages
-Plugin 'tpope/vim-markdown'
-Plugin 'fatih/vim-go'
-" Plugin 'tclem/vim-arduino'
-Plugin 'timcharper/textile.vim'
+Plug 'tpope/vim-markdown', { 'for': 'markdown' }
+Plug 'fatih/vim-go', { 'for': 'go' }
+" Plug 'tclem/vim-arduino'
+Plug 'timcharper/textile.vim', { 'for': 'textile' }
 
-call vundle#end()
+call plug#end()
 filetype plugin indent on
