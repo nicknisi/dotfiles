@@ -28,4 +28,8 @@ brew install nvm
 brew install z
 brew install markdown
 
+# install neovim
+brew tap neovim/neovim
+brew install --HEAD neovim
+
 exit 0
