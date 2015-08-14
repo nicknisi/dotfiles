@@ -130,7 +130,7 @@ execute "set background=".$BACKGROUND
 execute "colorscheme ".$THEME
 
 " set number " show line numbers
-set relativenumber " show relative line numbers
+" set relativenumber " show relative line numbers
 set number " show the current line number"
 
 set wrap "turn on line wrapping
@@ -426,6 +426,8 @@ nmap <leader>f :Limelight!!<cr>
 let g:syntastic_typescript_tsc_args = '--module amd --target ES5 --noImplicitAny'
 let g:syntastic_typescript_checkers = ['tslint']
 let g:syntastic_javascript_checkers = ['jshint', 'jscs']
+let g:syntastic_error_symbol='✗'
+let g:syntastic_warning_symbol='⚠'
 
 " CtrlP ignore patterns
 " let g:ctrlp_custom_ignore = {
