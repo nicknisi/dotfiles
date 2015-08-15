@@ -5,13 +5,19 @@
 
 EXIT_CODE=0
 COLOR_RED="\x1B[31m"
+COLOR_YELLOW="\x1B[1;33m"
 COLOR_GREEN="\x1B[32m"
 COLOR_NONE="\x1B[0m"
+
+if ! jshint > /dev/null 2>&1; then
+    echo "${COLOR_YELLOW}JSHint is not installed. Exiting.${COLOR_NONE}"
+    exit 0
+fi
 
 repo=$( git rev-parse --show-toplevel )
 
 for file in $( exec git diff-index --cached --name-only HEAD ); do
-    if [[ $file == *".js$"* ]]; then
+    if [ ${file: -3} == ".js" ]; then
         status=$( exec git status --porcelain $file )
 
         if [[ $status != D* ]]; then
