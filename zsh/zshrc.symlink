@@ -1,6 +1,8 @@
 export DOTFILES=$HOME/.dotfiles
 export ZSH=$DOTFILES/zsh
 
+# display how long all tasks over 10 seconds take
+export REPORTTIME=10
 # define the code directory
 if [[ -d ~/code ]]; then
     export CODE_DIR=~/code
