@@ -1,0 +1,51 @@
+snippet attach
+	data-dojo-attach-point="${1}"
+snippet type
+	data-dojo-type="${1}"
+snippet dtestcase
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<title></title>
+			<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.10.2/dijit/themes/claro/claro.css">
+		</head>
+		<body class="claro">
+			<div id="main"></div>
+			<script>
+				var dojoConfig = {
+					async: true,
+					isDebug: true,
+					packages: [
+						{ name: 'dgrid', location: '//cdn.rawgit.com/SitePen/dgrid/v0.3.16' },
+						{ name: 'xstyle', location:'//cdn.rawgit.com/kriszyp/xstyle/v0.2.1' },
+						{ name: 'put-selector', location: '//cdn.rawgit.com/kriszyp/put-selector/v0.3.5' }
+					]
+				};
+			</script>
+			<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.10.2/dojo/dojo.js"></script>
+			<script>
+				${1}
+			</script>
+		</body>
+	</html>
+snippet dsupport
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<title></title>
+		</head>
+		<body>
+			<script data-dojo-config="async:1,isDebug:1" src="../../dojo/dojo.js"></script>
+			<script>
+				${1}
+			</script>
+		</body>
+	</html>
+snippet viewport
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+snippet dojocdn
+	<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.10.2/dojo/dojo.js"></script>
+snippet clarocdn
+	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/dojo/1.10.2/dijit/themes/claro/claro.css">

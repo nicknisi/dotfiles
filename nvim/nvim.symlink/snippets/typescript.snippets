@@ -1,0 +1,90 @@
+snippet ref
+	/// <reference path="${1}"/>
+snippet des
+	describe('${1}', () => {
+	});
+snippet it
+	it('${1}', () => {
+	});
+# dojo/AMD snippets
+snippet def
+	define([
+		${1}
+	], function (${2}) {
+	});
+snippet dec
+	declare(${1}, {
+	});
+snippet req
+	require([
+		${1}
+	], function (${2}) {
+	});
+snippet inh
+	this.inherited(arguments);
+# basic snippets
+snippet :
+	${1:key}: ${2:value}
+snippet :f
+	${1:method_name}: function (${2:args}) {
+	}
+snippet fn
+	function () {
+	}
+snippet fun
+	function ${1:name}(${2:args}) {
+	}
+snippet iife
+	(function () {
+		${1}
+	})();
+snippet interval
+	setInterval(function () {
+		${2}
+	}, ${1});
+snippet timeout
+	setTimeout(function () {
+		${2}
+	}, ${1});
+# log snippets
+snippet log
+	console.log(${1});
+snippet lred
+	console.log('%c${1}', 'font-weight:bold;color:red;');
+snippet lgreen
+	console.log('%c${1}', 'font-weight:bold;color:green;');
+snippet lblue
+	console.log('%c${1}', 'font-weight:bold;color:blue;');
+snippet lpurple
+	console.log('%c${1}', 'font-weight:bold;color:purple;');
+snippet lor
+	console.log('%c${1}', 'font-weight:bold;color:orange;');
+snippet ctab
+	console.table(${1});
+snippet debug
+	console.log('[DEBUG] ${1}');
+snippet trace
+	console.trace();
+snippet des
+	describe('${1}', function () {
+	});
+snippet it
+	it('${1}', function () {
+	});
+# dojo snippets
+snippet widget
+	define([
+		'dojo/_base/declare',
+		'dijit/_WidgetBase',
+		'dijit/_TemplatedMixin',
+		'dijit/_WidgetsInTemplateMixin',
+		'dojo/text!./templates/${1}.html'
+	], function (declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, template) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template
+		});
+	});
+snippet doc
+	/**
+	 * ${1}
+	 */
