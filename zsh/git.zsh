@@ -17,6 +17,7 @@ alias glog="git log --graph --pretty=format:'%Cred%h%Creset %an: %s - %Creset %C
 alias git-undo='git reset --soft HEAD~1'
 alias git-count='git shortlog -sn'
 alias git-undopush="git push -f origin HEAD^:master"
+alias cpbr="git rev-parse --abbrev-ref HEAD | pbcopy"
 # git root
 alias gr='[ ! -z `git rev-parse --show-cdup` ] && cd `git rev-parse --show-cdup || pwd`'
 
