@@ -9,6 +9,7 @@ source ~/.vim/plugins.vim
 abbr funciton function
 abbr teh the
 abbr tempalte template
+abbr fitler filter
 
 set nocompatible " not compatible with vi
 set autoread " detect when a file is changed
