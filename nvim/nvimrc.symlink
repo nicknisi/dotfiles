@@ -48,7 +48,8 @@ Plug 'mxw/vim-jsx', { 'for': 'jsx' }
 Plug 'elzr/vim-json', { 'for': 'json' }
 Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
 Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
-Plug 'juvenn/mustache.vim', { 'for': 'mustache' }
+" Plug 'juvenn/mustache.vim', { 'for': 'mustache' }
+Plug 'mustache/vim-mustache-handlebars'
 Plug 'digitaltoad/vim-jade', { 'for': 'jade' }
 Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }
 Plug 'wavded/vim-stylus', { 'for': ['stylus', 'markdown'] }
