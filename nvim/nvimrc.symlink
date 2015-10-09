@@ -47,6 +47,7 @@ Plug 'jelera/vim-javascript-syntax', { 'for': 'javascript' }
 Plug 'mxw/vim-jsx', { 'for': 'jsx' }
 Plug 'elzr/vim-json', { 'for': 'json' }
 Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
+Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
 " Plug 'juvenn/mustache.vim', { 'for': 'mustache' }
 Plug 'mustache/vim-mustache-handlebars'

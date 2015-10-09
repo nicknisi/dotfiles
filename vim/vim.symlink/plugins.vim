@@ -10,7 +10,6 @@ call plug#begin('~/.vim/plugged')
 Plug 'chriskempson/base16-vim'
 
 
-" utilities
 Plug 'kien/ctrlp.vim'
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeToggle', 'NERDTreeFind'] } | Plug 'Xuyuanp/nerdtree-git-plugin' | Plug 'ryanoasis/vim-devicons'
 Plug 'mileszs/ack.vim'
@@ -23,6 +22,7 @@ Plug 'tpope/vim-surround'
 Plug 'benmills/vimux'
 Plug 'bling/vim-airline'
 Plug 'scrooloose/syntastic'
+" Plug 'benekastah/neomake'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-repeat'
 Plug 'garbas/vim-snipmate'
@@ -52,9 +52,10 @@ Plug 'jelera/vim-javascript-syntax', { 'for': 'javascript' }
 Plug 'mxw/vim-jsx', { 'for': 'jsx' }
 Plug 'elzr/vim-json', { 'for': 'json' }
 Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
+Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
 " Plug 'juvenn/mustache.vim', { 'for': 'mustache' }
-Plug 'mustache/vim-mustache-handlebars', { 'for': ['mustache', 'handlebars', 'html.handlebars'] }
+Plug 'mustache/vim-mustache-handlebars'
 Plug 'digitaltoad/vim-jade', { 'for': 'jade' }
 Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }
 Plug 'wavded/vim-stylus', { 'for': ['stylus', 'markdown'] }
