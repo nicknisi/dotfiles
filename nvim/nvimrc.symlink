@@ -111,6 +111,8 @@ set clipboard=unnamed
 " faster redrawing
 set ttyfast
 
+set diffopt+=vertical
+
 " highlight conflicts
 match ErrorMsg '^\(<\|=\|>\)\{7\}\([^=].\+\)\?$'
 
