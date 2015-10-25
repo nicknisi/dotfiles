@@ -1,23 +1,13 @@
 # heavily inspired by the wonderful pure theme
 # https://github.com/sindresorhus/pure
 
-# For my own and others sanity
-# git:
-# %b => current branch
-# %a => current action (rebase/merge)
-# prompt:
-# %F => color dict
-# %f => reset color
-# %~ => current path
-# %* => time
-# %n => username
-# %m => shortname host
-# %(?..) => prompt conditional - %(condition.true.false)
-
+# needed to get things like current git branch
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' enable git # You can add hg too if needed: `git hg`
-zstyle ':vcs_info:git*' formats ' %b'
-zstyle ':vcs_info:git*' actionformats ' %b|%a'
+zstyle ':vcs_info:git*' use-simple true
+zstyle ':vcs_info:git*' max-exports 2
+zstyle ':vcs_info:git*' formats ' %b' 'x%R'
+zstyle ':vcs_info:git*' actionformats ' %b|%a' 'x%R'
 
 autoload colors && colors
 
@@ -34,23 +24,35 @@ git_dirty() {
     fi
 }
 
-git_prompt_info() {
- ref=$(/usr/bin/git symbolic-ref HEAD 2>/dev/null) || return
-# echo "(%{\e[0;33m%}${ref#refs/heads/}%{\e[0m%})"
- echo "${ref#refs/heads/}"
+# get the status of the current branch and it's remote
+# If there are changes upstream, display a ⇣
+# If there are changes that have been committed but not yet pushed, display a ⇡
+git_arrows() {
+    # do nothing if there is no upstream configured
+    command git rev-parse --abbrev-ref @'{u}' &>/dev/null || return
+
+    local arrows=""
+    local status
+    arrow_status="$(command git rev-list --left-right --count HEAD...@'{u}' 2>/dev/null)"
+
+    # do nothing if the command failed
+    (( !$? )) || return
+
+    # split on tabs
+    arrow_status=(${(ps:\t:)arrow_status})
+    local left=${arrow_status[1]} right=${arrow_status[2]}
+
+    (( ${right:-0} > 0 )) && arrows+="%F{011}⇣%f"
+    (( ${left:-0} > 0 )) && arrows+="%F{012}⇡%f"
+
+    echo $arrows
 }
 
-needs_push() {
-  if [[ $(git cherry -v @{upstream} 2>/dev/null) == "" ]]
-  then
-    echo ""
-  else
-    echo "%{$fg_bold[magenta]%}☁%f "
-  fi
-}
 
 # indicate a job (for example, vim) has been backgrounded
+# If there is a job in the background, display a ✱
 suspended_jobs() {
+    local sj
     sj=$(jobs 2>/dev/null | tail -n 1)
     if [[ $sj == "" ]]; then
         echo ""
@@ -61,8 +63,8 @@ suspended_jobs() {
 
 precmd() {
     vcs_info
-    print -P '\n%F{207}%~'
+    print -P '\n%F{205}%~'
 }
 
-export PROMPT='%(?.%F{magenta}.%F{red})❯%f '
-export RPROMPT='`git_dirty`%F{241}$vcs_info_msg_0_%f `needs_push``suspended_jobs`'
+export PROMPT='%(?.%F{205}.%F{red})❯%f '
+export RPROMPT='`git_dirty`%F{241}$vcs_info_msg_0_%f `git_arrows``suspended_jobs`'

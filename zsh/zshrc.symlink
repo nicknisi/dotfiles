@@ -7,11 +7,12 @@ export REPORTTIME=10
 [[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
 
 # define the code directory
+# This is where my code exists and where I want the `c` autocomplete to work from exclusively
 if [[ -d ~/code ]]; then
     export CODE_DIR=~/code
 fi
 
-# load all zsh config files
+# source all .zsh files inside of the zsh/ directory
 for config ($ZSH/**/*.zsh) source $config
 
 if [[ -a ~/.localrc ]]; then
@@ -25,7 +26,7 @@ compinit
 
 for config ($ZSH/**/*completion.sh) source $config
 
-export EDITOR='vim'
+export EDITOR='nvim'
 
 export PATH=/usr/local/bin:$PATH
 
