@@ -1,8 +1,10 @@
 .netrwhist
 npm-debug.log
-vim/vim.symlink/plugged/
-nvim/nvim.symlink/plugged/
+
 plug.vim.old
+
+config/nvim/spell
+config/nvim/shada
+config/nvim/plugged
 vim/vim.symlink/spell/
-nvim/nvim.symlink/spell/
-nvim/nvim.symlink/shada/
+vim/vim.symlink/plugged/
