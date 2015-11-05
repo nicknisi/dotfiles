@@ -266,12 +266,8 @@ set pastetoggle=<F6>
 " toggle paste mode
 map <leader>v :set paste!<cr>
 
-" edit ~/.vimrc
-map <leader>ev :e! ~/.vimrc<cr>
-" edit vim plugins
-map <leader>evp :e! ~/.vim/plugins.vim<cr>
-" edit vim functions
-map <leader>evf :e! ~/.vim/functions.vim<cr>
+" edit ~/.config/nvim/init.vim
+map <leader>ev :e! ~/.config/nvim/init.vim<cr>
 " edit gitconfig
 map <leader>eg :e! ~/.gitconfig<cr>
 
