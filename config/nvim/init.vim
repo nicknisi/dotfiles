@@ -5,7 +5,7 @@ Plug 'chriskempson/base16-vim'
 
 
 " utilities
-Plug 'kien/ctrlp.vim'
+Plug 'ctrlpvim/ctrlp.vim'
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeToggle', 'NERDTreeFind'] } | Plug 'Xuyuanp/nerdtree-git-plugin' | Plug 'ryanoasis/vim-devicons'
 Plug 'mileszs/ack.vim'
 Plug 'Raimondi/delimitMate'
@@ -46,7 +46,7 @@ Plug 'moll/vim-node', { 'for': 'javascript' }
 Plug 'jelera/vim-javascript-syntax', { 'for': 'javascript' }
 Plug 'mxw/vim-jsx', { 'for': 'jsx' }
 Plug 'elzr/vim-json', { 'for': 'json' }
-Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
+" Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
 Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
 " Plug 'juvenn/mustache.vim', { 'for': 'mustache' }
