@@ -104,9 +104,9 @@ function extract() {
 }
 
 function scpp() {
-    scp "$1" nicknisi@nicknisi.com:/var/www/nicknisi.com/public_html/i;
-    echo "http://nicknisi.com/i/$1" | pbcopy;
-    echo "Copied to clipboard: http://nicknisi.com/i/$1"
+    scp "$1" nicknisi@nicknisi.com:/var/www/nicknisi.com/public_html/share;
+    echo "http://nicknisi.com/share/$1" | pbcopy;
+    echo "Copied to clipboard: http://nicknisi.com/share/$1"
 }
 
 # syntax highlight the contents of a file or the clipboard and place the result on the clipboard
