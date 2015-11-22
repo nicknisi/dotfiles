@@ -1,4 +1,6 @@
 # dojo/AMD snippets
+snippet strict
+	'use strict';
 snippet def
 	define([
 		${1}
@@ -56,7 +58,7 @@ snippet ctab
 snippet debug
 	console.log('[DEBUG] ${1}');
 snippet trace
-	console.trace();
+	console.trace(${1});
 snippet des
 	describe('${1}', function () {
 	});
