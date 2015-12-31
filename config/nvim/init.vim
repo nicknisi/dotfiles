@@ -493,7 +493,8 @@ let g:neomake_javascript_jshint_maker = {
     \ 'args': ['--verbose'],
     \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
 \ }
-let g:neomake_javascript_enabled_markers = ['jshint', 'jscs']
+let g:neomake_javascript_enabled_makers = ['eslint']
+autocmd FileType javascript let g:neomake_javascript_enabled_makers = findfile('.jshintrc', '.;') != '' ? ['jshint', 'jscs'] : ['eslint']
 
 " CtrlP ignore patterns
 " let g:ctrlp_custom_ignore = {
