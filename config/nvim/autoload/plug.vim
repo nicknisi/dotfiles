@@ -26,7 +26,7 @@
 "
 "   " Using a non-master branch
 "   Plug 'rdnetto/YCM-Generator', { 'branch': 'stable' }
-
+"
 "   " Plugin options
 "   Plug 'nsf/gocode', { 'tag': 'v.20150303', 'rtp': 'vim' }
 "
@@ -117,13 +117,13 @@ function! s:define_commands()
   if !executable('git')
     return s:err('`git` executable not found. vim-plug requires git.')
   endif
-  command! -nargs=* -bar -bang -complete=customlist,s:names PlugInstall call s:install('<bang>' == '!', [<f-args>])
-  command! -nargs=* -bar -bang -complete=customlist,s:names PlugUpdate  call s:update('<bang>' == '!', [<f-args>])
-  command! -nargs=0 -bar -bang PlugClean call s:clean('<bang>' == '!')
+  command! -nargs=* -bar -bang -complete=customlist,s:names PlugInstall call s:install(<bang>0, [<f-args>])
+  command! -nargs=* -bar -bang -complete=customlist,s:names PlugUpdate  call s:update(<bang>0, [<f-args>])
+  command! -nargs=0 -bar -bang PlugClean call s:clean(<bang>0)
   command! -nargs=0 -bar PlugUpgrade if s:upgrade() | execute 'source' s:esc(s:me) | endif
   command! -nargs=0 -bar PlugStatus  call s:status()
   command! -nargs=0 -bar PlugDiff    call s:diff()
-  command! -nargs=? -bar PlugSnapshot call s:snapshot(<f-args>)
+  command! -nargs=? -bar -bang -complete=file PlugSnapshot call s:snapshot(<bang>0, <f-args>)
 endfunction
 
 function! s:to_a(v)
@@ -144,6 +144,16 @@ endfunction
 
 function! s:assoc(dict, key, val)
   let a:dict[a:key] = add(get(a:dict, a:key, []), a:val)
+endfunction
+
+function! s:ask(message)
+  call inputsave()
+  echohl WarningMsg
+  let proceed = input(a:message.' (y/N) ') =~? '^y'
+  echohl None
+  call inputrestore()
+  echo "\r"
+  return proceed
 endfunction
 
 function! plug#end()
@@ -521,16 +531,20 @@ function! s:syntax()
   syn match plugStar /^*/
   syn match plugMessage /\(^- \)\@<=.*/
   syn match plugName /\(^- \)\@<=[^ ]*:/
+  syn match plugSha /\%(: \)\@<=[0-9a-z]\{4,}$/
+  syn match plugTag /(tag: [^)]\+)/
   syn match plugInstall /\(^+ \)\@<=[^:]*/
   syn match plugUpdate /\(^* \)\@<=[^:]*/
-  syn match plugCommit /^  [0-9a-z]\{7} .*/ contains=plugRelDate,plugSha
+  syn match plugCommit /^  [0-9a-z]\{7} .*/ contains=plugRelDate,plugSha,plugTag
   syn match plugSha /\(^  \)\@<=[0-9a-z]\{7}/ contained
   syn match plugRelDate /([^)]*)$/ contained
   syn match plugNotLoaded /(not loaded)$/
   syn match plugError /^x.*/
+  syn match plugH2 /^.*:\n-\+$/
   syn keyword Function PlugInstall PlugStatus PlugUpdate PlugClean
   hi def link plug1       Title
   hi def link plug2       Repeat
+  hi def link plugH2      Type
   hi def link plugX       Exception
   hi def link plugBracket Structure
   hi def link plugNumber  Number
@@ -547,6 +561,7 @@ function! s:syntax()
   hi def link plugError   Error
   hi def link plugRelDate Comment
   hi def link plugSha     Identifier
+  hi def link plugTag     Constant
 
   hi def link plugNotLoaded Comment
 endfunction
@@ -1817,10 +1832,7 @@ function! s:clean(force)
   if empty(todo)
     call append(line('$'), 'Already clean.')
   else
-    call inputsave()
-    let yes = a:force || (input('Proceed? (y/N) ') =~? '^y')
-    call inputrestore()
-    if yes
+    if a:force || s:ask('Proceed?')
       for dir in todo
         call s:rm_rf(dir)
       endfor
@@ -1986,41 +1998,63 @@ function! s:section(flags)
   call search('\(^[x-] \)\@<=[^:]\+:', a:flags)
 endfunction
 
+function! s:format_git_log(line)
+  let [sha, refs, subject, date] = split(a:line, nr2char(1))
+  let tag = matchstr(refs, 'tag: [^,)]\+')
+  let tag = empty(tag) ? ' ' : ' ('.tag.') '
+  return printf('  %s%s%s (%s)', sha, tag, subject, date)
+endfunction
+
+function! s:append_ul(lnum, text)
+  call append(a:lnum, ['', a:text, repeat('-', len(a:text))])
+endfunction
+
 function! s:diff()
   call s:prepare()
-  call append(0, 'Collecting updated changes ...')
-  normal! gg
-  redraw
-
-  let cnt = 0
-  for [k, v] in filter(items(g:plugs), '!has_key(v:val[1], "commit")')
-    if !isdirectory(v.dir) || !s:is_managed(k)
-      continue
-    endif
-
-    let diff = s:system_chomp('git log --pretty=format:"%h %s (%cr)" "HEAD...HEAD@{1}"', v.dir)
-    if !empty(diff)
-      call append(1, '')
-      call append(2, '- '.k.':')
-      call append(3, map(s:lines(diff), '"  ". v:val'))
-      let cnt += 1
-      normal! gg
+  call append(0, ['Collecting changes ...', ''])
+  let cnts = [0, 0]
+  let bar = ''
+  let total = filter(copy(g:plugs), 's:is_managed(v:key) && isdirectory(v:val.dir)')
+  call s:progress_bar(2, bar, len(total))
+  for origin in [1, 0]
+    call s:append_ul(2, origin ? 'Pending updates:' : 'Last update:')
+    for [k, v] in reverse(sort(items(filter(copy(total), (origin ? '' : '!').'(has_key(v:val, "commit") || has_key(v:val, "tag"))'))))
+      let range = origin ? '..origin/'.v.branch : 'HEAD@{1}..'
+      let diff = s:system_chomp('git log --pretty=format:"%h%x01%d%x01%s%x01%cr" '.s:shellesc(range), v.dir)
+      if !empty(diff)
+        let ref = has_key(v, 'tag') ? (' (tag: '.v.tag.')') : has_key(v, 'commit') ? (' '.v.commit) : ''
+        call append(5, extend(['', '- '.k.':'.ref], map(s:lines(diff), 's:format_git_log(v:val)')))
+        let cnts[origin] += 1
+      endif
+      let bar .= '='
+      call s:progress_bar(2, bar, len(total))
+      normal! 2G
       redraw
+    endfor
+    if !cnts[origin]
+      call append(5, ['', 'N/A'])
     endif
   endfor
+  call setline(1, printf('%d plugin(s) updated.', cnts[0])
+        \ . (cnts[1] ? printf(' %d plugin(s) have pending updates.', cnts[1]) : ''))
 
-  call setline(1, cnt == 0 ? 'No updates.' : 'Last update:')
-  nnoremap <silent> <buffer> <cr> :silent! call <SID>preview_commit()<cr>
-  nnoremap <silent> <buffer> o    :silent! call <SID>preview_commit()<cr>
-  nnoremap <silent> <buffer> X    :call <SID>revert()<cr>
-  normal! gg
-  setlocal nomodifiable
-  if cnt > 0
+  if cnts[0] || cnts[1]
+    nnoremap <silent> <buffer> <cr> :silent! call <SID>preview_commit()<cr>
+    nnoremap <silent> <buffer> o    :silent! call <SID>preview_commit()<cr>
+  endif
+  if cnts[0]
+    nnoremap <silent> <buffer> X :call <SID>revert()<cr>
     echo "Press 'X' on each block to revert the update"
   endif
+  normal! gg
+  setlocal nomodifiable
 endfunction
 
 function! s:revert()
+  if search('^Pending updates', 'bnW')
+    return
+  endif
+
   let name = s:find_name(line('.'))
   if empty(name) || !has_key(g:plugs, name) ||
     \ input(printf('Revert the update of %s? (y/N) ', name)) !~? '^y'
@@ -2034,42 +2068,35 @@ function! s:revert()
   echo 'Reverted.'
 endfunction
 
-function! s:snapshot(...) abort
-  let home = get(s:, 'plug_home_org', g:plug_home)
-  let [type, var, header] = s:is_win ?
-    \ ['dosbatch', '%PLUG_HOME%',
-    \   ['@echo off', ':: Generated by vim-plug', ':: '.strftime("%c"), '',
-    \    ':: Make sure to PlugUpdate first with `let g:plug_shallow = 0`', '', 'set PLUG_HOME='.home]] :
-    \ ['sh', '$PLUG_HOME',
-    \   ['#!/bin/sh',  '# Generated by vim-plug', '# '.strftime("%c"), '',
-    \    'vim -c ''let g:plug_shallow = 0 | PlugUpdate | qa''', '', 'PLUG_HOME='.s:esc(home)]]
-
+function! s:snapshot(force, ...) abort
   call s:prepare()
-  execute 'setf' type
-  call append(0, header)
-  call append('$', '')
+  setf vim
+  call append(0, ['" Generated by vim-plug',
+                \ '" '.strftime("%c"),
+                \ '" :source this file in vim to restore the snapshot',
+                \ '" or execute: vim -S snapshot.vim',
+                \ '', '', 'PlugUpdate!'])
   1
-  redraw
-
-  let dirs = sort(map(values(filter(copy(g:plugs),
-        \'has_key(v:val, "uri") && !has_key(v:val, "commit") && isdirectory(v:val.dir)')), 'v:val.dir'))
-  let anchor = line('$') - 1
-  for dir in reverse(dirs)
-    let sha = s:system_chomp('git rev-parse --short HEAD', dir)
+  let anchor = line('$') - 3
+  let names = sort(keys(filter(copy(g:plugs),
+        \'has_key(v:val, "uri") && !has_key(v:val, "commit") && isdirectory(v:val.dir)')))
+  for name in reverse(names)
+    let sha = s:system_chomp('git rev-parse --short HEAD', g:plugs[name].dir)
     if !empty(sha)
-      call append(anchor, printf('cd %s && git reset --hard %s',
-            \ substitute(dir, '^\V'.escape(g:plug_home, '\'), var, ''), sha))
+      call append(anchor, printf("silent! let g:plugs['%s'].commit = '%s'", name, sha))
       redraw
     endif
   endfor
 
   if a:0 > 0
     let fn = expand(a:1)
-    let fne = s:esc(fn)
+    if filereadable(fn) && !(a:force || s:ask(a:1.' already exists. Overwrite?'))
+      return
+    endif
     call writefile(getline(1, '$'), fn)
-    if !s:is_win | call s:system('chmod +x ' . fne) | endif
-    echo 'Saved to '.a:1
-    silent execute 'e' fne
+    echo 'Saved as '.a:1
+    silent execute 'e' s:esc(fn)
+    setf vim
   endif
 endfunction
 
