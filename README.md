@@ -7,11 +7,8 @@ Welcome to my world. This is a collection of vim, tmux, and zsh configurations. 
 + [Initial Setup and Installation](#initial-setup-and-installation)
 + [ZSH Setup](#zsh-setup)
 + [Vim and Neovim Setup](#vim-and-neovim-setup)
-+ [Tmux Configuration](#tmux-configuration)
-+ [Git configuration](#git-configuration)
-+ [OSX configuration](osx-configuration)
-+ [Homebrew](#homebrew)
-+ [Node Installation](#node-installation)
++ [Fonts](#fonts)
++ [Tmux](#tmux-configuration)
 
 ## Initial Setup and Installation
 
@@ -99,3 +96,7 @@ nvim +PlugInstall
 I am currently using [Hack](http://sourcefoundry.org/hack/) as my default font, which does include Powerline support, so you don't need an additional patched font. In addition to this, I do have [nerd-fonts](https://github.com/ryanoasis/nerd-fonts) installed and configured to be used for non-ascii characters. If you would prefer not to do this, then simply remove the `Plug 'ryanoasis/vim-devicons'` plugin from vim/nvim. Then, I configure the fonts in this way in iTerm2:
 
 ![](http://nicknisi.com/share/iterm-fonts-config.png)
+
+## Tmux Configuration
+
+*TODO: Documentation coming soon.*
