@@ -15,7 +15,8 @@ Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-ragtag'
 Plug 'tpope/vim-surround'
 Plug 'benmills/vimux'
-Plug 'bling/vim-airline'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
 " Plug 'scrooloose/syntastic'
 Plug 'benekastah/neomake'
 Plug 'tpope/vim-fugitive'
@@ -495,7 +496,7 @@ let g:neomake_javascript_jshint_maker = {
     \ 'args': ['--verbose'],
     \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
 \ }
-autocmd FileType javascript let g:neomake_javascript_enabled_makers = findfile('.jshintrc', '.;') != '' ? ['jshint', 'jscs'] : ['eslint']
+autocmd FileType javascript let g:neomake_javascript_enabled_makers = findfile('.jshintrc', '.;') != '' ? ['jshint'] : ['eslint']
 
 " CtrlP ignore patterns
 " let g:ctrlp_custom_ignore = {
