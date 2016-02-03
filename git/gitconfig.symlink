@@ -24,6 +24,10 @@
     day = "!sh -c 'git log --reverse --no-merges --branches=* --date=local --after=\"yesterday 11:59PM\" --author=\"`git config --get user.name`\"'"
 
     # order files by number of commits, ascending
+    # Written by Corey Haines
+    # Scriptified by Gary Bernhardt
+    # Show churn for a time range:
+    #   $ git churn --since='1 month ago'
     churn = "!f() { git log --all -M -C --name-only --format='format:' \"$@\" | sort | grep -v '^$' | uniq -c | sort | awk 'BEGIN {print \"count\tfile\"} {print $1 \"\t\" $2}' | sort -g; }; f"
 
     # show all deleted files in the repo
@@ -120,6 +124,7 @@
     excludesfile = ~/.gitignore_global
     pager = less -FXRS -x2
     editor = vim
+    whitespace = cr-at-eol
 [rerere]
     enabled = true
 [gitsh]
