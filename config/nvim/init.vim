@@ -44,12 +44,14 @@ Plug 'gregsexton/MatchTag', { 'for': 'html' } " match tags in html, similar to p
 Plug 'othree/html5.vim', { 'for': 'html' } " html5 support
 Plug 'pangloss/vim-javascript', { 'for': 'javascript' } " JavaScript support
 Plug 'moll/vim-node', { 'for': 'javascript' } " node support
-Plug 'jelera/vim-javascript-syntax', { 'for': 'javascript' } " JavaScript syntax plugin
+" Plug 'jelera/vim-javascript-syntax', { 'for': 'javascript' } " JavaScript syntax plugin
+Plug 'othree/yajs.vim', { 'for': 'javascript' } " JavaScript syntax plugin
 Plug 'mxw/vim-jsx', { 'for': 'jsx' } " JSX support
 Plug 'elzr/vim-json', { 'for': 'json' } " JSON support
 " Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' } " extended typescript support - works as a client for TSServer
 Plug 'Shougo/vimproc.vim', { 'do': 'make' } " interactive command execution in vim
 Plug 'leafgarland/typescript-vim', { 'for': 'typescript' } " typescript support
+Plug 'clausreinke/typescript-tools.vim', { 'for': 'typescript' } " typescript tools
 " Plug 'juvenn/mustache.vim', { 'for': 'mustache' } " mustache support
 Plug 'mustache/vim-mustache-handlebars' " mustach support
 Plug 'digitaltoad/vim-jade', { 'for': 'jade' } " jade support
@@ -141,6 +143,9 @@ if has('autocmd') && !exists('autocommands_loaded')
     autocmd BufNewFile,BufRead *.ejs set filetype=html
     autocmd BufNewFile,BufRead *.ino set filetype=c
     autocmd BufNewFile,BufRead *.svg set filetype=xml
+    autocmd BufNewFile,BufRead .babelrc set filetype=json
+    autocmd BufNewFile,BufRead .jshintrc set filetype=json
+    autocmd BufNewFile,BufRead .eslintrc set filetype=json
 
     " make quickfix windows take all the lower section of the screen when there
     " are multiple windows open
@@ -495,6 +500,17 @@ let g:neomake_javascript_jshint_maker = {
     \ 'args': ['--verbose'],
     \ 'errorformat': '%A%f: line %l\, col %v\, %m \(%t%*\d\)',
 \ }
+
+let g:neomake_typescript_tsc_maker = {
+    \ 'args': ['-m', 'commonjs', '--noEmit' ],
+    \ 'append_file': 0,
+    \ 'errorformat':
+        \ '%E%f %#(%l\,%c): error %m,' .
+        \ '%E%f %#(%l\,%c): %m,' .
+        \ '%Eerror %m,' .
+        \ '%C%\s%\+%m'
+\ }
+
 autocmd FileType javascript let g:neomake_javascript_enabled_makers = findfile('.jshintrc', '.;') != '' ? ['jshint'] : ['eslint']
 
 " CtrlP ignore patterns
