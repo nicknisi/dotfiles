@@ -71,7 +71,7 @@ fi
 
 # Base16 Shell
 # if [ -z "$THEME" ]; then
-    export THEME="base16-chalk"
+    export THEME="base16-atelierlakeside"
 # fi
 if [ -z "$BACKGROUND" ]; then
     export BACKGROUND="dark"
@@ -81,3 +81,5 @@ BASE16_SHELL="$DOTFILES/.config/base16-shell/$THEME.$BACKGROUND.sh"
 # [[ -s $BASE16_SHELL ]] && source $BASE16_SHELL
 source $BASE16_SHELL
 
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
