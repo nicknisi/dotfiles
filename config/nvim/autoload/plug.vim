@@ -386,6 +386,10 @@ function! s:reorg_rtp()
   endif
 endfunction
 
+function! s:doautocmd(...)
+  execute 'doautocmd' ((v:version > 703 || has('patch442')) ? '<nomodeline>' : '') join(a:000)
+endfunction
+
 function! plug#load(...)
   if a:0 == 0
     return s:err('Argument missing: plugin name(s) required')
@@ -440,7 +444,7 @@ function! s:lod(names, types, ...)
       call s:source(rtp, a:2)
     endif
     if exists('#User#'.name)
-      execute 'doautocmd User' name
+      call s:doautocmd('User', name)
     endif
   endfor
 endfunction
@@ -2057,7 +2061,7 @@ function! s:preview_commit()
   execute 'pedit' sha
   wincmd P
   setlocal filetype=git buftype=nofile nobuflisted modifiable
-  execute 'silent read !cd' s:shellesc(g:plugs[name].dir) '&& git show --pretty=medium' sha
+  execute 'silent read !cd' s:shellesc(g:plugs[name].dir) '&& git show --no-color --pretty=medium' sha
   normal! gg"_dd
   setlocal nomodifiable
   nnoremap <silent> <buffer> q :q<cr>
