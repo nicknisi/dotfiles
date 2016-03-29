@@ -1,12 +1,13 @@
 #!/bin/bash
 
+echo -e "\n\nInstalling nginx"
+echo "=============================="
+
 ######################################################
 # nginx setup
 ######################################################
 
 $DOTFILES=$HOME/.dotfiles
-
-echo "Installing nginx"
 
 # first, make sure apache is off
 sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist

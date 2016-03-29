@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 DOTFILES=$HOME/.dotfiles
 
@@ -39,12 +39,15 @@ done
 # like to configure vim, so lets symlink ~/.vimrc and ~/.vim over to their
 # neovim equivalent.
 
-echo "\nCreating vim symlinks"
+echo -e "\n\nCreating vim symlinks"
 echo "=============================="
 
-typeset -A vimfiles=(~/.vim $DOTFILES/config/nvim ~/.vimrc $DOTFILES/config/nvim/init.vim)
+typeset -A vimfiles
+vimfiles[~/.vim]=$DOTFILES/config/nvim
+vimfiles[~/.vimrc]=$DOTFILES/config/nvim/init.vim
 
-for file in "${(@k)vimfiles}"; do
+for file in "${!vimfiles[@]}"; do
+# for file in "${(@k)vimfiles}"; do
     # echo "$file -> $vimfiles[$file]"
     if [ -e ${file} ]; then
         echo "${file} already exists... skipping"
