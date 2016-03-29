@@ -51,7 +51,7 @@ Plug 'elzr/vim-json', { 'for': 'json' } " JSON support
 " Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' } " extended typescript support - works as a client for TSServer
 Plug 'Shougo/vimproc.vim', { 'do': 'make' } " interactive command execution in vim
 Plug 'leafgarland/typescript-vim', { 'for': 'typescript' } " typescript support
-Plug 'clausreinke/typescript-tools.vim', { 'for': 'typescript' } " typescript tools
+" Plug 'clausreinke/typescript-tools.vim', { 'for': 'typescript' } " typescript tools
 " Plug 'juvenn/mustache.vim', { 'for': 'mustache' } " mustache support
 Plug 'mustache/vim-mustache-handlebars' " mustach support
 Plug 'digitaltoad/vim-jade', { 'for': 'jade' } " jade support
