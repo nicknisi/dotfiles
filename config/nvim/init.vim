@@ -1,3 +1,4 @@
+" Section Plugins {{{
 call plug#begin('~/.config/nvim/plugged')
 
 " colorschemes
@@ -68,9 +69,9 @@ Plug 'tclem/vim-arduino' " arduino support - compile wihtout needing to open the
 
 call plug#end()
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => General
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" }}}
+
+" Section General {{{
 
 " load plugins from vundle
 " source ~/.vim/plugins.vim
@@ -118,9 +119,17 @@ set diffopt+=vertical
 " highlight conflicts
 match ErrorMsg '^\(<\|=\|>\)\{7\}\([^=].\+\)\?$'
 
+set backupdir=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
+set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
+
+set laststatus=2 " show the satus line all the time
+
+" }}}
+
+" Section AutoGroups {{{
 " file type specific settings
-if has('autocmd') && !exists('autocommands_loaded')
-    let autocommands_loaded = 1
+augroup configgroup
+    autocmd!
     autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
     autocmd FileType make setlocal ts=8 sts=8 sw=8 noexpandtab
     autocmd FileType ruby setlocal ts=2 sts=2 sw=2 expandtab
@@ -130,8 +139,6 @@ if has('autocmd') && !exists('autocommands_loaded')
     autocmd FileType markdown,textile setlocal textwidth=0 wrapmargin=0 wrap spell
     autocmd FileType .xml exe ":silent %!xmllint --format --recover - 2>/dev/null"
     autocmd FileType crontab setlocal nobackup nowritebackup
-    "autocmd WinEnter * setlocal cursorline
-    "autocmd WinLeave * setlocal nocursorline
 
     " automatically resize panes on resize
     autocmd VimResized * exe 'normal! \<c-w>='
@@ -147,8 +154,8 @@ if has('autocmd') && !exists('autocommands_loaded')
     autocmd BufNewFile,BufRead .jshintrc set filetype=json
     autocmd BufNewFile,BufRead .eslintrc set filetype=json
 
-    " make quickfix windows take all the lower section of the screen when there
-    " are multiple windows open
+    " make quickfix windows take all the lower section of the screen
+    " when there are multiple windows open
     autocmd FileType qf wincmd J
 
     autocmd BufNewFile,BufReadPost *.md set filetype=markdown
@@ -159,7 +166,11 @@ if has('autocmd') && !exists('autocommands_loaded')
     autocmd BufNewFile,BufRead,BufWrite *.md syntax match Comment /\%^---\_.\{-}---$/
 
     autocmd! BufWritePost * Neomake
-endif
+augroup END
+
+" }}}
+
+" Section User Interface {{{
 
 " code folding settings
 set foldmethod=syntax " fold based on indent
@@ -167,9 +178,6 @@ set foldnestmax=10 " deepest fold is 10 levels
 set nofoldenable " don't fold by default
 set foldlevel=1
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => User Interface
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 set so=7 " set 7 lines to the cursors - when moving vertical
 set wildmenu " enhanced command line completion
@@ -210,9 +218,8 @@ set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
 execute "set background=".$BACKGROUND
 execute "colorscheme ".$THEME
 
-" set number " show line numbers
+set number " show line numbers
 " set relativenumber " show relative line numbers
-set number " show the current line number"
 
 set wrap "turn on line wrapping
 set wrapmargin=8 " wrap lines when coming within n characters from side
@@ -222,32 +229,9 @@ set showbreak=… " show ellipsis at breaking
 set autoindent " automatically set indent of new line
 set smartindent
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Files, backups, and undo
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" }}}
 
-"set nobackup
-"set nowritebackup
-"set noswapfile
-set backupdir=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
-set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => StatusLine
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-set laststatus=2 " show the satus line all the time
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Mappings
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" General mappings/shortcuts for functionality
-" Additional, plugin-specific mappings are located under
-" the plugins section
-
-" Close the current buffer
-" noremap <C-x> :q<cr>
+" Section Mappings {{{
 
 " remap esc
 inoremap jk <esc>
@@ -338,9 +322,9 @@ nmap \s :set ts=4 sts=4 sw=4 et<cr>
 
 nmap <leader>w :setf textile<cr> :Goyo<cr>
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Functions
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" }}}
+
+" Section Functions {{{
 
 " Window movement shortcuts
 " move to the window in the direction shown, or create a new window
@@ -461,10 +445,9 @@ endfunction
 
 nnoremap <silent> <leader>u :call HtmlUnEscape()<cr>
 
+" }}}
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Plugins
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Section Plugins {{{
 
 " close NERDTree after a file is opened
 let g:NERDTreeQuitOnOpen=0
@@ -548,3 +531,7 @@ if (has("gui_running"))
 endif
 
 call ApplyLocalSettings(expand('.'))
+
+" }}}
+
+" vim:foldmethod=marker:foldlevel=0
