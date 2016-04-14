@@ -217,6 +217,7 @@ let base16colorspace=256  " Access colors present in 256 colorspace"
 set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
 execute "set background=".$BACKGROUND
 execute "colorscheme ".$THEME
+highlight Comment cterm=italic
 
 set number " show line numbers
 " set relativenumber " show relative line numbers
@@ -494,7 +495,8 @@ let g:neomake_typescript_tsc_maker = {
         \ '%C%\s%\+%m'
 \ }
 
-autocmd FileType javascript let g:neomake_javascript_enabled_makers = findfile('.jshintrc', '.;') != '' ? ['jshint'] : ['eslint']
+" autocmd FileType javascript let g:neomake_javascript_enabled_makers = findfile('.jshintrc', '.;') != '' ? ['jshint'] : ['eslint']
+let g:neomake_javascript_enabled_makers = ['jshint', 'jscs']
 
 " CtrlP ignore patterns
 " let g:ctrlp_custom_ignore = {
@@ -533,5 +535,6 @@ endif
 call ApplyLocalSettings(expand('.'))
 
 " }}}
+
 
 " vim:foldmethod=marker:foldlevel=0
