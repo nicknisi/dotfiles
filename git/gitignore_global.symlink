@@ -18,3 +18,6 @@ Icon
 
 # typescript command garbage
 tscommand*.txt
+
+# nvm - the Node Version Manager
+.nvmrc
