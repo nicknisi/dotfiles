@@ -55,7 +55,7 @@ Plug 'leafgarland/typescript-vim', { 'for': 'typescript' } " typescript support
 " Plug 'clausreinke/typescript-tools.vim', { 'for': 'typescript' } " typescript tools
 " Plug 'juvenn/mustache.vim', { 'for': 'mustache' } " mustache support
 Plug 'mustache/vim-mustache-handlebars' " mustach support
-Plug 'digitaltoad/vim-jade', { 'for': 'jade' } " jade support
+Plug 'digitaltoad/vim-jade', { 'for': ['jade', 'pug'] } " jade support
 Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' } " sass scss syntax support
 Plug 'wavded/vim-stylus', { 'for': ['stylus', 'markdown'] } " markdown support
 Plug 'groenewege/vim-less', { 'for': 'less' } " less support
