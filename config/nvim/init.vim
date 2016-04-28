@@ -153,6 +153,7 @@ augroup configgroup
     autocmd BufNewFile,BufRead .babelrc set filetype=json
     autocmd BufNewFile,BufRead .jshintrc set filetype=json
     autocmd BufNewFile,BufRead .eslintrc set filetype=json
+    autocmd BufNewFile,BufRead *.es6 set filetype=javascript
 
     " make quickfix windows take all the lower section of the screen
     " when there are multiple windows open
