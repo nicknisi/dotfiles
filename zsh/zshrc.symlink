@@ -75,6 +75,8 @@ if hash brew 2>/dev/null; then
     source `brew --prefix`/etc/profile.d/z.sh
 fi
 
+# when sourcing, check and ensure that the correct Node version is set
+load-nvmrc
 
 # Base16 Shell
 # if [ -z "$THEME" ]; then
