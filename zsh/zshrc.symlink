@@ -73,10 +73,10 @@ add-zsh-hook chpwd load-nvmrc
 if hash brew 2>/dev/null; then
     source $(brew --prefix nvm)/nvm.sh
     source `brew --prefix`/etc/profile.d/z.sh
-fi
+    # when sourcing, check and ensure that the correct Node version is set
+    load-nvmrc
 
-# when sourcing, check and ensure that the correct Node version is set
-load-nvmrc
+fi
 
 # Base16 Shell
 # if [ -z "$THEME" ]; then
