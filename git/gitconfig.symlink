@@ -71,7 +71,7 @@
     unassumeall = "!git assumed | xargs git update-index --no-assume-unchanged"
 
     # show the most recently touched branches
-    recent = "!git for-each-ref --sort='-committerdate' --format='%(color:red)%(refname)%(color:reset)%09%(committerdate)' refs/heads | sed -e 's-refs/heads/--' | less -r"
+    recent = "!git for-each-ref --sort='-committerdate' --format='%(color:red)%(refname)%(color:reset)%09%(committerdate)' refs/heads | sed -e 's-refs/heads/--' | less -XFR"
 
     # grep commands
 
