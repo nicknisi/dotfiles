@@ -221,6 +221,7 @@ set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
 execute "set background=".$BACKGROUND
 execute "colorscheme ".$THEME
 highlight Comment cterm=italic
+highlight htmlArg cterm=italic
 
 set number " show line numbers
 " set relativenumber " show relative line numbers
