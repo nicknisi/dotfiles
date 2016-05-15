@@ -28,6 +28,7 @@ brew install highlight
 brew install nvm
 brew install z
 brew install markdown
+brew install diff-so-fancy
 
 # install neovim
 brew install neovim/neovim/neovim
