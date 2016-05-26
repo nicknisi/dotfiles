@@ -39,6 +39,11 @@ function ng-restart() {
      sudo launchctl start homebrew.mxcl.nginx
 }
 
+function dns-restart() {
+    sudo launchctl stop homebrew.mxcl.dnsmasq
+    sudo launchctl start homebrew.mxcl.dnsmasq
+}
+
 
 # Start an HTTP server from a directory, optionally specifying the port
 function server() {
