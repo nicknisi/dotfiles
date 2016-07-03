@@ -196,6 +196,9 @@ function! plug#end()
 
   filetype off
   for name in g:plugs_order
+    if !has_key(g:plugs, name)
+      continue
+    endif
     let plug = g:plugs[name]
     if get(s:loaded, name, 0) || !has_key(plug, 'on') && !has_key(plug, 'for')
       let s:loaded[name] = 1
@@ -493,6 +496,13 @@ function! s:lod_map(map, names, prefix)
     endif
     let extra .= nr2char(c)
   endwhile
+  if v:count
+    call feedkeys(v:count, 'n')
+  endif
+  call feedkeys('"'.v:register, 'n')
+  if mode(1) == 'no'
+    call feedkeys(v:operator)
+  endif
   call feedkeys(a:prefix . substitute(a:map, '^<Plug>', "\<Plug>", '') . extra)
 endfunction
 
@@ -786,6 +796,7 @@ function! s:do(pull, force, todo)
       else
         let error = 'Invalid hook type'
       endif
+      call s:switch_in()
       call setline(4, empty(error) ? (getline(4) . 'OK')
                                  \ : ('x' . getline(4)[1:] . error))
       if !empty(error)
