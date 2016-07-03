@@ -137,14 +137,13 @@ augroup configgroup
     autocmd FileType ruby setlocal ts=2 sts=2 sw=2 expandtab
     autocmd FileType html setlocal ts=4 sts=4 sw=4 noexpandtab indentkeys-=*<return>
     autocmd FileType jade setlocal ts=2 sts=2 sw=2 noexpandtab
-    autocmd FileType *.md.js :call SyntasticReset<cr>
     autocmd FileType markdown,textile setlocal textwidth=0 wrapmargin=0 wrap spell
     autocmd FileType .xml exe ":silent %!xmllint --format --recover - 2>/dev/null"
     autocmd FileType crontab setlocal nobackup nowritebackup
 
     " automatically resize panes on resize
     autocmd VimResized * exe 'normal! \<c-w>='
-    autocmd BufWritePost .vimrc source %
+    autocmd BufWritePost .vimrc,.vimrc.local,init.vim source %
     autocmd BufWritePost .vimrc.local source %
     " save all files on focus lost, ignoring warnings about untitled buffers
     autocmd FocusLost * silent! wa
@@ -156,6 +155,9 @@ augroup configgroup
     autocmd BufNewFile,BufRead .jshintrc set filetype=json
     autocmd BufNewFile,BufRead .eslintrc set filetype=json
     autocmd BufNewFile,BufRead *.es6 set filetype=javascript
+
+	" close help files on 'q'
+	autocmd FileType help nnoremap q :bd<cr>
 
     " make quickfix windows take all the lower section of the screen
     " when there are multiple windows open
@@ -215,16 +217,14 @@ set tm=500
 " switch syntax highlighting on
 syntax on
 
-set encoding=utf8
 let base16colorspace=256  " Access colors present in 256 colorspace"
 set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
-execute "set background=".$BACKGROUND
 execute "colorscheme ".$THEME
 highlight Comment cterm=italic
 highlight htmlArg cterm=italic
 
 set number " show line numbers
-" set relativenumber " show relative line numbers
+set relativenumber " show relative line numbers
 
 set wrap "turn on line wrapping
 set wrapmargin=8 " wrap lines when coming within n characters from side
@@ -275,7 +275,7 @@ nmap ;s :set invspell spelllang=en<cr>
 
 " toggle invisible characters
 set invlist
-set listchars=tab:▸\ ,eol:¬,trail:⋅,extends:❯,precedes:❮
+set listchars=tab:→\ ,eol:¬,trail:⋅,extends:❯,precedes:❮
 highlight SpecialKey ctermbg=none " make the highlighting of tabs less annoying
 set showbreak=↪
 nmap <leader>l :set list!<cr>
@@ -499,8 +499,9 @@ let g:neomake_typescript_tsc_maker = {
         \ '%C%\s%\+%m'
 \ }
 
-" autocmd FileType javascript let g:neomake_javascript_enabled_makers = findfile('.jshintrc', '.;') != '' ? ['jshint'] : ['eslint']
-let g:neomake_javascript_enabled_makers = ['jshint', 'jscs']
+autocmd FileType javascript let g:neomake_javascript_enabled_makers = findfile('.jshintrc', '.;') != '' ? ['jshint'] : ['eslint']
+" let g:neomake_javascript_enabled_makers = ['jshint', 'jscs']
+" let g:neomake_javascript_enabled_makers = ['eslint']
 
 " CtrlP ignore patterns
 " let g:ctrlp_custom_ignore = {
