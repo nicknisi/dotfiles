@@ -78,15 +78,15 @@ if hash brew 2>/dev/null; then
 
 fi
 
-# Base16 Shell
-# if [ -z "$THEME" ]; then
-    export THEME="base16-atelierlakeside"
-# fi
-if [ -z "$BACKGROUND" ]; then
-    export BACKGROUND="dark"
+if [ "$BACKGROUND" = "light" ]; then
+    export THEME="base16-google-light"
+    BACKGROUND=""
+else
+    export THEME="base16-atelier-cave"
 fi
 
-BASE16_SHELL="$DOTFILES/.config/base16-shell/$THEME.$BACKGROUND.sh"
+# Base16 Shell
+BASE16_SHELL="$DOTFILES/.config/base16-shell/scripts/$THEME.sh"
 # [[ -s $BASE16_SHELL ]] && source $BASE16_SHELL
 source $BASE16_SHELL
 

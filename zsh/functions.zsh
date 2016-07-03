@@ -133,9 +133,9 @@ function hl() {
 
 # set the background color to light
 function light() {
-    export BACKGROUND="light" && reload!
+    BACKGROUND="light" && reload! && unset $BACKGROUND
 }
 
 function dark() {
-    export BACKGROUND="dark" && reload!
+    reload!
 }
