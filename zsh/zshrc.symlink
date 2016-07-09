@@ -78,19 +78,6 @@ if hash brew 2>/dev/null; then
 
 fi
 
-if [ "$BACKGROUND" = "light" ]; then
-    export THEME="base16-google-light"
-    BACKGROUND=""
-else
-    export THEME="base16-atelier-cave"
-fi
-
-# Base16 Shell
-BASE16_SHELL="$DOTFILES/.config/base16-shell/scripts/$THEME.sh"
-# [[ -s $BASE16_SHELL ]] && source $BASE16_SHELL
-source $BASE16_SHELL
-
-
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # install zsh-syntax-highlighting

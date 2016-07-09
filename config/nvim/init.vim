@@ -2,7 +2,7 @@
 call plug#begin('~/.config/nvim/plugged')
 
 " colorschemes
-Plug 'chriskempson/base16-vim'
+Plug 'dracula/vim'
 
 
 " utilities
@@ -217,14 +217,14 @@ set tm=500
 " switch syntax highlighting on
 syntax on
 
-let base16colorspace=256  " Access colors present in 256 colorspace"
 set t_Co=256 " Explicitly tell vim that the terminal supports 256 colors"
-execute "colorscheme ".$THEME
+" execute "colorscheme ".$THEME
+colorscheme dracula
 highlight Comment cterm=italic
 highlight htmlArg cterm=italic
 
 set number " show line numbers
-set relativenumber " show relative line numbers
+" set relativenumber " show relative line numbers
 
 set wrap "turn on line wrapping
 set wrapmargin=8 " wrap lines when coming within n characters from side
@@ -521,7 +521,7 @@ let g:ctrlp_working_path_mode = 2
 let g:airline_powerline_fonts=1
 let g:airline_left_sep=''
 let g:airline_right_sep=''
-let g:airline_theme='base16'
+let g:airline_theme='dracula'
 
 " don't hide quotes in json files
 let g:vim_json_syntax_conceal = 0
