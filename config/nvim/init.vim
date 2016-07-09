@@ -274,10 +274,12 @@ noremap <space> :set hlsearch! hlsearch?<cr>
 nmap ;s :set invspell spelllang=en<cr>
 
 " toggle invisible characters
-set invlist
+set list
 set listchars=tab:→\ ,eol:¬,trail:⋅,extends:❯,precedes:❮
-highlight SpecialKey ctermbg=none " make the highlighting of tabs less annoying
+highlight SpecialKey ctermbg=none ctermfg=8 " make the highlighting of tabs less annoying
+highlight NonText ctermbg=none ctermfg=8
 set showbreak=↪
+
 nmap <leader>l :set list!<cr>
 
 " Textmate style indentation
