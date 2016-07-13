@@ -93,7 +93,7 @@ nvim +PlugInstall
 
 ## Fonts
 
-I am currently using [Hack](http://sourcefoundry.org/hack/) as my default font, which does include Powerline support, so you don't need an additional patched font. In addition to this, I do have [nerd-fonts](https://github.com/ryanoasis/nerd-fonts) installed and configured to be used for non-ascii characters. If you would prefer not to do this, then simply remove the `Plug 'ryanoasis/vim-devicons'` plugin from vim/nvim. Then, I configure the fonts in this way in iTerm2:
+I am currently using [Operator Mono](http://www.typography.com/fonts/operator/styles/operatormonoscreensmart) as my default font, which does not include Powerline support. In addition to this, I do have [nerd-fonts](https://github.com/ryanoasis/nerd-fonts) installed and configured to be used for non-ascii characters. If you would prefer not to do this, then simply remove the `Plug 'ryanoasis/vim-devicons'` plugin from vim/nvim. Then, I configure the fonts in this way in iTerm2:
 
 ![](http://nicknisi.com/share/iterm-fonts-config.png)
 

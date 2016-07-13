@@ -19,6 +19,10 @@
     ss  = status
     br = branch -v
 
+    # rebase commands
+    cont = rebase --continue
+    conf = "!git s | grep ^U"
+
     l = log --graph --pretty=format:'%Cred%h%Creset %C(bold blue)%an%C(reset) - %s - %Creset %C(yellow)%d%Creset %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
 
     # show what I did today
@@ -33,6 +37,9 @@
 
     # show all deleted files in the repo
     deleted = "!git log --diff-filter=D --summary | grep delete"
+
+    # create an empty commit
+    empty = commit --allow-empty
 
     # current branch
     cbr = rev-parse --abbrev-ref HEAD
@@ -62,6 +69,10 @@
     unassume = update-index --no-assume-unchanged
     assumed = "!git ls-files -v | grep ^h | cut -c 3-"
     unassumeall = "!git assumed | xargs git update-index --no-assume-unchanged"
+
+    # show the most recently touched branches
+    recent = "!git for-each-ref --sort='-committerdate' --format='%(color:red)%(refname)%(color:reset)%09%(committerdate)' refs/heads | sed -e 's-refs/heads/--' | less -XFR"
+    latest = "!git for-each-ref --sort='-committerdate' --format='%(color:red)%(refname)%(color:reset)%09%(committerdate)' refs/remotes | sed -e 's-refs/remotes/origin/--' | less -XFR"
 
     # grep commands
 
@@ -116,6 +127,7 @@
 [diff]
     renames = copies
     mnemonicprefix = true
+    compactionHeuristic = true
 [difftool]
     prompt = false
 [apply]
@@ -142,3 +154,6 @@
 	trustexitcode = true
 [rebase]
 	instructionFormat = "[%an - %ar] %s"
+[pager]
+    diff = "diff-so-fancy | less --tabs=4 -RFX"
+    show = "diff-so-fancy | less --tabs=4 -RFX"

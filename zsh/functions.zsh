@@ -39,6 +39,11 @@ function ng-restart() {
      sudo launchctl start homebrew.mxcl.nginx
 }
 
+function dns-restart() {
+    sudo launchctl stop homebrew.mxcl.dnsmasq
+    sudo launchctl start homebrew.mxcl.dnsmasq
+}
+
 
 # Start an HTTP server from a directory, optionally specifying the port
 function server() {
@@ -128,9 +133,9 @@ function hl() {
 
 # set the background color to light
 function light() {
-    export BACKGROUND="light" && reload!
+    BACKGROUND="light" && reload! && unset $BACKGROUND
 }
 
 function dark() {
-    export BACKGROUND="dark" && reload!
+    reload!
 }

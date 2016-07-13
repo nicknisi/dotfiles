@@ -21,7 +21,7 @@ fi
 
 
 # initialize autocomplete
-autoload -U compinit
+autoload -U compinit add-zsh-hook
 compinit
 
 for config ($ZSH/**/*completion.sh) source $config
@@ -63,23 +63,35 @@ fi
 # source nvm
 export NVM_DIR=~/.nvm
 
+load-nvmrc() {
+    if [[ -f .nvmrc && -r .nvmrc ]]; then
+        nvm use
+    fi
+}
+add-zsh-hook chpwd load-nvmrc
+
 if hash brew 2>/dev/null; then
     source $(brew --prefix nvm)/nvm.sh
     source `brew --prefix`/etc/profile.d/z.sh
+    # when sourcing, check and ensure that the correct Node version is set
+    load-nvmrc
+
 fi
 
+if [ "$BACKGROUND" = "light" ]; then
+    export THEME="base16-google-light"
+    BACKGROUND=""
+else
+    export THEME="base16-atelier-cave"
+fi
 
 # Base16 Shell
-# if [ -z "$THEME" ]; then
-    export THEME="base16-atelierlakeside"
-# fi
-if [ -z "$BACKGROUND" ]; then
-    export BACKGROUND="dark"
-fi
-
-BASE16_SHELL="$DOTFILES/.config/base16-shell/$THEME.$BACKGROUND.sh"
+BASE16_SHELL="$DOTFILES/.config/base16-shell/scripts/$THEME.sh"
 # [[ -s $BASE16_SHELL ]] && source $BASE16_SHELL
 source $BASE16_SHELL
 
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# install zsh-syntax-highlighting
+source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

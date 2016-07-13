@@ -51,6 +51,6 @@ for file in "${!vimfiles[@]}"; do
         echo "${file} already exists... skipping"
     else
         echo "Creating symlink for $file"
-        ln -s $vimfiles[$file] $file
+        ln -s ${vimfiles[$file]} $file
     fi
 done
