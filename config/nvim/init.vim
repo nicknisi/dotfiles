@@ -6,7 +6,8 @@ Plug 'dracula/vim'
 
 
 " utilities
-Plug 'ctrlpvim/ctrlp.vim' " fuzzy file finder, mapped to <leader>t
+" Plug 'ctrlpvim/ctrlp.vim' " fuzzy file finder, mapped to <leader>t
+Plug '/usr/local/opt/fzf' | Plug 'junegunn/fzf.vim' " fuzzy file finder and so much more
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeToggle', 'NERDTreeFind'] } | Plug 'Xuyuanp/nerdtree-git-plugin' | Plug 'ryanoasis/vim-devicons' " file drawer
 Plug 'mileszs/ack.vim' " search inside files using ack. Same as command line ack utility, but use :Ack
 Plug 'Raimondi/delimitMate' " automatic closing of quotes, parenthesis, brackets, etc.
@@ -469,12 +470,46 @@ nmap <silent> <leader>y :NERDTreeFind<cr>
 
 " map fuzzyfinder (CtrlP) plugin
 " nmap <silent> <leader>t :CtrlP<cr>
-nmap <silent> <leader>r :CtrlPBuffer<cr>
-let g:ctrlp_map='<leader>t'
-let g:ctrlp_dotfiles=1
-let g:ctrlp_working_path_mode = 'ra'
+" nmap <silent> <leader>r :CtrlPBuffer<cr>
+" let g:ctrlp_map='<leader>t'
+" let g:ctrlp_dotfiles=1
+" let g:ctrlp_working_path_mode = 'ra'
+
+" FZF
+"""""""""""""""""""""""""""""""""""""
+
+" Mapping selecting mappings
+nmap <silent> <leader>t :GFiles<cr>
+nmap <silent> <leader>r :Buffers<cr>
+nmap <silent> <leader>e :GFiles?<cr>
+nmap <leader><tab> <plug>(fzf-maps-n)
+xmap <leader><tab> <plug>(fzf-maps-x)
+omap <leader><tab> <plug>(fzf-maps-o)
+
+" Insert mode completion
+imap <c-x><c-k> <plug>(fzf-complete-word)
+imap <c-x><c-f> <plug>(fzf-complete-path)
+imap <c-x><c-j> <plug>(fzf-complete-file-ag)
+imap <c-x><c-l> <plug>(fzf-complete-line)
+
+nnoremap <silent> <Leader>C :call fzf#run({
+\   'source':
+\     map(split(globpath(&rtp, "colors/*.vim"), "\n"),
+\         "substitute(fnamemodify(v:val, ':t'), '\\..\\{-}$', '', '')"),
+\   'sink':    'colo',
+\   'options': '+m',
+\   'left':    30
+\ })<CR>
+
+command! FZFMru call fzf#run({
+\  'source':  v:oldfiles,
+\  'sink':    'e',
+\  'options': '-m -x +s',
+\  'down':    '40%'})
+
 
 " Fugitive Shortcuts
+"""""""""""""""""""""""""""""""""""""
 nmap <silent> <leader>gs :Gstatus<cr>
 nmap <leader>ge :Gedit<cr>
 nmap <silent><leader>gr :Gread<cr>
@@ -512,10 +547,10 @@ autocmd FileType javascript let g:neomake_javascript_enabled_makers = findfile('
 "             \ 'file': '\.exe$\|\.so$'
 "             \ }
 " only show files that are not ignored by git
-let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
+" let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
 
 " search the nearest ancestor that contains .git, .hg, .svn
-let g:ctrlp_working_path_mode = 2
+" let g:ctrlp_working_path_mode = 2
 
 
 " airline options
