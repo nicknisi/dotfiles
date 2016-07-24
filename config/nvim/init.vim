@@ -141,6 +141,7 @@ augroup configgroup
     autocmd FileType markdown,textile setlocal textwidth=0 wrapmargin=0 wrap spell
     autocmd FileType .xml exe ":silent %!xmllint --format --recover - 2>/dev/null"
     autocmd FileType crontab setlocal nobackup nowritebackup
+    autocmd FileType git nmap q :q<cr>
 
     " automatically resize panes on resize
     autocmd VimResized * exe 'normal! \<c-w>='
@@ -477,6 +478,8 @@ nmap <silent> <leader>y :NERDTreeFind<cr>
 
 " FZF
 """""""""""""""""""""""""""""""""""""
+
+let g:fzf_layout = { 'down': '~25%' }
 
 " Mapping selecting mappings
 nmap <silent> <leader>t :GFiles<cr>
