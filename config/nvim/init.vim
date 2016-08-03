@@ -482,7 +482,11 @@ nmap <silent> <leader>y :NERDTreeFind<cr>
 let g:fzf_layout = { 'down': '~25%' }
 
 " Mapping selecting mappings
-nmap <silent> <leader>t :GFiles<cr>
+if isdirectory(".git")
+	nmap <silent> <leader>t :GFiles<cr>
+else
+	nmap <silent> <leader>t :FZF<cr>
+endif
 nmap <silent> <leader>r :Buffers<cr>
 nmap <silent> <leader>e :GFiles?<cr>
 nmap <leader><tab> <plug>(fzf-maps-n)
