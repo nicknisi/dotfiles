@@ -57,7 +57,9 @@ module.exports = {
   //   `@company/project`
   //   `project#1.0.1`
   plugins: [
-    'hyperterm-dark-dracula'
+    'hyperterm-dark-dracula',
+    'hyperterm-blink',
+    'hyperterm-title'
   ],
 
   // in development, you can create a directory under
