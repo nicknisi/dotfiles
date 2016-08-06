@@ -108,13 +108,13 @@ set showbreak=… " show ellipsis at breaking
 set autoindent " automatically set indent of new line
 set smartindent
 
-hi def InterestingWord1 guifg=#000000 ctermfg=16 guibg=#ffa724 ctermbg=214
-hi def InterestingWord2 guifg=#000000 ctermfg=16 guibg=#aeee00 ctermbg=154
-hi def InterestingWord3 guifg=#000000 ctermfg=16 guibg=#8cffba ctermbg=121
-hi def InterestingWord4 guifg=#000000 ctermfg=16 guibg=#b88853 ctermbg=137
-hi def InterestingWord5 guifg=#000000 ctermfg=16 guibg=#ff9eb8 ctermbg=211
-hi def InterestingWord6 guifg=#000000 ctermfg=16 guibg=#ff2c4b ctermbg=195
 
+" toggle invisible characters
+set list
+set listchars=tab:→\ ,eol:¬,trail:⋅,extends:❯,precedes:❮
+set showbreak=↪
+highlight SpecialKey ctermbg=none ctermfg=8 " make the highlighting of tabs less annoying
+highlight NonText ctermbg=none ctermfg=8
 
 " }}}
 
@@ -122,16 +122,9 @@ hi def InterestingWord6 guifg=#000000 ctermfg=16 guibg=#ff2c4b ctermbg=195
 
 " set a map leader for more key combos
 let mapleader = ','
-let g:mapleader = ','
 
 " remap esc
 inoremap jk <esc>
-
-" markdown to html
-nmap <leader>md :%!markdown --html4tags <cr>
-
-" remove extra whitespace
-nmap <leader><space> :%s/\s\+$<cr>
 
 " wipout buffer
 nmap <silent> <leader>b :bw<cr>
@@ -139,14 +132,11 @@ nmap <silent> <leader>b :bw<cr>
 " shortcut to save
 nmap <leader>, :w<cr>
 
-" disable Ex mode
-noremap Q <NOP>
-
 " set paste toggle
-set pastetoggle=<F6>
+set pastetoggle=<leader>v
 
 " toggle paste mode
-map <leader>v :set paste!<cr>
+" map <leader>v :set paste!<cr>
 
 " edit ~/.config/nvim/init.vim
 map <leader>ev :e! ~/.config/nvim/init.vim<cr>
@@ -159,12 +149,12 @@ noremap <space> :set hlsearch! hlsearch?<cr>
 " activate spell-checking alternatives
 nmap ;s :set invspell spelllang=en<cr>
 
-" toggle invisible characters
-set list
-set listchars=tab:→\ ,eol:¬,trail:⋅,extends:❯,precedes:❮
-highlight SpecialKey ctermbg=none ctermfg=8 " make the highlighting of tabs less annoying
-highlight NonText ctermbg=none ctermfg=8
-set showbreak=↪
+" markdown to html
+nmap <leader>md :%!markdown --html4tags <cr>
+
+" remove extra whitespace
+nmap <leader><space> :%s/\s\+$<cr>
+
 
 nmap <leader>l :set list!<cr>
 
@@ -216,12 +206,6 @@ nmap \s :set ts=4 sts=4 sw=4 et<cr>
 nmap <leader>w :setf textile<cr> :Goyo<cr>
 
 nnoremap <silent> <leader>u :call functions#HtmlUnEscape()<cr>
-nnoremap <silent> <leader>1 :call functions#HiInterestingWord(1)<cr>
-nnoremap <silent> <leader>2 :call functions#HiInterestingWord(2)<cr>
-nnoremap <silent> <leader>3 :call functions#HiInterestingWord(3)<cr>
-nnoremap <silent> <leader>4 :call functions#HiInterestingWord(4)<cr>
-nnoremap <silent> <leader>5 :call functions#HiInterestingWord(5)<cr>
-nnoremap <silent> <leader>6 :call functions#HiInterestingWord(6)<cr>
 
 " }}}
 
