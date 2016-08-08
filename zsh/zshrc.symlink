@@ -87,4 +87,4 @@ if [ -z ${DOTFILES_LOADED+x} ]; then
     source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
-export DOTFILES_LOADED=1
+DOTFILES_LOADED=1
