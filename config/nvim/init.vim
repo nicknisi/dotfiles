@@ -236,6 +236,11 @@ augroup END
 " FZF
 """""""""""""""""""""""""""""""""""""
 
+" Toggle NERDTree
+nmap <silent> <leader>k :NERDTreeToggle<cr>
+" expand to the path of the file in the current buffer
+nmap <silent> <leader>y :NERDTreeFind<cr>
+
 let g:fzf_layout = { 'down': '~25%' }
 
 if isdirectory(".git")

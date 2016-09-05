@@ -5,6 +5,7 @@ Plug 'dracula/vim'
 
 " utilities
 " Plug 'ctrlpvim/ctrlp.vim' " fuzzy file finder, mapped to <leader>t
+Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeToggle', 'NERDTreeFind'] } | Plug 'Xuyuanp/nerdtree-git-plugin' | Plug 'ryanoasis/vim-devicons' " file drawer
 Plug '/usr/local/opt/fzf' | Plug 'junegunn/fzf.vim' " fuzzy file finder and so much more
 Plug 'mileszs/ack.vim' " search inside files using ack. Same as command line ack utility, but use :Ack
 " Plug 'Raimondi/delimitMate' " automatic closing of quotes, parenthesis, brackets, etc.
@@ -47,8 +48,8 @@ Plug 'digitaltoad/vim-jade', { 'for': ['jade', 'pug'] } " jade support
 Plug 'gavocanov/vim-js-indent', { 'for': 'javascript' } " JavaScript indent support
 Plug 'moll/vim-node', { 'for': 'javascript' } " node support
 Plug 'othree/yajs.vim', { 'for': 'javascript' } " JavaScript syntax plugin
-Plug 'mxw/vim-jsx', { 'for': 'jsx' } " JSX support
 Plug 'othree/es.next.syntax.vim', { 'for': 'javascript' } " ES6 and beyond syntax
+Plug 'mxw/vim-jsx', { 'for': ['jsx', 'javascript'] } " JSX support
 
 " TypeScript
 " Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' } " extended typescript support - works as a client for TSServer
