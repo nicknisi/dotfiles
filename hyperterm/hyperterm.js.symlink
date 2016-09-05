@@ -10,6 +10,9 @@ module.exports = {
     // terminal cursor background color (hex)
     cursorColor: '#F81CE5',
 
+    // default opening terminal size
+    windowSize: [ 1280, 720],
+
     // color of the text
     foregroundColor: '#fff',
 
@@ -59,7 +62,8 @@ module.exports = {
   plugins: [
     'hyperterm-dark-dracula',
     'hyperterm-blink',
-    'hyperterm-title'
+    'hyperterm-title',
+    'hyperterm-subpixel-antialiased' 
   ],
 
   // in development, you can create a directory under
