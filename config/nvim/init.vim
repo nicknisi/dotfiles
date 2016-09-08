@@ -241,6 +241,8 @@ nmap <silent> <leader>k :NERDTreeToggle<cr>
 " expand to the path of the file in the current buffer
 nmap <silent> <leader>y :NERDTreeFind<cr>
 
+let NERDTreeShowHidden=1
+
 let g:fzf_layout = { 'down': '~25%' }
 
 if isdirectory(".git")
@@ -252,7 +254,7 @@ else
 endif
 
 nmap <silent> <leader>r :Buffers<cr>
-nmap <silent> <leader>e :GFiles?<cr>
+nmap <silent> <leader>e :FZF<cr>
 nmap <leader><tab> <plug>(fzf-maps-n)
 xmap <leader><tab> <plug>(fzf-maps-x)
 omap <leader><tab> <plug>(fzf-maps-o)
