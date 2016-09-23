@@ -21,7 +21,10 @@ set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
 
 " Section User Interface {{{
 
-syntax on                   " switch syntax highlighting on
+" enable 24 bit color support if supported
+if (has("termguicolors"))
+    set termguicolors
+endif
 
 set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
 colorscheme dracula         " Set the colorscheme
