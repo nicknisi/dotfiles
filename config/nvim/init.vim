@@ -21,13 +21,25 @@ set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
 
 " Section User Interface {{{
 
+" switch cursor to line when in insert mode, and block when not
+let $NVIM_TUI_ENABLE_CURSOR_SHAPE=1
+
+if &term =~ '256color'
+    " disable background color erase
+    set t_ut=
+endif
+
 " enable 24 bit color support if supported
-if (has("termguicolors"))
+if (empty($TMUX) && has("termguicolors"))
     set termguicolors
 endif
 
-set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
-colorscheme dracula         " Set the colorscheme
+let g:onedark_termcolors=16
+let g:onedark_terminal_italics=1
+
+syntax on
+" set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
+colorscheme onedark         " Set the colorscheme
 
 " make the highlighting of tabs and other non-text less annoying
 highlight SpecialKey ctermbg=none ctermfg=8
@@ -245,6 +257,8 @@ nmap <silent> <leader>k :NERDTreeToggle<cr>
 nmap <silent> <leader>y :NERDTreeFind<cr>
 
 let NERDTreeShowHidden=1
+let NERDTreeDirArrowExpandable = '▷'
+let NERDTreeDirArrowCollapsible = '▼'
 
 let g:fzf_layout = { 'down': '~25%' }
 
@@ -314,7 +328,7 @@ let g:neomake_typescript_tsc_maker = {
 let g:airline_powerline_fonts=1
 let g:airline_left_sep=''
 let g:airline_right_sep=''
-let g:airline_theme='dracula'
+let g:airline_theme='onedark'
 let g:airline#extensions#tabline#enabled = 1 " enable airline tabline
 let g:airline#extensions#tabline#tab_min_count = 2 " only show tabline if tabs are being used (more than 1 tab open)
 let g:airline#extensions#tabline#show_buffers = 0 " do not show open buffers in tabline
@@ -323,7 +337,6 @@ let g:airline#extensions#tabline#show_splits = 0
 
 " don't hide quotes in json files
 let g:vim_json_syntax_conceal = 0
-
 
 let g:SuperTabCrMapping = 0
 
