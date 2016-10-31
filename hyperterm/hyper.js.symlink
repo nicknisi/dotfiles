@@ -5,7 +5,8 @@ module.exports = {
     fontSize: 16,
 
     // font family with optional fallbacks
-    fontFamily: '"Operator Mono", "Droid Sans Mono for Powerline Plus Nerd File Types", Menlo, "DejaVu Sans Mono", "Lucida Console", monospace',
+    // fontFamily: '"Operator Mono", "Droid Sans Mono for Powerline Plus Nerd File Types", Menlo, "DejaVu Sans Mono", "Lucida Console", monospace',
+    fontFamily: '',
 
     // terminal cursor background color (hex)
     cursorColor: '#F81CE5',
@@ -60,10 +61,10 @@ module.exports = {
   //   `@company/project`
   //   `project#1.0.1`
   plugins: [
-    'hyperterm-dark-dracula',
+    'hyper-one-dark',
     'hyperterm-blink',
-    'hyperterm-title',
-    'hyperterm-subpixel-antialiased' 
+    'hyperterm-title'
+    // 'hyperterm-subpixel-antialiased' 
   ],
 
   // in development, you can create a directory under
