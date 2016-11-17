@@ -57,6 +57,9 @@ Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' } " extended
 Plug 'clausreinke/typescript-tools.vim', { 'for': 'typescript' } " typescript tools
 Plug 'leafgarland/typescript-vim', { 'for': 'typescript' } " typescript support
 
+" Elm
+Plug 'lambdatoast/elm.vim'
+
 " styles
 Plug 'wavded/vim-stylus', { 'for': ['stylus', 'markdown'] } " markdown support
 Plug 'groenewege/vim-less', { 'for': 'less' } " less support
