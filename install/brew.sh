@@ -35,5 +35,3 @@ brew install zsh-autosuggestions
 
 # install neovim
 brew install neovim/neovim/neovim
-
-exit 0
