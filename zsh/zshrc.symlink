@@ -79,6 +79,7 @@ if hash brew 2>/dev/null; then
 fi
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export FZF_DEFAULT_COMMAND='ag -g ""'
 
 if [ -z ${DOTFILES_LOADED+x} ]; then
     # install zsh-syntax-highlighting
