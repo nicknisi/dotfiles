@@ -21,3 +21,6 @@ tscommand*.txt
 
 # nvm - the Node Version Manager
 .nvmrc
+
+# npm things
+npm-debug.log
