@@ -18,7 +18,7 @@
 "   " Any valid git URL is allowed
 "   Plug 'https://github.com/junegunn/vim-github-dashboard.git'
 "
-"   " Group dependencies, vim-snippets depends on ultisnips
+"   " Multiple Plug commands can be written in a single line using | separators
 "   Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
 "
 "   " On-demand loading
@@ -40,7 +40,7 @@
 "   " Unmanaged plugin (manually installed and updated)
 "   Plug '~/my-prototype-plugin'
 "
-"   " Add plugins to &runtimepath
+"   " Initialize plugin system
 "   call plug#end()
 "
 " Then reload .vimrc and :PlugInstall to install plugins.
@@ -61,7 +61,7 @@
 " More information: https://github.com/junegunn/vim-plug
 "
 "
-" Copyright (c) 2016 Junegunn Choi
+" Copyright (c) 2017 Junegunn Choi
 "
 " MIT License
 "
@@ -225,6 +225,7 @@ function! plug#end()
           endif
           call add(s:triggers[name].map, cmd)
         elseif cmd =~# '^[A-Z]'
+          let cmd = substitute(cmd, '!*$', '', '')
           if exists(':'.cmd) != 2
             call s:assoc(lod.cmd, cmd, name)
           endif
@@ -750,7 +751,7 @@ function! s:prepare(...)
   for k in ['<cr>', 'L', 'o', 'X', 'd', 'dd']
     execute 'silent! unmap <buffer>' k
   endfor
-  setlocal buftype=nofile bufhidden=wipe nobuflisted nolist noswapfile nowrap cursorline modifiable
+  setlocal buftype=nofile bufhidden=wipe nobuflisted nolist noswapfile nowrap cursorline modifiable nospell
   setf vim-plug
   if exists('g:syntax_on')
     call s:syntax()
@@ -918,7 +919,8 @@ function! s:check_ruby()
 endfunction
 
 function! s:update_impl(pull, force, args) abort
-  let args = copy(a:args)
+  let sync = index(a:args, '--sync') >= 0 || has('vim_starting')
+  let args = filter(copy(a:args), 'v:val != "--sync"')
   let threads = (len(args) > 0 && args[-1] =~ '^[1-9][0-9]*$') ?
                   \ remove(args, -1) : get(g:, 'plug_threads', 16)
 
@@ -954,7 +956,7 @@ function! s:update_impl(pull, force, args) abort
 
   let use_job = s:nvim || s:vim8
   let python = (has('python') || has('python3')) && !use_job
-  let ruby = has('ruby') && !use_job && (v:version >= 703 || v:version == 702 && has('patch374')) && !(s:is_win && has('gui_running')) && s:check_ruby()
+  let ruby = has('ruby') && !use_job && (v:version >= 703 || v:version == 702 && has('patch374')) && !(s:is_win && has('gui_running')) && threads > 1 && s:check_ruby()
 
   let s:update = {
     \ 'start':   reltime(),
@@ -1019,7 +1021,7 @@ function! s:update_impl(pull, force, args) abort
     endtry
   else
     call s:update_vim()
-    while use_job && has('vim_starting')
+    while use_job && sync
       sleep 100m
       if s:update.fin
         break
@@ -1152,7 +1154,7 @@ function! s:job_cb(fn, job, ch, data)
   call call(a:fn, [a:job, a:data])
 endfunction
 
-function! s:nvim_cb(job_id, data, event) abort
+function! s:nvim_cb(job_id, data, event) dict abort
   return a:event == 'stdout' ?
     \ s:job_cb('s:job_out_cb',  self, 0, join(a:data, "\n")) :
     \ s:job_cb('s:job_exit_cb', self, 0, a:data)
@@ -2012,10 +2014,21 @@ function! s:git_validate(spec, check_branch)
               \ branch, a:spec.branch)
       endif
       if empty(err)
-        let commits = len(s:lines(s:system(printf('git rev-list origin/%s..HEAD', a:spec.branch), a:spec.dir)))
-        if !v:shell_error && commits
-          let err = join([printf('Diverged from origin/%s by %d commit(s).', a:spec.branch, commits),
-                        \ 'Reinstall after PlugClean.'], "\n")
+        let [ahead, behind] = split(s:lastline(s:system(printf(
+              \ 'git rev-list --count --left-right HEAD...origin/%s',
+              \ a:spec.branch), a:spec.dir)), '\t')
+        if !v:shell_error && ahead
+          if behind
+            " Only mention PlugClean if diverged, otherwise it's likely to be
+            " pushable (and probably not that messed up).
+            let err = printf(
+                  \ "Diverged from origin/%s (%d commit(s) ahead and %d commit(s) behind!\n"
+                  \ .'Backup local changes and run PlugClean and PlugUpdate to reinstall it.', a:spec.branch, ahead, behind)
+          else
+            let err = printf("Ahead of origin/%s by %d commit(s).\n"
+                  \ .'Cannot update until local changes are pushed.',
+                  \ a:spec.branch, ahead)
+          endif
         endif
       endif
     endif
@@ -2276,7 +2289,12 @@ function! s:preview_commit()
     wincmd P
   endif
   setlocal previewwindow filetype=git buftype=nofile nobuflisted modifiable
-  execute 'silent %!cd' s:shellesc(g:plugs[name].dir) '&& git show --no-color --pretty=medium' sha
+  try
+    let [sh, shrd] = s:chsh(1)
+    execute 'silent %!cd' s:shellesc(g:plugs[name].dir) '&& git show --no-color --pretty=medium' sha
+  finally
+    let [&shell, &shellredir] = [sh, shrd]
+  endtry
   setlocal nomodifiable
   nnoremap <silent> <buffer> q :q<cr>
   wincmd p
