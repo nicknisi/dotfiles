@@ -7,3 +7,9 @@ let g:neomake_typescript_tsc_maker = {
             \ '%Eerror %m,' .
             \ '%C%\s%\+%m'
 \ }
+
+" convert to object literal function syntax
+let @f = "^f:dt("
+
+" convert object literal anonymous function into class method syntax
+let @c = "^f:dt(f{%f,x"
