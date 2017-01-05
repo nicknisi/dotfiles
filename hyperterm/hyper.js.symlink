@@ -5,8 +5,8 @@ module.exports = {
     fontSize: 16,
 
     // font family with optional fallbacks
-    // fontFamily: '"Operator Mono", "Droid Sans Mono for Powerline Plus Nerd File Types", Menlo, "DejaVu Sans Mono", "Lucida Console", monospace',
-    fontFamily: '',
+    fontFamily: '"Operator Mono", "Droid Sans Mono for Powerline Plus Nerd File Types", Menlo, "DejaVu Sans Mono", "Lucida Console", monospace',
+    // fontFamily: '',
 
     // terminal cursor background color (hex)
     cursorColor: '#F81CE5',
