@@ -12,6 +12,7 @@ echo "=============================="
 brew install ack
 brew install tree
 brew install wget
+brew install the_silver_searcher
 
 # development server setup
 brew install nginx
