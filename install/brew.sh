@@ -16,6 +16,7 @@ formulas=(
     dnsmasq
     fzf
     git
+    'grep --with-default-names'
     highlight
     hub
     markdown
