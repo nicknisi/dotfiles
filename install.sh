@@ -4,7 +4,7 @@ command_exists() {
     type "$1" > /dev/null 2>&1
 }
 
-echo "Installing dotfiles"
+echo "Installing dotfiles."
 
 echo "Initializing submodule(s)"
 git submodule update --init --recursive
@@ -39,7 +39,10 @@ elif ! [[ $SHELL =~ .*zsh.* ]]; then
     chsh -s $(which zsh)
 fi
 
-echo "Configuring zsh as default shell"
-chsh -s $(which zsh)
+if ! command_exists zplug; then
+    echo "installing zplug, a plugin manager for zsh - http://zplug.sh"
+    # curl -sL zplug.sh/installer | zsh
+    git clone git@github.com:zplug/zplug.git ~/.zplug
+fi
 
-echo "Done."
+echo "Done. Reload your terminal."
