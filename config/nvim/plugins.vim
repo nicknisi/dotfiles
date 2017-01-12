@@ -1,3 +1,15 @@
+function! InstallVimPlug()
+    let plugPath = '~/.config/nvim/autoload/plug.vim'
+    if empty(glob('~/.config/nvim/autoload/plug.vim'))
+        let plugUrl = 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+        silent exec '!curl -fLo ' . plugPath . ' --create-dirs ' . plugUrl
+        redraw!
+        echom "vim-plug installed. Restart vim."
+        exit
+    endif
+endfunction
+call InstallVimPlug()
+
 call plug#begin('~/.config/nvim/plugged')
 
 " colorschemes
