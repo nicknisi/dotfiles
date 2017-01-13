@@ -1,14 +1,18 @@
-function! InstallVimPlug()
-    let plugPath = '~/.config/nvim/autoload/plug.vim'
-    if empty(glob('~/.config/nvim/autoload/plug.vim'))
-        let plugUrl = 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-        silent exec '!curl -fLo ' . plugPath . ' --create-dirs ' . plugUrl
-        redraw!
-        echom "vim-plug installed. Restart vim."
+" check whether vim-plug is installed and install it if necessary
+let plugpath = expand('<sfile>:p:h'). '/autoload/plug.vim'
+if !filereadable(plugpath)
+    if executable('curl')
+        let plugurl = 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+        call system('curl -fLo ' . shellescape(plugpath) . ' --create-dirs ' . plugurl)
+        if v:shell_error
+            echom "Error downloading vim-plug. Please install it manually.\n"
+            exit
+        endif
+    else
+        echom "vim-plug not installed. Please install it manually or install curl.\n"
         exit
     endif
-endfunction
-call InstallVimPlug()
+endif
 
 call plug#begin('~/.config/nvim/plugged')
 
