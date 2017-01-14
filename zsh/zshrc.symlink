@@ -67,10 +67,3 @@ fi
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export FZF_DEFAULT_COMMAND='ag -g ""'
-
-if [ -z ${DOTFILES_LOADED+x} ]; then
-    # set an environment variable, so reload! calls can
-    # opt out of sourcing some things
-    export DOTFILES_LOADED=1
-fi
-
