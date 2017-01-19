@@ -21,7 +21,7 @@ if [ ! -d $HOME/.config ]; then
     echo "Creating ~/.config"
     mkdir -p $HOME/.config
 fi
-# configs=$( find -path "$DOTFILES/config.symlink" -maxdepth 1 )
+
 for config in $DOTFILES/config/*; do
     target=$HOME/.config/$( basename $config )
     if [ -e $target ]; then

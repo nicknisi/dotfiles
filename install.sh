@@ -19,10 +19,11 @@ if [ "$(uname)" == "Darwin" ]; then
 
     source install/osx.sh
 
-    source install/nvm.sh
-
     # create a backup of the original nginx.conf
-    mv /usr/local/etc/nginx/nginx.conf /usr/local/etc/nginx/nginx.original
+    if [ -f /usr/local/etc/nginx/nginx.conf ]; then
+        mv /usr/local/etc/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf.original
+    fi
+
     ln -s ~/.dotfiles/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf
     # symlink the code.dev from dotfiles
     ln -s ~/.dotfiles/nginx/code.dev /usr/local/etc/nginx/sites-enabled/code.dev
