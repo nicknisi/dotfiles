@@ -215,8 +215,6 @@ let g:silent_custom_command = 0
 nmap \t :set ts=4 sts=4 sw=4 noet<cr>
 nmap \s :set ts=4 sts=4 sw=4 et<cr>
 
-nmap <leader>w :setf textile<cr> :Goyo<cr>
-
 nnoremap <silent> <leader>u :call functions#HtmlUnEscape()<cr>
 
 " }}}
