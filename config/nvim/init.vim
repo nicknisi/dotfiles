@@ -335,10 +335,6 @@ let g:airline#extensions#tabline#tab_min_count = 2 " only show tabline if tabs a
 let g:airline#extensions#tabline#show_buffers = 0 " do not show open buffers in tabline
 let g:airline#extensions#tabline#show_splits = 0
 
-let g:tsuquyomi_disable_default_mappings = 1
-let g:tsuquyomi_completion_detail = 1
-autocmd FileType typescript nmap <buffer> <leader>h : <C-u>echo tsuquyomi#hint()<cr>
-
 " don't hide quotes in json files
 let g:vim_json_syntax_conceal = 0
 
