@@ -166,6 +166,7 @@ nmap <leader>md :%!markdown --html4tags <cr>
 
 " remove extra whitespace
 nmap <leader><space> :%s/\s\+$<cr>
+nmap <leader><space><space> :%s/\n\{2,}/\r\r/g<cr>
 
 
 nmap <leader>l :set list!<cr>
