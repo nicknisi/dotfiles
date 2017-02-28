@@ -1,3 +1,8 @@
+" Code Folding
+syntax region foldBraces start=/{/ end=/}/ transparent fold keepend extend
+setlocal foldmethod=syntax
+setlocal foldlevel=99
+
 let g:neomake_typescript_tsc_maker = {
     \ 'args': [ '-m', 'commonjs', '--noEmit' ],
     \ 'append_file': 0,
