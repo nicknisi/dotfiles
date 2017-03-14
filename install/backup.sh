@@ -15,7 +15,7 @@ linkables=$( find -H "$DOTFILES" -maxdepth 3 -name '*.symlink' )
 for file in $linkables; do
     filename=".$( basename $file '.symlink' )"
     target="$HOME/$filename"
-    if [ ! -L $target ]; then
+    if [ -f $target ]; then
         echo "backing up $filename"
         cp $target $BACKUP_DIR
     else
