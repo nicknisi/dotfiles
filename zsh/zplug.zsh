@@ -10,6 +10,7 @@ if [ -z ${RELOAD} ]; then
     zplug 'zsh-users/zsh-syntax-highlighting', defer:2
     zplug 'zsh-users/zsh-autosuggestions'
     zplug 'akoenig/npm-run.plugin.zsh'
+    zplug 'yonchu/grunt-zsh-completion'
 
     export NVM_LAZY_LOAD=true
     zplug "lukechilds/zsh-nvm"
