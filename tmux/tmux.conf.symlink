@@ -1,10 +1,6 @@
 set -g default-command "login-shell"
 
-# tmux display things in 256 colors
-#set -g default-terminal "tmux-256color-italic"
-
-#  enable terminal compability
-#set-option -ga terminal-overrides ",tmux-256color-italic:Tc"
+if-shell "uname | grep -q Darwin" "source-file $DOTFILES/tmux/tmux-macosx" "source-file $DOTFILES/tmux/tmux-linx"
 
 set -g history-limit 20000
 
