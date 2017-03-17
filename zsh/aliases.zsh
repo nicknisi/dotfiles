@@ -29,6 +29,7 @@ alias du='du -h -c' # calculate disk usage for a folder
 
 # Applications
 alias ios='open -a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app'
+alias morning='xflux -l 27 -g 180 -k 2500'
 
 # IP addresses
 alias ip="dig +short myip.opendns.com @resolver1.opendns.com"

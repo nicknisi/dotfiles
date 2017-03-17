@@ -1,10 +1,10 @@
 set -g default-command "login-shell"
 
 # tmux display things in 256 colors
-set -g default-terminal "tmux-256color-italic"
+#set -g default-terminal "tmux-256color-italic"
 
 #  enable terminal compability
-set-option -ga terminal-overrides ",tmux-256color-italic:Tc"
+#set-option -ga terminal-overrides ",tmux-256color-italic:Tc"
 
 set -g history-limit 20000
 
@@ -117,4 +117,4 @@ bind C-v run "tmux set-buffer $(reattach-to-user-namespace pbpaste); tmux paste-
 ### Color & Style Settings ###
 ##############################
 
-source ~/.dotfiles/tmux/theme.sh
+f-shell "uname | grep -q Darwin" "source-file ~/.dotfiles/tmux/theme-macosx" "source-file ~/.dotfiles/tmux/theme-linux"

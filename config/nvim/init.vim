@@ -43,9 +43,6 @@ if (has('mac') && empty($TMUX) && has("termguicolors"))
     set termguicolors
 endif
 
-let g:onedark_termcolors=16
-let g:onedark_terminal_italics=1
-
 syntax on
 " set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
 colorscheme onedark         " Set the colorscheme
@@ -54,9 +51,14 @@ colorscheme onedark         " Set the colorscheme
 highlight SpecialKey ctermbg=none ctermfg=8
 highlight NonText ctermbg=none ctermfg=8
 
+let g:onedark_termcolors=16
+
 " make comments and HTML attributes italic
-highlight Comment cterm=italic
-highlight htmlArg cterm=italic
+if $TERM =~ "xterm-256color-italic"
+    let g:onedark_terminal_italics=1
+    highlight Comment cterm=italic
+    highlight htmlArg cterm=italic
+endif
 
 set number                  " show line numbers
 " set relativenumber          " show relative line numbers
@@ -342,11 +344,29 @@ let g:airline#extensions#tabline#tab_min_count = 2 " only show tabline if tabs a
 let g:airline#extensions#tabline#show_buffers = 0 " do not show open buffers in tabline
 let g:airline#extensions#tabline#show_splits = 0
 
+if !exists('g:airline_symbols')
+    let g:airline_symbols = {}
+endif
+
+" Airline Symbols
+let g:airline_left_sep = ''
+let g:airline_left_alt_sep = ''
+let g:airline_right_sep = ''
+let g:airline_right_alt_sep = ''
+let g:airline_symbols.branch = ''
+let g:airline_symbols.readonly = ''
+let g:airline_symbols.linenr = ''
+
 " don't hide quotes in json files
 let g:vim_json_syntax_conceal = 0
 
 let g:SuperTabCrMapping = 0
 
 " }}}
+
+" Use local configuration file
+if !empty(glob("~/.local.vim"))
+    source ~/.local.vim
+endif
 
 " vim:foldmethod=marker:foldlevel=0

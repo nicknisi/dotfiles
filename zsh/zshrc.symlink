@@ -2,9 +2,8 @@ export DOTFILES=$HOME/.dotfiles
 export ZSH=$DOTFILES/zsh
 
 command_exists() {
-    type "$1" > /dev/null 2>&1
+    command -v "$1" > /dev/null 2>&1
 }
-
 
 # display how long all tasks over 10 seconds take
 export REPORTTIME=10
@@ -19,11 +18,6 @@ fi
 
 # source all .zsh files inside of the zsh/ directory
 for config ($ZSH/**/*.zsh) source $config
-
-if [[ -a ~/.localrc ]]; then
-    source ~/.localrc
-fi
-
 
 # initialize autocomplete
 autoload -U compinit add-zsh-hook
@@ -47,9 +41,15 @@ export PATH=$DOTFILES/bin:$PATH
 # check for custom bin directory and add to path
 if [[ -d ~/bin ]]; then
     export PATH=~/bin:$PATH
+elif [[ -d ~/.bin ]]; then
+    export PATH=~/.bin:~/.bin:$PATH
 fi
 
-[ -z "$TMUX" ] && export TERM=xterm-256color-italic
+if [ -z "$TMUX" ]  && [[ $(uname -s) == "Darwin" ]]; then
+    export TERM=xterm-256color-italic
+else
+    export TERM=xterm-256color tmux
+fi
 
 # install rbenv
 if command_exists rbenv; then
@@ -68,3 +68,6 @@ fi
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export FZF_DEFAULT_COMMAND='ag -g ""'
+
+# source local configuration for zsh
+[ -f ~/.local.zsh ] && source ~/.local.zsh
