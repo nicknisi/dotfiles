@@ -3,6 +3,3 @@ set -g @plugin 'tmux-plugins/tmux-sensible'
 set -g @plugin 'odedlaz/tmux-onedark-theme'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
-
-# This line must be at the very bottom
-run '~/.tmux/plugins/tpm/tpm'

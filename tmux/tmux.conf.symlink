@@ -85,13 +85,9 @@ setw -g mouse on
 # set-option -g -q mouse on
 
 bind-key -T root PPage if-shell -F "#{alternate_on}" "send-keys PPage" "copy-mode -e; send-keys PPage"
-bind-key -t vi-copy PPage page-up
-bind-key -t vi-copy NPage page-down
 
 bind -T root WheelUpPane if-shell -F -t = "#{alternate_on}" "select-pane -t =; send-keys -M" "select-pane -t =; copy-mode -e; send-keys -M"
 bind -T root WheelDownPane if-shell -F -t = "#{alternate_on}" "select-pane -t =; send-keys -M" "select-pane -t =; send-keys -M"
-bind-key -t vi-copy WheelUpPane halfpage-up
-bind-key -t vi-copy WheelDownPane halfpage-down
 
 # maximizing and restoring windows
 unbind Up
@@ -106,8 +102,15 @@ unbind [
 bind Escape copy-mode
 unbind p
 bind p paste-buffer
-bind -t vi-copy 'v' begin-selection
-bind -t vi-copy 'y' copy-selection
+
+if-shell "uname | grep -q Darwin" "source-file $DOTFILES/tmux/tmux-macosx" "source-file $DOTFILES/tmux/tmux-linux"
 
 # This line must be at the very bottom
-if-shell "uname | grep -q Darwin" "source-file $DOTFILES/tmux/tmux-macosx" "source-file $DOTFILES/tmux/tmux-linux"
+#if-shell "test -d ~/.tmux/" "set -g @plugin 'tmux-plugins/tpm'; set -g @plugin 'tmux-plugins/tmux-sensible'; set -g @plugin 'odedlaz/tmux-onedark-theme'; set -g @plugin 'tmux-plugins/tmux-resurrect'; set -g @plugin 'tmux-plugins/tmux-continuum'; run '~/.tmux/plugins/tpm/tpm'"
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+set -g @plugin 'odedlaz/tmux-onedark-theme'
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+set -g @plugin 'tmux-plugins/tmux-continuum'
+# This line at the very bottom (TODO: this should be in the file tmux-linux but it doesn't get loaded)
+run '~/.tmux/plugins/tpm/tpm'
