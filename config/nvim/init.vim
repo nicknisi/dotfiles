@@ -39,7 +39,9 @@ if &term =~ '256color'
 endif
 
 " enable 24 bit color support if supported
-if (has('mac') && empty($TMUX) && has("termguicolors"))
+if (has("nvim"))
+    let $NVIM_TUI_ENABLE_TRUE_COLOR=1
+elseif ( has("termguicolors") )
     set termguicolors
 endif
 
@@ -51,10 +53,9 @@ colorscheme onedark         " Set the colorscheme
 highlight SpecialKey ctermbg=none ctermfg=8
 highlight NonText ctermbg=none ctermfg=8
 
-let g:onedark_termcolors=16
-
 " make comments and HTML attributes italic
-if $TERM =~ "xterm-256color-italic"
+if $TERM =~ "xterm-256color-italic" || $TERM =~ "tmux-256color-italic"
+    let g:onedark_termcolors=16
     let g:onedark_terminal_italics=1
     highlight Comment cterm=italic
     highlight htmlArg cterm=italic
@@ -336,8 +337,6 @@ let g:neomake_typescript_tsc_maker = {
 
 " airline options
 let g:airline_powerline_fonts=1
-let g:airline_left_sep=''
-let g:airline_right_sep=''
 let g:airline_theme='onedark'
 let g:airline#extensions#tabline#enabled = 1 " enable airline tabline
 let g:airline#extensions#tabline#tab_min_count = 2 " only show tabline if tabs are being used (more than 1 tab open)

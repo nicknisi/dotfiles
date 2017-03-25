@@ -1,6 +1,8 @@
-set -g default-command "login-shell"
+# tmux display things in 256 colors
+set -g default-terminal "tmux-256color-italic"
 
-if-shell "uname | grep -q Darwin" "source-file $DOTFILES/tmux/tmux-macosx" "source-file $DOTFILES/tmux/tmux-linx"
+#  enable terminal compability
+set-option -ga terminal-overrides ",tmux-256color-italic:Tc"
 
 set -g history-limit 20000
 
@@ -55,6 +57,8 @@ bind r source-file ~/.tmux.conf \; display "Config Reloaded!"
 bind N new-window
 
 # split window and fix path for tmux 1.9
+bind h split-window -h -c "#{pane_current_path}"
+bind v split-window -v -c "#{pane_current_path}"
 bind | split-window -h -c "#{pane_current_path}"
 bind - split-window -v -c "#{pane_current_path}"
 
@@ -105,12 +109,5 @@ bind p paste-buffer
 bind -t vi-copy 'v' begin-selection
 bind -t vi-copy 'y' copy-selection
 
-# Buffers to/from Mac clipboard, yay tmux book from pragprog
-bind C-c run "tmux save-buffer - | reattach-to-user-namespace pbcopy"
-bind C-v run "tmux set-buffer $(reattach-to-user-namespace pbpaste); tmux paste-buffer"
-
-##############################
-### Color & Style Settings ###
-##############################
-
-f-shell "uname | grep -q Darwin" "source-file ~/.dotfiles/tmux/theme-macosx" "source-file ~/.dotfiles/tmux/theme-linux"
+# This line must be at the very bottom
+if-shell "uname | grep -q Darwin" "source-file $DOTFILES/tmux/tmux-macosx" "source-file $DOTFILES/tmux/tmux-linux"

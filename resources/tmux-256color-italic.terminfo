@@ -6,8 +6,8 @@
 #
 # Usage:
 #
-#   export TERM=tmux-256color-italic
+#   export TERM=xterm-256color-italic
 #
 tmux-256color-italic|tmux with 256 colors and italic,
-  sitm=\E[3m, ritm=\E[23m,
-  use=xterm-256color,
+  sitm=\ePtmux;\e\E[3m\e\\, ritm=\ePtmux;\e\E[23m\e\\,
+  use=screen-256color,

@@ -9,6 +9,7 @@ echo "Installing dotfiles."
 echo "Initializing submodule(s)"
 git submodule update --init --recursive
 
+source install/backup.sh
 source install/link.sh
 
 # only perform macOS-specific install
@@ -40,7 +41,7 @@ elif ! [[ $SHELL =~ .*zsh.* ]]; then
     chsh -s $(which zsh)
 fi
 
-if ! command_exists zplug; then
+if [ ! command_exists zplug ] && [[ ! -d ~/.zplug ]]; then # TODO: fix this
     echo "installing zplug, a plugin manager for zsh - http://zplug.sh"
     git clone https://github.com/zplug/zplug ~/.zplug
 fi
