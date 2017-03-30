@@ -29,6 +29,7 @@ formulas=(
     wget
     z
     zsh
+    ripgrep
 )
 
 for formula in "${formulas[@]}"; do

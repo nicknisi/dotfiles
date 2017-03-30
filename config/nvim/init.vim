@@ -305,6 +305,10 @@ command! FZFMru call fzf#run({
 \  'options': '-m -x +s',
 \  'down':    '40%'})
 
+command! -bang -nargs=* Find call fzf#vim#grep(
+	\ 'rg --column --line-number --no-heading --follow --color=always '.<q-args>, 1,
+	\ <bang>0 ? fzf#vim#with_preview('up:60%') : fzf#vim#with_preview('right:50%:hidden', '?'), <bang>0)
+
 
 " Fugitive Shortcuts
 """""""""""""""""""""""""""""""""""""
