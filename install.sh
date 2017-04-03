@@ -11,6 +11,8 @@ git submodule update --init --recursive
 
 source install/link.sh
 
+source install/git.sh
+
 # only perform macOS-specific install
 if [ "$(uname)" == "Darwin" ]; then
     echo -e "\n\nRunning on OSX"
