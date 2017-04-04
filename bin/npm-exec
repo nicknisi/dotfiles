@@ -1,0 +1,6 @@
+#!/bin/sh
+
+NPM_SCRIPT="$1"
+shift
+
+PATH="$(npm bin):$PATH" $NPM_SCRIPT "$@"
