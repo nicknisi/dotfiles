@@ -1,1 +1,16 @@
-{}
+{
+	"parserOptions": {
+		"ecmaVersion": 6,
+		"sourceType": "module",
+		"ecmaFeatures": {
+			"jsx": true
+		}
+	},
+	"rules": {
+		"curly": 1,
+		"eqeqeq": 1,
+		"no-unused-vars": 2,
+		"no-use-before-define": 2,
+		"no-undef": 2
+	}
+}
