@@ -25,7 +25,7 @@ let @c = "^f:dt(f{%f,x"
 " autocmd FileType typescript nmap <buffer> <leader>d :TsuDefinition<cr>
 " autocmd FileType typescript nmap <buffer> <leader>u :TsuReferences<cr>
 
-" let g:tss_auto_open_loclist=1
+let g:tss_auto_open_loclist=1
 nmap <buffer> <leader>h :TssQuickInfo<cr>
 nmap <buffer> <leader>d :TssDefinition<cr>
 nmap <buffer> <leader>q :TssQuickInfo<cr>
