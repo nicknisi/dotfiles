@@ -1,11 +1,11 @@
 #### COLOUR
 
-tm_icon="🙊"
-# tm_icon="🤡"
-tm_color_active=colour120
+# tm_icon="🙊"
+tm_icon="🤡"
+tm_color_active=colour41
 tm_color_inactive=colour241
 tm_color_feature=colour13
-tm_color_music=colour147
+tm_color_music=colour164
 tm_active_border_color=colour198
 
 # separators
