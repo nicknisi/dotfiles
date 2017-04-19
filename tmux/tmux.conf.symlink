@@ -1,8 +1,8 @@
 # tmux display things in 256 colors
-set -g default-terminal "tmux-256color-italic"
+set -g default-terminal "xterm-256color-italic"
 
 #  enable terminal compability
-set-option -ga terminal-overrides ",tmux-256color-italic:Tc"
+set-option -ga terminal-overrides ",xterm-256color-italic:Tc"
 
 set -g history-limit 20000
 
@@ -103,10 +103,7 @@ bind Escape copy-mode
 unbind p
 bind p paste-buffer
 
-if-shell "uname | grep -q Darwin" "source-file $DOTFILES/tmux/tmux-macosx" "source-file $DOTFILES/tmux/tmux-linux"
-
-# This line must be at the very bottom
-#if-shell "test -d ~/.tmux/" "set -g @plugin 'tmux-plugins/tpm'; set -g @plugin 'tmux-plugins/tmux-sensible'; set -g @plugin 'odedlaz/tmux-onedark-theme'; set -g @plugin 'tmux-plugins/tmux-resurrect'; set -g @plugin 'tmux-plugins/tmux-continuum'; run '~/.tmux/plugins/tpm/tpm'"
+# Hit prefix + I to fetch the plugin and source it
 set -g @plugin 'tmux-plugins/tpm'
 set -g @plugin 'tmux-plugins/tmux-sensible'
 set -g @plugin 'odedlaz/tmux-onedark-theme'

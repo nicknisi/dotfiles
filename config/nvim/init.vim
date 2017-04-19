@@ -41,6 +41,7 @@ endif
 " enable 24 bit color support if supported
 if (has("nvim"))
     let $NVIM_TUI_ENABLE_TRUE_COLOR=1
+    set termguicolors
 elseif ( has("termguicolors") )
     set termguicolors
 endif
@@ -49,17 +50,14 @@ syntax on
 " set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
 colorscheme onedark         " Set the colorscheme
 
+let g:onedark_termcolors=16
+let g:onedark_terminal_italics=1
+
 " make the highlighting of tabs and other non-text less annoying
 highlight SpecialKey ctermbg=none ctermfg=8
 highlight NonText ctermbg=none ctermfg=8
-
-" make comments and HTML attributes italic
-if $TERM =~ "xterm-256color-italic" || $TERM =~ "tmux-256color-italic"
-    let g:onedark_termcolors=16
-    let g:onedark_terminal_italics=1
-    highlight Comment cterm=italic
-    highlight htmlArg cterm=italic
-endif
+highlight Comment cterm=italic
+highlight htmlArg cterm=italic
 
 set number                  " show line numbers
 " set relativenumber          " show relative line numbers
@@ -67,7 +65,7 @@ set number                  " show line numbers
 set wrap                    " turn on line wrapping
 set wrapmargin=8            " wrap lines when coming within n characters from side
 set linebreak               " set soft wrapping
-set showbreak=…             " show ellipsis at breaking
+set showbreak=↪             " show ellipsis at breaking
 
 set autoindent              " automatically set indent of new line
 set smartindent
@@ -75,7 +73,6 @@ set smartindent
 " toggle invisible characters
 set list
 set listchars=tab:→\ ,eol:¬,trail:⋅,extends:❯,precedes:❮
-set showbreak=↪
 
 " highlight conflicts
 match ErrorMsg '^\(<\|=\|>\)\{7\}\([^=].\+\)\?$'
@@ -133,8 +130,8 @@ set t_vb=
 set tm=500
 
 if has('mouse')
-	set mouse=a
-	" set ttymouse=xterm2
+    set mouse=a
+    " set ttymouse=xterm2
 endif
 
 " }}}
@@ -336,25 +333,13 @@ let g:neomake_typescript_tsc_maker = {
 \ }
 
 " airline options
+set rtp+=$HOME/.local/lib/python2.7/site-packages/powerline/bindings/vim/
 let g:airline_powerline_fonts=1
 let g:airline_theme='onedark'
 let g:airline#extensions#tabline#enabled = 1 " enable airline tabline
 let g:airline#extensions#tabline#tab_min_count = 2 " only show tabline if tabs are being used (more than 1 tab open)
 let g:airline#extensions#tabline#show_buffers = 0 " do not show open buffers in tabline
 let g:airline#extensions#tabline#show_splits = 0
-
-if !exists('g:airline_symbols')
-    let g:airline_symbols = {}
-endif
-
-" Airline Symbols
-let g:airline_left_sep = ''
-let g:airline_left_alt_sep = ''
-let g:airline_right_sep = ''
-let g:airline_right_alt_sep = ''
-let g:airline_symbols.branch = ''
-let g:airline_symbols.readonly = ''
-let g:airline_symbols.linenr = ''
 
 " don't hide quotes in json files
 let g:vim_json_syntax_conceal = 0

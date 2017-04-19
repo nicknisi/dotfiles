@@ -45,7 +45,8 @@ elif [[ -d ~/.bin ]]; then
     export PATH=~/.bin:~/.bin:$PATH
 fi
 
-[ -z "$TMUX" ] && export TERM=xterm-256color-italic
+#[ -z "$TMUX" ] && export TERM=xterm-256color-italic
+export TERM=xterm-256color-italic
 
 # install rbenv
 if command_exists rbenv; then
