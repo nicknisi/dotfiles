@@ -24,6 +24,13 @@ git_dirty() {
     fi
 }
 
+upstream_branch() {
+    remote=$(git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD))
+    if [[ $remote != "" ]]; then
+        echo "%F{241}($remote)%f"
+    fi
+}
+
 # get the status of the current branch and it's remote
 # If there are changes upstream, display a ⇣
 # If there are changes that have been committed but not yet pushed, display a ⇡
@@ -63,8 +70,8 @@ suspended_jobs() {
 
 precmd() {
     vcs_info
-    print -P '\n%F{51}%~'
+    print -P '\n%F{6}%~'
 }
 
-export PROMPT='%(?.%F{205}.%F{red})⇨%f '
-export RPROMPT='`git_dirty`%F{241}$vcs_info_msg_0_%f `git_arrows``suspended_jobs`'
+export PROMPT='%(?.%F{41}.%F{160})➜%f '
+export RPROMPT='`git_dirty`%F{241}$vcs_info_msg_0_%f `upstream_branch``git_arrows``suspended_jobs`'
