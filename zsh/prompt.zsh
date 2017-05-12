@@ -25,7 +25,7 @@ git_dirty() {
 }
 
 upstream_branch() {
-    remote=$(git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD))
+    remote=$(git for-each-ref --format='%(upstream:short)' $(git symbolic-ref -q HEAD)) 2>/dev/null
     if [[ $remote != "" ]]; then
         echo "%F{241}($remote)%f"
     fi
