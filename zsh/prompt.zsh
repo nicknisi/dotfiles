@@ -73,5 +73,7 @@ precmd() {
     print -P '\n%F{6}%~'
 }
 
-export PROMPT='%(?.%F{41}.%F{160})➜%f '
+PROMPT_SYMBOL='❯'
+
+export PROMPT='%(?.%F{207}.%F{160})$PROMPT_SYMBOL%f '
 export RPROMPT='`git_dirty`%F{241}$vcs_info_msg_0_%f `upstream_branch``git_arrows``suspended_jobs`'
