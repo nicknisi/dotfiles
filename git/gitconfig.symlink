@@ -28,6 +28,9 @@
     # show what I did today
     day = "!sh -c 'git log --reverse --no-merges --branches=* --date=local --after=\"yesterday 11:59PM\" --author=\"`git config --get user.name`\"'"
 
+    # show the committers in the last 100 commits, sorted by who has commited the most
+    review = "!git log --no-merges --pretty=%an | head -n 100 | sort | uniq -c | sort -nr"
+
     # order files by number of commits, ascending
     # Written by Corey Haines
     # Scriptified by Gary Bernhardt
