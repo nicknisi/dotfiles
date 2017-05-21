@@ -7,6 +7,7 @@ abbr funciton function
 abbr teh the
 abbr tempalte template
 abbr fitler filter
+abbr cosnt const
 
 set nocompatible            " not compatible with vi
 set autoread                " detect when a file is changed
@@ -31,7 +32,9 @@ endif
 " Section User Interface {{{
 
 " switch cursor to line when in insert mode, and block when not
-let $NVIM_TUI_ENABLE_CURSOR_SHAPE=1
+set guicursor=n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50
+  \,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor
+  \,sm:block-blinkwait175-blinkoff150-blinkon175
 
 if &term =~ '256color'
     " disable background color erase
@@ -57,6 +60,8 @@ highlight NonText ctermbg=none ctermfg=8
 " make comments and HTML attributes italic
 highlight Comment cterm=italic
 highlight htmlArg cterm=italic
+highlight xmlAttrib cterm=italic
+highlight Normal ctermbg=none
 
 set number                  " show line numbers
 " set relativenumber          " show relative line numbers
@@ -241,6 +246,7 @@ augroup configgroup
     " make quickfix windows take all the lower section of the screen
     " when there are multiple windows open
     autocmd FileType qf wincmd J
+    autocmd FileType qf nmap q :q<cr>
 
     autocmd BufNewFile,BufReadPost *.md set filetype=markdown
     let g:markdown_fenced_languages = ['css', 'javascript', 'js=javascript', 'json=javascript', 'stylus', 'html']
