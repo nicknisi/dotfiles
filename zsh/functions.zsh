@@ -44,6 +44,9 @@ function dns-restart() {
     sudo launchctl start homebrew.mxcl.dnsmasq
 }
 
+pretty() {
+    pygmentize -f terminal256 $* | less -R
+}
 
 # Start an HTTP server from a directory, optionally specifying the port
 function server() {
