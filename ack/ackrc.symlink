@@ -19,4 +19,6 @@
 --type-set=md=.markdown,.md
 --type-set=svg=.svg
 --type-set=ts=.ts
+--type-set=js=.js,.jsx
+--type-set=jsx=.jsx
 --type-set=style=.scss,.sass,.styl,.less,.css
