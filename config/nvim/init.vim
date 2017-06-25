@@ -229,6 +229,9 @@ nmap \s :set ts=4 sts=4 sw=4 et<cr>
 
 nnoremap <silent> <leader>u :call functions#HtmlUnEscape()<cr>
 
+command! Rm call functions#Delete()
+command! RM call functions#Delete() <Bar> q!
+
 " }}}
 
 " Section AutoGroups {{{
