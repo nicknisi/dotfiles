@@ -33,7 +33,7 @@ Plug 'tpope/vim-surround' " mappings to easily delete, change and add such surro
 Plug 'benmills/vimux' " tmux integration for vim
 Plug 'vim-airline/vim-airline' " fancy statusline
 Plug 'vim-airline/vim-airline-themes' " themes for vim-airline
-Plug 'neomake/neomake' " neovim replacement for syntastic using neovim's job control functonality
+Plug 'w0rp/ale' " Asynchonous linting engine
 Plug 'tpope/vim-fugitive' " amazing git wrapper for vim
 Plug 'tpope/vim-rhubarb' " hub extension for fugitive
 Plug 'tpope/vim-repeat' " enables repeating other supported plugins with the . command
