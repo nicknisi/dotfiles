@@ -265,7 +265,6 @@ augroup END
 
 " FZF
 """""""""""""""""""""""""""""""""""""
-
 " Toggle NERDTree
 nmap <silent> <leader>k :NERDTreeToggle<cr>
 " expand to the path of the file in the current buffer
@@ -316,6 +315,13 @@ command! -bang -nargs=* Find call fzf#vim#grep(
 	\ 'rg --column --line-number --no-heading --follow --color=always '.<q-args>, 1,
 	\ <bang>0 ? fzf#vim#with_preview('up:60%') : fzf#vim#with_preview('right:50%:hidden', '?'), <bang>0)
 
+" Emmet
+"""""""""""""""""""""""""""""""""""""
+let g:user_emmet_settings = {
+\  'javascript.jsx': {
+\      'extends': 'jsx',
+\  },
+\}
 
 " Fugitive Shortcuts
 """""""""""""""""""""""""""""""""""""
@@ -349,7 +355,6 @@ let g:airline#extensions#tabline#show_splits = 0
 let g:vim_json_syntax_conceal = 0
 
 let g:SuperTabCrMapping = 0
-
 " }}}
 
 " vim:foldmethod=marker:foldlevel=0
