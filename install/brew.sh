@@ -21,6 +21,7 @@ formulas=(
     hub
     markdown
     neovim/neovim/neovim
+    node
     nginx
     reattach-to-user-namespace
     the_silver_searcher
