@@ -28,6 +28,10 @@ snippet fn
 snippet fun
 	function ${1:name}(${2:args}) {
 	}
+snippet arr
+	(${1}) => {
+		${2}
+	}
 snippet iife
 	(function () {
 		${1}
@@ -86,3 +90,24 @@ snippet doc
 	/**
 	 * ${1}
 	 */
+# React snippets
+snippet cwm
+	componentWillMount() {
+		${1}
+	}
+snippet cdm
+	componentDidMount() {
+		${1}
+	}
+snippet cwrp
+	componentWillReceiveProps() {
+		${1}
+	}
+snippet cdu
+	componentDidUpdate() {
+		${1}
+	}
+snippet cwu
+	componentWillUnmount() {
+		${1}
+	}
