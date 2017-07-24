@@ -8,6 +8,8 @@ abbr teh the
 abbr tempalte template
 abbr fitler filter
 abbr cosnt const
+abbr attribtue attribute
+abbr attribuet attribute
 
 set nocompatible            " not compatible with vi
 set autoread                " detect when a file is changed
