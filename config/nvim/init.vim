@@ -203,6 +203,16 @@ map <silent> <C-l> :call functions#WinMove('l')<cr>
 
 map <leader>wc :wincmd q<cr>
 
+" move line mappings
+" ∆ is <A-j> on macOS
+" ˚ is <A-k> on macOS
+nnoremap ∆ :m .+1<cr>==
+nnoremap ˚ :m .-2<cr>==
+inoremap ∆ <Esc>:m .+1<cr>==gi
+inoremap ˚ <Esc>:m .-2<cr>==gi
+vnoremap ∆ :m '>+1<cr>gv=gv
+vnoremap ˚ :m '<-2<cr>gv=gv
+
 " toggle cursor line
 nnoremap <leader>i :set cursorline!<cr>
 
