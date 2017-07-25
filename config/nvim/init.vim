@@ -56,8 +56,8 @@ syntax on
 colorscheme onedark         " Set the colorscheme
 
 " make the highlighting of tabs and other non-text less annoying
-highlight SpecialKey ctermbg=none ctermfg=8
-highlight NonText ctermbg=none ctermfg=8
+highlight SpecialKey ctermbg=none ctermfg=236
+highlight NonText ctermbg=none ctermfg=236
 
 " make comments and HTML attributes italic
 highlight Comment cterm=italic
