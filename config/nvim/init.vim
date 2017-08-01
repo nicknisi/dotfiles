@@ -353,6 +353,11 @@ let g:ale_sign_warning = '⚠'
 " highlight clear ALEErrorSign
 " highlight clear ALEWarningSign
 
+let g:ale_linters = {
+\   'javascript': ['eslint'],
+\   'typescript': ['tslint', 'tsserver']
+\}
+
 " airline options
 let g:airline_powerline_fonts=1
 let g:airline_left_sep=''
