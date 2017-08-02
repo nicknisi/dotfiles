@@ -63,6 +63,7 @@ highlight NonText ctermbg=none ctermfg=236
 highlight Comment cterm=italic
 highlight htmlArg cterm=italic
 highlight xmlAttrib cterm=italic
+highlight Type cterm=italic
 highlight Normal ctermbg=none
 
 set number                  " show line numbers
