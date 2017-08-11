@@ -80,3 +80,7 @@ if [ -z ${RELOAD} ]; then
     fi
 fi
 
+# npx command shell fallback
+if command_exists npx; then
+    source <(npx --shell-auto-fallback zsh)
+fi
