@@ -6,8 +6,8 @@ zplug 'zsh-users/zsh-autosuggestions'
 zplug 'akoenig/npm-run.plugin.zsh'
 zplug 'yonchu/grunt-zsh-completion'
 
-# export NVM_LAZY_LOAD=true
-export NVM_NO_USE=true
+export NVM_LAZY_LOAD=true
+# export NVM_NO_USE=true
 zplug "lukechilds/zsh-nvm"
 
 # Install plugins if there are plugins that have not been installed
