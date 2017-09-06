@@ -1,10 +1,10 @@
 #### COLOUR
 
-tm_color_active=colour41
+tm_color_active=colour32
 tm_color_inactive=colour241
-tm_color_feature=colour13
-tm_color_music=colour164
-tm_active_border_color=colour198
+tm_color_feature=colour206
+tm_color_music=colour215
+tm_active_border_color=colour240
 
 # separators
 tm_separator_left_bold="◀"
@@ -15,7 +15,6 @@ tm_separator_right_thin="❯"
 set -g status-left-length 32
 set -g status-right-length 150
 set -g status-interval 5
-
 
 # default statusbar colors
 # set-option -g status-bg colour0
