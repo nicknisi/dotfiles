@@ -79,8 +79,3 @@ if [ -z ${RELOAD} ]; then
         source ~/.zplug/init.zsh
     fi
 fi
-
-# npx command shell fallback
-if command_exists npx; then
-    source <(npx --shell-auto-fallback zsh)
-fi
