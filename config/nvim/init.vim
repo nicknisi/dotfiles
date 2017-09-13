@@ -33,6 +33,9 @@ endif
 
 " Section User Interface {{{
 
+syntax on
+set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
+
 " switch cursor to line when in insert mode, and block when not
 set guicursor=n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50
   \,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor
@@ -48,16 +51,19 @@ if (has('mac') && empty($TMUX) && has("termguicolors"))
     set termguicolors
 endif
 
-let g:onedark_termcolors=16
-let g:onedark_terminal_italics=1
+if filereadable(expand("~/.vimrc_background"))
+  let base16colorspace=256
+  source ~/.vimrc_background
+else
+	let g:onedark_termcolors=16
+	let g:onedark_terminal_italics=1
 
-syntax on
-" set t_Co=256                " Explicitly tell vim that the terminal supports 256 colors"
-colorscheme onedark         " Set the colorscheme
+	colorscheme onedark
+endif
 
 " make the highlighting of tabs and other non-text less annoying
-highlight SpecialKey ctermbg=none ctermfg=236
-highlight NonText ctermbg=none ctermfg=236
+highlight SpecialKey ctermfg=236
+highlight NonText ctermfg=236
 
 " make comments and HTML attributes italic
 highlight Comment cterm=italic
@@ -363,7 +369,7 @@ let g:ale_linters = {
 let g:airline_powerline_fonts=1
 let g:airline_left_sep=''
 let g:airline_right_sep=''
-let g:airline_theme='onedark'
+let g:airline_theme='base16'
 let g:airline#extensions#tabline#enabled = 1 " enable airline tabline
 let g:airline#extensions#tabline#tab_min_count = 2 " only show tabline if tabs are being used (more than 1 tab open)
 let g:airline#extensions#tabline#show_buffers = 0 " do not show open buffers in tabline
