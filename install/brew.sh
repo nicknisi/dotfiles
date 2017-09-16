@@ -32,6 +32,7 @@ formulas=(
     zsh
     ripgrep
     git-standup
+    entr
 )
 
 for formula in "${formulas[@]}"; do
