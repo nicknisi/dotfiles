@@ -5,7 +5,7 @@
 DOTFILES=$HOME/.dotfiles
 BACKUP_DIR=$HOME/dotfiles-backup
 
-set -e # TODO: what does this do?
+set -e # Exit immediately if a command exits with a non-zero status.
 
 echo "Creating backup directory at $BACKUP_DIR"
 mkdir -p $BACKUP_DIR
