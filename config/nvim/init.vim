@@ -362,7 +362,8 @@ let g:ale_sign_warning = '⚠'
 
 let g:ale_linters = {
 \   'javascript': ['eslint'],
-\   'typescript': ['tslint', 'tsserver']
+\   'typescript': ['tslint', 'tsserver'],
+\	'html': []
 \}
 
 " airline options
