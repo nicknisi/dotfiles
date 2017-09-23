@@ -105,6 +105,7 @@ set completeopt+=longest
 
 " code folding settings
 set foldmethod=syntax       " fold based on indent
+set foldlevelstart=99
 set foldnestmax=10          " deepest fold is 10 levels
 set nofoldenable            " don't fold by default
 set foldlevel=1
