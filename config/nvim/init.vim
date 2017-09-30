@@ -101,7 +101,7 @@ set tabstop=4               " the visible width of tabs
 set softtabstop=4           " edit as if the tabs are 4 characters wide
 set shiftwidth=4            " number of spaces to use for indent and unindent
 set shiftround              " round indent to a multiple of 'shiftwidth'
-set completeopt+=longest
+" set completeopt+=longest
 
 " code folding settings
 set foldmethod=syntax       " fold based on indent
@@ -189,6 +189,8 @@ nmap <leader>md :%!markdown --html4tags <cr>
 nmap <leader><space> :%s/\s\+$<cr>
 nmap <leader><space><space> :%s/\n\{2,}/\r\r/g<cr>
 
+inoremap <expr> <C-j> pumvisible() ? "\<C-N>" : "\<C-j>"
+inoremap <expr> <C-k> pumvisible() ? "\<C-P>" : "\<C-k>"
 
 nmap <leader>l :set list!<cr>
 
@@ -360,9 +362,31 @@ let g:ale_sign_warning = '⚠'
 
 let g:ale_linters = {
 \   'javascript': ['eslint'],
-\   'typescript': ['tslint', 'tsserver'],
+\   'typescript': ['tsserver', 'tslint'],
 \	'html': []
 \}
+
+" YouCompleteMe
+"""""""""""""""""""""""""""""""""""""
+" let g:ycm_auto_trigger = 0
+let g:ycm_min_num_of_chars_for_completion = 99
+let g:ycm_always_populate_location_list = 1
+map <Leader>e :YcmDiags<CR> 
+let g:ycm_error_symbol = '✖'
+let g:ycm_warning_symbol = '⚠'
+function! s:CustomizeYcmLocationWindow()
+	10wincmd _
+endfunction
+autocmd User YcmLocationOpened call s:CustomizeYcmLocationWindow()
+let g:ycm_key_list_select_completion = ['<C-j>', '<Down>']
+let g:ycm_key_list_previous_completion = ['<C-k>', '<Up>']
+let g:ycm_show_diagnostics_ui = 1
+let g:ycm_enable_diagnostic_signs = 0 
+let g:ycm_enable_diagnostic_highlighting = 0
+
+" Deoplete
+"""""""""""""""""""""""""""""""""""""
+let g:deoplete#enable_at_startup = 1
 
 " UltiSnips
 """""""""""""""""""""""""""""""""""""
@@ -371,6 +395,7 @@ let g:UltiSnipsExpandTrigger="<tab>"
 " let g:UltiSnipsJumpBackwardTrigger="<c-h>"
 
 " airline options
+"""""""""""""""""""""""""""""""""""""
 let g:airline_powerline_fonts=1
 let g:airline_left_sep=''
 let g:airline_right_sep=''
@@ -383,5 +408,5 @@ let g:airline#extensions#tabline#show_splits = 0
 " don't hide quotes in json files
 let g:vim_json_syntax_conceal = 0
 
-let g:SuperTabCrMapping = 0
+let g:SuperTabContextDefaultCompletionType = "<c-x><c-o>"
 " }}}

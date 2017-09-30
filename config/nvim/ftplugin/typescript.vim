@@ -1,17 +1,13 @@
-" Code Folding
-syntax region foldBraces start=/{/ end=/}/ transparent fold keepend extend
-setlocal foldmethod=syntax
-setlocal foldlevel=99
+let javaScript_fold=1
 
-" convert to object literal function syntax
-let @f = "^f:dt("
-
-" convert object literal anonymous function into class method syntax
-let @c = "^f:dt(f{%f,x"
-
-let g:tss_auto_open_loclist=1
-nmap <buffer> <leader>h :TssQuickInfo<cr>
-nmap <buffer> <leader>d :TssDefinition<cr>
-nmap <buffer> <leader>u :TssReferences<cr>
-nmap <buffer> <leader>e :TssErrors<cr>
-nmap <buffer> <leader>m :TssRename "pc"<cr>
+" TypeScript Options
+let g:tsuquyomi_completion_detail = 1
+let g:tsuquyomi_disable_default_mappings = 1
+" setlocal completeopt+=menu,preview
+let g:tsuquyomi_completion_detail = 1
+setlocal completeopt=menuone,noselect,noselect
+setlocal omnifunc=tsuquyomi#complete 
+nmap <silent> <leader>d :TsuDefinition<cr>
+nmap <silent> <leader>u :TsuReferences<cr>
+nmap <silent> <leader>e :TsuGeterr<cr>
+nmap <buffer> <Leader>h : <C-u>echo tsuquyomi#hint()<CR>
