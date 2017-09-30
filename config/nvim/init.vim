@@ -364,6 +364,12 @@ let g:ale_linters = {
 \	'html': []
 \}
 
+" UltiSnips
+"""""""""""""""""""""""""""""""""""""
+let g:UltiSnipsExpandTrigger="<tab>"
+" let g:UltiSnipsJumpForwardTrigger="<c-l>"
+" let g:UltiSnipsJumpBackwardTrigger="<c-h>"
+
 " airline options
 let g:airline_powerline_fonts=1
 let g:airline_left_sep=''
