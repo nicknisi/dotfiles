@@ -270,15 +270,7 @@ augroup configgroup
     " when there are multiple windows open
     autocmd FileType qf wincmd J
     autocmd FileType qf nmap q :q<cr>
-
-    autocmd BufNewFile,BufReadPost *.md set filetype=markdown
-    let g:markdown_fenced_languages = ['css', 'javascript', 'js=javascript', 'json=javascript', 'stylus', 'html']
-
-    " autocmd! BufEnter * call functions#ApplyLocalSettings(expand('<afile>:p:h'))
-
-    autocmd BufNewFile,BufRead,BufWrite *.md syntax match Comment /\%^---\_.\{-}---$/
 augroup END
-
 " }}}
 
 " Section Plugins {{{
@@ -286,9 +278,14 @@ augroup END
 " FZF
 """""""""""""""""""""""""""""""""""""
 " Toggle NERDTree
-nmap <silent> <leader>k :NERDTreeToggle<cr>
-" expand to the path of the file in the current buffer
-nmap <silent> <leader>y :NERDTreeFind<cr>
+function! ToggleNerdTree()
+	if @% != "" && (!exists("g:NERDTree") || (g:NERDTree.ExistsForTab() && !g:NERDTree.IsOpen()))
+		:NERDTreeFind
+	else 
+		:NERDTreeToggle
+	endif
+endfunction
+map <silent> <Leader>k :call ToggleNerdTree()<CR>
 
 let NERDTreeShowHidden=1
 let NERDTreeDirArrowExpandable = '▷'
@@ -382,5 +379,3 @@ let g:vim_json_syntax_conceal = 0
 
 let g:SuperTabCrMapping = 0
 " }}}
-
-" vim:foldmethod=marker:foldlevel=0
