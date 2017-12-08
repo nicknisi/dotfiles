@@ -73,7 +73,6 @@ highlight Type cterm=italic
 highlight Normal ctermbg=none
 
 set number                  " show line numbers
-" set relativenumber          " show relative line numbers
 
 set wrap                    " turn on line wrapping
 set wrapmargin=8            " wrap lines when coming within n characters from side
@@ -101,7 +100,6 @@ set tabstop=4               " the visible width of tabs
 set softtabstop=4           " edit as if the tabs are 4 characters wide
 set shiftwidth=4            " number of spaces to use for indent and unindent
 set shiftround              " round indent to a multiple of 'shiftwidth'
-" set completeopt+=longest
 
 " code folding settings
 set foldmethod=syntax       " fold based on indent
@@ -146,7 +144,6 @@ set tm=500
 
 if has('mouse')
 	set mouse=a
-	" set ttymouse=xterm2
 endif
 
 " }}}
@@ -167,9 +164,6 @@ nmap <leader>, :w<cr>
 
 " set paste toggle
 set pastetoggle=<leader>v
-
-" toggle paste mode
-" map <leader>v :set paste!<cr>
 
 " edit ~/.config/nvim/init.vim
 map <leader>ev :e! ~/.config/nvim/init.vim<cr>
@@ -357,8 +351,6 @@ let g:ale_change_sign_column_color = 1
 let g:ale_sign_column_always = 1
 let g:ale_sign_error = '✖'
 let g:ale_sign_warning = '⚠'
-" highlight clear ALEErrorSign
-" highlight clear ALEWarningSign
 
 let g:ale_linters = {
 \   'javascript': ['eslint'],
@@ -384,15 +376,9 @@ let g:ycm_show_diagnostics_ui = 1
 let g:ycm_enable_diagnostic_signs = 0 
 let g:ycm_enable_diagnostic_highlighting = 0
 
-" Deoplete
-"""""""""""""""""""""""""""""""""""""
-let g:deoplete#enable_at_startup = 1
-
 " UltiSnips
 """""""""""""""""""""""""""""""""""""
 let g:UltiSnipsExpandTrigger="<tab>"
-" let g:UltiSnipsJumpForwardTrigger="<c-l>"
-" let g:UltiSnipsJumpBackwardTrigger="<c-h>"
 
 " airline options
 """""""""""""""""""""""""""""""""""""
@@ -407,6 +393,4 @@ let g:airline#extensions#tabline#show_splits = 0
 
 " don't hide quotes in json files
 let g:vim_json_syntax_conceal = 0
-
-let g:SuperTabContextDefaultCompletionType = "<c-x><c-o>"
 " }}}
