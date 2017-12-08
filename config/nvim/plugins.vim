@@ -21,6 +21,7 @@ Plug 'joshdick/onedark.vim'
 Plug 'chriskempson/base16-vim'
 
 " utilities
+Plug 'tpope/vim-abolish'
 Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeToggle', 'NERDTreeFind'] } | Plug 'Xuyuanp/nerdtree-git-plugin' | Plug 'ryanoasis/vim-devicons' " file drawer
 Plug '/usr/local/opt/fzf' | Plug 'junegunn/fzf.vim' " fuzzy file finder and so much more
 Plug 'mileszs/ack.vim' " search inside files using ack. Same as command line ack utility, but use :Ack
@@ -46,15 +47,7 @@ Plug 'vim-scripts/matchit.zip' " extended % matching
 Plug 'tpope/vim-sleuth' " detect indent style (tabs vs. spaces)
 Plug 'sickill/vim-pasta' " context-aware pasting
 " Plug 'Valloric/YouCompleteMe', { 'do': 'python3 ./install.py --clang-completer --tern-completer' }
-if (has('nvim'))
-    Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-else
-    Plug 'Shougo/deoplete.nvim'
-    Plug 'roxma/nvim-yarp'
-    Plug 'roxma/vim-hug-neovim-rpc'
-endif
 Plug 'SirVer/ultisnips' " Snippets plugin
-Plug 'ervandew/supertab'
 Plug 'Shougo/vimproc.vim', {'do' : 'make'}
 
 " html / templates
@@ -73,7 +66,6 @@ Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'], 'do': 'np
 " TypeScript
 Plug 'leafgarland/typescript-vim', { 'for': 'typescript' } " typescript support
 Plug 'angelozerr/tslint-language-service', { 'for': 'typescript' }
-Plug 'mhartington/nvim-typescript', { 'do': ':UpdateRemotePlugins' }
 Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
 
 " Elm
@@ -90,6 +82,7 @@ Plug 'wavded/vim-stylus', { 'for': ['stylus', 'markdown'] } " markdown support
 Plug 'groenewege/vim-less', { 'for': 'less' } " less support
 Plug 'hail2u/vim-css3-syntax', { 'for': 'css' } " CSS3 syntax support
 Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' } " sass scss syntax support
+Plug 'gko/vim-coloresque'
 
 " markdown
 Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' } " Open markdown files in Marked.app - mapped to <leader>m
