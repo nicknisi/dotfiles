@@ -64,7 +64,7 @@ suspended_jobs() {
     if [[ $sj == "" ]]; then
         echo ""
     else
-        echo "%{$FG[208]%}✱%f"
+        echo "%{%F{208}%}✱%f"
     fi
 }
 
