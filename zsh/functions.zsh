@@ -19,15 +19,6 @@ function md() {
     mkdir -p "$@" && cd "$@"
 }
 
-function hist() {
-    history | awk '{a[$2]++}END{for(i in a){print a[i] " " i}}' | sort -rn | head
-}
-
-# find shorthand
-function f() {
-    find . -name "$1"
-}
-
 function ng-stop() {
     sudo launchctl stop homebrew.mxcl.nginx
 }
@@ -111,29 +102,7 @@ function extract() {
     fi
 }
 
-function scpp() {
-    scp "$1" nicknisi@nicknisi.com:/var/www/nicknisi.com/public_html/share;
-    echo "http://nicknisi.com/share/$1" | pbcopy;
-    echo "Copied to clipboard: http://nicknisi.com/share/$1"
-}
-
-# syntax highlight the contents of a file or the clipboard and place the result on the clipboard
-function hl() {
-    if [ -z "$3" ]; then
-        src=$( pbpaste )
-    else
-        src=$( cat $3 )
-    fi
-
-    if [ -z "$2" ]; then
-        style="moria"
-    else
-        style="$2"
-    fi
-
-    echo $src | highlight -O rtf --syntax $1 --font Inconsoloata --style $style --line-number --font-size 24 | pbcopy
-}
-
+# load zsh history up in FZF to search
 fh() {
   print -z $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
 }
