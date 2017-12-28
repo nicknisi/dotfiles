@@ -83,6 +83,7 @@ Plug 'groenewege/vim-less', { 'for': 'less' } " less support
 Plug 'hail2u/vim-css3-syntax', { 'for': 'css' } " CSS3 syntax support
 Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' } " sass scss syntax support
 Plug 'gko/vim-coloresque'
+Plug 'stephenway/postcss.vim', { 'for': 'css' } " postcss syntax highlighting
 
 " markdown
 Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' } " Open markdown files in Marked.app - mapped to <leader>m
