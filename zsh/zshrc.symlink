@@ -70,16 +70,10 @@ fi
 export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow -g "!{.git,node_modules}/*" 2> /dev/null'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
-# zplug config
-export ZPLUG_LOADFILE=$DOTFILES/zsh/zplug.sh
-
-# only source zplug on initial load
-if [ -z ${RELOAD} ]; then
-    if ! [ type "zplug" > /dev/null 2>&1 ]; then
-        source ~/.zplug/init.zsh
-    fi
-fi
-
 # Base16 shell setup
 BASE16_SHELL=$HOME/.config/base16-shell/
 [ -n "$PS1" ] && [ -s $BASE16_SHELL/profile_helper.sh ] && eval "$($BASE16_SHELL/profile_helper.sh)"
+
+
+source `brew --prefix`/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source `brew --prefix`/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
