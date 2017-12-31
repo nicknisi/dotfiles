@@ -11,7 +11,6 @@ abbr cosnt const
 abbr attribtue attribute
 abbr attribuet attribute
 
-set nocompatible            " not compatible with vi
 set autoread                " detect when a file is changed
 
 set history=1000            " change history to 1000
@@ -80,7 +79,7 @@ set linebreak               " set soft wrapping
 set showbreak=…             " show ellipsis at breaking
 
 set autoindent              " automatically set indent of new line
-set smartindent
+filetype plugin indent on
 
 " toggle invisible characters
 set list
@@ -284,8 +283,8 @@ endfunction
 map <silent> <Leader>k :call ToggleNerdTree()<CR>
 
 let NERDTreeShowHidden=1
-let NERDTreeDirArrowExpandable = '▷'
-let NERDTreeDirArrowCollapsible = '▼'
+" let NERDTreeDirArrowExpandable = '▷'
+" let NERDTreeDirArrowCollapsible = '▼'
 
 let g:fzf_layout = { 'down': '~25%' }
 
@@ -394,4 +393,10 @@ let g:airline#extensions#whitespace#enabled = 0
 
 " don't hide quotes in json files
 let g:vim_json_syntax_conceal = 0
+
+" vim-devicons
+let g:NERDTreeSyntaxDisableDefaultExtensions = 1
+let g:NERDTreeDisableExactMatchHighlight = 1
+let g:NERDTreeDisablePatternMatchHighlight = 1
+let g:NERDTreeSyntaxEnabledExtensions = ['html', 'ts', 'zsh', 'sh', 'bash', 'rb', 'js', 'css', 'scss', 'vim', 'json', 'yml', 'md']
 " }}}
