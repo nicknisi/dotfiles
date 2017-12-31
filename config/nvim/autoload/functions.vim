@@ -59,7 +59,6 @@ function! functions#HtmlUnEscape()
   silent s/&amp;/\&/eg
 endfunction
 
-
 " delete the current buffer
 function! functions#Delete(...)
     if (exists('a:1'))
