@@ -5,12 +5,10 @@ if test ! $(which brew); then
     ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 fi
 
-echo -e "\n\nInstalling homebrew packages..."
+echo "\n\nInstalling homebrew packages..."
 echo "=============================="
 
 formulas=(
-    # flags should pass through the the `brew list check`
-    'macvim --with-override-system-vim'
     ack
     diff-so-fancy
     dnsmasq
@@ -28,6 +26,7 @@ formulas=(
     tmux
     tree
     wget
+    vim
     z
     zsh
     ripgrep
