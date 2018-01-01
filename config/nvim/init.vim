@@ -1,23 +1,8 @@
 " .vimrc / init.vim
 " The following vim/neovim configuration works for both Vim and NeoVim
 
-" Check for vim-plug and install if not there
-" TODO: Fix this in vim 8
-let plugpath = expand('<sfile>:p:h'). '/autoload/plug.vim'
-if !filereadable(plugpath)
-	if executable('curl')
-		echom "Installing vim-plug"
-		let plugurl = 'https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-		call system('curl -fLo ' . shellescape(plugpath) . ' --create-dirs ' . plugurl)
-		if v:shell_error
-			echom "Error downloading vim-plug. Please install it manually.\n"
-			exit
-		endif
-	else
-		echom "vim-plug not installed. Please install it manually or install curl.\n"
-		exit
-	endif
-endif
+" ensure vim-plug is installed and then load it
+call functions#PlugLoad()
 call plug#begin('~/.config/nvim/plugged')
 
 " General {{{
