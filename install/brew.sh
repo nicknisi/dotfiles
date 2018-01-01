@@ -43,3 +43,8 @@ for formula in "${formulas[@]}"; do
         brew install $formula
     fi
 done
+
+# After the install, setup fzf
+echo "\n\nRunning fzf install script..."
+echo "=============================="
+/usr/local/opt/fzf/install --all --no-bash --no-fish
