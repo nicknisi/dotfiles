@@ -308,9 +308,7 @@ call plug#begin('~/.config/nvim/plugged')
 
 	" NERDTree {{{
 		Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeToggle', 'NERDTreeFind'] }
-		Plug 'Xuyuanp/nerdtree-git-plugin'
 		Plug 'ryanoasis/vim-devicons'
-		Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
 
 		" Toggle NERDTree
 		function! ToggleNerdTree()
@@ -320,16 +318,14 @@ call plug#begin('~/.config/nvim/plugged')
 				:NERDTreeToggle
 			endif
 		endfunction
-		map <silent> <Leader>k :call ToggleNerdTree()<CR>
+        " toggle nerd tree
+		nmap <silent> <leader>k :call ToggleNerdTree()<cr>
+        " find the current file in nerdtree without needing to reload the drawer
+        nmap <silent> <leader>y :call NERDTreeFind()<cr>
 
 		let NERDTreeShowHidden=1
 		" let NERDTreeDirArrowExpandable = '▷'
 		" let NERDTreeDirArrowCollapsible = '▼'
-		" vim-devicons
-		let g:NERDTreeSyntaxDisableDefaultExtensions = 1
-		let g:NERDTreeDisableExactMatchHighlight = 1
-		let g:NERDTreeDisablePatternMatchHighlight = 1
-		let g:NERDTreeSyntaxEnabledExtensions = ['html', 'ts', 'zsh', 'sh', 'bash', 'rb', 'js', 'css', 'scss', 'vim', 'json', 'yml', 'md']
 	" }}}
 
 	" FZF {{{
