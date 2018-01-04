@@ -253,7 +253,7 @@ call plug#begin('~/.config/nvim/plugged')
 		" make quickfix windows take all the lower section of the screen
 		" when there are multiple windows open
 		autocmd FileType qf wincmd J
-		autocmd FileType qf nmap q :q<cr>
+		autocmd FileType qf nmap <buffer> q :q<cr>
 	augroup END
 " }}}
 
