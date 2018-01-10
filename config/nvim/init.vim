@@ -303,11 +303,18 @@ call plug#begin('~/.config/nvim/plugged')
 	" detect indent style (tabs vs. spaces)
 	Plug 'tpope/vim-sleuth'
 
+    " Writing in vim {{{{
+		Plug 'junegunn/limelight.vim'
+		Plug 'junegunn/goyo.vim'
+		let g:limelight_conceal_ctermfg = 240
+	" }}}
+
 	" context-aware pasting
 	Plug 'sickill/vim-pasta'
 
 	" NERDTree {{{
 		Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeToggle', 'NERDTreeFind'] }
+		Plug 'Xuyuanp/nerdtree-git-plugin'
 		Plug 'ryanoasis/vim-devicons'
 
 		" Toggle NERDTree
@@ -326,6 +333,18 @@ call plug#begin('~/.config/nvim/plugged')
 		let NERDTreeShowHidden=1
 		" let NERDTreeDirArrowExpandable = '▷'
 		" let NERDTreeDirArrowCollapsible = '▼'
+		let g:NERDTreeIndicatorMapCustom = {
+		\ "Modified"  : "✹",
+		\ "Staged"    : "✚",
+		\ "Untracked" : "✭",
+		\ "Renamed"   : "➜",
+		\ "Unmerged"  : "═",
+		\ "Deleted"   : "✖",
+		\ "Dirty"     : "✗",
+		\ "Clean"     : "✔︎",
+		\ 'Ignored'   : '☒',
+		\ "Unknown"   : "?"
+		\ }
 	" }}}
 
 	" FZF {{{
@@ -371,6 +390,16 @@ call plug#begin('~/.config/nvim/plugged')
 		command! -bang -nargs=* Find call fzf#vim#grep(
 			\ 'rg --column --line-number --no-heading --follow --color=always '.<q-args>, 1,
 			\ <bang>0 ? fzf#vim#with_preview('up:60%') : fzf#vim#with_preview('right:50%:hidden', '?'), <bang>0)
+	" }}}
+
+	" signify {{{
+	    " Plug 'airblade/vim-gitgutter'
+	    Plug 'mhinz/vim-signify'
+	    let g:signify_vcs_list = [ 'git' ]
+	    let g:signify_sign_add               = '+'
+	    let g:signify_sign_delete            = '_'
+	    let g:signify_sign_delete_first_line = '‾'
+	    let g:signify_sign_change = '!'
 	" }}}
 
 	" vim-fugitive {{{
@@ -425,15 +454,21 @@ call plug#begin('~/.config/nvim/plugged')
 		Plug 'digitaltoad/vim-pug', { 'for': ['jade', 'pug'] }
 	" }}}
 
-	" JavaScript / TypeScript {{{
+	" JavaScript {{{
 		Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
 		Plug 'moll/vim-node', { 'for': 'javascript' }
 		Plug 'mxw/vim-jsx', { 'for': ['javascript.jsx', 'javascript'] }
 		Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'], 'do': 'npm install' }
+	" }}}
 
+	" TypeScript {{{
 		Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
-		Plug 'angelozerr/tslint-language-service', { 'for': 'typescript' }
 		Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
+
+		" TypeScript Options
+		let g:tsuquyomi_completion_detail = 1
+		let g:tsuquyomi_disable_default_mappings = 1
+		let g:tsuquyomi_completion_detail = 1
 	" }}}
 
 
