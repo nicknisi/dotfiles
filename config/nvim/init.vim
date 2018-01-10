@@ -463,6 +463,7 @@ call plug#begin('~/.config/nvim/plugged')
 
 	" TypeScript {{{
 		Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
+		Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 		Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
 
 		" TypeScript Options
