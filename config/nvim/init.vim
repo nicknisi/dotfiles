@@ -328,7 +328,7 @@ call plug#begin('~/.config/nvim/plugged')
         " toggle nerd tree
 		nmap <silent> <leader>k :call ToggleNerdTree()<cr>
         " find the current file in nerdtree without needing to reload the drawer
-        nmap <silent> <leader>y :call NERDTreeFind()<cr>
+        nmap <silent> <leader>y :NERDTreeFind<cr>
 
 		let NERDTreeShowHidden=1
 		" let NERDTreeDirArrowExpandable = '▷'
