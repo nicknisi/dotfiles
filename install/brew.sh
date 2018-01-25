@@ -21,6 +21,8 @@ formulas=(
     neovim/neovim/neovim
     node
     nginx
+    python
+    python3
     reattach-to-user-namespace
     the_silver_searcher
     tmux
@@ -48,3 +50,9 @@ done
 echo "\n\nRunning fzf install script..."
 echo "=============================="
 /usr/local/opt/fzf/install --all --no-bash --no-fish
+
+# after hte install, install neovim python libraries
+echo "\n\nRunning Neovim Python install"
+echo "=============================="
+pip2 install --user neovim
+pip3 install --user neovim
