@@ -434,7 +434,7 @@ call plug#begin('~/.config/nvim/plugged')
 " Language-Specific Configuration {{{
 	" html / templates {{{
 		" emmet support for vim - easily create markdup wth CSS-like syntax
-		Plug 'mattn/emmet-vim', { 'for': ['html', 'javascript.jsx'] }
+		Plug 'mattn/emmet-vim', { 'for': ['html', 'javascript.jsx', 'eruby' ]}
 		let g:user_emmet_settings = {
 		\  'javascript.jsx': {
 		\	   'extends': 'jsx',
@@ -452,6 +452,9 @@ call plug#begin('~/.config/nvim/plugged')
 
 		" pug / jade support
 		Plug 'digitaltoad/vim-pug', { 'for': ['jade', 'pug'] }
+
+		" Ruby / Ruby on Rails
+		Plug 'tpope/vim-rails', { 'for': 'ruby' }
 	" }}}
 
 	" JavaScript {{{
@@ -503,7 +506,7 @@ call plug#begin('~/.config/nvim/plugged')
 	Plug 'fatih/vim-go', { 'for': 'go' }
 	Plug 'timcharper/textile.vim', { 'for': 'textile' }
 	Plug 'lambdatoast/elm.vim', { 'for': 'elm' }
-	Plug 'tpope/vim-endwise', { 'for': 'ruby' }
+	Plug 'tpope/vim-endwise', { 'for': [ 'ruby', 'bash' ]}
 	Plug 'kchmck/vim-coffee-script', { 'for': 'coffeescript' }
 " }}}
 
