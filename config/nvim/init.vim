@@ -506,7 +506,7 @@ call plug#begin('~/.config/nvim/plugged')
 	Plug 'fatih/vim-go', { 'for': 'go' }
 	Plug 'timcharper/textile.vim', { 'for': 'textile' }
 	Plug 'lambdatoast/elm.vim', { 'for': 'elm' }
-	Plug 'tpope/vim-endwise', { 'for': [ 'ruby', 'bash' ]}
+	Plug 'tpope/vim-endwise', { 'for': [ 'ruby', 'bash', 'zsh' ]}
 	Plug 'kchmck/vim-coffee-script', { 'for': 'coffeescript' }
 " }}}
 
