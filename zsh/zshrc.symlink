@@ -56,11 +56,6 @@ if command_exists rbenv; then
     eval "$(rbenv init -)"
 fi
 
-if [[ -d ~/.rvm ]]; then
-    PATH=$HOME/.rvm/bin:$PATH # Add RVM to PATH for scripting
-    source ~/.rvm/scripts/rvm
-fi
-
 # alias git to hub
 if command_exists hub; then
     eval "$(hub alias -s)"
