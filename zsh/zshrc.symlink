@@ -74,6 +74,9 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 BASE16_SHELL=$HOME/.config/base16-shell/
 [ -n "$PS1" ] && [ -s $BASE16_SHELL/profile_helper.sh ] && eval "$($BASE16_SHELL/profile_helper.sh)"
 
+if command_exists direnv; then
+    eval "$(direnv hook zsh)"
+fi
 
 if command_exists brew; then
     source `brew --prefix`/share/zsh-autosuggestions/zsh-autosuggestions.zsh

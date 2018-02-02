@@ -11,6 +11,7 @@ echo "=============================="
 formulas=(
     ack
     diff-so-fancy
+    direnv
     dnsmasq
     fzf
     git
