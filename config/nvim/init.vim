@@ -219,9 +219,6 @@ call plug#begin('~/.config/nvim/plugged')
 	nnoremap <silent> ^ g^
 	nnoremap <silent> $ g$
 
-	" search for word under the cursor
-	nnoremap <leader>/ "fyiw :/<c-r>f<cr>
-
 	" inoremap <tab> <c-r>=Smart_TabComplete()<CR>
 
 	map <leader>r :call RunCustomCommand()<cr>
