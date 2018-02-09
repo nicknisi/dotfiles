@@ -135,6 +135,8 @@ call plug#begin('~/.config/nvim/plugged')
 		let g:airline#extensions#tabline#tab_min_count = 2
 		" do not show open buffers in tabline
 		let g:airline#extensions#tabline#show_buffers = 0
+		" Show errors in airline from ALE
+		let g:airline#extensions#ale#enabled = 1
 	" }}}
 " }}}
 
@@ -414,7 +416,7 @@ call plug#begin('~/.config/nvim/plugged')
 
 	" ALE {{{
 		Plug 'w0rp/ale' " Asynchonous linting engine
-		let g:ale_change_sign_column_color = 1
+		let g:ale_change_sign_column_color = 0
 		let g:ale_sign_column_always = 1
 		let g:ale_sign_error = '✖'
 		let g:ale_sign_warning = '⚠'
