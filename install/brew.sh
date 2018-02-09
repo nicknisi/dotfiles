@@ -36,8 +36,6 @@ formulas=(
     ripgrep
     git-standup
     entr
-    zsh-autosuggestions
-    zsh-syntax-highlighting
 )
 
 for formula in "${formulas[@]}"; do
