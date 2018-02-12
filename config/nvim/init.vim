@@ -147,9 +147,6 @@ call plug#begin('~/.config/nvim/plugged')
 	" remap esc
 	inoremap jk <esc>
 
-	" wipout buffer
-	nmap <silent> <leader>b :bw<cr>
-
 	" shortcut to save
 	nmap <leader>, :w<cr>
 
@@ -301,6 +298,10 @@ call plug#begin('~/.config/nvim/plugged')
 
 	" detect indent style (tabs vs. spaces)
 	Plug 'tpope/vim-sleuth'
+
+    " Close buffers but keep splits
+    Plug 'moll/vim-bbye'
+	nmap <leader>b :Bdelete<cr>
 
     " Writing in vim {{{{
 		Plug 'junegunn/limelight.vim'
