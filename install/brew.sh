@@ -36,6 +36,7 @@ formulas=(
     ripgrep
     git-standup
     entr
+    zplug
 )
 
 for formula in "${formulas[@]}"; do
