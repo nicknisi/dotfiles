@@ -55,9 +55,6 @@ set-option -g set-titles-string "#T - #W"
 # reload config file
 bind r source-file ~/.tmux.conf \; display "Config Reloaded!"
 
-# quickly open a new window
-bind N new-window
-
 # split window and fix path for tmux 1.9
 bind | split-window -h -c "#{pane_current_path}"
 bind - split-window -v -c "#{pane_current_path}"
