@@ -1,0 +1,19 @@
+## Type additions
+
+# search all types of style files
+--type-add 'style:include:css,sass,less,stylus'
+
+# pug/jade templates
+--type-add 'pug:*.pug,*.jade'
+
+# search all types of templates
+--type-add 'tmpl:include:html,hbs,pug'
+
+# Don't let ripgrep vomit really long lines to my terminal
+--max-columns=150
+
+# ignore case
+--smart-case
+
+# follow symlinks
+--follow

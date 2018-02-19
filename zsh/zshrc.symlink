@@ -54,6 +54,9 @@ if command_exists rbenv; then
     eval "$(rbenv init -)"
 fi
 
+# add a config file for ripgrep
+export $RIPGREP_CONFIG_PATH="$HOME/.rgrc"
+
 [ -z "$TMUX" ] && export TERM=xterm-256color-italic
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
