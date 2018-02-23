@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+fg=""
+bg=""
+for i in {0..255}; do
+	a=$(printf "\x1b[38;5;%sm%3d\e[0m " "$i" "$i")
+	b=$(printf "\x1b[48;5;%sm%3d\e[0m " "$i" "$i")
+	fg+="$a"
+	bg+="$b"
+	if (( $i % 5 ==0 )); then
+		printf "$fg\t\t$bg\n"
+		fg=""
+		bg=""
+	else
+		fg+="  "
+		bg+="  "
+	fi
+done

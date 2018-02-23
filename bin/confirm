@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+read -r -n 1 -p "$1 (y/n) " answer
+echo ""
+test "$answer" = "y"
