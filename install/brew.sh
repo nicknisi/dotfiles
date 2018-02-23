@@ -19,6 +19,7 @@ formulas=(
     highlight
     hub
     markdown
+    mas
     neovim/neovim/neovim
     node
     nginx
