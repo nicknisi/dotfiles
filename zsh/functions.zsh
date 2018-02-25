@@ -2,6 +2,11 @@
 # functions
 ####################
 
+function md() {
+    mkdir -p $1
+    cd $1
+}
+
 function ng-stop() {
     sudo launchctl stop homebrew.mxcl.nginx
 }
