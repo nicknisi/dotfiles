@@ -24,7 +24,6 @@ formulas=(
     node
     nginx
     python
-    python3
     rbenv
     reattach-to-user-namespace
     the_silver_searcher
