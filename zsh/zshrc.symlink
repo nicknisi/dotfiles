@@ -105,3 +105,9 @@ export LESS_TERMCAP_us=$(tput smul; tput bold; tput setaf 7)
 export LESS_TERMCAP_ue=$(tput rmul; tput sgr0)
 export LESS_TERMCAP_mr=$(tput rev)
 export LESS_TERMCAP_mh=$(tput dim)
+
+# add shellcheck config
+# For a full list of errors, refer to
+# https://github.com/koalaman/shellcheck/wiki
+#
+# export SHELLCHECK_OPTS=""

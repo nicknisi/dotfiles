@@ -15,7 +15,7 @@ source install/git.sh
 
 # only perform macOS-specific install
 if [ "$(uname)" == "Darwin" ]; then
-    echo -e "\n\nRunning on OSX"
+    echo -e "\\n\\nRunning on OSX"
 
     source install/brew.sh
 
@@ -30,7 +30,7 @@ if ! command_exists zsh; then
     exit 1
 elif ! [[ $SHELL =~ .*zsh.* ]]; then
     echo "Configuring zsh as default shell"
-    chsh -s $(which zsh)
+    chsh -s "$(which zsh)"
 fi
 
 echo "Done. Reload your terminal."

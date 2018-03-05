@@ -42,5 +42,5 @@ for app in "${apps[@]}"; do
     id=${app#*:}
 
     echo -e "Attempting to install $name"
-    mas install $id
+    mas install "$id"
 done

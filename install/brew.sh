@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-if test ! $(which brew); then
+if test ! "$( which brew )"; then
     echo "Installing homebrew"
-    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    ruby -e "$( curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install )"
 fi
 
-echo "\n\nInstalling homebrew packages..."
+echo -e "\\n\\nInstalling homebrew packages..."
 echo "=============================="
 
 formulas=(
@@ -27,6 +27,7 @@ formulas=(
     rbenv
     reattach-to-user-namespace
     the_silver_searcher
+    shellcheck
     tmux
     tree
     wget
@@ -43,23 +44,23 @@ for formula in "${formulas[@]}"; do
     if brew list "$formula" > /dev/null 2>&1; then
         echo "$formula already installed... skipping."
     else
-        brew install $formula
+        brew install "$formula"
     fi
 done
 
 # After the install, setup fzf
-echo "\n\nRunning fzf install script..."
+echo -e "\\n\\nRunning fzf install script..."
 echo "=============================="
 /usr/local/opt/fzf/install --all --no-bash --no-fish
 
 # after hte install, install neovim python libraries
-echo "\n\nRunning Neovim Python install"
+echo -e "\\n\\nRunning Neovim Python install"
 echo "=============================="
 pip2 install --user neovim
 pip3 install --user neovim
 
 # Change the default shell to zsh
-zsh_path="$(which zsh)"
+zsh_path="$( which zsh )"
 if ! grep "$zsh_path" /etc/shells; then
     echo "adding $zsh_path to /etc/shells"
     echo "$zsh_path" | sudo tee -a /etc/shells

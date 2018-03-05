@@ -1,13 +1,13 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 if [[ $# == 0 ]]; then
     echo "Must provide at least one branch"
     exit 1
 fi
 
-for branch in $*; do
-    git branch -D $branch
+for branch in "$@"; do
+    git branch -D "$branch"
     for r in $(git remote); do
-        git push $r :$branch
+        git push "$r" :"$branch"
     done
 done

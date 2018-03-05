@@ -1,13 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-echo -e "\n\nInstalling nginx"
+echo -e "\\n\\nInstalling nginx"
 echo "=============================="
 
 ######################################################
 # nginx setup
 ######################################################
 
-$DOTFILES=$HOME/.dotfiles
+DOTFILES="$HOME/.dotfiles"
 
 # first, make sure apache is off
 sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist
@@ -19,12 +19,12 @@ launchctl load -w ~/Library/LaunchAgents/homebrew.mxcl.nginx.plist
 mkdir -p /usr/local/etc/nginx/sites-enabled
 cp -R nginx/sites-available /usr/local/etc/nginx/sites-available
 mv /usr/local/etc/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf.orig
-ln -s $DOTFILES/nginx/nginx.conf /usr/local/etc/nginx/nginx.conf
+ln -s "$DOTFILES/nginx/nginx.conf" "/usr/local/etc/nginx/nginx.conf"
 
-sites=$( ls -1 -d $DOTFILES/nginx/sites-available)
+sites=$( ls -1 -d "$DOTFILES/nginx/sites-available")
 for site in $sites ; do
     echo "linking $site"
-    ln -s $DOTFILES/nginx/sites-available/$site /usr/local/etc/nginx/sites-enabled/$site
+    ln -s "$DOTFILES/nginx/sites-available/$site" "/usr/local/etc/nginx/sites-enabled/$site"
 done
 
 
@@ -35,7 +35,7 @@ done
 echo "installing dnsmasq"
 
 # move dnsmasq config into place
-ln -s $DOTFILES/nginx/dnsmasq.conf /usr/local/etc/
+ln -s "$DOTFILES/nginx/dnsmasq.conf" "/usr/local/etc/"
 
 # setup dnsmasq
 sudo cp -fv /usr/local/opt/dnsmasq/homebrew.mxcl.dnsmasq.plist /Library/LaunchDaemons

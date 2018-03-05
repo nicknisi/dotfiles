@@ -1,18 +1,18 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # reload-browser - A cross-platform wrapper for reloading the current
 # browser tab
 # Based on original script by Eric Radman, 2014
 # http://entrproject.org/
 
 usage() {
-    case `uname` in
+    case $( uname ) in
     Darwin)
         # applescript needs the exact title
-        echo "Usage: $(basename $0) Firefox [Safari \"Google Chrome\" ...]"
+        echo "Usage: $( basename "$0" ) Firefox [Safari \"Google Chrome\" ...]"
         ;;
     *)
         # xdotool uses regular expressions
-        echo "Usage: $(basename $0) Firefox [Chrome ...]"
+        echo "Usage: $( basename "$0" ) Firefox [Chrome ...]"
         ;;
     esac
     exit 1
@@ -22,7 +22,7 @@ usage() {
 
 for app in "$@"; do
     echo "$app"
-    case `uname` in
+    case $( uname ) in
         Darwin)
             /usr/bin/osascript <<- APPLESCRIPT
             set prev to (path to frontmost application as text)
