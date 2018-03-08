@@ -298,11 +298,11 @@ call plug#begin('~/.config/nvim/plugged')
 	" detect indent style (tabs vs. spaces)
 	Plug 'tpope/vim-sleuth'
 
-    " Close buffers but keep splits
-    Plug 'moll/vim-bbye'
+	" Close buffers but keep splits
+	Plug 'moll/vim-bbye'
 	nmap <leader>b :Bdelete<cr>
 
-    " Writing in vim {{{{
+	" Writing in vim {{{{
 		Plug 'junegunn/limelight.vim'
 		Plug 'junegunn/goyo.vim'
 		let g:limelight_conceal_ctermfg = 240
@@ -324,23 +324,23 @@ call plug#begin('~/.config/nvim/plugged')
 				:NERDTreeToggle
 			endif
 		endfunction
-        " toggle nerd tree
+		" toggle nerd tree
 		nmap <silent> <leader>k :call ToggleNerdTree()<cr>
-        " find the current file in nerdtree without needing to reload the drawer
-        nmap <silent> <leader>y :NERDTreeFind<cr>
+		" find the current file in nerdtree without needing to reload the drawer
+		nmap <silent> <leader>y :NERDTreeFind<cr>
 
 		let NERDTreeShowHidden=1
 		" let NERDTreeDirArrowExpandable = '▷'
 		" let NERDTreeDirArrowCollapsible = '▼'
 		let g:NERDTreeIndicatorMapCustom = {
 		\ "Modified"  : "✹",
-		\ "Staged"    : "✚",
+		\ "Staged"	  : "✚",
 		\ "Untracked" : "✭",
 		\ "Renamed"   : "➜",
 		\ "Unmerged"  : "═",
 		\ "Deleted"   : "✖",
-		\ "Dirty"     : "✗",
-		\ "Clean"     : "✔︎",
+		\ "Dirty"	  : "✗",
+		\ "Clean"	  : "✔︎",
 		\ 'Ignored'   : '☒',
 		\ "Unknown"   : "?"
 		\ }
@@ -390,19 +390,19 @@ call plug#begin('~/.config/nvim/plugged')
 			\ 'rg --column --line-number --no-heading --follow --color=always '.<q-args>, 1,
 			\ <bang>0 ? fzf#vim#with_preview('up:60%') : fzf#vim#with_preview('right:50%:hidden', '?'), <bang>0)
 		command! -bang -nargs=? -complete=dir Files
-			\ call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
+			\ call fzf#vim#files(<q-args>, fzf#vim#with_preview('right:50%', '?'), <bang>0)
 		command! -bang -nargs=? -complete=dir GFiles
-			\ call fzf#vim#gitfiles(<q-args>, fzf#vim#with_preview(), <bang>0)
+			\ call fzf#vim#gitfiles(<q-args>, fzf#vim#with_preview('right:50%', '?'), <bang>0)
 	" }}}
 
 	" signify {{{
-	    " Plug 'airblade/vim-gitgutter'
-	    Plug 'mhinz/vim-signify'
-	    let g:signify_vcs_list = [ 'git' ]
-	    let g:signify_sign_add               = '+'
-	    let g:signify_sign_delete            = '_'
-	    let g:signify_sign_delete_first_line = '‾'
-	    let g:signify_sign_change = '!'
+		" Plug 'airblade/vim-gitgutter'
+		Plug 'mhinz/vim-signify'
+		let g:signify_vcs_list = [ 'git' ]
+		let g:signify_sign_add				 = '+'
+		let g:signify_sign_delete			 = '_'
+		let g:signify_sign_delete_first_line = '‾'
+		let g:signify_sign_change = '!'
 	" }}}
 
 	" vim-fugitive {{{
@@ -426,6 +426,10 @@ call plug#begin('~/.config/nvim/plugged')
 		\	'typescript': ['tsserver', 'tslint'],
 		\	'html': []
 		\}
+		let g:ale_fixers = {}
+		let g:ale_fixers['javascript'] = ['prettier']
+		let g:ale_javascript_prettier_use_local_config = 1
+		let g:ale_fix_on_save = 0
 	" }}}
 
 	" UltiSnips {{{
