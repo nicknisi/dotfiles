@@ -41,8 +41,9 @@ formulas=(
 )
 
 for formula in "${formulas[@]}"; do
-    if brew list "$formula" > /dev/null 2>&1; then
-        echo "$formula already installed... skipping."
+    formula_name=$( echo "$formula" | awk '{print $1}' )
+    if brew list "$formula_name" > /dev/null 2>&1; then
+        echo "$formula_name already installed... skipping."
     else
         brew install "$formula"
     fi
