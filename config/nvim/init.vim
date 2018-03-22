@@ -118,23 +118,107 @@ call plug#begin('~/.config/nvim/plugged')
 	Plug 'chriskempson/base16-vim'
 	Plug 'joshdick/onedark.vim'
 
-	" Airline {{{
-		Plug 'vim-airline/vim-airline'
-		Plug 'vim-airline/vim-airline-themes'
-		let g:airline_powerline_fonts=1
-		let g:airline_left_sep=''
-		let g:airline_right_sep=''
-		let g:airline_theme='base16'
-		let g:airline#extensions#tabline#show_splits = 0
-		let g:airline#extensions#whitespace#enabled = 0
-		" enable airline tabline
-		let g:airline#extensions#tabline#enabled = 1
-		" only show tabline if tabs are being used (more than 1 tab open)
-		let g:airline#extensions#tabline#tab_min_count = 2
-		" do not show open buffers in tabline
-		let g:airline#extensions#tabline#show_buffers = 0
-		" Show errors in airline from ALE
-		let g:airline#extensions#ale#enabled = 1
+	" LightLine {{{
+		Plug 'itchyny/lightline.vim'
+		Plug 'nicknisi/vim-base16-lightline'
+		" Plug 'felixjung/vim-base16-lightline'
+		let g:lightline = {
+		\	'colorscheme': 'base16',
+		\	'active': {
+		\		'left': [ [ 'mode', 'paste' ],
+		\				[ 'gitbranch' ],
+		\				[ 'readonly', 'filetype', 'filename' ]],
+		\		'right': [ [ 'percent' ], [ 'lineinfo' ],
+		\				[ 'fileformat', 'fileencoding' ],
+		\				[ 'linter_errors', 'linter_warnings' ]]
+		\	},
+		\	'component_expand': {
+		\		'linter': 'LightlineLinter',
+		\		'linter_warnings': 'LightlineLinterWarnings',
+		\		'linter_errors': 'LightlineLinterErrors',
+		\		'linter_ok': 'LightlineLinterOk'
+		\	},
+		\	'component_type': {
+		\		'readonly': 'error',
+		\		'linter_warnings': 'warning',
+		\		'linter_errors': 'error'
+		\	},
+		\	'component_function': {
+		\		'fileencoding': 'LightlineFileEncoding',
+		\		'filename': 'LightlineFileName',
+		\		'fileformat': 'LightlineFileFormat',
+		\		'filetype': 'LightlineFileType',
+		\		'gitbranch': 'LightlineGitBranch'
+		\	},
+		\	'tabline': {
+		\		'left': [ [ 'tabs' ] ],
+		\		'right': [ [ 'close' ] ]
+		\	},
+		\	'tab': {
+		\		'active': [ 'filename', 'modified' ],
+		\		'inactive': [ 'filename', 'modified' ],
+		\	},
+		\	'separator': { 'left': '', 'right': '' },
+		\	'subseparator': { 'left': '', 'right': '' }
+		\ }
+		" \   'separator': { 'left': '▓▒░', 'right': '░▒▓' },
+		" \   'subseparator': { 'left': '▒', 'right': '░' }
+
+		function! LightlineFileName() abort
+			let filename = winwidth(0) > 70 ? expand('%') : expand('%:t')
+			if filename =~ 'NERD_tree'
+				return ''
+			endif
+			let modified = &modified ? ' +' : ''
+			return filename . modified
+		endfunction
+
+		function! LightlineFileEncoding()
+			" only show the file encoding if it's not 'utf-8'
+			return &fileencoding == 'utf-8' ? '' : &fileencoding
+		endfunction
+
+		function! LightlineFileFormat()
+			" only show the file format if it's not 'unix'
+			let format = &fileformat == 'unix' ? '' : &fileformat
+			return winwidth(0) > 70 ? format . ' ' . WebDevIconsGetFileFormatSymbol() : ''
+		endfunction
+
+		function! LightlineFileType()
+			return WebDevIconsGetFileTypeSymbol()
+			" return winwidth(0) > 70 ? (&filetype !=# '' ? &filetype . ' ' . WebDevIconsGetFileTypeSymbol() : 'no ft') : ''
+		endfunction
+
+		function! LightlineLinter() abort
+			let l:counts = ale#statusline#Count(bufnr(''))
+			return l:counts.total == 0 ? '' : printf('×%d', l:counts.total)
+		endfunction
+
+		function! LightlineLinterWarnings() abort
+			let l:counts = ale#statusline#Count(bufnr(''))
+			let l:all_errors = l:counts.error + l:counts.style_error
+			let l:all_non_errors = l:counts.total - l:all_errors
+			return l:counts.total == 0 ? '' : '⚠ ' . printf('%d', all_non_errors)
+		endfunction
+
+		function! LightlineLinterErrors() abort
+			let l:counts = ale#statusline#Count(bufnr(''))
+			let l:all_errors = l:counts.error + l:counts.style_error
+			return l:counts.total == 0 ? '' : '✖ ' . printf('%d', all_errors)
+		endfunction
+
+		function! LightlineLinterOk() abort
+			let l:counts = ale#statusline#Count(bufnr(''))
+			return l:counts.total == 0 ? 'OK' : ''
+		endfunction
+
+		function! LightlineGitBranch()
+			return '' . (exists('*fugitive#head') ? fugitive#head() : '')
+		endfunction
+
+		augroup alestatus
+			autocmd User ALELint call lightline#update()
+		augroup end
 	" }}}
 " }}}
 
