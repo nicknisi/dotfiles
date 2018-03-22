@@ -297,6 +297,9 @@ call plug#begin('~/.config/nvim/plugged')
 	" detect indent style (tabs vs. spaces)
 	Plug 'tpope/vim-sleuth'
 
+    " Open selection in carbon.now.sh
+    Plug 'kristijanhusak/vim-carbon-now-sh'
+
 	" Close buffers but keep splits
 	Plug 'moll/vim-bbye'
 	nmap <leader>b :Bdelete<cr>
