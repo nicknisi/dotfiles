@@ -170,7 +170,7 @@ call plug#begin('~/.config/nvim/plugged')
 				return ''
 			endif
 			let modified = &modified ? ' +' : ''
-			return filename . modified
+			return fnamemodify(filename, ":~:.") . modified
 		endfunction
 
 		function! LightlineFileEncoding()
