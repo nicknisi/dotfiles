@@ -378,11 +378,16 @@ call plug#begin('~/.config/nvim/plugged')
 	" extended % matching
 	Plug 'vim-scripts/matchit.zip'
 
+	" add end, endif, etc. automatically
+	Plug 'tpope/vim-endwise', { 'for': [ 'ruby', 'bash', 'zsh', 'sh', 'vim' ]}
+
 	" detect indent style (tabs vs. spaces)
 	Plug 'tpope/vim-sleuth'
 
     " Open selection in carbon.now.sh
     Plug 'kristijanhusak/vim-carbon-now-sh'
+	" a simple tool for presenting slides in vim based on text files
+	Plug 'sotte/presenting.vim', { 'for': 'markdown' }
 
 	" Close buffers but keep splits
 	Plug 'moll/vim-bbye'
@@ -550,6 +555,9 @@ call plug#begin('~/.config/nvim/plugged')
 		Plug 'tpope/vim-rails', { 'for': 'ruby' }
 	" }}}
 
+	" Ruby / Ruby on Rails
+	Plug 'tpope/vim-rails', { 'for': 'ruby' }
+
 	" JavaScript {{{
 		Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
 		Plug 'moll/vim-node', { 'for': 'javascript' }
@@ -560,9 +568,8 @@ call plug#begin('~/.config/nvim/plugged')
 	" TypeScript {{{
 		Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
 		Plug 'Shougo/vimproc.vim', { 'do': 'make' }
-		Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
 
-		" TypeScript Options
+        Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
 		let g:tsuquyomi_completion_detail = 1
 		let g:tsuquyomi_disable_default_mappings = 1
 		let g:tsuquyomi_completion_detail = 1
@@ -586,9 +593,6 @@ call plug#begin('~/.config/nvim/plugged')
 		nmap <leader>m :MarkedOpen!<cr>
 		nmap <leader>mq :MarkedQuit<cr>
 		nmap <leader>* *<c-o>:%s///gn<cr>
-
-		" a simple tool for presenting slides in vim based on text files
-		Plug 'sotte/presenting.vim', { 'for': 'markdown' }
 	" }}}
 
 	" JSON {{{
