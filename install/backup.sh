@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Backup files that are provided by the dotfiles into a ~/dotfiles-backup directory
+DOTFILES=$(realpath "$(realpath "$(dirname "$0")")/..")
 
-DOTFILES=$HOME/.dotfiles
+# Backup files that are provided by the dotfiles into a ~/dotfiles-backup directory
 BACKUP_DIR=$HOME/dotfiles-backup
 
 set -e # Exit immediately if a command exits with a non-zero status.

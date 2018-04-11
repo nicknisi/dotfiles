@@ -23,6 +23,10 @@ bind-key a send-prefix
 setw -g monitor-activity off
 set -g visual-activity off
 
+# Add path to DOTFILES as an environment variable that
+# is reachable by the tmux config scripts
+set-environment -g DOTFILES "$DOTFILES"
+
 # Rather than constraining window size to the maximum size of any client
 # connected to the *session*, constrain window size to the maximum size of any
 # client connected to *that window*. Much more reasonable.

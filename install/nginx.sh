@@ -7,8 +7,6 @@ echo "=============================="
 # nginx setup
 ######################################################
 
-DOTFILES="$HOME/.dotfiles"
-
 # first, make sure apache is off
 sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist
 

@@ -2,6 +2,8 @@
 
 printf "Setting up Git...\\n\\n"
 
+DOTFILES=$(realpath "$(realpath "$(dirname "$0")")/..")
+
 defaultName=$( git config --global user.name )
 defaultEmail=$( git config --global user.email )
 defaultGithub=$( git config --global github.user )
@@ -9,6 +11,8 @@ defaultGithub=$( git config --global github.user )
 read -rp "Name [$defaultName] " name
 read -rp "Email [$defaultEmail] " email
 read -rp "Github username [$defaultGithub] " github
+
+git config --global init.templatedir = "$DOTFILES/git/templates"
 
 git config --global user.name "${name:-$defaultName}"
 git config --global user.email "${email:-$defaultEmail}"

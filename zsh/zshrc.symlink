@@ -1,4 +1,5 @@
-export DOTFILES=$HOME/.dotfiles
+# export DOTFILES="${0:a:h}"
+export DOTFILES="$(realpath $(dirname $(realpath ~/.zshrc))/..)"
 export ZSH=$DOTFILES/zsh
 
 command_exists() {
