@@ -98,4 +98,4 @@ bind C-v run "tmux set-buffer $(reattach-to-user-namespace pbpaste); tmux paste-
 ### Color & Style Settings ###
 ##############################
 
-source ~/.dotfiles/tmux/theme.sh
+source ~/.dotfiles/tmux/base16.sh
