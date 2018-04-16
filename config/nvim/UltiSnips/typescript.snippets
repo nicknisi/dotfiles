@@ -39,3 +39,13 @@ endsnippet
 snippet ima "import * as " b
 import * as $1 from '$2'
 endsnippet
+
+snippet dojowidget "Start a new Dojo 2 Widget"
+import WidgetBase from '@dojo/widget-core/WidgetBase';
+import { v } from '@dojo/widget-core/d';
+import { theme, ThemedMixin } from '@dojo/widget-core/mixins/Theme';
+
+export default ${1:Widget} extends ThemedMixin(WidgetBase) {
+	$2
+}
+endsnippet
