@@ -364,7 +364,7 @@ call plug#begin('~/.config/nvim/plugged')
 	Plug 'tpope/vim-repeat'
 
 	" .editorconfig support
-	Plug 'editorconfig/editorconfig-vim'
+	Plug 'edt itorconfig/editorconfig-vim'
 
 	" asynchronous build and test dispatcher
 	Plug 'tpope/vim-dispatch'
@@ -603,7 +603,6 @@ call plug#begin('~/.config/nvim/plugged')
 	Plug 'fatih/vim-go', { 'for': 'go' }
 	Plug 'timcharper/textile.vim', { 'for': 'textile' }
 	Plug 'lambdatoast/elm.vim', { 'for': 'elm' }
-	Plug 'tpope/vim-endwise', { 'for': [ 'ruby', 'bash', 'zsh', 'sh' ]}
 	Plug 'kchmck/vim-coffee-script', { 'for': 'coffeescript' }
 " }}}
 
