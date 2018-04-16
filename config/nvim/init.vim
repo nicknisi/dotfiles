@@ -287,6 +287,14 @@ call plug#begin('~/.config/nvim/plugged')
 	vnoremap ∆ :m '>+1<cr>gv=gv
 	vnoremap ˚ :m '<-2<cr>gv=gv
 
+	vnoremap $( <esc>`>a)<esc>`<i(<esc>
+	vnoremap $[ <esc>`>a]<esc>`<i[<esc>
+	vnoremap ${ <esc>`>a}<esc>`<i{<esc>
+	vnoremap $" <esc>`>a"<esc>`<i"<esc>
+	vnoremap $' <esc>`>a'<esc>`<i'<esc>
+	vnoremap $\ <esc>`>o*/<esc>`<O/*<esc>
+	vnoremap $< <esc>`>a><esc>`<i<<esc>
+
 	" toggle cursor line
 	nnoremap <leader>i :set cursorline!<cr>
 
@@ -379,7 +387,7 @@ call plug#begin('~/.config/nvim/plugged')
 	Plug 'vim-scripts/matchit.zip'
 
 	" add end, endif, etc. automatically
-	Plug 'tpope/vim-endwise', { 'for': [ 'ruby', 'bash', 'zsh', 'sh', 'vim' ]}
+	Plug 'tpope/vim-endwise'
 
 	" detect indent style (tabs vs. spaces)
 	Plug 'tpope/vim-sleuth'
@@ -559,6 +567,8 @@ call plug#begin('~/.config/nvim/plugged')
 		\}
 		let g:ale_fixers = {}
 		let g:ale_fixers['javascript'] = ['prettier']
+        let g:ale_fixers['typescript'] = ['prettier', 'tslint']
+		let g:ale_fixers['json'] = ['prettier']
 		let g:ale_javascript_prettier_use_local_config = 1
 		let g:ale_fix_on_save = 0
 	" }}}
