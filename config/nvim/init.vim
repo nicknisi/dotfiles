@@ -372,7 +372,7 @@ call plug#begin('~/.config/nvim/plugged')
 	Plug 'tpope/vim-repeat'
 
 	" .editorconfig support
-	Plug 'edt itorconfig/editorconfig-vim'
+	Plug 'editorconfig/editorconfig-vim'
 
 	" asynchronous build and test dispatcher
 	Plug 'tpope/vim-dispatch'
