@@ -486,11 +486,13 @@ call plug#begin('~/.config/nvim/plugged')
 
 		if isdirectory(".git")
 			" if in a git project, use :GFiles
-			nmap <silent> <leader>t :GFiles --cached --others --exclude-standard<cr>
+			nmap <silent> <leader>t :GitFiles --cached --others --exclude-standard<cr>
 		else
 			" otherwise, use :FZF
 			nmap <silent> <leader>t :FZF<cr>
 		endif
+
+		nmap <silent> <leader>s :GFiles?<cr>
 
 		nmap <silent> <leader>r :Buffers<cr>
 		nmap <silent> <leader>e :FZF<cr>
@@ -524,7 +526,7 @@ call plug#begin('~/.config/nvim/plugged')
 			\ <bang>0 ? fzf#vim#with_preview('up:60%') : fzf#vim#with_preview('right:50%:hidden', '?'), <bang>0)
 		command! -bang -nargs=? -complete=dir Files
 			\ call fzf#vim#files(<q-args>, fzf#vim#with_preview('right:50%', '?'), <bang>0)
-		command! -bang -nargs=? -complete=dir GFiles
+		command! -bang -nargs=? -complete=dir GitFiles
 			\ call fzf#vim#gitfiles(<q-args>, fzf#vim#with_preview('right:50%', '?'), <bang>0)
 	" }}}
 
