@@ -308,12 +308,6 @@ call plug#begin('~/.config/nvim/plugged')
 	nnoremap <silent> ^ g^
 	nnoremap <silent> $ g$
 
-	" inoremap <tab> <c-r>=Smart_TabComplete()<CR>
-
-	map <leader>r :call RunCustomCommand()<cr>
-	" map <leader>s :call SetCustomCommand()<cr>
-	let g:silent_custom_command = 0
-
 	" helpers for dealing with other people's code
 	nmap \t :set ts=4 sts=4 sw=4 noet<cr>
 	nmap \s :set ts=4 sts=4 sw=4 et<cr>
