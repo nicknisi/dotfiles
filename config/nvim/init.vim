@@ -216,8 +216,15 @@ call plug#begin('~/.config/nvim/plugged')
 			return "\uE725" . (exists('*fugitive#head') ? fugitive#head() : '')
 		endfunction
 
+		function! LightlineUpdate()
+			if g:goyo_entered == 0
+				" do not update lightline if in Goyo mode
+				call lightline#update()
+			endif
+		endfunction
+
 		augroup alestatus
-			autocmd User ALELint call lightline#update()
+			autocmd User ALELint call LightlineUpdate()
 		augroup end
 	" }}}
 " }}}
@@ -439,6 +446,28 @@ call plug#begin('~/.config/nvim/plugged')
 		Plug 'junegunn/limelight.vim'
 		Plug 'junegunn/goyo.vim'
 		let g:limelight_conceal_ctermfg = 240
+
+        let g:goyo_entered = 0
+		function! s:goyo_enter()
+			silent !tmux set status off
+            let g:goyo_entered = 1
+			set noshowmode
+			set noshowcmd
+			set scrolloff=999
+			Limelight
+		endfunction
+
+		function! s:goyo_leave()
+			silent !tmux set status on
+            let g:goyo_entered = 0
+			set showmode
+			set showcmd
+			set scrolloff=5
+			Limelight!
+		endfunction
+
+		autocmd! User GoyoEnter nested call <SID>goyo_enter()
+		autocmd! User GoyoLeave nested call <SID>goyo_leave()
 	" }}}
 
 	" context-aware pasting
