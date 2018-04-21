@@ -29,7 +29,6 @@ apps=(
     "MindNode:1289197285"
     "Fantastical 2:975937182"
     "Pages:409201541"
-    "Deckset:847496013"
     "Bear:1091189122"
     "Tweetbot:557168941"
     "Reeder:880001334"
