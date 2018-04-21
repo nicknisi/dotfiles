@@ -29,6 +29,7 @@ formulas=(
     the_silver_searcher
     shellcheck
     tmux
+    trash
     tree
     wget
     vim
