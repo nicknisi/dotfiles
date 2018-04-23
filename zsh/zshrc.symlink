@@ -75,7 +75,7 @@ if command_exists direnv; then
     eval "$(direnv hook zsh)"
 fi
 
-if [ -z ${RELOAD}  ] && command_exists zplug; then
+if [ -z ${RELOAD}  ]; then
     export ZPLUG_HOME=/usr/local/opt/zplug
     source $ZPLUG_HOME/init.zsh
     zplug 'zplug/zplug', hook-build:'zplug --self-manage'
