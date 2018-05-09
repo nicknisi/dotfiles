@@ -3,6 +3,7 @@
 Welcome to my world. This is a collection of vim, tmux, and zsh configurations. Interested in a video walkthrough of the dotfiles? Check out my talk, [vim + tmux](https://www.youtube.com/watch?v=5r6yzFEXajQ).
 
 Obviously this setup works for me, a JavaScript developer on macOS, but this particular setup may not work for you. If this particular setup doesn't work for you, please steal ideas from this and if you like, contribute back tips, tricks, and other tidbits via Pull Requests if you like!
+![A screenshot of the dotfiles setup](screenshot.png)
 
 ## Contents
 
@@ -30,7 +31,7 @@ If on OSX, you will need to install the XCode CLI tools before continuing. To do
 ➜ xcode-select --install
 ```
 
-Then, clone the dotfiles repository to your computer. This can be placed anywhere, and symbolic links will be created to reference it from your home directory.
+Then, clone the dotfiles repository to your home directory as `~/.dotfiles`. 
 
 ```bash
 ➜ git clone https://github.com/nicknisi/dotfiles.git ~/.dotfiles
@@ -59,25 +60,17 @@ ZSH is configured in the `zshrc.symlink` file, which will be symlinked to the ho
 
 The prompt is meant to be simple while still providing a lot of information to the user, particularly about the status of the git project, if the PWD is a git project. This prompt sets `precmd`, `PROMPT` and `RPROMPT`.
 
-![](http://nicknisi.com/share/prompt.png)
-
 The `precmd` shows the current working directory in it and the `RPROMPT` shows the git and suspended jobs info.
 
 #### Prompt Git Info
 
 The git info shown on the `RPROMPT` displays the current branch name, and whether it is clean or dirty.
 
-![](http://nicknisi.com/share/git-branch-state.png)
-
 Additionally, there are ⇣ and ⇡ arrows that indicate whether a commit has happened and needs to be pushed (⇡), and whether commits have happened on the remote branch that need to be pulled (⇣).
-
-![](http://nicknisi.com/share/git-arrows.png)
 
 #### Suspended Jobs
 
 The prompt will also display a ✱ character in the `RPROMPT` indicating that there is a suspended job that exists in the background. This is helpful in keeping track of putting vim in the background by pressing CTRL-Z.
-
-![](http://nicknisi.com/share/suspended-jobs.png)
 
 ## Vim and Neovim Setup
 
@@ -104,12 +97,14 @@ vim and neovim should just work once the correct plugins are installed. To insta
 
 ## Fonts
 
-I am currently using [Operator Mono](http://www.typography.com/fonts/operator/styles/operatormonoscreensmart) as my default font which is a paid font ($199 US) and does not include Powerline support. In addition to this, I do have [nerd-fonts](https://github.com/ryanoasis/nerd-fonts) installed and configured to be used for non-ascii characters. If you would prefer not to do this, then simply remove the `Plug 'ryanoasis/vim-devicons'` plugin from vim/nvim. Then, I configure the fonts in this way in iTerm2:
-
-![](http://nicknisi.com/share/iterm-fonts-config.png)
+I am currently using [Operator Mono](http://www.typography.com/fonts/operator/styles/operatormonoscreensmart) as my default font which is a paid font ($199 US) and does not include Powerline support. You do not need this font at all and there is nothing directly referencing it in the setup. For a great, free programming font, check out Mozilla's [Fira](http://mozilla.github.io/Fira/). In addition to this, I do have [nerd-fonts](https://github.com/ryanoasis/nerd-fonts) installed and configured to be used for non-ascii characters via iTerm2's profile settings. If you would prefer not to do this, then simply remove the `Plug 'ryanoasis/vim-devicons'` plugin from vim/nvim.
 
 ## Tmux Configuration
 
 Tmux is a terminal multiplexor which lets you create windows and splits in the terminal that you can attach and detach from. I use it to keep multiple projects open in separate windows and to create an IDE-like environment to work in where I can have my code open in vim/neovim and a shell open to run tests/scripts. Tmux is configured in [~/.tmux.conf](tmux/tmux.conf.symlink), and in [tmux/theme.sh](tmux/theme.sh), which defines the colors used, the layout of the tmux bar, and what what will be displayed, including the time and date, open windows, tmux session name, computer name, and current iTunes song playing. If not running on macOS, this configuration should be removed.
 
 When tmux starts up, [login-shell](bin/login-shell) will be run and if it determines you are running this on macOS, it will call reattach-to-user-namespace, to fix the system clipboard for use inside of tmux.
+
+## Questions
+
+If you have questions, notice issues,  or would like to see improvements, please open an [issue](https://github.com/nicknisi/dotfiles/issues/new) and I'm happy to help you out!
