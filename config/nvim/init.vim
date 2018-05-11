@@ -572,6 +572,9 @@ call plug#begin('~/.config/nvim/plugged')
 	" vim-fugitive {{{
 		Plug 'tpope/vim-fugitive'
 		Plug 'tpope/vim-rhubarb' " hub extension for fugitive
+        Plug 'junegunn/gv.vim'
+        Plug 'sodapopcan/vim-twiggy'
+        Plug 'christoomey/vim-conflicted'
 		nmap <silent> <leader>gs :Gstatus<cr>
 		nmap <leader>ge :Gedit<cr>
 		nmap <silent><leader>gr :Gread<cr>
