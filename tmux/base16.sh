@@ -65,13 +65,13 @@ set-option -g display-panes-colour $base01
 # clock
 set-window-option -g clock-mode-colour $base0C
 
-tm_session_name="#[default,bg=$base0E,fg=$base00] #S "
+tm_session_name="#[default,bg=$base0E,fg=$base01] #S "
 set -g status-left "$tm_session_name"
 
-tm_tunes="#[bg=$base0D,fg=$base02] ♫ #(osascript -l JavaScript ~/.dotfiles/applescripts/tunes.js)"
+tm_tunes="#[bg=$base0D,fg=$base01] ♫ #(osascript -l JavaScript ~/.dotfiles/applescripts/tunes.js)"
 # tm_tunes="#[fg=$tm_color_music]#(osascript ~/.dotfiles/applescripts/tunes.scpt | cut -c 1-50)"
 # tm_battery="#(~/.dotfiles/bin/battery_indicator.sh)"
-tm_battery="#[fg=$base00,bg=$base09] ♥ #(battery)"
+tm_battery="#[fg=$base01,bg=$base09] ♥ #(battery)"
 tm_date="#[default,bg=$base02,fg=$base05] %R"
-tm_host="#[fg=$base00,bg=$base0E] #h "
+tm_host="#[fg=$base01,bg=$base0E] #h "
 set -g status-right "$tm_tunes $tm_battery $tm_date $tm_host"
