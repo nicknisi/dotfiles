@@ -10,9 +10,6 @@ pug:*.{pug,jade}
 --type-add
 tmpl:*.{html,hbs,pug}
 
-# Don't let ripgrep vomit really long lines to my terminal
---max-columns=150
-
 # ignore case
 --smart-case
 
