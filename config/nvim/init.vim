@@ -607,7 +607,9 @@ call plug#begin('~/.config/nvim/plugged')
 	" }}}
 " }}}
 
-" Language-Specific Configuration {{{
+" Language/Framework-Specific Configuration {{{
+    Plug 'sheerun/vim-polyglot'
+
 	" html / templates {{{
 		" emmet support for vim - easily create markdup wth CSS-like syntax
 		Plug 'mattn/emmet-vim', { 'for': ['html', 'javascript.jsx', 'eruby' ]}
@@ -619,32 +621,18 @@ call plug#begin('~/.config/nvim/plugged')
 
 		" match tags in html, similar to paren support
 		Plug 'gregsexton/MatchTag', { 'for': 'html' }
-
-		" html5 support
-		Plug 'othree/html5.vim', { 'for': 'html' }
-
-		" mustache support
-		Plug 'mustache/vim-mustache-handlebars'
-
-		" pug / jade support
-		Plug 'digitaltoad/vim-pug', { 'for': ['jade', 'pug'] }
-
-		" Ruby / Ruby on Rails
-		Plug 'tpope/vim-rails', { 'for': 'ruby' }
 	" }}}
 
 	" Ruby / Ruby on Rails
 	Plug 'tpope/vim-rails', { 'for': 'ruby' }
 
 	" JavaScript {{{
-		Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
 		Plug 'moll/vim-node', { 'for': 'javascript' }
 		Plug 'mxw/vim-jsx', { 'for': ['javascript.jsx', 'javascript'] }
 		Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'], 'do': 'npm install' }
 	" }}}
 
 	" TypeScript {{{
-		Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
 		Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 
         Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
@@ -655,17 +643,12 @@ call plug#begin('~/.config/nvim/plugged')
 
 
 	" Styles {{{
-		Plug 'wavded/vim-stylus', { 'for': ['stylus', 'markdown'] }
-		Plug 'groenewege/vim-less', { 'for': 'less' }
 		Plug 'hail2u/vim-css3-syntax', { 'for': 'css' }
-		Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }
 		Plug 'gko/vim-coloresque'
 		Plug 'stephenway/postcss.vim', { 'for': 'css' }
 	" }}}
 
 	" markdown {{{
-		Plug 'tpope/vim-markdown', { 'for': 'markdown' }
-
 		" Open markdown files in Marked.app - mapped to <leader>m
 		Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' }
 		nmap <leader>m :MarkedOpen!<cr>
@@ -674,14 +657,8 @@ call plug#begin('~/.config/nvim/plugged')
 	" }}}
 
 	" JSON {{{
-		Plug 'elzr/vim-json', { 'for': 'json' }
 		let g:vim_json_syntax_conceal = 0
 	" }}}
-
-	Plug 'fatih/vim-go', { 'for': 'go' }
-	Plug 'timcharper/textile.vim', { 'for': 'textile' }
-	Plug 'lambdatoast/elm.vim', { 'for': 'elm' }
-	Plug 'kchmck/vim-coffee-script', { 'for': 'coffeescript' }
 " }}}
 
 call plug#end()
