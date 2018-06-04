@@ -477,6 +477,19 @@ call plug#begin('~/.config/nvim/plugged')
 		Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeToggle', 'NERDTreeFind'] }
 		Plug 'Xuyuanp/nerdtree-git-plugin'
 		Plug 'ryanoasis/vim-devicons'
+        Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
+        let g:WebDevIconsOS = 'Darwin'
+		let g:WebDevIconsUnicodeDecorateFolderNodes = 1
+        let g:DevIconsEnableFoldersOpenClose = 1
+        let g:DevIconsEnableFolderExtensionPatternMatching = 1
+        let NERDTreeDirArrowExpandable = "\u00a0" " make arrows invisible
+        let NERDTreeDirArrowCollapsible = "\u00a0" " make arrows invisible
+
+        augroup nerdtree
+            autocmd!
+            autocmd FileType nerdtree setlocal nolist " turn off whitespace characters
+            autocmd FileType nerdtree setlocal nocursorline " turn off line highlighting for performance
+        augroup END
 
 		" Toggle NERDTree
 		function! ToggleNerdTree()
