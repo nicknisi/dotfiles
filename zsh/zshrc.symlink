@@ -99,6 +99,11 @@ if command_exists hub; then
     eval "$(hub alias -s)"
 fi
 
+# Move to end of line with ctrl-F
+bindkey -M viins "^F" vi-forward-word
+# move to next word with ctrl-E
+bindkey -M viins "^E" vi-add-eol
+
 # add color to man pages
 export MANROFFOPT='-c'
 export LESS_TERMCAP_mb=$(tput bold; tput setaf 2)
