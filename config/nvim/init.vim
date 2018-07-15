@@ -618,6 +618,17 @@ call plug#begin('~/.config/nvim/plugged')
 		Plug 'SirVer/ultisnips' " Snippets plugin
 		let g:UltiSnipsExpandTrigger="<tab>"
 	" }}}
+
+	" Completion {{{
+		if (has('nvim'))
+			Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+		else
+			Plug 'Shougo/deoplete.nvim'
+			Plug 'roxma/nvim-yarp'
+			Plug 'roxma/vim-hug-neovim-rpc'
+		endif
+		let g:deoplete#enable_at_startup = 1
+	" }}}
 " }}}
 
 " Language-Specific Configuration {{{
@@ -657,13 +668,16 @@ call plug#begin('~/.config/nvim/plugged')
 	" }}}
 
 	" TypeScript {{{
+		" Plug 'HerringtonDarkholme/yats.vim', { 'for': 'typescript' }
 		Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
 		Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 
-        Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
-		let g:tsuquyomi_completion_detail = 1
-		let g:tsuquyomi_disable_default_mappings = 1
-		let g:tsuquyomi_completion_detail = 1
+        Plug 'mhartington/nvim-typescript', { 'for': 'typescript', 'do': './install.sh' }
+		let g:nvim_typescript#diagnosticsEnable = 0
+        " Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
+		" let g:tsuquyomi_completion_detail = 1
+		" let g:tsuquyomi_disable_default_mappings = 1
+		" let g:tsuquyomi_completion_detail = 1
 	" }}}
 
 
