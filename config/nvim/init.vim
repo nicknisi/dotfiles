@@ -345,6 +345,8 @@ call plug#begin('~/.config/nvim/plugged')
 " }}}
 
 " General Functionality {{{
+    " better terminal integration
+    " Plug 'wincent/terminus'
 	" substitute, search, and abbreviate multiple variants of a word
 	Plug 'tpope/vim-abolish'
 
@@ -454,6 +456,9 @@ call plug#begin('~/.config/nvim/plugged')
 			set noshowmode
 			set noshowcmd
 			set scrolloff=999
+			set wrap
+			setlocal textwidth=0
+			setlocal wrapmargin=0
 			Limelight
 		endfunction
 
@@ -463,6 +468,8 @@ call plug#begin('~/.config/nvim/plugged')
 			set showmode
 			set showcmd
 			set scrolloff=5
+			set textwidth=120
+			set wrapmargin=8
 			Limelight!
 		endfunction
 
@@ -610,6 +617,7 @@ call plug#begin('~/.config/nvim/plugged')
 		let g:ale_fixers['javascript'] = ['prettier']
         let g:ale_fixers['typescript'] = ['prettier', 'tslint']
 		let g:ale_fixers['json'] = ['prettier']
+		let g:ale_fixers['css'] = ['prettier']
 		let g:ale_javascript_prettier_use_local_config = 1
 		let g:ale_fix_on_save = 0
 	" }}}
@@ -634,7 +642,7 @@ call plug#begin('~/.config/nvim/plugged')
 " Language-Specific Configuration {{{
 	" html / templates {{{
 		" emmet support for vim - easily create markdup wth CSS-like syntax
-		Plug 'mattn/emmet-vim', { 'for': ['html', 'javascript.jsx', 'eruby' ]}
+		Plug 'mattn/emmet-vim', { 'for': ['html', 'javascript.jsx']}
 		let g:user_emmet_settings = {
 		\  'javascript.jsx': {
 		\	   'extends': 'jsx',
@@ -652,16 +660,11 @@ call plug#begin('~/.config/nvim/plugged')
 
 		" pug / jade support
 		Plug 'digitaltoad/vim-pug', { 'for': ['jade', 'pug'] }
-
-		" Ruby / Ruby on Rails
-		Plug 'tpope/vim-rails', { 'for': 'ruby' }
 	" }}}
 
-	" Ruby / Ruby on Rails
-	Plug 'tpope/vim-rails', { 'for': 'ruby' }
-
 	" JavaScript {{{
-		Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
+        Plug 'othree/yajs.vim', { 'for': [ 'javascript', 'javascript.jsx', 'html' ] }
+		" Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
 		Plug 'moll/vim-node', { 'for': 'javascript' }
 		Plug 'mxw/vim-jsx', { 'for': ['javascript.jsx', 'javascript'] }
 		Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'], 'do': 'npm install' }
@@ -709,6 +712,7 @@ call plug#begin('~/.config/nvim/plugged')
 	Plug 'timcharper/textile.vim', { 'for': 'textile' }
 	Plug 'lambdatoast/elm.vim', { 'for': 'elm' }
 	Plug 'kchmck/vim-coffee-script', { 'for': 'coffeescript' }
+	Plug 'nikvdp/ejs-syntax'
 " }}}
 
 call plug#end()
@@ -727,8 +731,8 @@ call plug#end()
 	syntax on
 	filetype plugin indent on
 	" make the highlighting of tabs and other non-text less annoying
-	highlight SpecialKey ctermfg=236
-	highlight NonText ctermfg=236
+	highlight SpecialKey ctermfg=19
+	highlight NonText ctermfg=19
 
 	" make comments and HTML attributes italic
 	highlight Comment cterm=italic
