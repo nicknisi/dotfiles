@@ -18,7 +18,7 @@
     s = status --short
     ss  = status
     br = branch -v
-    addnw="!sh -c 'git diff -U0 -w --no-color \"$@\" | git apply --cached --ignore-whitespace --unidiff-zero -'"
+    addnw = "!sh -c 'git diff -U0 -w --no-color \"$@\" | git apply --cached --ignore-whitespace --unidiff-zero -'"
 
     # rebase commands
     cont = rebase --continue
