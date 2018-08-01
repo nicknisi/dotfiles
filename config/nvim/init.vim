@@ -717,6 +717,7 @@ call plug#begin('~/.config/nvim/plugged')
     Plug 'lambdatoast/elm.vim', { 'for': 'elm' }
     Plug 'kchmck/vim-coffee-script', { 'for': 'coffeescript' }
     Plug 'nikvdp/ejs-syntax'
+    Plug 'ekalinin/Dockerfile.vim'
 " }}}
 
 call plug#end()
