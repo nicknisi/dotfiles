@@ -11,7 +11,6 @@ echo "=============================="
 formulas=(
     ack
     diff-so-fancy
-    direnv
     dnsmasq
     fzf
     git
@@ -24,7 +23,6 @@ formulas=(
     node
     nginx
     python
-    rbenv
     reattach-to-user-namespace
     the_silver_searcher
     shellcheck

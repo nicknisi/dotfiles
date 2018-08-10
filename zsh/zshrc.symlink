@@ -49,11 +49,6 @@ if [[ -d ~/bin ]]; then
     export PATH=~/bin:$PATH
 fi
 
-# install rbenv
-if command_exists rbenv; then
-    eval "$(rbenv init -)"
-fi
-
 # add a config file for ripgrep
 export RIPGREP_CONFIG_PATH="$HOME/.rgrc"
 
@@ -70,10 +65,6 @@ export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 # Base16 shell setup
 BASE16_SHELL=$HOME/.config/base16-shell/
 [ -n "$PS1" ] && [ -s $BASE16_SHELL/profile_helper.sh ] && eval "$($BASE16_SHELL/profile_helper.sh)"
-
-if command_exists direnv; then
-    eval "$(direnv hook zsh)"
-fi
 
 if [ -z ${RELOAD}  ]; then
     export ZPLUG_HOME=/usr/local/opt/zplug
