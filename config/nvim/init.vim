@@ -613,7 +613,7 @@ call plug#begin('~/.config/nvim/plugged')
         let g:ale_echo_msg_format = '%severity% %s% [%linter%% code%]'
 
         let g:ale_linters = {
-        \   'javascript': ['eslint'],
+        \   'javascript': ['eslint', 'tsserver'],
         \   'typescript': ['tsserver', 'tslint'],
         \   'html': []
         \}
