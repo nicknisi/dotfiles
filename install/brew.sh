@@ -10,6 +10,7 @@ echo "=============================="
 
 formulas=(
     ack
+    bat
     diff-so-fancy
     dnsmasq
     fzf
