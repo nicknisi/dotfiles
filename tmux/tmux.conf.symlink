@@ -2,9 +2,7 @@ set -g default-command "login-shell"
 
 # tmux display things in 256 colors
 set -g default-terminal "tmux-256color-italic"
-
-#  enable terminal compability
-set-option -ga terminal-overrides ",tmux-256color-italic:Tc"
+set -as terminal-overrides ',xterm*:Tc:sitm=\E[3m'
 
 set -g history-limit 20000
 

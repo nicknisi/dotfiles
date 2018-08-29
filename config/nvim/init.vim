@@ -107,7 +107,7 @@ call plug#begin('~/.config/nvim/plugged')
     endif
 
     " enable 24 bit color support if supported
-    if (has('mac') && empty($TMUX) && has("termguicolors"))
+    if (has("termguicolors"))
         set termguicolors
     endif
 
@@ -741,10 +741,10 @@ call plug#end()
     highlight NonText ctermfg=19
 
     " make comments and HTML attributes italic
-    highlight Comment cterm=italic
-    highlight htmlArg cterm=italic
-    highlight xmlAttrib cterm=italic
-    highlight Type cterm=italic
+    highlight Comment cterm=italic term=italic gui=italic
+    highlight htmlArg cterm=italic term=italic gui=italic
+    highlight xmlAttrib cterm=italic term=italic gui=italic
+    " highlight Type cterm=italic term=italic gui=italic
     highlight Normal ctermbg=none
 
 " }}}

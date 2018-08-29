@@ -2,7 +2,7 @@
 #
 # Install:
 #
-#   tic xterm-256color-italic.terminfo
+#   tic -x xterm-256color-italic.terminfo
 #
 # Usage:
 #

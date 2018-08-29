@@ -2,12 +2,13 @@
 #
 # Install:
 #
-#   tic xterm-256color-italic.terminfo
+#   tic -x xterm-256color-italic.terminfo
 #
 # Usage:
 #
 #   export TERM=tmux-256color-italic
 #
-tmux-256color-italic|tmux with 256 colors and italic,
-  sitm=\E[3m, ritm=\E[23m,
-  use=xterm-256color,
+tmux-256color-italic|tmux with 256 colors,
+  ritm=\E[23m, rmso=\E[27m, sitm=\E[3m, smso=\E[7m, Ms@,
+  khome=\E[1~, kend=\E[4~,
+  use=xterm-256color, use=screen-256color,
