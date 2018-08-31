@@ -186,7 +186,6 @@ call plug#begin('~/.config/nvim/plugged')
 
         function! LightlineFileType()
             return WebDevIconsGetFileTypeSymbol()
-            " return winwidth(0) > 70 ? (&filetype !=# '' ? &filetype . ' ' . WebDevIconsGetFileTypeSymbol() : 'no ft') : ''
         endfunction
 
         function! LightlineLinter() abort
@@ -395,11 +394,8 @@ call plug#begin('~/.config/nvim/plugged')
     " detect indent style (tabs vs. spaces)
     Plug 'tpope/vim-sleuth'
 
-    " a simple tool for presenting slides in vim based on text files
-    Plug 'sotte/presenting.vim', { 'for': 'markdown' }
-
-    " Fancy startup screen for vim {{{
-    Plug 'mhinz/vim-startify'
+    " Startify: Fancy startup screen for vim {{{
+        Plug 'mhinz/vim-startify'
 
         " Don't change to directory when selecting a file
         let g:startify_files_number = 5
@@ -675,17 +671,12 @@ call plug#begin('~/.config/nvim/plugged')
     " }}}
 
     " TypeScript {{{
-        " Plug 'HerringtonDarkholme/yats.vim', { 'for': 'typescript' }
         Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
         Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 
         Plug 'mhartington/nvim-typescript', { 'for': 'typescript', 'do': './install.sh' }
         let g:nvim_typescript#diagnosticsEnable = 0
         let g:nvim_typescript#max_completion_detail=100
-        " Plug 'Quramy/tsuquyomi', { 'for': 'typescript', 'do': 'npm install' }
-        " let g:tsuquyomi_completion_detail = 1
-        " let g:tsuquyomi_disable_default_mappings = 1
-        " let g:tsuquyomi_completion_detail = 1
     " }}}
 
 
@@ -716,8 +707,6 @@ call plug#begin('~/.config/nvim/plugged')
     Plug 'fatih/vim-go', { 'for': 'go' }
     Plug 'timcharper/textile.vim', { 'for': 'textile' }
     Plug 'lambdatoast/elm.vim', { 'for': 'elm' }
-    Plug 'kchmck/vim-coffee-script', { 'for': 'coffeescript' }
-    Plug 'nikvdp/ejs-syntax'
     Plug 'ekalinin/Dockerfile.vim'
 " }}}
 
