@@ -121,7 +121,6 @@ call plug#begin('~/.config/nvim/plugged')
     " LightLine {{{
         Plug 'itchyny/lightline.vim'
         Plug 'nicknisi/vim-base16-lightline'
-        " Plug 'felixjung/vim-base16-lightline'
         let g:lightline = {
         \   'colorscheme': 'base16',
         \   'active': {
@@ -345,7 +344,6 @@ call plug#begin('~/.config/nvim/plugged')
 
 " General Functionality {{{
     " better terminal integration
-    " Plug 'wincent/terminus'
     " substitute, search, and abbreviate multiple variants of a word
     Plug 'tpope/vim-abolish'
 
