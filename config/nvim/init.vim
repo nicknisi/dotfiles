@@ -673,7 +673,7 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 
         Plug 'mhartington/nvim-typescript', { 'for': 'typescript', 'do': './install.sh' }
-        let g:nvim_typescript#diagnosticsEnable = 0
+        let g:nvim_typescript#diagnostics_enable = 0
         let g:nvim_typescript#max_completion_detail=100
     " }}}
 
