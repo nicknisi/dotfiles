@@ -15,7 +15,7 @@ source install/git.sh
 
 # only perform macOS-specific install
 if [ "$(uname)" == "Darwin" ]; then
-    echo -e "\\n\\nRunning on OSX"
+    echo -e "\\n\\nRunning on MacOS"
 
     source install/brew.sh
 
