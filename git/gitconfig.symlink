@@ -147,8 +147,6 @@
     whitespace = cr-at-eol
 [rerere]
     enabled = true
-[gitsh]
-    defaultCommand = s
 [grep]
     extendRegexp = true
     lineNumber = true
