@@ -222,7 +222,7 @@ call plug#begin('~/.config/nvim/plugged')
         endfunction
 
         augroup alestatus
-            autocmd User ALELint call LightlineUpdate()
+            autocmd User ALELintPost call LightlineUpdate()
         augroup end
     " }}}
 " }}}
