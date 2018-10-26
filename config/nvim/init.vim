@@ -485,6 +485,7 @@ call plug#begin('~/.config/nvim/plugged')
         let g:DevIconsEnableFolderExtensionPatternMatching = 1
         let NERDTreeDirArrowExpandable = "\u00a0" " make arrows invisible
         let NERDTreeDirArrowCollapsible = "\u00a0" " make arrows invisible
+        let NERDTreeNodeDelimiter = "\u263a" " smiley face
 
         augroup nerdtree
             autocmd!
