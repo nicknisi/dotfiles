@@ -619,6 +619,7 @@ call plug#begin('~/.config/nvim/plugged')
         let g:ale_fixers['css'] = ['prettier']
         let g:ale_javascript_prettier_use_local_config = 1
         let g:ale_fix_on_save = 0
+        nmap <silent><leader>af :ALEFix<cr>
     " }}}
 
     " UltiSnips {{{
