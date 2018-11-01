@@ -68,7 +68,6 @@ call plug#begin('~/.config/nvim/plugged')
     set showcmd " show incomplete commands
     set noshowmode " don't show which mode disabled for PowerLine
     set wildmode=list:longest " complete files like a shell
-    set scrolloff=3 " lines of text around cursor
     set shell=$SHELL
     set cmdheight=1 " command bar height
     set title " set terminal title
