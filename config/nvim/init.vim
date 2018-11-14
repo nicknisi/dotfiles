@@ -610,6 +610,7 @@ call plug#begin('~/.config/nvim/plugged')
         let g:ale_linters = {
         \   'javascript': ['eslint', 'tsserver'],
         \   'typescript': ['tsserver', 'tslint'],
+        \   'typescript.tsx': ['tsserver', 'tslint'],
         \   'html': []
         \}
         let g:ale_fixers = {}
@@ -672,6 +673,7 @@ call plug#begin('~/.config/nvim/plugged')
 
     " TypeScript {{{
         Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
+        Plug 'ianks/vim-tsx', { 'for': 'typescript' }
         Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 
         " Plug 'mhartington/nvim-typescript', { 'for': 'typescript', 'do': './install.sh' }
@@ -691,6 +693,7 @@ call plug#begin('~/.config/nvim/plugged')
 
     " markdown {{{
         Plug 'tpope/vim-markdown', { 'for': 'markdown' }
+        let g:markdown_fenced_languages = [ 'tsx=typescript.tsx' ]
 
         " Open markdown files in Marked.app - mapped to <leader>m
         Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' }
