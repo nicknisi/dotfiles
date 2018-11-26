@@ -19,7 +19,7 @@ formulas=(
     hub
     markdown
     mas
-    neovim/neovim/neovim
+    neovim
     node
     python
     reattach-to-user-namespace
