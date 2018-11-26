@@ -438,9 +438,7 @@ call plug#begin('~/.config/nvim/plugged')
     nmap <leader>b :Bdelete<cr>
 
     " Writing in vim {{{{
-        Plug 'junegunn/limelight.vim'
         Plug 'junegunn/goyo.vim'
-        let g:limelight_conceal_ctermfg = 240
 
         let g:goyo_entered = 0
         function! s:goyo_enter()
@@ -452,7 +450,6 @@ call plug#begin('~/.config/nvim/plugged')
             set wrap
             setlocal textwidth=0
             setlocal wrapmargin=0
-            Limelight
         endfunction
 
         function! s:goyo_leave()
@@ -463,7 +460,6 @@ call plug#begin('~/.config/nvim/plugged')
             set scrolloff=5
             set textwidth=120
             set wrapmargin=8
-            Limelight!
         endfunction
 
         autocmd! User GoyoEnter nested call <SID>goyo_enter()
@@ -694,12 +690,6 @@ call plug#begin('~/.config/nvim/plugged')
     " markdown {{{
         Plug 'tpope/vim-markdown', { 'for': 'markdown' }
         let g:markdown_fenced_languages = [ 'tsx=typescript.tsx' ]
-
-        " Open markdown files in Marked.app - mapped to <leader>m
-        Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' }
-        nmap <leader>m :MarkedOpen!<cr>
-        nmap <leader>mq :MarkedQuit<cr>
-        nmap <leader>* *<c-o>:%s///gn<cr>
     " }}}
 
     " JSON {{{
