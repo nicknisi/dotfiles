@@ -20,6 +20,7 @@ git_status() {
     GIT_STATUS_AHEAD=$(dotfiles::print '012' '⇡')
     GIT_STATUS_BEHIND=$(dotfiles::print '011' '⇣')
     GIT_STATUS_DIVERGED=$(dotfiles::print '012' '⇕')
+    GIT_STATUS_CLEAN=$(dotfiles::print '002' '✔')
 
     INDEX=$(command git status --porcelain -b 2>/dev/null)
 
@@ -89,6 +90,8 @@ git_status() {
         [[ "$is_ahead" == true ]] && git_status="$GIT_STATUS_AHEAD$git_status"
         [[ "$is_behind" == true ]] && git_status="$GIT_STATUS_BEHIND$git_status"
     fi
+
+    [[ -n "$git_status" ]] || git_status="$GIT_STATUS_CLEAN"
 
     dotfiles::bold "$git_status"
     dotfiles::print '241' "$git_branch"
