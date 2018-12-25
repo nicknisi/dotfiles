@@ -2,7 +2,7 @@ autoload -Uz vcs_info
 autoload -Uz add-zsh-hook
 setopt prompt_subst
 
-zstyle ':vcs_info:*' enable git # You can add hg too if needed: `git hg`
+zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:git*' formats ' %b'
 
 add-zsh-hook precmd vcs_info
@@ -10,6 +10,7 @@ add-zsh-hook precmd async_trigger
 
 source "$DOTFILES/zsh/git_prompt.zsh"
 source "$DOTFILES/zsh/jobs_prompt.zsh"
+source "$DOTFILES/zsh/node_prompt.zsh"
 
 PROMPT_SYMBOL='❯'
 
@@ -38,7 +39,7 @@ function TRAPUSR1() {
 }
 
 precmd() {
-    print -P '\n%F{6}%~'
+    print -P "\n%F{6}%~ $(node_prompt)"
 }
 
 export PROMPT='%(?.%F{207}.%F{160})$PROMPT_SYMBOL%f '
