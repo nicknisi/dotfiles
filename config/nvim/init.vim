@@ -644,22 +644,9 @@ call plug#begin('~/.config/nvim/plugged')
 
         " match tags in html, similar to paren support
         Plug 'gregsexton/MatchTag', { 'for': 'html' }
-
-        " html5 support
-        Plug 'othree/html5.vim', { 'for': 'html' }
-    " }}}
-
-    " JavaScript {{{
-        Plug 'othree/yajs.vim', { 'for': [ 'javascript', 'javascript.jsx', 'html' ] }
-        " Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
-        Plug 'moll/vim-node', { 'for': 'javascript' }
-        Plug 'mxw/vim-jsx', { 'for': ['javascript.jsx', 'javascript'] }
-        Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'], 'do': 'npm install' }
-        " Plug 'flowtype/vim-flow', { 'for': ['javascript', 'javascript.jsx'] }
     " }}}
 
     " TypeScript {{{
-        Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
         Plug 'ianks/vim-tsx', { 'for': 'typescript' }
         Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 
@@ -668,18 +655,8 @@ call plug#begin('~/.config/nvim/plugged')
         let g:nvim_typescript#max_completion_detail=100
     " }}}
 
-    " markdown {{{
-        Plug 'tpope/vim-markdown', { 'for': 'markdown' }
-        let g:markdown_fenced_languages = [ 'tsx=typescript.tsx' ]
-    " }}}
-
-    " JSON {{{
-        Plug 'elzr/vim-json', { 'for': 'json' }
-        let g:vim_json_syntax_conceal = 0
-    " }}}
-
-    Plug 'timcharper/textile.vim', { 'for': 'textile' }
-    Plug 'ekalinin/Dockerfile.vim'
+    Plug 'sheerun/vim-polyglot'
+	let g:vim_json_syntax_conceal = 0
 " }}}
 
 call plug#end()
