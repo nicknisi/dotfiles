@@ -287,6 +287,8 @@ call plug#begin('~/.config/nvim/plugged')
 
     map <leader>wc :wincmd q<cr>
 
+    inoremap <tab> <c-r>=functions#Smart_TabComplete()<CR>
+
     " move line mappings
     " ∆ is <A-j> on macOS
     " ˚ is <A-k> on macOS
@@ -362,7 +364,7 @@ call plug#begin('~/.config/nvim/plugged')
     Plug 'tpope/vim-commentary'
 
     " mappings which are simply short normal mode aliases for commonly used ex commands
-    Plug 'tpope/vim-unimpaired'
+    " Plug 'tpope/vim-unimpaired'
 
     " endings for html, xml, etc. - ehances surround
     Plug 'tpope/vim-ragtag'
@@ -379,17 +381,8 @@ call plug#begin('~/.config/nvim/plugged')
     " .editorconfig support
     Plug 'editorconfig/editorconfig-vim'
 
-    " asynchronous build and test dispatcher
-    Plug 'tpope/vim-dispatch'
-
-    " netrw helper
-    Plug 'tpope/vim-vinegar'
-
     " single/multi line code handler: gS - split one line into multiple, gJ - combine multiple lines into one
     Plug 'AndrewRadev/splitjoin.vim'
-
-    " extended % matching
-    Plug 'vim-scripts/matchit.zip'
 
     " add end, endif, etc. automatically
     Plug 'tpope/vim-endwise'
@@ -435,9 +428,6 @@ call plug#begin('~/.config/nvim/plugged')
 
         autocmd User Startified setlocal cursorline
     " }}}
-
-    " Open selection in carbon.now.sh
-    Plug 'kristijanhusak/vim-carbon-now-sh'
 
     " Close buffers but keep splits
     Plug 'moll/vim-bbye'
@@ -587,14 +577,14 @@ call plug#begin('~/.config/nvim/plugged')
 
     " vim-fugitive {{{
         Plug 'tpope/vim-fugitive'
-        Plug 'tpope/vim-rhubarb' " hub extension for fugitive
-        Plug 'junegunn/gv.vim'
-        Plug 'sodapopcan/vim-twiggy'
-        Plug 'christoomey/vim-conflicted'
         nmap <silent> <leader>gs :Gstatus<cr>
         nmap <leader>ge :Gedit<cr>
         nmap <silent><leader>gr :Gread<cr>
         nmap <silent><leader>gb :Gblame<cr>
+
+        Plug 'tpope/vim-rhubarb' " hub extension for fugitive
+        Plug 'junegunn/gv.vim'
+        Plug 'sodapopcan/vim-twiggy'
     " }}}
 
     " ALE {{{
@@ -607,10 +597,10 @@ call plug#begin('~/.config/nvim/plugged')
         let g:ale_echo_msg_error_str = '✖'
         let g:ale_echo_msg_warning_str = '⚠'
         let g:ale_echo_msg_format = '%severity% %s% [%linter%% code%]'
-        let g:ale_completion_enabled = 1
+        " let g:ale_completion_enabled = 1
 
         let g:ale_linters = {
-        \   'javascript': ['eslint', 'tsserver'],
+        \   'javascript': ['eslint'],
         \   'typescript': ['tsserver', 'tslint'],
         \   'typescript.tsx': ['tsserver', 'tslint'],
         \   'html': []
@@ -631,14 +621,14 @@ call plug#begin('~/.config/nvim/plugged')
     " }}}
 
     " Completion {{{
-        " if (has('nvim'))
-        "     Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-        " else
-        "     Plug 'Shougo/deoplete.nvim'
-        "     Plug 'roxma/nvim-yarp'
-        "     Plug 'roxma/vim-hug-neovim-rpc'
-        " endif
-        " let g:deoplete#enable_at_startup = 1
+        if (has('nvim'))
+            Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+        else
+            Plug 'Shougo/deoplete.nvim'
+            Plug 'roxma/nvim-yarp'
+            Plug 'roxma/vim-hug-neovim-rpc'
+        endif
+        let g:deoplete#enable_at_startup = 1
     " }}}
 " }}}
 
@@ -657,12 +647,6 @@ call plug#begin('~/.config/nvim/plugged')
 
         " html5 support
         Plug 'othree/html5.vim', { 'for': 'html' }
-
-        " mustache support
-        Plug 'mustache/vim-mustache-handlebars'
-
-        " pug / jade support
-        Plug 'digitaltoad/vim-pug', { 'for': ['jade', 'pug'] }
     " }}}
 
     " JavaScript {{{
@@ -671,6 +655,7 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'moll/vim-node', { 'for': 'javascript' }
         Plug 'mxw/vim-jsx', { 'for': ['javascript.jsx', 'javascript'] }
         Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'], 'do': 'npm install' }
+        " Plug 'flowtype/vim-flow', { 'for': ['javascript', 'javascript.jsx'] }
     " }}}
 
     " TypeScript {{{
@@ -683,16 +668,6 @@ call plug#begin('~/.config/nvim/plugged')
         let g:nvim_typescript#max_completion_detail=100
     " }}}
 
-
-    " Styles {{{
-        Plug 'wavded/vim-stylus', { 'for': ['stylus', 'markdown'] }
-        Plug 'groenewege/vim-less', { 'for': 'less' }
-        Plug 'hail2u/vim-css3-syntax', { 'for': 'css' }
-        Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }
-        Plug 'gko/vim-coloresque'
-        Plug 'stephenway/postcss.vim', { 'for': 'css' }
-    " }}}
-
     " markdown {{{
         Plug 'tpope/vim-markdown', { 'for': 'markdown' }
         let g:markdown_fenced_languages = [ 'tsx=typescript.tsx' ]
@@ -703,9 +678,7 @@ call plug#begin('~/.config/nvim/plugged')
         let g:vim_json_syntax_conceal = 0
     " }}}
 
-    Plug 'fatih/vim-go', { 'for': 'go' }
     Plug 'timcharper/textile.vim', { 'for': 'textile' }
-    Plug 'lambdatoast/elm.vim', { 'for': 'elm' }
     Plug 'ekalinin/Dockerfile.vim'
 " }}}
 
