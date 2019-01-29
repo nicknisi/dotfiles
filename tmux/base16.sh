@@ -3,7 +3,7 @@
 base00=default   # - Default
 base01='#151515' # - Lighter Background (Used for status bars)
 base02='#202020' # - Selection Background
-base03='#303030' # - Comments, Invisibles, Line Highlighting
+base03='#909090' # - Comments, Invisibles, Line Highlighting
 base04='#505050' # - Dark Foreground (Used for status bars)
 base05='#D0D0D0' # - Default Foreground, Caret, Delimiters, Operators
 base06='#E0E0E0' # - Light Foreground (Not often used)
