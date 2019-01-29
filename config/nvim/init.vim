@@ -577,10 +577,10 @@ call plug#begin('~/.config/nvim/plugged')
         " Plug 'airblade/vim-gitgutter'
         Plug 'mhinz/vim-signify'
         let g:signify_vcs_list = [ 'git' ]
-        let g:signify_sign_add               = '+'
-        let g:signify_sign_delete            = '_'
-        let g:signify_sign_delete_first_line = '‾'
-        let g:signify_sign_change = '!'
+        let g:signify_sign_add               = '┃'
+        let g:signify_sign_delete            = '-'
+        let g:signify_sign_delete_first_line = '-'
+        let g:signify_sign_change = '┃'
     " }}}
 
     " vim-fugitive {{{
