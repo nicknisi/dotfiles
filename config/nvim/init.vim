@@ -283,6 +283,8 @@ call plug#begin('~/.config/nvim/plugged')
     map <silent> <C-k> :call functions#WinMove('k')<cr>
     map <silent> <C-l> :call functions#WinMove('l')<cr>
 
+	nnoremap <silent> <leader>z :call functions#zoom()<cr>
+
     map <leader>wc :wincmd q<cr>
 
     " move line mappings

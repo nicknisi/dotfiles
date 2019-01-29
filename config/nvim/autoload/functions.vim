@@ -100,3 +100,12 @@ function! functions#Delete(...)
     endif
     return status
 endfunction
+
+function! functions#zoom()
+  if winnr('$') > 1
+    tab split
+  elseif len(filter(map(range(tabpagenr('$')), 'tabpagebuflist(v:val + 1)'),
+      \ 'index(v:val, '.bufnr('').') >= 0')) > 1
+    tabclose
+  endif
+endfunction
