@@ -283,7 +283,7 @@ call plug#begin('~/.config/nvim/plugged')
     map <silent> <C-k> :call functions#WinMove('k')<cr>
     map <silent> <C-l> :call functions#WinMove('l')<cr>
 
-	nnoremap <silent> <leader>z :call functions#zoom()<cr>
+    nnoremap <silent> <leader>z :call functions#zoom()<cr>
 
     map <leader>wc :wincmd q<cr>
 
@@ -650,13 +650,14 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'ianks/vim-tsx', { 'for': 'typescript' }
         Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 
-        Plug 'mhartington/nvim-typescript', { 'for': 'typescript', 'do': './install.sh' }
-        let g:nvim_typescript#diagnostics_enable = 0
+        Plug 'mhartington/nvim-typescript', { 'do': './install.sh' }
         let g:nvim_typescript#max_completion_detail=100
+        let g:nvim_typescript#type_info_on_hold=1
+		let g:nvim_typescript#diagnostics_enable=0
     " }}}
 
     Plug 'sheerun/vim-polyglot'
-	let g:vim_json_syntax_conceal = 0
+    let g:vim_json_syntax_conceal = 0
 " }}}
 
 call plug#end()
