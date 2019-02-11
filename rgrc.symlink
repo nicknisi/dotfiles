@@ -10,6 +10,9 @@ pug:*.{pug,jade}
 --type-add
 tmpl:*.{html,hbs,pug}
 
+--type-add
+dts:*.d.ts
+
 # ignore case
 --smart-case
 
