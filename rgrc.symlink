@@ -13,6 +13,9 @@ tmpl:*.{html,hbs,pug}
 --type-add
 dts:*.d.ts
 
+--type-add
+spec:*.spec.{t,j}s
+
 # ignore case
 --smart-case
 
