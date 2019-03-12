@@ -643,19 +643,65 @@ call plug#begin('~/.config/nvim/plugged')
 
         " match tags in html, similar to paren support
         Plug 'gregsexton/MatchTag', { 'for': 'html' }
+
+        " html5 support
+        Plug 'othree/html5.vim', { 'for': 'html' }
+
+        " mustache support
+        Plug 'mustache/vim-mustache-handlebars'
+
+        " pug / jade support
+        Plug 'digitaltoad/vim-pug', { 'for': ['jade', 'pug'] }
+    " }}}
+
+    " JavaScript {{{
+        Plug 'othree/yajs.vim', { 'for': [ 'javascript', 'javascript.jsx', 'html' ] }
+        " Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
+        Plug 'moll/vim-node', { 'for': 'javascript' }
+        Plug 'mxw/vim-jsx', { 'for': ['javascript.jsx', 'javascript'] }
+        Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'], 'do': 'npm install' }
     " }}}
 
     " TypeScript {{{
+        Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
         Plug 'ianks/vim-tsx', { 'for': 'typescript' }
         Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 
-        Plug 'mhartington/nvim-typescript', { 'do': './install.sh' }
+        Plug 'mhartington/nvim-typescript', { 'for': 'typescript', 'do': './install.sh' }
+        let g:nvim_typescript#diagnostics_enable = 0
         let g:nvim_typescript#max_completion_detail=100
-		let g:nvim_typescript#diagnostics_enable=0
     " }}}
 
-    Plug 'sheerun/vim-polyglot'
-    let g:vim_json_syntax_conceal = 0
+
+    " Styles {{{
+        Plug 'wavded/vim-stylus', { 'for': ['stylus', 'markdown'] }
+        Plug 'groenewege/vim-less', { 'for': 'less' }
+        Plug 'hail2u/vim-css3-syntax', { 'for': 'css' }
+        Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }
+        Plug 'gko/vim-coloresque'
+        Plug 'stephenway/postcss.vim', { 'for': 'css' }
+    " }}}
+
+    " markdown {{{
+        Plug 'tpope/vim-markdown', { 'for': 'markdown' }
+        let g:markdown_fenced_languages = [ 'tsx=typescript.tsx' ]
+
+        " Open markdown files in Marked.app - mapped to <leader>m
+        Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' }
+        nmap <leader>m :MarkedOpen!<cr>
+        nmap <leader>mq :MarkedQuit<cr>
+        nmap <leader>* *<c-o>:%s///gn<cr>
+    " }}}
+
+    " JSON {{{
+        Plug 'elzr/vim-json', { 'for': 'json' }
+        let g:vim_json_syntax_conceal = 0
+    " }}}
+
+    Plug 'fatih/vim-go', { 'for': 'go' }
+    Plug 'timcharper/textile.vim', { 'for': 'textile' }
+    Plug 'lambdatoast/elm.vim', { 'for': 'elm' }
+    Plug 'ekalinin/Dockerfile.vim'
 " }}}
 
 call plug#end()
