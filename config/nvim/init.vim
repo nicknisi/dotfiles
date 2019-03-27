@@ -678,8 +678,14 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'groenewege/vim-less', { 'for': 'less' }
         Plug 'hail2u/vim-css3-syntax', { 'for': 'css' }
         Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }
-        Plug 'gko/vim-coloresque'
         Plug 'stephenway/postcss.vim', { 'for': 'css' }
+
+        Plug 'RRethy/vim-hexokinase'
+        let g:Hexokinase_highlighters = ['virtual']
+        let g:Hexokinase_refreshEvents = ['BufWritePost']
+        let g:Hexokinase_ftAutoload = ['css']
+        " let g:Hexokinase_virtualText = '█'
+        let g:Hexokinase_virtualText = '■'
     " }}}
 
     " markdown {{{
