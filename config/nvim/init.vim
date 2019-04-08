@@ -639,6 +639,9 @@ call plug#begin('~/.config/nvim/plugged')
         \  'javascript.jsx': {
         \      'extends': 'jsx',
         \  },
+        \  'typescript.tsx': {
+        \      'extends': 'tsx'
+        \  }
         \}
 
         " match tags in html, similar to paren support
@@ -663,8 +666,8 @@ call plug#begin('~/.config/nvim/plugged')
     " }}}
 
     " TypeScript {{{
-        Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
-        Plug 'ianks/vim-tsx', { 'for': 'typescript' }
+        Plug 'leafgarland/typescript-vim', { 'for': ['typescript', 'typescript.tsx'] }
+        Plug 'ianks/vim-tsx', { 'for': ['typescript', 'typescript.tsx'] }
         Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 
         Plug 'mhartington/nvim-typescript', { 'for': 'typescript', 'do': './install.sh' }
@@ -735,6 +738,11 @@ call plug#end()
     highlight xmlAttrib cterm=italic term=italic gui=italic
     " highlight Type cterm=italic term=italic gui=italic
     highlight Normal ctermbg=none
+
+    call deoplete#custom#option({
+    \ 'auto_complete_delay': 200,
+    \ 'auto_refresh_delay': 100
+    \ })
 
 " }}}
 
