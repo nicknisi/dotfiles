@@ -427,6 +427,7 @@ call plug#begin('~/.config/nvim/plugged')
         \ ]
 
         autocmd User Startified setlocal cursorline
+        nmap <leader>st :Startify<cr>
     " }}}
 
     " Close buffers but keep splits
