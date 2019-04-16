@@ -27,6 +27,9 @@ call plug#begin('~/.config/nvim/plugged')
         " show results of substition as they're happening
         " but don't open a split
         set inccommand=nosplit
+        " make possibility to exit from term using ESC 
+        tnoremap <Esc> <C-\><C-n>
+        tnoremap <C-v><Esc> <Esc>
     endif
 
     set backspace=indent,eol,start " make backspace behave in a sane manner
