@@ -22,26 +22,21 @@ set -g status-right-length 150
 set -g status-interval 5
 
 # default statusbar colors
-set-option -g status-fg $base02
-set-option -g status-bg $base00
-set-option -g status-attr default
+set-option -g status-style fg=$base02,bg=$base00,default
 
-set-window-option -g window-status-fg $base03
-set-window-option -g window-status-bg $base00
-set -g window-status-format " #I #W"
+set-window-option -g window-status-style fg=$base03,bg=$base00
+set-window-option -g window-status-format " #I #W"
 
 # active window title colors
-set-window-option -g window-status-current-fg $base0C
-set-window-option -g window-status-current-bg $base00
-set-window-option -g  window-status-current-format " #[bold]#W "
+set-window-option -g window-status-current-style fg=$base0C,bg=$base00
+set-window-option -g window-status-current-format " #[bold]#W"
 
 # pane border colors
-set-window-option -g pane-border-fg $base03
-set-window-option -g pane-active-border-fg $base0C
+set-window-option -g pane-active-border-style bg=$base0C
+set-window-option -g pane-border-style fg=$base03
 
 # message text
-set-option -g message-bg $base00
-set-option -g message-fg $base0C
+set-option -g message-style bg=$base00,fg=$base0C
 
 # pane number display
 set-option -g display-panes-active-colour $base0C
