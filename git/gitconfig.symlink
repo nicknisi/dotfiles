@@ -133,6 +133,8 @@
 [branch]
     # set up 'git pull' to rebase instead of merge
     autosetuprebase = always
+[pull]
+    rebase = true
 [diff]
     renames = copies
     mnemonicprefix = true
