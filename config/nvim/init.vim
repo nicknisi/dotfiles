@@ -759,13 +759,13 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'othree/yajs.vim', { 'for': [ 'javascript', 'javascript.jsx', 'html' ] }
         " Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
         Plug 'moll/vim-node', { 'for': 'javascript' }
-        Plug 'mxw/vim-jsx', { 'for': ['javascript.jsx', 'javascript'] }
-        Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'], 'do': 'npm install' }
+		Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'], 'do': 'npm install' }
+		Plug 'MaxMEllon/vim-jsx-pretty'
+		let g:vim_jsx_pretty_highlight_close_tag = 1
     " }}}
 
     " TypeScript {{{
         Plug 'leafgarland/typescript-vim', { 'for': ['typescript', 'typescript.tsx'] }
-        Plug 'ianks/vim-tsx', { 'for': ['typescript', 'typescript.tsx'] }
         Plug 'Shougo/vimproc.vim', { 'do': 'make' }
 
         Plug 'mhartington/nvim-typescript', { 'for': 'typescript', 'do': './install.sh' }
