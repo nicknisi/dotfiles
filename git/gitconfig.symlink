@@ -77,7 +77,7 @@
     unassumeall = "!git assumed | xargs git update-index --no-assume-unchanged"
 
     # clean up all 
-    forget = "!git fetch -p && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D"
+    forget = "!git fetch -p origin && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D"
 
     # show the most recently touched branches
     recent = "!git for-each-ref --sort='-committerdate' --format='%(color:red)%(refname)%(color:reset)%09%(committerdate)' refs/heads | sed -e 's-refs/heads/--' | less -XFR"
