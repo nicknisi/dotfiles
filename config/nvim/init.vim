@@ -732,15 +732,7 @@ call plug#begin('~/.config/nvim/plugged')
 " Language-Specific Configuration {{{
     " html / templates {{{
         " emmet support for vim - easily create markdup wth CSS-like syntax
-        Plug 'mattn/emmet-vim', { 'for': ['html', 'javascript.jsx']}
-        let g:user_emmet_settings = {
-        \  'javascript.jsx': {
-        \      'extends': 'jsx',
-        \  },
-        \  'typescript.tsx': {
-        \      'extends': 'tsx'
-        \  }
-        \}
+        Plug 'mattn/emmet-vim'
 
         " match tags in html, similar to paren support
         Plug 'gregsexton/MatchTag', { 'for': 'html' }
