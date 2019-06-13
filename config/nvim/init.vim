@@ -746,6 +746,9 @@ call plug#begin('~/.config/nvim/plugged')
 
         " pug / jade support
         Plug 'digitaltoad/vim-pug', { 'for': ['jade', 'pug'] }
+
+		" nunjucks support
+        Plug 'niftylettuce/vim-jinja', { 'for': 'njk' }
     " }}}
 
     " JavaScript {{{
