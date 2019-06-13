@@ -700,7 +700,8 @@ call plug#begin('~/.config/nvim/plugged')
         \   'javascript': ['eslint'],
         \   'typescript': ['tsserver', 'tslint'],
         \   'typescript.tsx': ['tsserver', 'tslint'],
-        \   'html': []
+        \   'html': [],
+        \   'css': []
         \}
         let g:ale_fixers = {}
         let g:ale_fixers['javascript'] = ['prettier']
