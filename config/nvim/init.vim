@@ -265,11 +265,9 @@ call plug#begin('~/.config/nvim/plugged')
 
     nmap <leader>l :set list!<cr>
 
-    " Textmate style indentation
-    vmap <leader>[ <gv
-    vmap <leader>] >gv
-    nmap <leader>[ <<
-    nmap <leader>] >>
+    " keep visual selection when indenting/outdenting
+    vmap < <gv
+    vmap > >gv
 
     " switch between current and last buffer
     nmap <leader>. <c-^>
