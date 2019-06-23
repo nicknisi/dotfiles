@@ -478,6 +478,13 @@ call plug#begin('~/.config/nvim/plugged')
     " add end, endif, etc. automatically
     Plug 'tpope/vim-endwise'
 
+    " vim-illuminate {{{
+        " automatically highlight the word under the cursor
+        Plug 'RRethy/vim-illuminate'
+        let g:Illuminate_ftblacklist = ['nerdtree']
+        let g:Illuminate_delay = 500
+    " }}}
+
     " detect indent style (tabs vs. spaces)
     Plug 'tpope/vim-sleuth'
 
