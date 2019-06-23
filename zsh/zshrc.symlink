@@ -45,6 +45,9 @@ if [[ -d /usr/local/sbin ]]; then
     export PATH=/usr/local/sbin:$PATH
 fi
 
+# add brew-installed grep
+export PATH="/usr/local/opt/grep/libexec/gnubin:$PATH"
+
 # adding path directory for custom scripts
 export PATH=$DOTFILES/bin:$PATH
 
