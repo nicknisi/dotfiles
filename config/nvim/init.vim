@@ -75,7 +75,6 @@ call plug#begin('~/.config/nvim/plugged')
     set mat=2 " how many tenths of a second to blink
 
     " Tab control
-    set noexpandtab " insert tabs rather than spaces for <Tab>
     set smarttab " tab respects 'tabstop', 'shiftwidth', and 'softtabstop'
     set tabstop=4 " the visible width of tabs
     set softtabstop=4 " edit as if the tabs are 4 characters wide
