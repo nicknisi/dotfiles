@@ -481,8 +481,17 @@ call plug#begin('~/.config/nvim/plugged')
     " vim-illuminate {{{
         " automatically highlight the word under the cursor
         Plug 'RRethy/vim-illuminate'
-        let g:Illuminate_ftblacklist = ['nerdtree']
+        let g:Illuminate_ftblacklist = ['nerdtree', 'fugitive', 'fugitiveblame']
         let g:Illuminate_delay = 500
+        let g:Illuminate_highlightUnderCursor = 0
+        let g:Illuminate_ftHighlightGroups = {
+        \ 'vim:blacklist': ['vimVar', 'vimString', 'vimLineComment',
+        \         'vimFuncName', 'vimFunction', 'vimUserFunc', 'vimFunc'],
+        \ 'typescript:blacklist': ['typescriptStorageClass', 'typescriptReserved',
+        \         'typescriptType', 'typescriptBoolean', 'typescriptConditional',
+        \         'typescriptStatement', 'typescriptStringS', 'typescriptIdentifier',
+        \         'jsxString', 'jsxAttrib']
+        \ }
     " }}}
 
     " detect indent style (tabs vs. spaces)
@@ -836,6 +845,8 @@ call plug#end()
     highlight xmlAttrib cterm=italic term=italic gui=italic
     " highlight Type cterm=italic term=italic gui=italic
     highlight Normal ctermbg=none
+
+    hi illuminatedWord guifg=#000000 ctermfg=16 guibg=#ffd2dc ctermbg=211
 
     call deoplete#custom#option({
     \ 'auto_complete_delay': 200,
