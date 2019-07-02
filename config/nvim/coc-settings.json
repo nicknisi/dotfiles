@@ -1,0 +1,17 @@
+{
+    "suggest.enablePreview": true,
+    "codeLens.enable": true,
+    "git.addedSign.text": "┃",
+    "git.removedSign.text": "┃",
+    "git.changedSign.text": "┃",
+    "git.changeRemovedSign.text": "┃",
+    "suggest.maxPreviewWidth": 100,
+    "diagnostic.checkCurrentLine": true,
+    "diagnostic.maxWindowHeight": 20,
+    "diagnostic.errorSign": "✖",
+    "diagnostic.warningSign": "⚠",
+    "diagnostic.infoSign": "●",
+    "diagnostic.hintSign": "○",
+    "coc.preferences.currentFunctionSymbolAutoUpdate": true,
+    "git.addGlameToBufferVar": true
+}
