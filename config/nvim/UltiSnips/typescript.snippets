@@ -45,13 +45,13 @@ import * as $1 from '$2'
 endsnippet
 
 snippet dojotsx "Start a new Dojo Widget"
-import { WidgetBase } from '@dojo/framework/widget-core/WidgetBase';
-import { tsx } from '@dojo/framework/widget-core/tsx';
+import { WidgetBase } from '@dojo/framework/core/WidgetBase';
+import { tsx } from '@dojo/framework/core/vdom';
 
-export interface WidgetProperties {
+export interface $1Properties {
 }
 
-export class Widget extends WidgetBase<WidgetProperties> {
+export class $1 extends WidgetBase<$1Properties> {
 	protected render() {
 		return (
 			<div/>
@@ -59,11 +59,11 @@ export class Widget extends WidgetBase<WidgetProperties> {
 	}
 }
 
-export default Widget;
+export default $1;
 endsnippet
 
 snippet dojotest "Start a new dojo test file"
 import assertionTemplate from '@dojo/framework/testing/assertionTemplate';
 import harness from '@dojo/framework/testing/harness';
-import { tsx } from '@dojo/framework/widget-core/tsx';
+import { tsx } from '@dojo/framework/core/vdom';
 endsnippet
