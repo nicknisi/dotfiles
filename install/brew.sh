@@ -19,7 +19,7 @@ formulas=(
     hub
     markdown
     mas
-    neovim
+    "neovim --HEAD"
     node
     python
     reattach-to-user-namespace
@@ -36,6 +36,7 @@ formulas=(
     git-standup
     entr
     zplug
+    yarn
 )
 
 for formula in "${formulas[@]}"; do
