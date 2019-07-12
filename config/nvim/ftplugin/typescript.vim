@@ -4,7 +4,6 @@ let javaScript_fold=1
 nmap <silent> <leader>d :TSDef<cr>
 nmap <silent> <leader>u :TSRefs<cr>
 nmap <silent> <leader>h :TSType<cr>
-nmap K :TSDoc<cr>
 
 setl omnifunc=TSOmnicFunc
 
