@@ -267,7 +267,7 @@ call plug#begin('~/.config/nvim/plugged')
 
     map <leader>wc :wincmd q<cr>
 
-    inoremap <tab> <c-r>=functions#Smart_TabComplete()<CR>
+    " inoremap <tab> <c-r>=functions#Smart_TabComplete()<CR>
 
     " move line mappings
     " ∆ is <A-j> on macOS
@@ -652,7 +652,9 @@ call plug#begin('~/.config/nvim/plugged')
 
     " UltiSnips {{{
         Plug 'SirVer/ultisnips' " Snippets plugin
-        " let g:UltiSnipsExpandTrigger="<tab>"
+        let g:UltiSnipsExpandTrigger="<C-l>"
+        let g:UltiSnipsJumpForwardTrigger="<C-j>"
+        let g:UltiSnipsJumpBackwardTrigger="<C-k>"
     " }}}
 
     " coc {{{
@@ -670,7 +672,8 @@ call plug#begin('~/.config/nvim/plugged')
         \ 'coc-sh',
         \ 'coc-vimlsp',
         \ 'coc-emmet',
-        \ 'coc-prettier'
+        \ 'coc-prettier',
+        \ 'coc-ultisnips'
         \ ]
 
         autocmd CursorHold * silent call CocActionAsync('highlight')
