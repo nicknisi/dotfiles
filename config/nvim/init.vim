@@ -151,7 +151,7 @@ call plug#begin('~/.config/nvim/plugged')
         \       'gitbranch': 'LightlineGitBranch',
         \       'cocstatus': 'coc#status',
         \       'currentfunction': 'CoCCurrentFunction',
-        \       'gitblame': 'CocGitBlame'
+        \       'gitblame': 'LightlineGitBlame'
         \   },
         \   'tabline': {
         \       'left': [ [ 'tabs' ] ],
@@ -206,8 +206,8 @@ call plug#begin('~/.config/nvim/plugged')
             return get(b:, 'coc_current_function', '')
         endfunction
 
-        function! CocGitBlame()
-            return winwidth(0) > 70 ? get(b:, 'coc_git_blame', '') : ''
+        function! LightlineGitBlame()
+            return winwidth(0) > 100 ? strpart(get(b:, 'coc_git_blame', ''), 0, 20) : ''
         endfunction
     " }}}
 " }}}
