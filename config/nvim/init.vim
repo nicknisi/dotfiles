@@ -192,7 +192,7 @@ call plug#begin('~/.config/nvim/plugged')
         endfunction
 
         function! LightlineGitBranch()
-            return "\uE725" . (exists('*fugitive#head') ? fugitive#head() : '')
+            return "\uE725" . (exists('*fugitive#head') ? ' ' . fugitive#head() : '')
         endfunction
 
         function! LightlineUpdate()
