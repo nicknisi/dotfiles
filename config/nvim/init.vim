@@ -357,6 +357,15 @@ call plug#begin('~/.config/nvim/plugged')
     " 'around number' (next number on line and possible surrounding white-space)
     xnoremap <silent> an :<c-u>call <sid>aroundNumber()<cr>
     onoremap <silent> an :<c-u>call <sid>aroundNumber()<cr>
+
+    " Interesting word mappings
+    nmap <leader>0 <Plug>ClearInterestingWord
+    nmap <leader>1 <Plug>HiInterestingWord1
+    nmap <leader>2 <Plug>HiInterestingWord2
+    nmap <leader>3 <Plug>HiInterestingWord3
+    nmap <leader>4 <Plug>HiInterestingWord4
+    nmap <leader>5 <Plug>HiInterestingWord5
+    nmap <leader>6 <Plug>HiInterestingWord6
 " }}}
 
 " AutoGroups {{{
