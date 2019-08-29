@@ -380,30 +380,8 @@ call plug#begin('~/.config/nvim/plugged')
     " Writing in vim {{{{
         Plug 'junegunn/goyo.vim'
 
-        let g:goyo_entered = 0
-        function! s:goyo_enter()
-            silent !tmux set status off
-            let g:goyo_entered = 1
-            set noshowmode
-            set noshowcmd
-            set scrolloff=999
-            set wrap
-            setlocal textwidth=0
-            setlocal wrapmargin=0
-        endfunction
-
-        function! s:goyo_leave()
-            silent !tmux set status on
-            let g:goyo_entered = 0
-            set showmode
-            set showcmd
-            set scrolloff=5
-            set textwidth=120
-            set wrapmargin=8
-        endfunction
-
-        autocmd! User GoyoEnter nested call <SID>goyo_enter()
-        autocmd! User GoyoLeave nested call <SID>goyo_leave()
+        autocmd! User GoyoEnter nested call helpers#goyo#enter()
+        autocmd! User GoyoLeave nested call helpers#goyo#leave()
     " }}}
 
     " context-aware pasting
