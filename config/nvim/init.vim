@@ -127,88 +127,43 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'itchyny/lightline.vim'
         Plug 'nicknisi/vim-base16-lightline'
         let g:lightline = {
-        \   'colorscheme': 'base16',
-        \   'active': {
-        \       'left': [ [ 'mode', 'paste' ],
-        \               [ 'gitbranch' ],
-        \               [ 'readonly', 'filetype', 'filename' ]],
-        \       'right': [ [ 'percent' ], [ 'lineinfo' ],
-        \               [ 'fileformat', 'fileencoding' ],
-        \               [ 'gitblame', 'currentfunction',  'cocstatus', 'linter_errors', 'linter_warnings' ]]
-        \   },
-        \   'component_expand': {
-        \   },
-        \   'component_type': {
-        \       'readonly': 'error',
-        \       'linter_warnings': 'warning',
-        \       'linter_errors': 'error'
-        \   },
-        \   'component_function': {
-        \       'fileencoding': 'LightlineFileEncoding',
-        \       'filename': 'LightlineFileName',
-        \       'fileformat': 'LightlineFileFormat',
-        \       'filetype': 'LightlineFileType',
-        \       'gitbranch': 'LightlineGitBranch',
-        \       'cocstatus': 'coc#status',
-        \       'currentfunction': 'CoCCurrentFunction',
-        \       'gitblame': 'LightlineGitBlame'
-        \   },
-        \   'tabline': {
-        \       'left': [ [ 'tabs' ] ],
-        \       'right': [ [ 'close' ] ]
-        \   },
-        \   'tab': {
-        \       'active': [ 'filename', 'modified' ],
-        \       'inactive': [ 'filename', 'modified' ],
-        \   },
-        \   'separator': { 'left': '', 'right': '' },
-        \   'subseparator': { 'left': '', 'right': '' }
+            \   'colorscheme': 'base16',
+            \   'active': {
+            \       'left': [ [ 'mode', 'paste' ],
+            \               [ 'gitbranch' ],
+            \               [ 'readonly', 'filetype', 'filename' ]],
+            \       'right': [ [ 'percent' ], [ 'lineinfo' ],
+            \               [ 'fileformat', 'fileencoding' ],
+            \               [ 'gitblame', 'currentfunction',  'cocstatus', 'linter_errors', 'linter_warnings' ]]
+            \   },
+            \   'component_expand': {
+            \   },
+            \   'component_type': {
+            \       'readonly': 'error',
+            \       'linter_warnings': 'warning',
+            \       'linter_errors': 'error'
+            \   },
+            \   'component_function': {
+            \       'fileencoding': 'helpers#lightline#fileEncoding',
+            \       'filename': 'helpers#lightline#fileName',
+            \       'fileformat': 'helpers#lightline#fileFormat',
+            \       'filetype': 'helpers#lightline#fileType',
+            \       'gitbranch': 'helpers#lightline#gitBranch',
+            \       'cocstatus': 'coc#status',
+            \       'currentfunction': 'helpers#lightline#currentFunction',
+            \       'gitblame': 'helpers#lightline#gitBlame'
+            \   },
+            \   'tabline': {
+            \       'left': [ [ 'tabs' ] ],
+            \       'right': [ [ 'close' ] ]
+            \   },
+            \   'tab': {
+            \       'active': [ 'filename', 'modified' ],
+            \       'inactive': [ 'filename', 'modified' ],
+            \   },
+            \   'separator': { 'left': '', 'right': '' },
+            \   'subseparator': { 'left': '', 'right': '' }
         \ }
-        " \   'separator': { 'left': '▓▒░', 'right': '░▒▓' },
-        " \   'subseparator': { 'left': '▒', 'right': '░' }
-
-        function! LightlineFileName() abort
-            let filename = winwidth(0) > 70 ? expand('%') : expand('%:t')
-            if filename =~ 'NERD_tree'
-                return ''
-            endif
-            let modified = &modified ? ' +' : ''
-            return fnamemodify(filename, ":~:.") . modified
-        endfunction
-
-        function! LightlineFileEncoding()
-            " only show the file encoding if it's not 'utf-8'
-            return &fileencoding == 'utf-8' ? '' : &fileencoding
-        endfunction
-
-        function! LightlineFileFormat()
-            " only show the file format if it's not 'unix'
-            let format = &fileformat == 'unix' ? '' : &fileformat
-            return winwidth(0) > 70 ? format . ' ' . WebDevIconsGetFileFormatSymbol() : ''
-        endfunction
-
-        function! LightlineFileType()
-            return WebDevIconsGetFileTypeSymbol()
-        endfunction
-
-        function! LightlineGitBranch()
-            return "\uE725" . (exists('*fugitive#head') ? ' ' . fugitive#head() : '')
-        endfunction
-
-        function! LightlineUpdate()
-            if g:goyo_entered == 0
-                " do not update lightline if in Goyo mode
-                call lightline#update()
-            endif
-        endfunction
-
-        function! CoCCurrentFunction()
-            return get(b:, 'coc_current_function', '')
-        endfunction
-
-        function! LightlineGitBlame()
-            return winwidth(0) > 100 ? strpart(get(b:, 'coc_git_blame', ''), 0, 20) : ''
-        endfunction
     " }}}
 " }}}
 
@@ -321,7 +276,7 @@ call plug#begin('~/.config/nvim/plugged')
 
     let s:regNums = ['0b[01]', '0x\x', '\d' ]
 
-    " selec tthe next number on the line
+    " select the next number on the line
     " this can handle the following three formats:
     "     1. binary  (eg: '0b1010', '0b0000', etc)
     "     2. hex     (eg: '0xffff', '0x0000', etc)
