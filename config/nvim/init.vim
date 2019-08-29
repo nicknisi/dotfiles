@@ -213,16 +213,14 @@ call plug#begin('~/.config/nvim/plugged')
     " enable . command in visual mode
     vnoremap . :normal .<cr>
 
-    map <silent> <C-h> :call functions#WinMove('h')<cr>
-    map <silent> <C-j> :call functions#WinMove('j')<cr>
-    map <silent> <C-k> :call functions#WinMove('k')<cr>
-    map <silent> <C-l> :call functions#WinMove('l')<cr>
+    map <silent> <C-h> <Plug>WinMoveLeft
+    map <silent> <C-j> <Plug>WinMoveDown
+    map <silent> <C-k> <Plug>WinMoveUp
+    map <silent> <C-l> <Plug>WinMoveRight
 
-    nnoremap <silent> <leader>z :call functions#zoom()<cr>
+    nmap <leader>z <Plug>Zoom
 
     map <leader>wc :wincmd q<cr>
-
-    " inoremap <tab> <c-r>=functions#Smart_TabComplete()<CR>
 
     " move line mappings
     " ∆ is <A-j> on macOS
