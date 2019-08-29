@@ -349,17 +349,10 @@ call plug#begin('~/.config/nvim/plugged')
         let g:startify_relative_path = 1
         let g:startify_use_env = 1
 
-        function! s:list_commits()
-            let git = 'git -C ' . getcwd()
-            let commits = systemlist(git . ' log --oneline | head -n5')
-            let git = 'G' . git[1:]
-            return map(commits, '{"line": matchstr(v:val, "\\s\\zs.*"), "cmd": "'. git .' show ". matchstr(v:val, "^\\x\\+") }')
-        endfunction
-
         " Custom startup list, only show MRU from current directory/project
         let g:startify_lists = [
         \  { 'type': 'dir',       'header': [ 'Files '. getcwd() ] },
-        \  { 'type': function('s:list_commits'), 'header': [ 'Recent Commits' ] },
+        \  { 'type': function('helpers#startify#listcommits'), 'header': [ 'Recent Commits' ] },
         \  { 'type': 'sessions',  'header': [ 'Sessions' ]       },
         \  { 'type': 'bookmarks', 'header': [ 'Bookmarks' ]      },
         \  { 'type': 'commands',  'header': [ 'Commands' ]       },
