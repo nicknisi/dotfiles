@@ -38,24 +38,6 @@ for config ($ZSH/**/*completion.sh) source $config
 export EDITOR='nvim'
 export GIT_EDITOR='nvim'
 
-export PATH=/usr/local/bin:$PATH
-
-# add /usr/local/sbin
-if [[ -d /usr/local/sbin ]]; then
-    export PATH=/usr/local/sbin:$PATH
-fi
-
-# add brew-installed grep
-export PATH="/usr/local/opt/grep/libexec/gnubin:$PATH"
-
-# adding path directory for custom scripts
-export PATH=$DOTFILES/bin:$PATH
-
-# check for custom bin directory and add to path
-if [[ -d ~/bin ]]; then
-    export PATH=~/bin:$PATH
-fi
-
 # add a config file for ripgrep
 export RIPGREP_CONFIG_PATH="$HOME/.rgrc"
 
@@ -74,6 +56,24 @@ BASE16_SHELL=$HOME/.config/base16-shell/
 [ -n "$PS1" ] && [ -s $BASE16_SHELL/profile_helper.sh ] && eval "$($BASE16_SHELL/profile_helper.sh)"
 
 if [ -z ${RELOAD}  ]; then
+    export PATH=/usr/local/bin:$PATH
+
+    # add /usr/local/sbin
+    if [[ -d /usr/local/sbin ]]; then
+        export PATH=/usr/local/sbin:$PATH
+    fi
+
+    # add brew-installed grep
+    export PATH="/usr/local/opt/grep/libexec/gnubin:$PATH"
+
+    # adding path directory for custom scripts
+    export PATH=$DOTFILES/bin:$PATH
+
+    # check for custom bin directory and add to path
+    if [[ -d ~/bin ]]; then
+        export PATH=~/bin:$PATH
+    fi
+
     export ZPLUG_HOME=/usr/local/opt/zplug
     source $ZPLUG_HOME/init.zsh
     zplug 'zplug/zplug', hook-build:'zplug --self-manage'
