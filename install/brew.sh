@@ -35,7 +35,6 @@ formulas=(
     ripgrep
     git-standup
     entr
-    zplug
     yarn
 )
 

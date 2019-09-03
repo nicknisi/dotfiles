@@ -6,9 +6,6 @@ command_exists() {
 
 echo "Installing dotfiles."
 
-echo "Initializing submodule(s)"
-git submodule update --init --recursive
-
 source install/link.sh
 
 source install/git.sh

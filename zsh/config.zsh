@@ -3,14 +3,12 @@ setopt NO_HUP
 setopt NO_LIST_BEEP
 setopt LOCAL_OPTIONS
 setopt LOCAL_TRAPS
-#setopt IGNORE_EOF
 setopt PROMPT_SUBST
 
+# history
 HISTFILE=~/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
-
-# history
 setopt EXTENDED_HISTORY
 setopt HIST_REDUCE_BLANKS
 setopt SHARE_HISTORY
@@ -25,6 +23,3 @@ bindkey '^[[5D' beginning-of-line
 bindkey '^[[5C' end-of-line
 bindkey '^[[3~' delete-char
 bindkey '^?' backward-delete-char
-
-fpath=($ZSH/functions $fpath)
-autoload -U $ZSH/functions/*(:t)

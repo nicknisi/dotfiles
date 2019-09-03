@@ -1,0 +1,14 @@
+export DOTFILES=$HOME/.dotfiles
+export CACHEDIR="$HOME/.local/share"
+
+[[ -d "$CACHEDIR" ]] || mkdir -p "$CAHCEDIR"
+
+fpath=(
+    $DOTFILES/zsh/functions
+    $fpath
+)
+
+typeset -aU path
+
+export EDITOR='nvim'
+export GIT_EDITOR='nvim'

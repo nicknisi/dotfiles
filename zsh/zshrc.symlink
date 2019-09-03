@@ -1,10 +1,21 @@
-export DOTFILES=$HOME/.dotfiles
 export ZSH=$DOTFILES/zsh
 
-# display how long all tasks over 10 seconds take
-export REPORTTIME=10
+if [[ -d $DOTFILES/zsh/functions ]]; then
+    for func in $DOTFILES/zsh/functions/*(:t); autoload -U $func
+fi
 
-[[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
+########################################################
+# Configuration
+########################################################
+
+# initialize autocomplete
+autoload -U compinit add-zsh-hook
+compinit
+
+prepend_path /usr/local/opt/grep/libexec/gnubin
+prepend_path /usr/local/sbin
+prepend_path $DOTFILES/bin
+prepend_path $HOME/bin
 
 # define the code directory
 # This is where my code exists and where I want the `c` autocomplete to work from exclusively
@@ -12,31 +23,47 @@ if [[ -d ~/code ]]; then
     export CODE_DIR=~/code
 fi
 
+# display how long all tasks over 10 seconds take
+export REPORTTIME=10
+
+
+########################################################
+# Plugin setup
+########################################################
+
+export ZPLUGDIR="$CACHEDIR/zsh/plugins"
+[[ -d "$ZPLUGDIR" ]] || mkdir -p "$ZPLUGDIR"
+# array containing plugin information (managed by zfetch)
+typeset -A plugins
+
+zfetch $ZPLUGDIR zsh-users/zsh-syntax-highlighting
+source $ZPLUGDIR/zsh-users/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+zfetch $ZPLUGDIR zsh-users/zsh-autosuggestions
+source $ZPLUGDIR/zsh-users/zsh-autosuggestions/zsh-autosuggestions.zsh
+zfetch $ZPLUGDIR chriskempson/base16-shell
+source $ZPLUGDIR/chriskempson/base16-shell/base16-shell.plugin.zsh
+
+
+[[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
+
+########################################################
+# Setup
+########################################################
+
 # source all .zsh files inside of the zsh/ directory
-source "$ZSH/utils.zsh"
-source "$ZSH/prompt.zsh"
-source "$ZSH/aliases.zsh"
-source "$ZSH/colors.zsh"
-source "$ZSH/completion.zsh"
-source "$ZSH/config.zsh"
-source "$ZSH/functions.zsh"
-source "$ZSH/git.zsh"
-source "$ZSH/tmux.zsh"
-source "$ZSH/z.zsh"
+source "$DOTFILES/zsh/utils.zsh"
+source "$DOTFILES/zsh/prompt.zsh"
+source "$DOTFILES/zsh/aliases.zsh"
+source "$DOTFILES/zsh/colors.zsh"
+source "$DOTFILES/zsh/completion.zsh"
+source "$DOTFILES/zsh/config.zsh"
+source "$DOTFILES/zsh/functions.zsh"
+source "$DOTFILES/zsh/git.zsh"
+source "$DOTFILES/zsh/tmux.zsh"
 
 if [[ -a ~/.localrc ]]; then
     source ~/.localrc
 fi
-
-
-# initialize autocomplete
-autoload -U compinit add-zsh-hook
-compinit
-
-for config ($ZSH/**/*completion.sh) source $config
-
-export EDITOR='nvim'
-export GIT_EDITOR='nvim'
 
 # add a config file for ripgrep
 export RIPGREP_CONFIG_PATH="$HOME/.rgrc"
@@ -47,51 +74,10 @@ else
     export TERM=tmux-256color-italic
 fi
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+[ -f $HOME/.fzf.zsh ] && source $HOME/.fzf.zsh
 export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow -g "!{.git,node_modules}/*" 2> /dev/null'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
-# Base16 shell setup
-BASE16_SHELL=$HOME/.config/base16-shell/
-[ -n "$PS1" ] && [ -s $BASE16_SHELL/profile_helper.sh ] && eval "$($BASE16_SHELL/profile_helper.sh)"
-
-if [ -z ${RELOAD}  ]; then
-    export PATH=/usr/local/bin:$PATH
-
-    # add /usr/local/sbin
-    if [[ -d /usr/local/sbin ]]; then
-        export PATH=/usr/local/sbin:$PATH
-    fi
-
-    # add brew-installed grep
-    export PATH="/usr/local/opt/grep/libexec/gnubin:$PATH"
-
-    # adding path directory for custom scripts
-    export PATH=$DOTFILES/bin:$PATH
-
-    # check for custom bin directory and add to path
-    if [[ -d ~/bin ]]; then
-        export PATH=~/bin:$PATH
-    fi
-
-    export ZPLUG_HOME=/usr/local/opt/zplug
-    source $ZPLUG_HOME/init.zsh
-    zplug 'zplug/zplug', hook-build:'zplug --self-manage'
-    zplug 'zsh-users/zsh-syntax-highlighting', defer:2
-    zplug 'zsh-users/zsh-autosuggestions'
-    # export NVM_AUTO_USE=true
-    # export NVM_NO_USE=true
-    # zplug 'lukechilds/zsh-nvm'
-
-    if ! zplug check; then
-        printf "Install? [y/N]: "
-        if read -q; then
-            echo; zplug install
-        fi
-    fi
-
-    zplug load
-fi
 # alias git to hub
 if type hub > /dev/null 2>&1; then
     eval "$(hub alias -s)"
@@ -114,8 +100,6 @@ export LESS_TERMCAP_ue=$(tput rmul; tput sgr0)
 export LESS_TERMCAP_mr=$(tput rev)
 export LESS_TERMCAP_mh=$(tput dim)
 
-# add shellcheck config
-# For a full list of errors, refer to
-# https://github.com/koalaman/shellcheck/wiki
-#
-# export SHELLCHECK_OPTS=""
+if hash brew 2>/dev/null; then
+    source `brew --prefix`/etc/profile.d/z.sh
+fi
