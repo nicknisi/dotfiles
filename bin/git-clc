@@ -1,0 +1,6 @@
+#!/usr/bin/env zsh
+
+[[ -z $1 ]] && BRANCH=$( git rev-parse --apprev-ref HEAD ) || BRANCH=$1
+LAST_COMMIT_SHA=$( git rev-parse $BRANCH | tail -n 1 )
+echo "$LAST_COMMIT_SHA" | tr -d '\n' | pbcopy
+echo "Copied ${LAST_COMMIT_SHA}."
