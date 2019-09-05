@@ -29,7 +29,7 @@ alias df='df -h' # disk free, in Gigabytes, not bytes
 alias du='du -h -c' # calculate disk usage for a folder
 
 # Applications
-alias ios='open -a /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone\ Simulator.app'
+alias ios='open -a /Applications/Xcode.app/Contents/Developer/Applications/Simulator.app'
 
 # IP addresses
 alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
