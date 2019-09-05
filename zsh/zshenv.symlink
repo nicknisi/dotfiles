@@ -5,6 +5,7 @@ export CACHEDIR="$HOME/.local/share"
 
 fpath=(
     $DOTFILES/zsh/functions
+    /usr/local/share/zsh/site-functions
     $fpath
 )
 
