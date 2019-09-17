@@ -517,7 +517,6 @@ call plug#begin('~/.config/nvim/plugged')
         \ 'coc-eslint',
         \ 'coc-tslint-plugin',
         \ 'coc-pairs',
-        \ 'coc-emoji',
         \ 'coc-sh',
         \ 'coc-vimlsp',
         \ 'coc-emmet',
@@ -643,9 +642,6 @@ call plug#begin('~/.config/nvim/plugged')
         let g:vim_json_syntax_conceal = 0
     " }}}
 
-    Plug 'fatih/vim-go', { 'for': 'go' }
-    Plug 'timcharper/textile.vim', { 'for': 'textile' }
-    Plug 'lambdatoast/elm.vim', { 'for': 'elm' }
     Plug 'ekalinin/Dockerfile.vim'
 " }}}
 
