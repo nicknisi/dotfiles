@@ -20,7 +20,6 @@ formulas=(
     markdown
     mas
     "neovim --HEAD"
-    node
     python
     reattach-to-user-namespace
     the_silver_searcher
