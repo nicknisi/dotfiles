@@ -72,5 +72,9 @@ else
       echo -e "  Checked out master"
     fi
   fi
+  plugin="$dest/${dest##*/}.plugin.zsh"
+  if [ -f "$plugin" ]; then
+    source "$plugin"
+  fi
   cd $cwd
 fi
