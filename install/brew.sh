@@ -19,7 +19,7 @@ formulas=(
     hub
     markdown
     mas
-    "neovim --HEAD"
+    neovim
     python
     reattach-to-user-namespace
     the_silver_searcher
