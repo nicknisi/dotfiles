@@ -19,6 +19,7 @@ call plug#begin('~/.config/nvim/plugged')
 
     set history=1000 " change history to 1000
     set textwidth=120
+    autocmd Filetype python set textwidth=0 " Disable textwidth for pyton files
 
     set backupdir=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
     set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
@@ -298,6 +299,10 @@ call plug#begin('~/.config/nvim/plugged')
         " when there are multiple windows open
         autocmd FileType qf wincmd J
         autocmd FileType qf nmap <buffer> q :q<cr>
+        
+        " Python PEP8 textwidth highlighing
+        autocmd BufEnter *.py highlight OverLength ctermbg=darkgrey guibg=#592929
+	    autocmd BufEnter *.py match OverLength /\%79v.*/
     augroup END
 " }}}
 
