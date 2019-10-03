@@ -19,7 +19,7 @@ call plug#begin('~/.config/nvim/plugged')
 
     set history=1000 " change history to 1000
     set textwidth=120
-    autocmd Filetype python set textwidth=0 " Disable textwidth for pyton files
+    autocmd Filetype python set textwidth=0 " Disable textwidth for python files
 
     set backupdir=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
     set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
