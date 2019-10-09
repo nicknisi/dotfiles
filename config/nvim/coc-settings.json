@@ -14,5 +14,5 @@
     "diagnostic.hintSign": "○",
     "coc.preferences.currentFunctionSymbolAutoUpdate": true,
     "git.addGlameToBufferVar": true,
-    "coc.preferences.formatOnSaveFiletypes": ["typescript", "javascript", "typescript.tsx", "typescriptreact", "javascriptreact"]
+    "coc.preferences.formatOnSaveFiletypes": ["typescript", "javascript", "javascript.jsx", "typescript.tsx", "typescriptreact", "javascriptreact"]
 }
