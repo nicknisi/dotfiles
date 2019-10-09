@@ -19,6 +19,9 @@ spec:*.spec.{ts,tsx,js,jsx}
 --type-add
 tsx:*.tsx
 
+--type-add
+jsx:*.jsx
+
 # ignore case
 --smart-case
 
