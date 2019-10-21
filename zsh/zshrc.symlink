@@ -105,6 +105,7 @@ typeset -A plugins
 zfetch $ZPLUGDIR zsh-users/zsh-syntax-highlighting
 zfetch $ZPLUGDIR zsh-users/zsh-autosuggestions
 zfetch $ZPLUGDIR chriskempson/base16-shell
+export NVM_AUTO_USE=true
 zfetch $ZPLUGDIR lukechilds/zsh-nvm
 
 
