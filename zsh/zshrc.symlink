@@ -38,6 +38,7 @@ fi
 autoload -U compinit add-zsh-hook
 compinit
 
+prepend_path $HOME/npmbin/node_modules/.bin
 prepend_path /usr/local/opt/grep/libexec/gnubin
 prepend_path /usr/local/sbin
 prepend_path $DOTFILES/bin
