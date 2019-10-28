@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# create $HOME/npmbin directory and set that in your PATH
+# export PATH="$HOME/npmbin/node_modules/.bin:$PATH"
+# https://github.com/Schniz/fnm/issues/110
+yg() {
+  cd $HOME/npmbin
+  yarn add $@
+  cd -
+}

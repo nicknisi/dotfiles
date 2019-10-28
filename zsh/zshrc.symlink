@@ -105,8 +105,9 @@ typeset -A plugins
 zfetch $ZPLUGDIR zsh-users/zsh-syntax-highlighting
 zfetch $ZPLUGDIR zsh-users/zsh-autosuggestions
 zfetch $ZPLUGDIR chriskempson/base16-shell
-export NVM_AUTO_USE=true
-zfetch $ZPLUGDIR lukechilds/zsh-nvm
+
+# add fnm
+eval "`fnm env --multi`"
 
 
 [[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo

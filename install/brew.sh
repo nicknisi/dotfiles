@@ -46,6 +46,10 @@ for formula in "${formulas[@]}"; do
     fi
 done
 
+# Install fnm from the creator's custom tap until it's merged into main.
+# fast node manager https://github.com/Schniz/fnm
+brew install Schniz/tap/fnm
+
 # After the install, setup fzf
 echo -e "\\n\\nRunning fzf install script..."
 echo "=============================="
