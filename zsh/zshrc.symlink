@@ -108,7 +108,7 @@ zfetch $ZPLUGDIR zsh-users/zsh-autosuggestions
 zfetch $ZPLUGDIR chriskempson/base16-shell
 
 # add fnm
-eval "`fnm env --multi`"
+eval "`fnm env --multi --use-on-cd`"
 
 
 [[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
