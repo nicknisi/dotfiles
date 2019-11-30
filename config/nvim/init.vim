@@ -495,7 +495,6 @@ call plug#begin('~/.config/nvim/plugged')
         nmap <silent><leader>gb :Gblame<cr>
 
         Plug 'tpope/vim-rhubarb' " hub extension for fugitive
-        Plug 'junegunn/gv.vim'
         Plug 'sodapopcan/vim-twiggy'
     " }}}
 
