@@ -31,5 +31,6 @@ function! helpers#lightline#currentFunction()
 endfunction
 
 function! helpers#lightline#gitBlame()
-    return winwidth(0) > 100 ? strpart(get(b:, 'coc_git_blame', ''), 0, 20) : ''
+    return winwidth(0) > 100 ? strpart(substitute(get(b:, 'coc_git_blame', ''), '[\(\)]', '', 'g'), 0, 50) : ''
+    " return winwidth(0) > 100 ? strpart(get(b:, 'coc_git_blame', ''), 0, 20) : ''
 endfunction
