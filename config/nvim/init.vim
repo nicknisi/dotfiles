@@ -306,9 +306,6 @@ call plug#begin('~/.config/nvim/plugged')
     " substitute, search, and abbreviate multiple variants of a word
     Plug 'tpope/vim-abolish'
 
-    " search inside files using ripgrep. This plugin provides an Ack command.
-    Plug 'wincent/ferret'
-
     " easy commenting motions
     Plug 'tpope/vim-commentary'
 
