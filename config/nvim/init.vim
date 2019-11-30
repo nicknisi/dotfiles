@@ -412,7 +412,7 @@ call plug#begin('~/.config/nvim/plugged')
             endif
         endfunction
         " toggle nerd tree
-        nmap <silent> <leader>k :call ToggleNerdTree()<cr>
+        nmap <silent> <leader>n :call ToggleNerdTree()<cr>
         " find the current file in nerdtree without needing to reload the drawer
         nmap <silent> <leader>y :NERDTreeFind<cr>
 
@@ -517,7 +517,8 @@ call plug#begin('~/.config/nvim/plugged')
         \ 'coc-vimlsp',
         \ 'coc-emmet',
         \ 'coc-prettier',
-        \ 'coc-ultisnips'
+        \ 'coc-ultisnips',
+        \ 'coc-explorer'
         \ ]
 
         autocmd CursorHold * silent call CocActionAsync('highlight')
@@ -531,6 +532,8 @@ call plug#begin('~/.config/nvim/plugged')
         nmap ]g <Plug>(coc-git-nextchunk)
         nmap gs <Plug>(coc-git-chunkinfo)
         nmap gu :CocCommand git.chunkUndo<cr>
+
+        nmap <silent> <leader>k :CocCommand explorer<cr>
 
         "remap keys for gotos
         nmap <silent> gd <Plug>(coc-definition)
