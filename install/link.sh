@@ -22,7 +22,7 @@ if [ ! -d "$HOME/.config" ]; then
     mkdir -p "$HOME/.config"
 fi
 
-config_files=$( find "$DOTFILES/config" -d 1 2>/dev/null )
+config_files=$( find "$DOTFILES/config" -maxdepth 1 2>/dev/null )
 for config in $config_files; do
     target="$HOME/.config/$( basename "$config" )"
     if [ -e "$target" ]; then
