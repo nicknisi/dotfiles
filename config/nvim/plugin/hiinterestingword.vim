@@ -39,6 +39,13 @@ function s:HiInterestingWord(n)
     normal! `z
 endfunction
 
+function s:ClearInterestingWord()
+    for i in [1,2,3,4,5,6]
+        let mid = s:base_mid + i
+        silent! call matchdelete(mid)
+    endfor
+endfunction
+
 nnoremap <Plug>ClearInterestingWord :<C-U>call <SID>ClearInterestingWord()<cr>
 nnoremap <Plug>HiInterestingWord1 :<C-U>call <SID>HiInterestingWord(1)<cr>
 nnoremap <Plug>HiInterestingWord2 :<C-U>call <SID>HiInterestingWord(2)<cr>
