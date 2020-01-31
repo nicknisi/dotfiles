@@ -15,7 +15,7 @@ endfunction
 function! helpers#lightline#fileFormat()
     " only show the file format if it's not 'unix'
     let format = &fileformat == 'unix' ? '' : &fileformat
-    return winwidth(0) > 70 ? format . ' ' . WebDevIconsGetFileFormatSymbol() : ''
+    return winwidth(0) > 70 ? format . ' ' . WebDevIconsGetFileFormatSymbol() . ' ' : ''
 endfunction
 
 function! helpers#lightline#fileType()
