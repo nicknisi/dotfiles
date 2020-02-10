@@ -62,6 +62,26 @@ export class $1 extends WidgetBase<$1Properties> {
 export default $1;
 endsnippet
 
+snippet dojofunc "Start a new Dojo functional widget"
+import { create, tsx } from '@dojo/framework/core/vdom';
+
+export interface $1Properties {
+}
+
+const factory = create({}).properties<$1Properties>();
+
+export const $1 = factory(function $1({
+	middleware: {},
+	properties
+}) {
+	return (
+		<div>Hello, World</div>
+	);
+});
+
+export default $1;
+endsnippet
+
 snippet dojotest "Start a new dojo test file"
 import assertionTemplate from '@dojo/framework/testing/assertionTemplate';
 import harness from '@dojo/framework/testing/harness';
