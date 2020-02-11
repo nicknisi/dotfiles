@@ -45,3 +45,4 @@ brew "z"
 brew "zsh"
 
 cask "kitty"
+cask "imageoptim"
