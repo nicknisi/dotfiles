@@ -104,7 +104,7 @@ If a `package.json` file or a `node_modules` directory exists in the current wor
 
 |                         | Vim        | Neovim                    |
 |-------------------------|------------|---------------------------|
-| Main Configuratin File  | `~/.vimrc` | `~/.config/nvim/init.vim` |
+| Main Configuration File  | `~/.vimrc` | `~/.config/nvim/init.vim` |
 | Configuration directory | `~/.vim`   | `~/.config/nvim`          |
 
 ### Installation
