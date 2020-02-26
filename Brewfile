@@ -1,8 +1,11 @@
+# taps
 tap "homebrew/bundle"
 tap "homebrew/cask"
 tap "homebrew/core"
+tap "homebrew/cask-fonts"
 tap "schniz/tap"
 
+# packages
 brew "ack"
 brew "bat"
 brew "cloc"
@@ -45,5 +48,10 @@ brew "youtube-dl"
 brew "z"
 brew "zsh"
 
+# Applications
 cask "kitty"
 cask "imageoptim"
+
+# Fonts
+cask "font-fira-code"
+cask "font-jetbrains-mono"
