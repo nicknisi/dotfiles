@@ -55,3 +55,4 @@ cask "imageoptim"
 # Fonts
 cask "font-fira-code"
 cask "font-jetbrains-mono"
+cask "font-cascadia-mono"
