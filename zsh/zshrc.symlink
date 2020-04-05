@@ -107,9 +107,10 @@ zfetch $ZPLUGDIR zsh-users/zsh-syntax-highlighting
 zfetch $ZPLUGDIR zsh-users/zsh-autosuggestions
 zfetch $ZPLUGDIR chriskempson/base16-shell
 
-# add fnm
-eval "`fnm env --multi --use-on-cd`"
-
+if [ "$FNM_LOADED" != "true" ]; then
+    eval "`fnm env --multi --use-on-cd`"
+    export FNM_LOADED="true"
+fi
 
 [[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
 
@@ -209,5 +210,3 @@ alias ta='tmux attach'
 alias tls='tmux ls'
 alias tat='tmux attach -t'
 alias tns='tmux new-session -s'
-# fnm
-eval "$(fnm env --multi)"
