@@ -518,7 +518,8 @@ call plug#begin('~/.config/nvim/plugged')
         \ 'coc-emmet',
         \ 'coc-prettier',
         \ 'coc-ultisnips',
-        \ 'coc-explorer'
+        \ 'coc-explorer',
+        \ 'coc-diagnostic'
         \ ]
 
         autocmd CursorHold * silent call CocActionAsync('highlight')
