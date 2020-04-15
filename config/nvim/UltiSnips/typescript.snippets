@@ -1,7 +1,3 @@
-snippet ref "TypeScript reference comment" b
-/// <reference path="$1"/>
-endsnippet
-
 snippet log
 console.log($1);
 endsnippet
@@ -26,10 +22,6 @@ snippet doc "Doc Comment" b
 /**
  * $1
  */
-endsnippet
-
-snippet ign "TSLint ignore line"
-// tslint:disable-line ${1}
 endsnippet
 
 snippet imp "import default from" b
@@ -80,10 +72,4 @@ export const $1 = factory(function $1({
 });
 
 export default $1;
-endsnippet
-
-snippet dojotest "Start a new dojo test file"
-import assertionTemplate from '@dojo/framework/testing/assertionTemplate';
-import harness from '@dojo/framework/testing/harness';
-import { tsx } from '@dojo/framework/core/vdom';
 endsnippet
