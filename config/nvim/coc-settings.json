@@ -34,5 +34,34 @@
     "eslint.enable": false,
     "diagnostic-languageserver.filetypes": {
         "sh": "shellcheck"
+    },
+    "diagnostic-languageserver.linters": {
+        "shellcheck": {
+            "args": [
+                "--format=gcc",
+                "--external-sources",
+                "-"
+            ],
+            "command": "shellcheck",
+            "debounce": 100,
+            "formatLines": 1,
+            "formatPattern": [
+                "^[^:]+:(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",
+                {
+                    "column": 2,
+                    "line": 1,
+                    "message": 4,
+                    "security": 3
+                }
+            ],
+            "offsetColumn": 0,
+            "offsetLine": 0,
+            "securities": {
+                "error": "error",
+                "note": "warning",
+                "warning": "warning"
+            },
+            "sourceName": "shellcheck"
+        }
     }
 }
