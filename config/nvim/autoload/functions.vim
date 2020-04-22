@@ -23,7 +23,7 @@ function! functions#Delete(...)
         let file=a:1
     elseif ( &ft == 'help' )
         echohl Error
-        echo "Cannod delete a help buffer!"
+        echo "Cannot delete a help buffer!"
         echohl None
         return -1
     else
