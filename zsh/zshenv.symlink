@@ -1,7 +1,7 @@
 export DOTFILES=$HOME/.dotfiles
 export CACHEDIR="$HOME/.local/share"
 
-[[ -d "$CACHEDIR" ]] || mkdir -p "$CAHCEDIR"
+[[ -d "$CACHEDIR" ]] || mkdir -p "$CACHEDIR"
 
 fpath=(
     $DOTFILES/zsh/functions
