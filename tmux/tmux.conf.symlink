@@ -1,4 +1,5 @@
-set -g default-command "login-shell"
+if-shell "uname | grep -q Darwin" \
+    'set -g default-command "login-shell"'
 
 # tmux display things in 256 colors
 set -g default-terminal "tmux-256color"
@@ -86,11 +87,12 @@ bind Escape copy-mode
 unbind p
 bind p paste-buffer
 bind -Tcopy-mode-vi 'v' send -X begin-selection
-bind -Tcopy-mode-vi 'y' send -X copy-pipe-and-cancel "tmux save-buffer - | reattach-to-user-namespace pbcopy"
 
-# Buffers to/from Mac clipboard, yay tmux book from pragprog
-bind C-c run "tmux save-buffer - | reattach-to-user-namespace pbcopy"
-bind C-v run "tmux set-buffer $(reattach-to-user-namespace pbpaste); tmux paste-buffer"
+if-shell "uname | grep -q Darwin" " \
+    bind-key -T copy-mode-vi y send -X copy-pipe-and-cancel 'tmux save-buffer - | reattach-to-user-namespace pbcopy'; \
+    bind C-c run 'tmux save-buffer - | reattach-to-user-namespace pbcopy'; \
+    bind C-v run 'tmux set-buffer $(reattach-to-user-namespace pbpaste); tmux paste-buffer'" " \
+    bind-key -T copy-mode-vi y send -X copy-pipe-and-cancel 'xclip -selection clipboard -in'"
 
 ##############################
 ### Color & Style Settings ###
