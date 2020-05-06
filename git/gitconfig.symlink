@@ -1,9 +1,9 @@
 # gitconfig
 [user]
-    name = Nick Nisi
-    email = nick@nisi.org
+	name = Arturo
+	email = arturojosejr@gmail.com
 [github]
-    user = nicknisi
+	user = ajr-dev
 [init]
     templatedir = ~/.dotfiles/git/templates
 [alias]
@@ -156,7 +156,7 @@
     extendRegexp = true
     lineNumber = true
 [credential]
-	helper = osxkeychain
+	helper = store
 [difftool "Kaleidoscope"]
 	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
 [mergetool "Kaleidoscope"]
