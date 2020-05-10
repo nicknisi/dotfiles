@@ -43,6 +43,7 @@ prepend_path /usr/local/opt/grep/libexec/gnubin
 prepend_path /usr/local/sbin
 prepend_path $DOTFILES/bin
 prepend_path $HOME/bin
+eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
 
 # define the code directory
 # This is where my code exists and where I want the `c` autocomplete to work from exclusively
@@ -52,6 +53,9 @@ fi
 
 # display how long all tasks over 10 seconds take
 export REPORTTIME=10
+
+# 10ms delay for key sequences
+export KEYTIMEOUT=1
 
 setopt NO_BG_NICE
 setopt NO_HUP

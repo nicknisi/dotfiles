@@ -1,6 +1,14 @@
 " .vimrc / init.vim
 " The following vim/neovim configuration works for both Vim and NeoVim
 
+if !exists("g:os")
+    if has("win64") || has("win32") || has("win16")
+        let g:os = "Windows"
+    else
+        let g:os = substitute(system('uname'), '\n', '', '')
+    endif
+endif
+
 " ensure vim-plug is installed and then load it
 call functions#PlugLoad()
 call plug#begin('~/.config/nvim/plugged')
@@ -16,7 +24,7 @@ call plug#begin('~/.config/nvim/plugged')
     abbr attribuet attribute
 
     set autoread " detect when a file is changed
-
+    set timeoutlen=1000 ttimeoutlen=0 " eliminate delay when switching mode
     set history=1000 " change history to 1000
     set textwidth=120
 
@@ -60,7 +68,11 @@ call plug#begin('~/.config/nvim/plugged')
     set showbreak=↪
     set autoindent " automatically set indent of new line
     set ttyfast " faster redrawing
-    set diffopt+=vertical,iwhite,internal,algorithm:patience,hiddenoff
+    if g:os == "Darwin"
+        set diffopt+=vertical,iwhite,internal,algorithm:patience,hiddenoff
+    elseif g:os == "Linux"
+        set diffopt=vertical,iwhite
+    endif
     set laststatus=2 " show the status line all the time
     set so=7 " set 7 lines to the cursors - when moving vertical
     set wildmenu " enhanced command line completion
@@ -370,7 +382,7 @@ call plug#begin('~/.config/nvim/plugged')
     Plug 'moll/vim-bbye'
     nmap <leader>b :Bdelete<cr>
 
-    " Writing in vim {{{{
+    " Writing in vim {{{
         Plug 'junegunn/goyo.vim'
 
         autocmd! User GoyoEnter nested call helpers#goyo#enter()
@@ -500,7 +512,7 @@ call plug#begin('~/.config/nvim/plugged')
     " }}}
 
     " coc {{{
-        Plug 'neoclide/coc.nvim', {'do': 'yarn install --frozen-lockfile'}
+        Plug 'neoclide/coc.nvim', { 'branch': 'release', 'do': 'yarn install --frozen-lockfile'}
 
         let g:coc_global_extensions = [
         \ 'coc-css',
