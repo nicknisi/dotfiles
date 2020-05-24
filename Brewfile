@@ -57,6 +57,7 @@ cask "imageoptim"
 cask "font-fira-code"
 cask "font-jetbrains-mono"
 cask "font-cascadia-mono"
+cask "font-3270-nerd-font"
 
 # macOS App Store
 mas "Affinity Photo", id: 824183456
