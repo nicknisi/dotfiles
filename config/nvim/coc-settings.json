@@ -29,7 +29,7 @@
     "explorer.openAction.for.directory": "expandOrCollapse",
     "explorer.previewAction.onHover": false,
     "explorer.keyMappings": {
-        "<cr>": ["expanded?", "collapse", "expand"]
+        "<cr>": ["expandable?", ["expanded?", "collapse", "expand"], "open"]
     },
     "eslint.enable": false,
     "diagnostic-languageserver.filetypes": {
