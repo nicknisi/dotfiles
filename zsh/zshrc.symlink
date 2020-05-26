@@ -210,3 +210,5 @@ alias ta='tmux attach'
 alias tls='tmux ls'
 alias tat='tmux attach -t'
 alias tns='tmux new-session -s'
+
+alias lpath='echo $PATH | tr ":" "\n"' # list the PATH separated by new lines
