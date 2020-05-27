@@ -6,6 +6,8 @@
     user = nicknisi
 [init]
     templatedir = ~/.dotfiles/git/templates
+[include]
+    path = ~/.gitconfig-local
 [alias]
     # list all aliases
     la = "!git config -l | grep alias | cut -c 7-"
