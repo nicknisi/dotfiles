@@ -108,7 +108,7 @@ zfetch $ZPLUGDIR zsh-users/zsh-autosuggestions
 zfetch $ZPLUGDIR chriskempson/base16-shell
 zfetch $ZPLUGDIR Aloxaf/fzf-tab
 
-if [[ -x "$(command -v fnm)" && -z "$FNM_LOADED" ]]; then
+if [[ -x "$(command -v fnm)" ]]; then
     eval "$(fnm env --multi --use-on-cd)"
     export FNM_LOADED=1
 fi
