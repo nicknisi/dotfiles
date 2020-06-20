@@ -18,9 +18,6 @@ defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
 # echo "show the ~/Library folder in Finder"
 chflags nohidden ~/Library
 
-# echo "disable resume system wide"
-# defaults write NSGlobalDomainNSQuitAlwaysKeepWindows -bool false
-
 echo "Enable full keyboard access for all controls (e.g. enable Tab in modal dialogs)"
 defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 
@@ -163,9 +160,6 @@ defaults write com.apple.Safari IncludeInternalDebugMenu -bool true
 
 # echo "Add a context menu item for showing the Web Inspector in web views"
 # defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
-
-#echo "Only use UTF-8 in Terminal.app"
-#defaults write com.apple.terminal StringEncodings -array 4
 
 # echo "Disable the Ping sidebar in iTunes"
 # defaults write com.apple.iTunes disablePingSidebar -bool true
