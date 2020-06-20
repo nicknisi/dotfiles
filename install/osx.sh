@@ -33,11 +33,11 @@ defaults write NSGlobalDomain AppleFontSmoothing -int 2
 # echo "Make Dock icons of hidden applications translucent"
 # defaults write com.apple.dock showhidden -bool true
 
-#echo "Enable iTunes track notifications in the Dock"
-#defaults write com.apple.dock itunes-notifications -bool true
+# echo "Enable iTunes track notifications in the Dock"
+# defaults write com.apple.dock itunes-notifications -bool true
 
 # Disable menu bar transparency
-#defaults write NSGlobalDomain AppleEnableMenuBarTransparency -bool false
+# defaults write NSGlobalDomain AppleEnableMenuBarTransparency -bool false
 
 # Show remaining battery time; hide percentage
 # defaults write com.apple.menuextra.battery ShowPercent -string "NO"
@@ -46,8 +46,8 @@ defaults write NSGlobalDomain AppleFontSmoothing -int 2
 # echo "Always show scrollbars"
 # defaults write NSGlobalDomain AppleShowScrollBars -string "Auto"
 
-#echo "Allow quitting Finder via ⌘ + Q; doing so will also hide desktop icons"
-#defaults write com.apple.finder QuitMenuItem -bool true
+# echo "Allow quitting Finder via ⌘ + Q; doing so will also hide desktop icons"
+# defaults write com.apple.finder QuitMenuItem -bool true
 
 # Disable window animations and Get Info animations in Finder
 # defaults write com.apple.finder DisableAllAnimations -bool true
@@ -64,11 +64,11 @@ defaults write com.apple.finder ShowStatusBar -bool true
 # echo "Expand print panel by default"
 # defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
 
-#echo "Disable the “Are you sure you want to open this application?” dialog"
-#defaults write com.apple.LaunchServices LSQuarantine -bool false
+# echo "Disable the “Are you sure you want to open this application?” dialog"
+# defaults write com.apple.LaunchServices LSQuarantine -bool false
 
-#echo "Disable shadow in screenshots"
-#defaults write com.apple.screencapture disable-shadow -bool true
+# echo "Disable shadow in screenshots"
+# defaults write com.apple.screencapture disable-shadow -bool true
 
 # echo "Enable highlight hover effect for the grid view of a stack (Dock)"
 # defaults write com.apple.dock mouse-over-hilte-stack -bool true
@@ -82,9 +82,9 @@ defaults write com.apple.finder ShowStatusBar -bool true
 # Don’t animate opening applications from the Dock
 # defaults write com.apple.dock launchanim -bool false
 
-#echo "Display ASCII control characters using caret notation in standard text views"
+# echo "Display ASCII control characters using caret notation in standard text views"
 # Try e.g. `cd /tmp; unidecode "\x{0000}" > cc.txt; open -e cc.txt`
-#defaults write NSGlobalDomain NSTextShowsControlCharacters -bool true
+# defaults write NSGlobalDomain NSTextShowsControlCharacters -bool true
 
 echo "Disable press-and-hold for keys in favor of key repeat"
 defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
@@ -95,8 +95,8 @@ defaults write NSGlobalDomain KeyRepeat -int 1
 echo "Set a shorter Delay until key repeat"
 defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
-#echo "Disable auto-correct"
-#defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+# echo "Disable auto-correct"
+# defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
 
 # Disable opening and closing window animations
 # defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
@@ -135,16 +135,16 @@ defaults write NSGlobalDomain InitialKeyRepeat -int 15
 # Empty Trash securely by default
 # defaults write com.apple.finder EmptyTrashSecurely -bool true
 
-#echo "Require password immediately after sleep or screen saver begins"
-#defaults write com.apple.screensaver askForPassword -int 1
-#defaults write com.apple.screensaver askForPasswordDelay -int 0
+# echo "Require password immediately after sleep or screen saver begins"
+# defaults write com.apple.screensaver askForPassword -int 1
+# defaults write com.apple.screensaver askForPasswordDelay -int 0
 
 echo "Enable tap to click (Trackpad)"
 defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
 
-#echo "Map bottom right Trackpad corner to right-click"
-#defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadCornerSecondaryClick -int 2
-#defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadRightClick -bool true
+# echo "Map bottom right Trackpad corner to right-click"
+# defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadCornerSecondaryClick -int 2
+# defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadRightClick -bool true
 
 # echo "Disable Safari’s thumbnail cache for History and Top Sites"
 # defaults write com.apple.Safari DebugSnapshotsUpdatePolicy -int 2
@@ -185,20 +185,20 @@ defaults write com.apple.Safari IncludeInternalDebugMenu -bool true
 # echo "Enable Dashboard dev mode (allows keeping widgets on the desktop)"
 # defaults write com.apple.dashboard devmode -bool true
 
-#echo "Reset Launchpad"
+# echo "Reset Launchpad"
 #[ -e ~/Library/Application\ Support/Dock/*.db ] && rm ~/Library/Application\ Support/Dock/*.db
 
 # echo "Disable local Time Machine backups"
 # hash tmutil &> /dev/null && sudo tmutil disablelocal
 
-#echo "Remove Dropbox’s green checkmark icons in Finder"
-#file=/Applications/Dropbox.app/Contents/Resources/check.icns
-#[ -e "$file" ] && mv -f "$file" "$file.bak"
-#unset file
+# echo "Remove Dropbox’s green checkmark icons in Finder"
+# file=/Applications/Dropbox.app/Contents/Resources/check.icns
+# [ -e "$file" ] && mv -f "$file" "$file.bak"
+# unset file
 
 #Fix for the ancient UTF-8 bug in QuickLook (http://mths.be/bbo)
 # Commented out, as this is known to cause problems when saving files in Adobe Illustrator CS5 :(
-#echo "0x08000100:0" > ~/.CFUserTextEncoding
+# echo "0x08000100:0" > ~/.CFUserTextEncoding
 
 echo "Kill affected applications"
 for app in Safari Finder Dock Mail SystemUIServer; do killall "$app" >/dev/null 2>&1; done
