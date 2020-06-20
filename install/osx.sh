@@ -3,19 +3,19 @@
 echo -e "\\n\\nSetting OS X settings"
 echo "=============================="
 
-# echo "Finder: show all filename extensions"
+echo "Finder: show all filename extensions"
 defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 
-# echo "show hidden files by default"
+echo "show hidden files by default"
 defaults write com.apple.Finder AppleShowAllFiles -bool false
 
-# echo "only use UTF-8 in Terminal.app"
+echo "only use UTF-8 in Terminal.app"
 defaults write com.apple.terminal StringEncodings -array 4
 
-# echo "expand save dialog by default"
+echo "expand save dialog by default"
 defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
 
-# echo "show the ~/Library folder in Finder"
+echo "show the ~/Library folder in Finder"
 chflags nohidden ~/Library
 
 echo "Enable full keyboard access for all controls (e.g. enable Tab in modal dialogs)"
