@@ -44,7 +44,7 @@ if [ "$(uname)" == "Darwin" ]; then
         echo "default shell changed to $zsh_path"
     fi
 
-    source install/osx.sh
+    source install/macos.sh
 fi
 
 echo "creating vim directories"
