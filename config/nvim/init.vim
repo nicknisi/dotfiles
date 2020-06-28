@@ -655,6 +655,7 @@ call plug#begin('~/.config/nvim/plugged')
     " }}}
 
     Plug 'ekalinin/Dockerfile.vim'
+    Plug 'jparise/vim-graphql'
 " }}}
 
 call plug#end()
