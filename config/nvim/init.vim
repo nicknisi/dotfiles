@@ -279,6 +279,9 @@ call plug#begin('~/.config/nvim/plugged')
     nmap <leader>4 <Plug>HiInterestingWord4
     nmap <leader>5 <Plug>HiInterestingWord5
     nmap <leader>6 <Plug>HiInterestingWord6
+
+    " open current buffer in a new tab
+    nmap <silent> gTT :tab sb<cr>
 " }}}
 
 " AutoGroups {{{
