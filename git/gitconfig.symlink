@@ -6,6 +6,7 @@
     user = nicknisi
 [init]
     templatedir = ~/.dotfiles/git/templates
+    defaultBranch = main
 [include]
     path = ~/.gitconfig-local
 [alias]
