@@ -14,7 +14,10 @@ tmpl:*.{html,hbs,pug}
 dts:*.d.ts
 
 --type-add
-spec:*.spec.{ts,tsx,js,jsx}
+spec:*.{spec,test}.{ts,tsx,js,jsx}
+
+--type-add
+test:*.{spec,test}.{ts,tsx,js,jsx}
 
 --type-add
 tsx:*.tsx
