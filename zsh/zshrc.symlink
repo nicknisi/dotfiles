@@ -44,6 +44,16 @@ prepend_path /usr/local/sbin
 prepend_path $DOTFILES/bin
 prepend_path $HOME/bin
 
+if [[ "$(uname)" == "Linux" ]]; then
+    export HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew";
+    export HOMEBREW_CELLAR="$HOMEBREW_PREFIX/Cellar";
+    export HOMEBREW_REPOSITORY="$HOMEBREW_PREFIX/Homebrew";
+    prepend_path "$HOMEBREW_PREFIX/bin"
+    prepend_path "$HOMEBREW_PREFIX/sbin"
+    export MANPATH="$HOMEBREW_PREFIX/share/man${MANPATH+:$MANPATH}:";
+    export INFOPATH="$HOMEBREW_PREFIX/share/info:${INFOPATH}";
+fi
+
 # define the code directory
 # This is where my code exists and where I want the `c` autocomplete to work from exclusively
 if [[ -d ~/code ]]; then
@@ -152,8 +162,10 @@ export LESS_TERMCAP_ue=$(tput rmul; tput sgr0)
 export LESS_TERMCAP_mr=$(tput rev)
 export LESS_TERMCAP_mh=$(tput dim)
 
-if hash brew 2>/dev/null; then
-    source `brew --prefix`/etc/profile.d/z.sh
+# source z.sh if it exists
+zpath="$(brew --prefix)/etc/profile.d/z.sh"
+if [ -f "$zpath" ]; then
+    source "$zpath"
 fi
 
 ########################################################
@@ -171,7 +183,7 @@ else # macOS `ls`
 fi
 
 # use nvim, but don't make me think about it
-alias vim="nvim"
+[[ -n "$(command -v nvim)" ]] && alias vim="nvim"
 
 # Filesystem aliases
 alias ..='cd ..'

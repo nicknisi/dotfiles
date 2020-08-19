@@ -1,13 +1,9 @@
-# gitconfig
-[user]
-    name = Nick Nisi
-    email = nick@nisi.org
-[github]
-    user = nicknisi
 [init]
     templatedir = ~/.dotfiles/git/templates
     defaultBranch = main
 [include]
+    # A local gitconfig, outside of version control.
+    # If the file doesn't exist it is silently ignored
     path = ~/.gitconfig-local
 [alias]
     # list all aliases
