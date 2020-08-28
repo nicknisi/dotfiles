@@ -621,7 +621,7 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'digitaltoad/vim-pug', { 'for': ['jade', 'pug'] }
 
 		" nunjucks support
-        Plug 'Glench/Vim-Jinja2-Syntax', { 'for': 'njk' }
+        Plug 'niftylettuce/vim-jinja'
 
         " liquid support
         Plug 'tpope/vim-liquid'
