@@ -114,10 +114,6 @@ zstyle ':completion:*' insert-tab pending
 # default to file completion
 zstyle ':completion:*' completer _expand _complete _files _correct _approximate
 
-# source all .zsh files inside of the zsh/ directory
-source "$DOTFILES/zsh/utils.zsh"
-source "$DOTFILES/zsh/prompt.zsh"
-
 
 ########################################################
 # Plugin setup
@@ -128,10 +124,11 @@ export ZPLUGDIR="$CACHEDIR/zsh/plugins"
 # array containing plugin information (managed by zfetch)
 typeset -A plugins
 
-zfetch $ZPLUGDIR zsh-users/zsh-syntax-highlighting
-zfetch $ZPLUGDIR zsh-users/zsh-autosuggestions
-zfetch $ZPLUGDIR chriskempson/base16-shell
-zfetch $ZPLUGDIR Aloxaf/fzf-tab
+zfetch mafredri/zsh-async async.plugin.zsh
+zfetch zsh-users/zsh-syntax-highlighting
+zfetch zsh-users/zsh-autosuggestions
+zfetch chriskempson/base16-shell
+zfetch Aloxaf/fzf-tab
 
 if [[ -x "$(command -v fnm)" ]]; then
     eval "$(fnm env --multi --use-on-cd)"
@@ -243,3 +240,6 @@ alias lpath='echo $PATH | tr ":" "\n"' # list the PATH separated by new lines
 
 # list our process using port
 alias wtfport="lsof -i -P -n | grep LISTEN"
+
+source "$DOTFILES/zsh/utils.zsh"
+source "$DOTFILES/zsh/prompt.zsh"

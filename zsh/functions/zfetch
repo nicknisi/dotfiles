@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 # This code was originally from
 # https://github.com/jason0x43/dotfiles/blob/eff04270c4d8074db36d3e3bf85f64d3ccbeafe9/zsh/functions/zfetch
 
@@ -14,67 +15,71 @@ Cyn="${TC}36m";
 Wht="${TC}37m";
 
 git_clone_error_msg() {
-  echo -e "  ${Red}[ERROR]${Rst} git clone errored: ${Red}${1}${Rst}. ${Yel}aborting...${Rst}"
+    echo -e "  ${Red}[ERROR]${Rst} git clone errored: ${Red}${1}${Rst}. ${Yel}aborting...${Rst}"
 }
 
 # Simplest dependency fetcher known to mankind
 if [[ $1 == "update" ]]; then
-  for name in ${(@k)plugins}; do
-    local cwd=$(pwd)
-    local dest=$plugins[$name]
-    cd $dest
-    echo -e "Updating ${Yel}${name}${Rst}..."
-    git pull --quiet --recurse-submodules
-    cd $cwd
-  done
+    for name in ${(@k)plugins}; do
+        local cwd=$(pwd)
+        local dest=$plugins[$name]
+        cd $dest
+        echo -e "Updating ${Yel}${name}${Rst}..."
+        git pull --quiet --recurse-submodules
+        cd $cwd
+    done
 elif [[ $1 == "ls" ]]; then
-  for name in ${(@k)plugins}; do
-    echo -e "${name}: ${Yel}$plugins[$name]${Rst}"
-  done
+    for name in ${(@k)plugins}; do
+        echo -e "${name}: ${Yel}$plugins[$name]${Rst}"
+    done
 else
-  # where the repo is going
-  local dest="$1"
+
   # the short name of the repo (org/repo)
-  local name="$2"
+  local name="$1"
+
+  local plugin_name="${2:-"${name##*/}.plugin.zsh"}"
+
+  # where the repo is going
+  local dest="${3:-"$ZPLUGDIR"}"
 
   # if the dest dir ends with /, append the name to it to get the real dest dir
   if [[ $dest == */ ]]; then
-    dest=$dest$name
+      dest=$dest$name
   else
-    dest=$dest/$name
+      dest=$dest/$name
   fi
 
   local cwd=$(pwd)
   plugins[$name]=$dest
 
   if [[ ! -d $dest ]]; then
-    local url=https://github.com/$name
-    local ref=$3
-    echo -e "Missing plugin ${Yel}${name}${Rst}"
-    echo -e "  Cloning from ${Blu}${url}${Rst}..."
-    if [[ -n $ref ]]; then
-      git clone --quiet $url $dest
-      if [[ $? != 0 ]]; then
-        git_clone_error_msg $?
-        cd $cwd
-        return $?
-      fi
+      local url=https://github.com/$name
+      local ref=$3
+      echo -e "Missing plugin ${Yel}${name}${Rst}"
+      echo -e "  Cloning from ${Blu}${url}${Rst}..."
+      if [[ -n $ref ]]; then
+          git clone --quiet $url $dest
+          if [[ $? != 0 ]]; then
+              git_clone_error_msg $?
+              cd $cwd
+              return $?
+          fi
 
-      git checkout --quiet $ref
-      echo -e "  Checked out branch ${ref}"
-    else
-      git clone --quiet --depth 1 $url $dest
-      if [[ $? != 0 ]]; then
-        git_clone_error_msg $?
-        cd $cwd
-        return $?
+          git checkout --quiet $ref
+          echo -e "  Checked out branch ${ref}"
+      else
+          git clone --quiet --depth 1 $url $dest
+          if [[ $? != 0 ]]; then
+              git_clone_error_msg $?
+              cd $cwd
+              return $?
+          fi
+          echo -e "  Checked out master"
       fi
-      echo -e "  Checked out master"
-    fi
   fi
-  plugin="$dest/${dest##*/}.plugin.zsh"
+  plugin="$dest/$plugin_name"
   if [ -f "$plugin" ]; then
-    source "$plugin"
+      source "$plugin"
   fi
   cd $cwd
 fi
