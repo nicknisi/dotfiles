@@ -124,11 +124,11 @@ export ZPLUGDIR="$CACHEDIR/zsh/plugins"
 # array containing plugin information (managed by zfetch)
 typeset -A plugins
 
-zfetch $ZPLUGDIR mafredri/zsh-async async
-zfetch $ZPLUGDIR zsh-users/zsh-syntax-highlighting
-zfetch $ZPLUGDIR zsh-users/zsh-autosuggestions
-zfetch $ZPLUGDIR chriskempson/base16-shell
-zfetch $ZPLUGDIR Aloxaf/fzf-tab
+zfetch mafredri/zsh-async async.plugin.zsh
+zfetch zsh-users/zsh-syntax-highlighting
+zfetch zsh-users/zsh-autosuggestions
+zfetch chriskempson/base16-shell
+zfetch Aloxaf/fzf-tab
 
 if [[ -x "$(command -v fnm)" ]]; then
     eval "$(fnm env --multi --use-on-cd)"
