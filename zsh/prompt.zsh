@@ -5,41 +5,36 @@ setopt prompt_subst
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:git*' formats ' %b'
 
-add-zsh-hook precmd vcs_info
-add-zsh-hook precmd async_trigger
+# add-zsh-hook precmd vcs_info
 
 source "$DOTFILES/zsh/git_prompt.zsh"
 source "$DOTFILES/zsh/jobs_prompt.zsh"
 source "$DOTFILES/zsh/node_prompt.zsh"
 
+async_init
+async_start_worker vcs_info
+async_register_callback vcs_info git_status_done
+
 PROMPT_SYMBOL='❯'
 
-ASYNC_PROC=0
-function async() {
-    printf "%s" "$(git_status) $(suspended_jobs)" > "/tmp/zsh_prompt_$$"
-
-    kill -s USR1 $$
-
-    if [[ "${ASYNC_PROC}" != 0 ]]; then
-        kill -s HUP $ASYNC_PROC >/dev/null 2>&1 || :
-    fi
-}
-
-function async_trigger() {
-    ASYNC_PROC=$!
-    async &!
-}
-
-function TRAPUSR1() {
-    vcs_info
-    RPROMPT='$(cat /tmp/zsh_prompt_$$)'
-    ASYNC_PROC=0
-
-    zle && zle reset-prompt
-}
-
-precmd() {
+add-zsh-hook precmd () {
     print -P "\n%F{005}%~ $(node_prompt)"
+    async_job vcs_info git_status
+}
+
+node_prompt() {
+    [[ -f package.json || -d node_modules ]] || return
+
+    local version=''
+    local node_icon='\ue718'
+
+    if dotfiles::exists node; then
+        version=$(node -v 2>/dev/null)
+    fi
+
+    [[ -n version ]] || return
+
+    dotfiles::print '029' "$node_icon $version"
 }
 
 export PROMPT='%(?.%F{006}.%F{009})$PROMPT_SYMBOL%f '

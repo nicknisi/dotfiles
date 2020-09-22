@@ -1,5 +1,12 @@
+git_status_done() {
+    RPROMPT="$3"
+    zle reset-prompt
+}
+
 git_status() {
     dotfiles::is_git || return
+
+    vcs_info
 
     local git_branch="$vcs_info_msg_0_"
     git_branch="${git_branch#heads/}"
