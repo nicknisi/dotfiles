@@ -37,6 +37,8 @@ else
   # the short name of the repo (org/repo)
   local name="$2"
 
+  local plugin_name="${3:-"$name"}"
+
   # if the dest dir ends with /, append the name to it to get the real dest dir
   if [[ $dest == */ ]]; then
     dest=$dest$name
@@ -72,7 +74,7 @@ else
       echo -e "  Checked out master"
     fi
   fi
-  plugin="$dest/${dest##*/}.plugin.zsh"
+  plugin="$dest/${plugin_name##*/}.plugin.zsh"
   if [ -f "$plugin" ]; then
     source "$plugin"
   fi
