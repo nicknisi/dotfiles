@@ -22,6 +22,9 @@
     cane = commit --amend --no-edit
     poh = push -u origin head
 
+    # gh commands
+    browse = "!gh repo view --web"
+
     # rebase commands
     cont = rebase --continue
     conf = "!git s | grep ^U"
