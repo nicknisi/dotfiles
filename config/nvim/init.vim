@@ -357,6 +357,7 @@ call plug#begin('~/.config/nvim/plugged')
         let g:startify_commands = [
         \   { 'up': [ 'Update Plugins', ':PlugUpdate' ] },
         \   { 'ug': [ 'Upgrade Plugin Manager', ':PlugUpgrade' ] },
+        \   { 'uc': [ 'Update CoC Plugins', ':CocUpdate' ] },
         \ ]
 
         let g:startify_bookmarks = [
