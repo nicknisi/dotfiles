@@ -131,7 +131,7 @@ zfetch chriskempson/base16-shell
 zfetch Aloxaf/fzf-tab
 
 if [[ -x "$(command -v fnm)" ]]; then
-    eval "$(fnm env --multi --use-on-cd)"
+    eval "$(fnm env --use-on-cd)"
     export FNM_LOADED=1
 fi
 
