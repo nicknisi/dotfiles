@@ -28,7 +28,7 @@
     "explorer.file.column.git.icon.ignored": "☒",
     "explorer.openAction.for.directory": "expandOrCollapse",
     "explorer.previewAction.onHover": false,
-    "explorer.keyMappings": {
+    "explorer.keyMappings.global": {
         "<cr>": ["expandable?", ["expanded?", "collapse", "expand"], "open"]
     },
     "eslint.enable": true,
