@@ -53,7 +53,7 @@ else
   plugins[$name]=$dest
 
   if [[ ! -d $dest ]]; then
-      local url=https://github.com/$name
+      local url=git@github.com:$name
       local ref=$3
       echo -e "Missing plugin ${Yel}${name}${Rst}"
       echo -e "  Cloning from ${Blu}${url}${Rst}..."
