@@ -228,5 +228,7 @@ alias tns='tmux new-session -s'
 
 alias lpath='echo $PATH | tr ":" "\n"' # list the PATH separated by new lines
 
+alias nr="npm run"
+
 source "$DOTFILES/zsh/utils.zsh"
 source "$DOTFILES/zsh/prompt.zsh"
