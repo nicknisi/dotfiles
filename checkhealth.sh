@@ -44,6 +44,7 @@ get_linkables() {
 
 check_utils() {
     local utils=(git brew tmux nvim kitty)
+    local missing_apps=0
     title "Checking for installed apps"
     for util in "${utils[@]}"; do
         printf %s "Checking $util... "
@@ -51,10 +52,16 @@ check_utils() {
         if test "$(command -v "$util")"; then
             success "Installed."
         else
-            warning "Not installed."
+            error "Not installed."
+            missing_apps=$((missing_apps+1))
         fi
         printf %s "$newline"
     done
+
+    if [ "$missing_apps" -gt 0 ]; then
+        error "${newline}Missing required utilities. Install them to continue."
+        exit 1
+    fi
 }
 
 check_symlinks() {
@@ -94,7 +101,26 @@ check_symlinks() {
     fi
 }
 
+check_shell() {
+    title "Checking shell"
+    local zsh_path
+
+    zsh_path="$(brew --prefix)/bin/zsh"
+
+    printf %s "Checking Shell: $SHELL... "
+
+    if [[ "$SHELL" = "$zsh_path" ]]; then 
+        success "Accepted.$newline" 
+    else
+        error "Rejected.$newline$newline"
+        color_print "$COLOR_BLUE" "Run \`./install.sh shell\` to setup the shell."
+    fi
+
+    printf %s "$newline"
+}
+
 title "Dotfiles health check"
 
 check_utils
+check_shell
 check_symlinks
