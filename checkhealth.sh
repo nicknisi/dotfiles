@@ -17,22 +17,25 @@ COLOR_YELLOW="\033[1;33m"
 COLOR_NONE="\033[0m"
 newline=$'\n'
 
+color_print() {
+    printf "%b%s%b" "$1" "$2" "$COLOR_NONE"
+}
+
 title() {
     echo -e "\n${COLOR_PURPLE}$1${COLOR_NONE}"
     echo -e "${COLOR_GRAY}==============================${COLOR_NONE}\n"
 }
 
 error() {
-    echo -e "${COLOR_RED}Error: ${COLOR_NONE}$1"
-    exit 1
+    color_print "$COLOR_RED" "$*"
 }
 
 warning() {
-    printf "${COLOR_GREEN}" "$*" "${COLOR_NONE}"
+    color_print "$COLOR_YELLOW" "$*"
 }
 
 success() {
-    printf "${COLOR_GREEN}" "$*" "${COLOR_NONE}"
+    color_print "$COLOR_GREEN" "$*"
 }
 
 get_linkables() {
@@ -59,7 +62,7 @@ check_symlinks() {
 
     for link in $(get_linkables) ; do
         target="$HOME/.$(basename "$link" '.symlink')"
-        printf %s "Checking Symlink for \"$target\"... "
+        printf %s "Checking Symlink for \".$(basename "$link" ".symlink")\"... "
         if [[ -h "$target" ]]; then
             if [ "$link" != "$(readlink "$target")" ]; then
                 warn "$target is not properly symlinked"
