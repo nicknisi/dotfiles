@@ -2,9 +2,9 @@
 # Check the health of the dotfiles installation.
 
 # Things to check:
-# - [ ] check symlinks
+# - [X] check key utilies are installed
+# - [X] check symlinks
 # - [ ] check XDG_CONFIG
-# - [ ] check key utilies are installed
 # - [ ] check shell
 # - [ ] check the path
 
@@ -49,9 +49,9 @@ check_utils() {
         printf %s "Checking $util... "
 
         if test "$(command -v "$util")"; then
-            success "Exists."
+            success "Installed."
         else
-            warning "MISSING. "
+            warning "Not installed."
         fi
         printf %s "$newline"
     done
@@ -59,24 +59,42 @@ check_utils() {
 
 check_symlinks() {
     title "Checking Symlinks"
+    local symlink_issues=0
+    local dotfile
+    local actual
+    local target
 
     for link in $(get_linkables) ; do
-        target="$HOME/.$(basename "$link" '.symlink')"
-        printf %s "Checking Symlink for \".$(basename "$link" ".symlink")\"... "
+        dotfile=".$(basename "$link" ".symlink")"
+        target="$HOME/$dotfile"
+        printf %s "Checking for Symlink \"~/$dotfile\"... "
         if [[ -h "$target" ]]; then
-            if [ "$link" != "$(readlink "$target")" ]; then
-                warn "$target is not properly symlinked"
+            actual="$(readlink "$target")"
+            if [ "$link" != "$actual" ]; then
+                warning "Incorrect.$newline"
+                color_print "$COLOR_YELLOW" "Expected symlink to point to "
+                color_print "$COLOR_GRAY" "$link$newline"
+                color_print "$COLOR_RED" "But it points to "
+                color_print "$COLOR_GRAY" "$actual$newline"
+                color_print "$COLOR_BLUE" "${newline}Delete the symlink and run \`./install.sh link\`$newline"
+                symlink_issues=$((symlink_issues+1))
             else
                 success "Exists."
             fi
         else
-            warn "$target symlink is missing."
+            error "Missing."
+            symlink_issues=$((symlink_issues+1))
         fi
         printf %s "$newline"
     done
+
+    if [ "$symlink_issues" -gt 0 ]; then
+        error "${newline}There were $symlink_issues issue(s).$newline"
+        color_print "$COLOR_BLUE" "${newline}Run \`./install.sh link\` to correct.$newline"
+    fi
 }
 
-# title "Dotfiles health check"
+title "Dotfiles health check"
 
-# check_utils
+check_utils
 check_symlinks
