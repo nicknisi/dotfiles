@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
 # Check the health of the dotfiles installation.
 
-# Things to check:
-# - [X] check key utilies are installed
-# - [X] check symlinks
-# - [ ] check XDG_CONFIG
-# - [ ] check shell
-# - [ ] check the path
-
 COLOR_GRAY="\033[1;38;5;243m"
 COLOR_BLUE="\033[1;34m"
 COLOR_GREEN="\033[1;32m"
@@ -20,7 +13,6 @@ newline=$'\n'
 color_print() {
     printf "%b%s%b" "$1" "$2" "$COLOR_NONE"
 }
-
 title() {
     echo -e "\n${COLOR_PURPLE}$1${COLOR_NONE}"
     echo -e "${COLOR_GRAY}==============================${COLOR_NONE}\n"
@@ -119,8 +111,25 @@ check_shell() {
     printf %s "$newline"
 }
 
+check_xdg_config() {
+    title "Checking XDG_CONFIG directory"
+    local xdg_config="$HOME/.config"
+
+    printf %s "Checking the existence of \"$xdg_config\"... "
+
+    if [[ -d "$xdg_config" ]]; then
+        success "Exists."
+    else
+        error "Missing.$newline$newline"
+        color_print "$COLOR_BLUE" "XDG_CONFIG directory is missing. Run \`./install.sh link\` to set up."
+    fi
+
+    printf %s "$newline"
+}
+
 title "Dotfiles health check"
 
 check_utils
 check_shell
 check_symlinks
+check_xdg_config
