@@ -132,7 +132,6 @@ zfetch Aloxaf/fzf-tab
 
 if [[ -x "$(command -v fnm)" ]]; then
     eval "$(fnm env --use-on-cd)"
-    export FNM_LOADED=1
 fi
 
 [[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
