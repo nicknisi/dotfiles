@@ -9,6 +9,7 @@ COLOR_PURPLE="\033[1;35m"
 COLOR_YELLOW="\033[1;33m"
 COLOR_NONE="\033[0m"
 newline=$'\n'
+instructions=0
 
 color_print() {
     printf "%b%s%b" "$1" "$2" "$COLOR_NONE"
@@ -32,6 +33,11 @@ success() {
 
 get_linkables() {
     find -H "$DOTFILES" -maxdepth 3 -name '*.symlink'
+}
+
+instruction() {
+    color_print "$COLOR_BLUE" "$*"
+    instructions=$((instructions + 1))
 }
 
 check_utils() {
@@ -89,7 +95,7 @@ check_symlinks() {
 
     if [ "$symlink_issues" -gt 0 ]; then
         error "${newline}There were $symlink_issues issue(s).$newline"
-        color_print "$COLOR_BLUE" "${newline}Run \`./install.sh link\` to correct.$newline"
+        instruction "${newline}Run \`./install.sh link\` to correct.$newline"
     fi
 }
 
@@ -105,7 +111,7 @@ check_shell() {
         success "Accepted.$newline" 
     else
         error "Rejected.$newline$newline"
-        color_print "$COLOR_BLUE" "Run \`./install.sh shell\` to setup the shell."
+        instruction "Run \`./install.sh shell\` to setup the shell."
     fi
 
     printf %s "$newline"
@@ -121,10 +127,33 @@ check_xdg_config() {
         success "Exists."
     else
         error "Missing.$newline$newline"
-        color_print "$COLOR_BLUE" "XDG_CONFIG directory is missing. Run \`./install.sh link\` to set up."
+        instruction "XDG_CONFIG directory is missing. Run \`./install.sh link\` to set up."
     fi
 
     printf %s "$newline"
+}
+
+check_terminfo() {
+    local status
+    title "Checking terminfo"
+
+    if [[ -z "$TMUX" ]]; then
+        color_print "$COLOR_BLUE" "Running outside tmux... "
+        infocmp | grep xterm-256color-italic
+    else
+        color_print "$COLOR_BLUE" "Running inside tmux... "
+        infocmp | grep tmux-256color >/dev/null
+    fi
+
+    status="$?"
+
+    if [ "$status" -eq 0 ]; then
+        success "terminfo entry exists"
+    else
+        error "terminfo entry missing$newline"
+        instruction "Run \'./install.sh terminfo to set up.\'"
+    fi
+    echo -e " "
 }
 
 title "Dotfiles health check"
@@ -133,3 +162,12 @@ check_utils
 check_shell
 check_symlinks
 check_xdg_config
+check_terminfo
+
+echo -e " "
+if [ "$instructions" -gt 0 ]; then
+    warning "There were issues discovered."
+else
+    success "No issues detected."
+fi
+echo -e " "
