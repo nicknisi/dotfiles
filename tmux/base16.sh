@@ -29,7 +29,7 @@ set-window-option -g window-status-format " #I #W"
 
 # active window title colors
 set-window-option -g window-status-current-style fg=$base0C,bg=$base00
-set-window-option -g window-status-current-format " #[bold]#W"
+set-window-option -g window-status-current-format " #I #[bold]#W"
 
 # pane border colors
 set-window-option -g pane-active-border-style fg=$base0C
