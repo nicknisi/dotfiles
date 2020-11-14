@@ -101,13 +101,20 @@ export ZPLUGDIR="$CACHEDIR/zsh/plugins"
 # array containing plugin information (managed by zfetch)
 typeset -A plugins
 
-export ZPLUG_HOME=/usr/local/opt/zplug
-source $ZPLUG_HOME/init.zsh
+if [[ "$(uname)" == "Darwin" ]]; then
+    export ZPLUG_HOME=/usr/local/opt/zplug
+    source $ZPLUG_HOME/init.zsh
+fi
 
 zplug "mafredri/zsh-async", from:"github", use:"async.zsh"
 #zplug "mafredri/zsh-async", from:"github", use:"async.zsh"
 
-source /usr/local/share/antigen/antigen.zsh
+if [[ "$(uname)" == "Linux" ]]; then
+    source /usr/share/zsh-antigen/antigen.zsh
+fi
+if [[ "$(uname)" == "Darwin" ]]; then
+    source /usr/local/share/antigen/antigen.zsh
+fi
 antigen bundle Aloxaf/fzf-tab
 zplug "zsh-users/zsh-syntax-highlighting", defer:2
 zplug load
