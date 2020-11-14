@@ -56,8 +56,8 @@ fi
 
 # define the code directory
 # This is where my code exists and where I want the `c` autocomplete to work from exclusively
-if [[ -d ~/code ]]; then
-    export CODE_DIR=~/code
+if [[ -d ~/src ]]; then
+    export CODE_DIR=~/src
 fi
 
 # display how long all tasks over 10 seconds take
@@ -82,29 +82,6 @@ setopt HIST_IGNORE_ALL_DUPS      # delete old recorded entry if new entry is a d
 
 setopt COMPLETE_ALIASES
 
-# make terminal command navigation sane again
-bindkey "^[[1;5C" forward-word                      # [Ctrl-right] - forward one word
-bindkey "^[[1;5D" backward-word                     # [Ctrl-left] - backward one word
-bindkey '^[^[[C' forward-word                       # [Ctrl-right] - forward one word
-bindkey '^[^[[D' backward-word                      # [Ctrl-left] - backward one word
-bindkey '^[[1;3D' beginning-of-line                 # [Alt-left] - beginning of line
-bindkey '^[[1;3C' end-of-line                       # [Alt-right] - end of line
-bindkey '^[[5D' beginning-of-line                   # [Alt-left] - beginning of line
-bindkey '^[[5C' end-of-line                         # [Alt-right] - end of line
-bindkey '^?' backward-delete-char                   # [Backspace] - delete backward
-if [[ "${terminfo[kdch1]}" != "" ]]; then
-    bindkey "${terminfo[kdch1]}" delete-char        # [Delete] - delete forward
-else
-    bindkey "^[[3~" delete-char                     # [Delete] - delete forward
-    bindkey "^[3;5~" delete-char
-    bindkey "\e[3~" delete-char
-fi
-bindkey "^A" vi-beginning-of-line
-bindkey -M viins "^F" vi-forward-word               # [Ctrl-f] - move to next word
-bindkey -M viins "^E" vi-add-eol                    # [Ctrl-e] - move to end of line
-bindkey "^J" history-beginning-search-forward
-bindkey "^K" history-beginning-search-backward
-
 # matches case insensitive for lowercase
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
@@ -124,11 +101,21 @@ export ZPLUGDIR="$CACHEDIR/zsh/plugins"
 # array containing plugin information (managed by zfetch)
 typeset -A plugins
 
-zfetch mafredri/zsh-async async.plugin.zsh
-zfetch zsh-users/zsh-syntax-highlighting
-zfetch zsh-users/zsh-autosuggestions
-zfetch chriskempson/base16-shell
-zfetch Aloxaf/fzf-tab
+export ZPLUG_HOME=/usr/local/opt/zplug
+source $ZPLUG_HOME/init.zsh
+
+zplug "mafredri/zsh-async", from:"github", use:"async.zsh"
+zplug "zsh-users/zsh-syntax-highlighting", defer:2
+
+
+source /usr/local/share/antigen/antigen.zsh
+antigen bundle Aloxaf/fzf-tab
+antigen bundle zsh-users/zsh-autosuggestions
+#zfetch mafredri/zsh-async async.plugin.zsh
+#zfetch zsh-users/zsh-syntax-highlighting
+#zfetch zsh-users/zsh-autosuggestions
+#zfetch chriskempson/base16-shell
+#zfetch Aloxaf/fzf-tab
 
 if [[ -x "$(command -v fnm)" ]]; then
     eval "$(fnm env --use-on-cd)"
@@ -186,11 +173,6 @@ fi
 # use nvim, but don't make me think about it
 [[ -n "$(command -v nvim)" ]] && alias vim="nvim"
 
-# Filesystem aliases
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....="cd ../../.."
-alias .....="cd ../../../.."
 
 alias l="ls -lah ${colorflag}"
 alias la="ls -AF ${colorflag}"
@@ -203,12 +185,6 @@ alias grep='grep --color=auto'
 alias df='df -h' # disk free, in Gigabytes, not bytes
 alias du='du -h -c' # calculate disk usage for a folder
 
-# Applications
-alias ios='open -a /Applications/Xcode.app/Contents/Developer/Applications/Simulator.app'
-
-# Hide/show all desktop icons (useful when presenting)
-alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder"
-alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && killall Finder"
 
 # Recursively delete `.DS_Store` files
 alias cleanup="find . -name '*.DS_Store' -type f -ls -delete"
@@ -229,5 +205,7 @@ alias lpath='echo $PATH | tr ":" "\n"' # list the PATH separated by new lines
 
 alias nr="npm run"
 
+
 source "$DOTFILES/zsh/utils.zsh"
 source "$DOTFILES/zsh/prompt.zsh"
+source "$DOTFILES/zsh/grml.zsh"
