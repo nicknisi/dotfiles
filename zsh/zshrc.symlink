@@ -107,6 +107,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 
 if [[ "$(uname)" == "Linux" ]]; then
+
     source $ZPLUG_HOME/init.zsh
 fi
 
@@ -220,7 +221,7 @@ alias lpath='echo $PATH | tr ":" "\n"' # list the PATH separated by new lines
 alias nr="npm run"
 
 # set the language to english
-export LANG=c
+export LANG=C
 
 source "$DOTFILES/zsh/utils.zsh"
 source "$DOTFILES/zsh/prompt.zsh"

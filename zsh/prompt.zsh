@@ -5,8 +5,6 @@ setopt prompt_subst
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:git*' formats ' %b'
 
-export ZPLUG_HOME=/usr/local/opt/zplug
-source $ZPLUG_HOME/init.zsh
 
 #zplug load --verbose
 source "$DOTFILES/zsh/async.zsh"
