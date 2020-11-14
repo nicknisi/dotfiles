@@ -106,6 +106,10 @@ if [[ "$(uname)" == "Darwin" ]]; then
     source $ZPLUG_HOME/init.zsh
 fi
 
+if [[ "$(uname)" == "Linux" ]]; then
+    source $ZPLUG_HOME/init.zsh
+fi
+
 zplug "mafredri/zsh-async", from:"github", use:"async.zsh"
 #zplug "mafredri/zsh-async", from:"github", use:"async.zsh"
 
