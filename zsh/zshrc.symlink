@@ -105,12 +105,15 @@ export ZPLUG_HOME=/usr/local/opt/zplug
 source $ZPLUG_HOME/init.zsh
 
 zplug "mafredri/zsh-async", from:"github", use:"async.zsh"
-zplug "zsh-users/zsh-syntax-highlighting", defer:2
-
+#zplug "mafredri/zsh-async", from:"github", use:"async.zsh"
 
 source /usr/local/share/antigen/antigen.zsh
 antigen bundle Aloxaf/fzf-tab
+zplug "zsh-users/zsh-syntax-highlighting", defer:2
+zplug load
 antigen bundle zsh-users/zsh-autosuggestions
+
+antigen apply
 #zfetch mafredri/zsh-async async.plugin.zsh
 #zfetch zsh-users/zsh-syntax-highlighting
 #zfetch zsh-users/zsh-autosuggestions
@@ -208,4 +211,4 @@ alias nr="npm run"
 
 source "$DOTFILES/zsh/utils.zsh"
 source "$DOTFILES/zsh/prompt.zsh"
-source "$DOTFILES/zsh/grml.zsh"
+#source "$DOTFILES/zsh/grml.zsh"
