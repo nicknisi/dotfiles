@@ -114,12 +114,14 @@ fi
 zplug "mafredri/zsh-async", from:"github", use:"async.zsh"
 #zplug "mafredri/zsh-async", from:"github", use:"async.zsh"
 
-if [[ "$(uname)" == "Linux" ]]; then
-    source /usr/share/zsh-antigen/antigen.zsh
-fi
-if [[ "$(uname)" == "Darwin" ]]; then
-    source /usr/local/share/antigen/antigen.zsh
-fi
+# if [[ "$(uname)" == "Linux" ]]; then
+#     source /usr/share/zsh-antigen/antigen.zsh
+# fi
+# if [[ "$(uname)" == "Darwin" ]]; then
+#     source /usr/local/share/antigen/antigen.zsh
+# fi
+
+source "$DOTFILES/zsh/antigen/antigen.zsh"
 antigen bundle Aloxaf/fzf-tab
 zplug "zsh-users/zsh-syntax-highlighting", defer:2
 zplug load
@@ -225,4 +227,5 @@ export LANG=C
 
 source "$DOTFILES/zsh/utils.zsh"
 source "$DOTFILES/zsh/prompt.zsh"
+
 #source "$DOTFILES/zsh/grml.zsh"
