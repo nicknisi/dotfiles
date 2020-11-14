@@ -107,7 +107,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
 fi
 
 if [[ "$(uname)" == "Linux" ]]; then
-
+    export ZPLUG_HOME=$HOME/.zplug
     source $ZPLUG_HOME/init.zsh
 fi
 
