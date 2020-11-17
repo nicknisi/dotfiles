@@ -30,7 +30,7 @@ COLOR_NONE="\e[0m"
 if [ -z "$TMUX" ]; then
     export TERM=xterm-256color-italic
 else
-    export TERM=tmux-256color
+    export TERM=xterm
 fi
 
 
@@ -229,3 +229,4 @@ source "$DOTFILES/zsh/utils.zsh"
 source "$DOTFILES/zsh/prompt.zsh"
 
 #source "$DOTFILES/zsh/grml.zsh"
+
