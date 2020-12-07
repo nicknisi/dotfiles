@@ -1,0 +1,62 @@
+{
+    "coc.preferences.rootPatterns": [
+        "build.sbt",
+        "build.sc",
+        "build.grade",
+        "pom.xml",
+        ".git",
+        ".hg"
+    ],
+    "coc.preferences.formatOnSaveFiletypes": [
+        "python",
+        "json"
+    ],
+    "coc.preferences.formatOnType": true,
+    "coc.source.buffer.priority": 1,
+    "explorer.sources": [
+        {
+            "name": "buffer",
+            "expand": false
+        },
+        {
+            "name": "file",
+            "expand": true
+        }
+    ],
+    "explorer.width": 30,
+    "explorer.file.column.indent.indentLine": true,
+    "explorer.icon.enableNerdfont": true,
+    "explorer.file.column.git.showIgnored": true,
+    "explorer.openAction.relativePath": true,
+    "explorer.keyMappingMode": "default",
+    "explorer.previewAction.onHover": false,
+    "go.goplsOptions": {
+        "deepCompletion": true,
+        "staticcheck": false,
+        "completeUnimported": true,
+        "usePlaceholders": true
+    },
+    "go.trace.server": "verbose",
+    "go.goplsPath": "gopls",
+    "suggest.noselect": false,
+    "suggest.languageSourcePriority": 2,
+    "suggest.timeout": 5000,
+    "suggest.maxCompleteItemCount": 20,
+    "suggest.autoTrigger": "always",
+    "suggest.minTriggerInputLength": 1,
+    "list.nextKeymap": "<C-n>",
+    "list.previousKeymap": "<C-p>",
+    "diagnostic.errorSign": "•",
+    "diagnostic.warningSign": "•",
+    "diagnostic.infoSign": "•",
+    "diagnostic.refreshOnInsertMode": true,
+    "python.jediPath": "/usr/local/lib/python3.7/site-packages/",
+    "python.formatting.provider": "autopep8",
+    "python.formatting.yapfPath": "/usr/local/bin/yapf",
+    "python.formatting.autopep8Path": "/usr/local/bin/autopep8",
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Path": "/usr/local/bin/flake8",
+    "python.sortImports.path": "/usr/local/bin/isort",
+    "clangd.path": "/Users/chien.le/.config/coc/extensions/coc-clangd-data/install/10.0.0/clangd_10.0.0/bin/clangd"
+}
