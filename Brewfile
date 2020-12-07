@@ -1,45 +1,65 @@
-
-tap 'caskroom/cask'
-
-# Core Homebrew
-brew 'cmake'
-brew 'ctags'
-brew 'emscripten'
-brew 'fasd'
-brew 'fd'
-brew 'fx'
-brew 'fzf'
-brew 'gdbm'
-brew 'gettext'
-brew 'icu4c'
-brew 'libevent'
-brew 'libtermkey'
-brew 'libuv'
-brew 'libvterm'
-brew 'libzip'
-brew 'lua'
-brew 'luajit'
-brew 'luarocks'
-brew 'msgpack'
-brew 'ncurses'
-brew 'neovim'
-brew 'node'
-brew 'openjdk'
-brew 'openssl@1.1'
-brew 'pcre2'
-brew 'pkg-config'
-brew 'python@3.9'
-brew 'readline'
-brew 'ripgrep'
-brew 'sqlite'
-brew 'tldr'
-brew 'tmux'
-brew 'tree'
-brew 'tree-sitter'
-brew 'unibilium'
-brew 'utf8proc'
-brew 'xz'
-brew 'yuicompressor'
+tap "homebrew/bundle"
+tap "homebrew/cask"
+tap "homebrew/cask-fonts"
+tap "homebrew/cask-versions"
+tap "homebrew/core"
+tap "homebrew/services"
+brew "autojump"
+brew "snappy"
+brew "bazaar"
+brew "openssl@1.1"
+brew "glib"
+brew "python@3.8"
+brew "clang-format"
+brew "cmake"
+brew "ctags"
+brew "go"
+brew "dep"
+brew "docker"
+brew "docker-compose", link: false
+brew "node"
+brew "openjdk"
+brew "fasd"
+brew "fd"
+brew "fx"
+brew "fzf"
+brew "gawk"
+brew "gobject-introspection"
+brew "harfbuzz"
+brew "pango"
+brew "graphviz"
+brew "htop"
+brew "imagemagick"
+brew "jq"
+brew "librdkafka"
+brew "kafkacat"
+brew "libevent"
+brew "maven"
+brew "mysql", restart_service: true
+brew "neofetch"
+brew "neovim", args: ["HEAD"]
+brew "nnn"
+brew "openjdk@11"
+brew "python@2", link: false
+brew "redis", restart_service: true
+brew "ripgrep"
+brew "ruby"
+brew "scala"
+brew "telnet"
+brew "tldr"
+brew "tmux"
+brew "tree"
+brew "vim"
+brew "wget"
+brew "wrk"
+brew "zsh"
+cask "alacritty"
+cask "calibre"
+cask "font-hack-nerd-font"
+cask "gimp"
+cask "postman"
+cask "sourcetree"
+cask "stretchly"
 
 # Cask Apps
 cask 'alacritty'

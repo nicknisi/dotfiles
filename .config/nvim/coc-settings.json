@@ -1,4 +1,5 @@
 {
+    "yaml.trace.server": "verbose",
     "coc.preferences.rootPatterns": [
         "build.sbt",
         "build.sc",
@@ -26,7 +27,7 @@
     "explorer.width": 30,
     "explorer.file.column.indent.indentLine": true,
     "explorer.icon.enableNerdfont": true,
-    "explorer.file.column.git.showIgnored": true,
+    "explorer.git.showIgnored": true,
     "explorer.openAction.relativePath": true,
     "explorer.keyMappingMode": "default",
     "explorer.previewAction.onHover": false,

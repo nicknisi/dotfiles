@@ -35,10 +35,11 @@ sync_dotfiles() {
     title "Sync dotfiles"
 
     info "Brew"
-    brewfile > "$DOTFILES/Brewfile"
+    rm "$DOTFILES/Brewfile"
+    brew bundle dump
 
     info "Tmux"
-    cp ~/.tmux.conf "$DOTFILES/.tmux.conf"
+    cp -r~/.tmux.conf "$DOTFILES/.tmux.conf"
 
     info "Alacritty"
     mkdir -p "$DOTFILES/.config/alacritty/"
@@ -100,16 +101,16 @@ function setup_neovim() {
     title "Configuring neovim"
 
     mkdir -p ~/.config/nvim
-    cp .config/nvim/ ~/.config/nvim/
+    cp -r .config/nvim/ ~/.config/nvim/
 
-    nvim +PlugInstall
+    info "Run nvim +PlugInstall to install plugins"
 }
 
 function setup_alacritty() {
     title "Configuring alacritty"
 
     mkdir -p ~/.config/alacritty
-    cp .config/alacritty/ ~/.config/alacritty/
+    cp -r .config/alacritty/ ~/.config/alacritty/
 }
 
 function setup_terminfo() {
