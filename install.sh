@@ -40,6 +40,10 @@ sync_dotfiles() {
     info "Tmux"
     cp ~/.tmux.conf "$DOTFILES/.tmux.conf"
 
+    info "Alacritty"
+    mkdir -p "$DOTFILES/.config/alacritty/"
+    cp -r ~/.config/alacritty/ "$DOTFILES/.config/alacritty/"
+
     info "Neovim"
     mkdir -p "$DOTFILES/.config/nvim/"
     cp -r ~/.config/nvim/ "$DOTFILES/.config/nvim/"
@@ -167,12 +171,20 @@ case "$1" in
     macos)
         setup_macos
         ;;
-    sync_dotfiles)
+    alacritty)
+        setup_alacritty
+        ;;
+    neovim)
+        setup_neovim
+        ;;
+    sync)
         sync_dotfiles
         ;;
     all)
         setup_terminfo
         setup_homebrew
+        setup_alacritty
+        setup_neovim
         setup_shell
         setup_macos
         ;;
