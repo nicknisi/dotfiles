@@ -34,12 +34,28 @@ success() {
 sync_dotfiles() {
     title "Sync dotfiles"
 
-    info "Brew"
-    rm "$DOTFILES/Brewfile"
-    brew bundle dump
+    info "Tmux"
+    cp -r "$DOTFILES/.tmux.conf" ~/.tmux.conf
+
+    info "Alacritty"
+    cp -r "$DOTFILES/.config/alacritty/" ~/.config/alacritty/
+
+    info "Neovim"
+    cp -r "$DOTFILES/.config/nvim/" ~/.config/nvim/
+
+    info "Shell"
+    cp -r "$DOTFILES/.p10k.zsh" ~/.p10k.zsh
+    cp -r "$DOTFILES/.zimrc" ~/.zimrc
+    cp -r "$DOTFILES/.zshrc" ~/.zshrc
+
+}
+
+
+update_dotfiles() {
+    title "Update dotfiles"
 
     info "Tmux"
-    cp -r~/.tmux.conf "$DOTFILES/.tmux.conf"
+    cp -r ~/.tmux.conf "$DOTFILES/.tmux.conf"
 
     info "Alacritty"
     mkdir -p "$DOTFILES/.config/alacritty/"
@@ -142,15 +158,6 @@ setup_macos() {
         echo "Disable press-and-hold for keys in favor of key repeat"
         defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
-        echo "Set a blazingly fast keyboard repeat rate"
-        defaults write NSGlobalDomain KeyRepeat -int 1
-
-        echo "Set a shorter Delay until key repeat"
-        defaults write NSGlobalDomain InitialKeyRepeat -int 15
-
-        echo "Enable tap to click (Trackpad)"
-        defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
-
         echo "Kill affected applications"
 
         for app in Safari Finder Dock Mail SystemUIServer; do killall "$app" >/dev/null 2>&1; done
@@ -180,6 +187,9 @@ case "$1" in
         ;;
     sync)
         sync_dotfiles
+        ;;
+    update)
+        update_dotfiles
         ;;
     all)
         setup_terminfo
