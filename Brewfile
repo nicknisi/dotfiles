@@ -18,7 +18,6 @@ if OS.mac?
     cask "cleanshot"
     cask "vmware-fusion"
     cask "postman"
-    1password
     cask "1password-cli"
     cask "android-studio"
     cask "anybar"
@@ -106,6 +105,8 @@ if OS.mac?
     # macOS App Store
     mas "Xcode", id: 497799835
 
+elsif OS.linux?
+    brew "xclip"
 end
 
 tap "homebrew/bundle"
