@@ -6,6 +6,7 @@ if OS.mac?
     brew "mas"
     brew "noti"
     brew "trash"
+    brew "reattach-to-user-namespace"
 
     # Applications
     cask "kitty"
@@ -58,6 +59,8 @@ if OS.mac?
     mas "ColorSlurp", id: 1287239339
     mas "Bear", id: 1091189122
     mas "1Blocker", id: 1107421413
+elsif OS.linux?
+    brew "xclip"
 end
 
 tap "homebrew/bundle"
