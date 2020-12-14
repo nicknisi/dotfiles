@@ -25,6 +25,9 @@ tsx:*.tsx
 --type-add
 jsx:*.jsx
 
+--type-add
+gql:*.{graphql,gql}
+
 # ignore case
 --smart-case
 
