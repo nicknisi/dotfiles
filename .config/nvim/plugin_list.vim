@@ -44,9 +44,6 @@ Plug 'edersonferreira/dalton-vim'
 " resize vim windows with ctrl + T
 Plug 'simeji/winresizer'
 
-" helpful with surround"
-Plug 'machakann/vim-sandwich'
-
 " find file with name"
 Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf.vim'
