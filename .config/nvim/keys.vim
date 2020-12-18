@@ -194,9 +194,6 @@ nnoremap <silent> <leader>ic  :<C-u>CocList commands<CR>|     " Open coc command
 
 " Add `:Format` command to format current buffer.
 command! -nargs=0 Format :call CocAction('format')
-
-" Highlight the symbol and its references when holding the cursor.
-autocmd CursorHold * silent call CocActionAsync('highlight')
 "}}}
 
 "{{{ === Autocomplete
