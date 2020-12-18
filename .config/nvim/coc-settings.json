@@ -35,7 +35,8 @@
         "deepCompletion": true,
         "staticcheck": false,
         "completeUnimported": true,
-        "usePlaceholders": true
+        "usePlaceholders": true,
+        "allowModfileModifications": true
     },
     "go.trace.server": "verbose",
     "go.goplsPath": "gopls",
