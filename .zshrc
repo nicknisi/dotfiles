@@ -152,11 +152,10 @@ alias mcp='mvn clean package'
 # {{{ === PATH
 export fpath=(/usr/local/share/zsh-completions $fpath)
 
-export PATH="$HOME/.yarn/bin:$PATH"
-export PATH="$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 export PATH="/usr/local/sbin:$PATH"
-export PATH="/usr/local/opt/gettext/bin:$PATH"
+# export PATH="/usr/local/opt/gettext/bin:$PATH"
 export PATH="/usr/local/bin/:$PATH"
+export PATH="$HOME/Library/Python/2.7/bin:$PATH"
 
 export HADOOP_HOME=/usr/local/Cellar/hadoop/3.2.1/libexec/
 export HADOOP_VERSION=3.2.1

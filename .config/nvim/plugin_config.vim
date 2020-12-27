@@ -31,7 +31,6 @@ let g:NERDDefaultAlign = 'left'
 " }}}
 
 " " {{{ === Gitgutter
-
 let g:gitgutter_map_keys = 0
 let g:gitgutter_preview_win_floating = 0
 
@@ -74,14 +73,18 @@ let g:go_highlight_variable_assignments   = 0
 let g:go_highlight_variable_declarations  = 0
 " }}}
 
-" === Latex_preview === {{{
-let g:livepreview_previewer = 'open -a Preview'
-"}}}
-
 " === Coc-nvim === {{{
+
 " Set default python path
-let g:python_host_prog = '/usr/local/bin/python'
+let g:python_host_prog = '/usr/bin/python'
 let g:python3_host_prog = '/usr/local/bin/python3'
+let g:coc_global_extensions = [
+      \ 'coc-marketplace',
+      \ 'coc-explorer',
+      \ 'coc-json',
+      \ 'coc-go',
+      \]
+
 " }}}
 
 " === Winresizer === {{{
@@ -91,35 +94,6 @@ let g:winresizer_start_key = '<C-T>'
 " === Markdown === {{{
 let g:mkdp_auto_start = 0
 let g:mkdp_echo_preview_url = 1
-" }}}
-
-" === Nerdtree === {{{
-" Show hidden files/directories
-let g:NERDTreeShowHidden = 1
-
-" Remove bookmarks and help text from NERDTree
-let g:NERDTreeMinimalUI = 1
-
-" Custom icons for expandable/expanded directories
-let g:NERDTreeDirArrowExpandable = ''
-let g:NERDTreeDirArrowCollapsible = ''
-let g:NERDTreeAutoDeleteBuffer = 1
-let loaded_netrwPlugin = 1
-
-" Hide certain files and directories from NERDTree
-let g:NERDTreeIgnore = [
-      \'^\.DS_Store$', 
-      \'^tags$', 
-      \'\.git$[[dir]]',
-      \'\.idea$[[dir]]',
-      \'\.sass-cache$',
-      \'etcd*[[file]]',
-      \'\.etcd*[[file]]'
-      \]
-
-" Disable highlight of file extension
-let g:NERDTreeDisableFileExtensionHighlight = 1
-highlight! link NERDTreeFlags NERDTreeDir
 " }}}
 
 "{{{ === FZF windows ===

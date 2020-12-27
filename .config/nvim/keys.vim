@@ -5,7 +5,6 @@
 
 let mapleader = " "
 
-
 "{{{ === Debug
 
 command! Run set splitright | vnew | set filetype=sh | read !sh #
