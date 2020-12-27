@@ -36,6 +36,7 @@
         "staticcheck": false,
         "completeUnimported": true,
         "usePlaceholders": true,
+        "linksInHover": false,
         "allowModfileModifications": true
     },
     "go.trace.server": "verbose",
