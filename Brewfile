@@ -147,7 +147,6 @@ brew "wdiff"
 brew "wget"
 brew "z"
 brew "zsh"
-
 brew "ack"
 brew "adns"
 brew "aom"
@@ -460,3 +459,4 @@ brew "zsh"
 brew "zsh-autosuggestions"
 brew "zplug"
 brew "zstd"
+
