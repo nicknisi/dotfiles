@@ -104,7 +104,6 @@ if OS.mac?
 
     # macOS App Store
     mas "Xcode", id: 497799835
-
 elsif OS.linux?
     brew "xclip"
 end
