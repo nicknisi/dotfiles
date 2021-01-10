@@ -153,12 +153,8 @@ alias mcp='mvn clean package'
 export fpath=(/usr/local/share/zsh-completions $fpath)
 
 export PATH="/usr/local/sbin:$PATH"
-# export PATH="/usr/local/opt/gettext/bin:$PATH"
 export PATH="/usr/local/bin/:$PATH"
 export PATH="$HOME/Library/Python/2.7/bin:$PATH"
-
-export HADOOP_HOME=/usr/local/Cellar/hadoop/3.2.1/libexec/
-export HADOOP_VERSION=3.2.1
 # }}}
 
 # {{{ === SETTING
@@ -193,7 +189,6 @@ source /usr/local/Cellar/fzf/0.24.4/shell/key-bindings.zsh
 export GOPATH=$HOME/go
 export GOBIN=$GOPATH/bin
 export GO111MODULE=auto
-export GOPROXY=direct
 export GOSUMDB=off
 export GOPRIVATE=git.garena.com/*
 
