@@ -101,8 +101,20 @@ color gruvbox-material
 " }}}
 
 " {{{ === Statusline
+function! Dirname()
+  if getcwd() == '/'
+    return 'ROOT'
+  elseif getcwd() == $HOME
+    return 'HOME'
+  else
+    return toupper(fnamemodify(getcwd(), ':t'))
+  end
+endfunction
+
 set statusline=
-set statusline+=\ %n\                              " Buffer number
+" set statusline+=\ %n\                              " Buffer number
+set statusline+=\ %{Dirname()}\                      " HOME
+set statusline+=│                                  " Separator
 set statusline+=\ %<%f%m%r%h%w\                    " File path, modified, readonly, helpfile, preview
 " set statusline+=│                                 " Separator
 " set statusline+=\ (%{&ff})                        " FileFormat (dos/unix..)
