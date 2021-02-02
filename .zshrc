@@ -147,6 +147,9 @@ alias cpwd="pwd | tr -d '\n' | pbcopy" # Copy pwd to clipboard
 
 alias mci='mvn clean install'
 alias mcp='mvn clean package'
+
+alias pp='go tool pprof'
+alias pph='go tool pprof -http ':8081''
 # }}}
 
 # {{{ === PATH

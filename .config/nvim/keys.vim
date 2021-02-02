@@ -131,6 +131,7 @@ nnoremap <silent> k gk| " Move up to wrap line
 
 vnoremap y "*y| " Copy to clipboard
 vnoremap p "*p| " Paste from clipboard
+nnoremap yy "*yy " Copy line to clipboard
 
 " Copy (current path + current line number) to clipboard
 nnoremap <leader>yp :let @* = expand("%") . ":" . line(".")<CR>

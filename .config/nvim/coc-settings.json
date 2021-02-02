@@ -8,6 +8,7 @@
         ".hg"
     ],
     "coc.preferences.formatOnSaveFiletypes": [],
+    "coc.preferences.currentFunctionSymbolAutoUpdate": true,
     "coc.preferences.formatOnType": true,
     "coc.source.buffer.priority": 1,
     "explorer.sources": [
