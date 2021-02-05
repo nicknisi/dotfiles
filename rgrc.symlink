@@ -28,6 +28,9 @@ jsx:*.jsx
 --type-add
 gql:*.{graphql,gql}
 
+--type-add
+pkg:package.json
+
 # ignore case
 --smart-case
 
