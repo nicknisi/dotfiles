@@ -179,9 +179,9 @@ colors:
     background: '#282828'
     foreground: '#ebdbb2'
 
-  # cursor:
-  #   text:       '0x000000'
-  #   cursor:     '0xffffff'
+  cursor:
+    text:       '0x000000'
+    cursor:     '0xffffff'
 
   # Normal colors
   normal:
