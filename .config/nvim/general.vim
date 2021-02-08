@@ -119,7 +119,10 @@ set statusline+=\ %<%f%m%r%h%w\                    " File path, modified, readon
 " set statusline+=│                                 " Separator
 " set statusline+=\ (%{&ff})                        " FileFormat (dos/unix..)
 set statusline+=%=                                 " Right Side
-set statusline+=%{coc#status()}%{get(b:,'coc_current_function','')}
+set statusline+=%{coc#status()}
+set statusline+=\ │                                  " Separator
+set statusline+=\ %{get(b:,'coc_current_function','')}
+set statusline+=\ │                                  " Separator
 " set statusline+=│                                 " Separator
 " set statusline+=\ col:\ %02v\                     " Colomn number
 set statusline+=\ %Y\                              " FileType
