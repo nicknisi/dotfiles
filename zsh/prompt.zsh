@@ -5,7 +5,7 @@ setopt prompt_subst
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:git*' formats ' %b'
 
-PROMPT_SYMBOL='❯'
+PROMPT_SYMBOL='▷'
 
 # indicate a job (for example, vim) has been backgrounded
 # If there is a job in the background, display a ✱
