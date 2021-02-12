@@ -11,7 +11,7 @@ source "$DOTFILES/zsh/async.zsh"
 #echo "Sourced"
 
 
-PROMPT_SYMBOL='❯'
+PROMPT_SYMBOL='▷'
 
 # indicate a job (for example, vim) has been backgrounded
 # If there is a job in the background, display a ✱

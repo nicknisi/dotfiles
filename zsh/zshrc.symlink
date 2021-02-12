@@ -229,4 +229,6 @@ source "$DOTFILES/zsh/utils.zsh"
 source "$DOTFILES/zsh/prompt.zsh"
 
 #source "$DOTFILES/zsh/grml.zsh"
-
+export NVM_DIR=~/.nvm
+source $(brew --prefix nvm)/nvm.sh
+export PATH=~/go/bin:$PATH
