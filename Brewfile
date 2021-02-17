@@ -29,7 +29,6 @@ if OS.mac?
 
     # Browsers
     cask "firefox"
-    cask "google-chrome"
 
     # Fonts
     cask "font-fira-code"
