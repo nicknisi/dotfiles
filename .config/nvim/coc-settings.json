@@ -34,7 +34,7 @@
         "completeUnimported": true,
         "usePlaceholders": true,
         "linksInHover": false,
-        "allowModfileModifications": false
+        "allowModfileModifications": true
     },
     "go.trace.server": "verbose",
     "go.goplsPath": "gopls",
