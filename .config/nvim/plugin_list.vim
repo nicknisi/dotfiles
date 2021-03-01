@@ -37,7 +37,6 @@ Plug 'christoomey/vim-tmux-navigator'
 Plug 'chiendo97/intellij.vim'
 Plug 'morhetz/gruvbox'
 Plug 'sainnhe/gruvbox-material'
-Plug 'edersonferreira/dalton-vim'
 
 " resize vim windows with ctrl + T
 Plug 'simeji/winresizer'
