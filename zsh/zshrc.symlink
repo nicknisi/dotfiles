@@ -44,16 +44,6 @@ prepend_path /usr/local/sbin
 prepend_path $DOTFILES/bin
 prepend_path $HOME/bin
 
-if [[ "$(uname)" == "Linux" ]]; then
-    export HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew";
-    export HOMEBREW_CELLAR="$HOMEBREW_PREFIX/Cellar";
-    export HOMEBREW_REPOSITORY="$HOMEBREW_PREFIX/Homebrew";
-    prepend_path "$HOMEBREW_PREFIX/bin"
-    prepend_path "$HOMEBREW_PREFIX/sbin"
-    export MANPATH="$HOMEBREW_PREFIX/share/man${MANPATH+:$MANPATH}:";
-    export INFOPATH="$HOMEBREW_PREFIX/share/info:${INFOPATH}";
-fi
-
 # define the code directory
 # This is where my code exists and where I want the `c` autocomplete to work from exclusively
 if [[ -d ~/code ]]; then
