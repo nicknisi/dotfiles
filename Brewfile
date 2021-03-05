@@ -37,8 +37,10 @@ if OS.mac?
     cask "farrago"
     cask "firebase-admin"
     cask "firefox"
+
     cask "font-3270-nerd-font"
     cask "font-cascadia-mono"
+
     cask "font-fira-code"
     cask "font-jetbrains-mono"
     cask "gfortran"
