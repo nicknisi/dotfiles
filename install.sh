@@ -48,6 +48,9 @@ sync_dotfiles() {
     cp -r "$DOTFILES/.zimrc" ~/.zimrc
     cp -r "$DOTFILES/.zshrc" ~/.zshrc
 
+    info "Gitdotfiles"
+    cp -r "$DOTFILES/.gitconfig" ~/.gitconfig
+    cp -r "$DOTFILES/.gitignore_global" ~/.gitignore_global
 }
 
 
@@ -71,6 +74,9 @@ update_dotfiles() {
     cp -r ~/.zimrc "$DOTFILES/.zimrc"
     cp -r ~/.zshrc "$DOTFILES/.zshrc"
 
+    info "Gitdotfiles"
+    cp -r ~/.gitconfig "$DOTFILES/.gitconfig"
+    cp -r ~/.gitignore_global "$DOTFILES/.gitignore_global"
 }
 
 setup_homebrew() {

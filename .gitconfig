@@ -1,0 +1,22 @@
+# This is Git's per-user configuration file.
+#  Please adapt and uncomment the following lines:    
+[alias]
+    br = branch
+    co = checkout
+    ci = commit
+    st = status
+    rs = reset
+    us = reset HEAD --
+[user]
+	name = Jake (Chien) Le
+	email = chien.le@shopee.com
+[url "ssh://gitlab@git.garena.com:2222/"]
+	insteadOf = https://git.garena.com/
+[core]
+	excludesfile = /Users/chien.le/.gitignore_global
+	editor = vim
+	pager = diff-so-fancy | less --tabs=4 -RFX
+[push]
+	default = current
+[pull]
+	default = current

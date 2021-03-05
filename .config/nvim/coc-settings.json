@@ -28,6 +28,7 @@
     "explorer.openAction.relativePath": true,
     "explorer.keyMappingMode": "default",
     "explorer.previewAction.onHover": false,
+    "explorer.file.showHiddenFiles": true,
     "go.goplsOptions": {
         "deepCompletion": true,
         "staticcheck": false,
