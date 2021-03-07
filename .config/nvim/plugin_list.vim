@@ -50,8 +50,8 @@ Plug 'ap/vim-css-color'
 Plug 'fatih/vim-go'
 Plug 'derekwyatt/vim-scala'
 Plug 'cespare/vim-toml'
-" Plug 'sheerun/vim-polyglot'
-" Plug 'HerringtonDarkholme/yats.vim'
+Plug 'sheerun/vim-polyglot'
+Plug 'HerringtonDarkholme/yats.vim'
 " Plug 'mattn/emmet-vim'
 "}}}
 
