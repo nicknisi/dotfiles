@@ -321,7 +321,7 @@ call plug#begin('~/.config/nvim/plugged')
     Plug 'tpope/vim-surround'
 
     " tmux integration for vim
-    Plug 'benmills/vimux'
+    Plug 'preservim/vimux'
 
     " enables repeating other supported plugins with the . command
     Plug 'tpope/vim-repeat'
