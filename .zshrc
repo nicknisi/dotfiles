@@ -128,6 +128,8 @@ alias c='clear'
 alias v='vim' # quick opening files with vim
 alias n='nvim' # quick opening files with vim
 
+alias gi='git'
+alias cl='chien.le'
 alias tx='tmux'
 alias nv='nvim'
 alias gf='git fetch --all'
@@ -136,20 +138,9 @@ alias gb='git branch'
 alias gs='git status'
 alias gl='git log'
 
-alias pys='source env/bin/activate'
-alias pyd='deactivate'
-
-alias gst='git stash'
-alias gsp='git stash pop'
-
-alias dt='/usr/bin/git --git-dir=$HOME/.dotfiles/.git/ --work-tree=$HOME' # dotfiles for .files config
 alias cpwd="pwd | tr -d '\n' | pbcopy" # Copy pwd to clipboard
 
-alias mci='mvn clean install'
-alias mcp='mvn clean package'
-
 alias pp='go tool pprof'
-alias pph='go tool pprof -http ':8081''
 # }}}
 
 # {{{ === PATH

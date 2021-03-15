@@ -1,6 +1,7 @@
 # This is Git's per-user configuration file.
 #  Please adapt and uncomment the following lines:    
 [alias]
+    ad = add
     br = branch
     co = checkout
     ci = commit
