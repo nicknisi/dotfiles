@@ -2,6 +2,7 @@
 #  Please adapt and uncomment the following lines:    
 [alias]
     ad = add
+    pu = push
     br = branch
     co = checkout
     ci = commit
