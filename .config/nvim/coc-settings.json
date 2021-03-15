@@ -24,11 +24,11 @@
     "explorer.width": 30,
     "explorer.file.column.indent.indentLine": true,
     "explorer.icon.enableNerdfont": true,
-    "explorer.git.showIgnored": true,
+    "explorer.git.showIgnored": false,
     "explorer.openAction.relativePath": true,
     "explorer.keyMappingMode": "default",
     "explorer.previewAction.onHover": false,
-    "explorer.file.showHiddenFiles": true,
+    "explorer.file.showHiddenFiles": false,
     "go.goplsOptions": {
         "deepCompletion": true,
         "staticcheck": false,
