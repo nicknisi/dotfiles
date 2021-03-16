@@ -18,6 +18,7 @@
 	excludesfile = /Users/chien.le/.gitignore_global
 	editor = vim
 	pager = diff-so-fancy | less --tabs=4 -RFX
+	attributesfile = ~/.gitattributes
 [push]
 	default = current
 [pull]
