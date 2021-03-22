@@ -48,12 +48,13 @@ Plug 'junegunn/fzf.vim'
 "{{{ === Syntax and languages
 Plug 'ap/vim-css-color'
 Plug 'fatih/vim-go'
-Plug 'sheerun/vim-polyglot'
-" Plug 'HerringtonDarkholme/yats.vim'
-Plug 'othree/yajs.vim'
-Plug 'MaxMEllon/vim-jsx-pretty'
+
 Plug 'pangloss/vim-javascript'
-Plug 'mattn/emmet-vim'
+Plug 'MaxMEllon/vim-jsx-pretty'
+Plug 'vim-scripts/JavaScript-Indent'
+Plug 'sheerun/vim-polyglot'
+Plug 'othree/yajs.vim'
+" Plug 'mattn/emmet-vim'
 "}}}
 
 " comment 

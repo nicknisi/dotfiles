@@ -85,6 +85,8 @@ let g:coc_global_extensions = [
       \ 'coc-go',
       \ 'coc-rust-analyzer',
       \ 'coc-python',
+      \ 'coc-eslint',
+      \ 'coc-prettier',
       \]
 
 " }}}
