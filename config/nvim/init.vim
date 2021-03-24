@@ -389,7 +389,6 @@ call plug#begin('~/.config/nvim/plugged')
     " FZF {{{
         Plug $HOMEBREW_PREFIX . '/opt/fzf'
         Plug 'junegunn/fzf.vim'
-        let g:fzf_layout = { 'down': '~25%' }
 
         if isdirectory(".git")
             " if in a git project, use :GFiles
@@ -432,9 +431,9 @@ call plug#begin('~/.config/nvim/plugged')
             \ 'rg --column --line-number --no-heading --follow --color=always '.<q-args>.' || true', 1,
             \ <bang>0 ? fzf#vim#with_preview('up:60%') : fzf#vim#with_preview('right:50%:hidden', '?'), <bang>0)
         command! -bang -nargs=? -complete=dir Files
-            \ call fzf#vim#files(<q-args>, fzf#vim#with_preview('right:50%', '?'), <bang>0)
+            \ call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
         command! -bang -nargs=? -complete=dir GitFiles
-            \ call fzf#vim#gitfiles(<q-args>, fzf#vim#with_preview('right:50%', '?'), <bang>0)
+            \ call fzf#vim#gitfiles(<q-args>, fzf#vim#with_preview(), <bang>0)
         function! RipgrepFzf(query, fullscreen)
             let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -- %s || true'
             let initial_command = printf(command_fmt, shellescape(a:query))
@@ -443,7 +442,14 @@ call plug#begin('~/.config/nvim/plugged')
             call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
         endfunction
 
-        command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
+        let $FZF_DEFAULT_OPTS= $FZF_DEFAULT_OPTS
+            \ . " --layout reverse"
+            \ . " --pointer ' '"
+            \ . " --info hidden"
+            \ . " --color 'bg+:0'"
+
+        let g:fzf_preview_window = ['right:50%:hidden', '?']
+        let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.5, 'highlight': 'Comment' } }
     " }}}
 
     " vim-fugitive {{{
