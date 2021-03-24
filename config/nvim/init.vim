@@ -152,13 +152,16 @@ call plug#begin('~/.config/nvim/plugged')
             \       'currentfunction': 'helpers#lightline#currentFunction',
             \       'gitblame': 'helpers#lightline#gitBlame'
             \   },
+            \   'tab_component_function': {
+            \       'filetype': 'helpers#lightline#tabFileType'
+            \   },
             \   'tabline': {
             \       'left': [ [ 'tabs' ] ],
             \       'right': [ [ 'close' ] ]
             \   },
             \   'tab': {
-            \       'active': [ 'filename', 'modified' ],
-            \       'inactive': [ 'filename', 'modified' ],
+            \       'active': [ 'filetype', 'filename', 'modified' ],
+            \       'inactive': [ 'filetype', 'filename', 'modified' ],
             \   },
             \   'separator': { 'left': '', 'right': '' },
             \   'subseparator': { 'left': '', 'right': '' }

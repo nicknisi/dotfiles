@@ -22,6 +22,11 @@ function! helpers#lightline#fileType()
     return WebDevIconsGetFileTypeSymbol()
 endfunction
 
+function! helpers#lightline#tabFileType(n)
+    let l:bufnr = tabpagebuflist(a:n)[tabpagewinnr(a:n) - 1]
+    return WebDevIconsGetFileTypeSymbol(bufname(l:bufnr))
+endfunction
+
 function! helpers#lightline#gitBranch()
     return "\uE725" . (exists('*fugitive#head') ? ' ' . fugitive#head() : '')
 endfunction
