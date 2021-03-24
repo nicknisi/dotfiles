@@ -130,6 +130,9 @@ fi
 # Setup
 ########################################################
 
+# If a local zshrc exists, source it
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
 if [[ -a ~/.localrc ]]; then
     source ~/.localrc
 fi
