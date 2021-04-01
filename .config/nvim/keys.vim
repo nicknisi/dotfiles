@@ -143,8 +143,11 @@ nnoremap <silent><leader>FP :norm yy<CR>:let @* = expand("%:p") . ":" . line("."
 "}}}
 
 "{{{ === Coc
-
+" Use <leader>x for convert visual selected code to snippet
+xmap <leader>x  <Plug>(coc-convert-snippet)
+" Use <tab> for jump to next placeholder, it's default of coc.nvim
 let g:coc_snippet_next = '<tab>'
+" Use <s-tab> for jump to previous placeholder, it's default of coc.nvim
 let g:coc_snippet_prev = '<s-tab>'
 
 " Open coc-explorer
@@ -159,17 +162,6 @@ nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
-
-" Map function and class text objects
-" NOTE: Requires 'textDocument.documentSymbol' support from the language server.
-" xmap if <Plug>(coc-funcobj-i)
-" omap if <Plug>(coc-funcobj-i)
-" xmap af <Plug>(coc-funcobj-a)
-" omap af <Plug>(coc-funcobj-a)
-" xmap ic <Plug>(coc-classobj-i)
-" omap ic <Plug>(coc-classobj-i)
-" xmap ac <Plug>(coc-classobj-a)
-" omap ac <Plug>(coc-classobj-a)
 
 " Go to the first floating window
 nmap <silent> <C-f> <Plug>(coc-float-jump)
@@ -197,7 +189,6 @@ command! -nargs=0 Format :call CocAction('format')
 "}}}
 
 "{{{ === Autocomplete
-
 if exists('*complete_info')
   inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
 else

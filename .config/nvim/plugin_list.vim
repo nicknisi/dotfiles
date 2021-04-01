@@ -4,8 +4,10 @@
 
 call plug#begin('~/.local/share/nvim/plugged')
 
+" treesitter syntax
 Plug 'nvim-treesitter/nvim-treesitter'
 
+" show git commit
 Plug 'rhysd/git-messenger.vim'
 
 " align text ga=
@@ -34,8 +36,6 @@ Plug 'majutsushi/tagbar'
 Plug 'christoomey/vim-tmux-navigator'
 
 " colorscheme
-Plug 'chiendo97/intellij.vim'
-Plug 'morhetz/gruvbox'
 Plug 'sainnhe/gruvbox-material'
 
 " resize vim windows with ctrl + T
@@ -62,6 +62,9 @@ Plug 'scrooloose/nerdcommenter'
 
 " coc for completion"
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+" snippets
+Plug 'honza/vim-snippets'
 
 " directory tree
 Plug 'ryanoasis/vim-devicons'

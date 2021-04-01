@@ -74,7 +74,6 @@ let g:go_highlight_variable_declarations  = 0
 " }}}
 
 " === Coc-nvim === {{{
-
 " Set default python path
 let g:python_host_prog = '/usr/bin/python'
 let g:python3_host_prog = '/usr/local/bin/python3'
@@ -87,6 +86,7 @@ let g:coc_global_extensions = [
       \ 'coc-python',
       \ 'coc-eslint',
       \ 'coc-prettier',
+      \ 'coc-snippets',
       \]
 
 " }}}

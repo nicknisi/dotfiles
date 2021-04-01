@@ -42,7 +42,7 @@
     "go.trace.server": "verbose",
     "go.goplsPath": "gopls",
     "suggest.noselect": false,
-    "suggest.timeout": 5000,
+    "suggest.timeout": 1000,
     "suggest.maxCompleteItemCount": 20,
     "suggest.autoTrigger": "always",
     "list.nextKeymap": "<C-n>",
@@ -50,5 +50,10 @@
     "diagnostic.errorSign": "•",
     "diagnostic.warningSign": "•",
     "diagnostic.infoSign": "•",
-    "diagnostic.refreshOnInsertMode": true
+	"diagnostic.refreshOnInsertMode": false,
+	"diagnostic.virtualTextPrefix": " ❯❯❯ ",
+	"diagnostic.virtualText": true,
+    "diagnostic.virtualTextCurrentLineOnly": false,
+    "diagnostic.enableMessage": "never",
+    "codeLens.enable": true
 }
