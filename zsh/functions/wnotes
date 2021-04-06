@@ -1,0 +1,7 @@
+today=$(date +"%Y-%m-%d")
+    if [ ! -f ~/notes/${today}-notes.md ];
+    then
+        echo "${today}-notes.md not created"
+    else
+        vim ~/notes/${today}-notes.md
+    fi
