@@ -8,91 +8,101 @@ if OS.mac?
     brew "trash"
 
     # Applications
-    cask "kitty"
-    cask "imageoptim"
-    cask "notion"
-    cask "hazel"
-    cask "anybar"
-    cask "istat-menus"
-    cask "textbar"
-    cask "rocket"
-    cask "cleanshot"
-    cask "vmware-fusion"
-    cask "timing"
-    cask "choosy"
-    cask "soundsource"
-    cask "farrago"
-    cask "loopback"
-    cask "audio-hijack"
-    cask "paw"
-    cask "postman"
+    mas "Xcode", id: 497799835
 
     # Browsers
-    cask "firefox"
+    # cask "firefox"
 
     # Fonts
     cask "font-fira-code"
+    cask "font-hack"
     cask "font-jetbrains-mono"
     cask "font-cascadia-mono"
-    cask "font-3270-nerd-font"
+    cask "font-hack-nerd-font"
 
-    # macOS App Store
-    mas "Affinity Photo", id: 824183456
-    mas "Affinity Designer", id: 824171161
-    mas "FruitJuice", id: 671736912
-    mas "Drafts", id: 1435957248
-    mas "Airmail", id: 918858936
-    mas "Logic Pro X", id: 634148309
-    mas "Fantastical", id: 975937182
-    mas "Xcode", id: 497799835
-    mas "Reeder", id: 1449412482
-    mas "Final Cut Pro", id: 424389933
-    mas "Deliveries", id: 924726344
-    mas "Shush", id: 496437906
-    mas "Pixelmator Pro", id: 1289583905
-    mas "Magnet", id: 441258766
-    mas "Octotree Pro", id: 1457450145
-    mas "Coca", id: 1000808993
-    mas "MindNode", id: 1289197285
-    mas "ColorSlurp", id: 1287239339
-    mas "Bear", id: 1091189122
-    mas "1Blocker", id: 1107421413
-elsif OS.linux?
-    brew "xclip"
 end
 
 tap "homebrew/bundle"
 tap "homebrew/core"
 tap "schniz/tap"
 
-# packages
+# Useful Utilities
+brew "coreutils"
+brew "moreutils"
+brew "findutils"
+brew "bash"
+brew "bash-completion2"
+brew "wget --with-iri"
+brew "gnupg"
+brew "gettext"
+brew "pcre"
+brew "pcre2"
+brew "oniguruma"
+brew "libidn2"
+brew "xz"
+brew "msgpack"
+brew "openssl"
+brew "gdbm"
+brew "readline"
+brew "watchman"
+
+# Shells
+brew "romkatv/powerlevel10k/powerlevel10k"
+
+# Languages
+brew "python"
+brew "python@2"
+brew "node"
+brew "go"
+brew "openjdk"
+brew "scala"
+brew "sbt"
+brew "lua"
+brew "luajit"
+
+# Dependencies for other tools
+brew "libvterm"
+brew "libuv"
+brew "libtermkey"
+brew "unibilium"
+brew "icu4c"
+brew "libunistring"
+brew "ncurses"
+
+# Command line Tools
 brew "ack"
 brew "bat"
 brew "cloc"
 brew "diff-so-fancy"
+brew "diskus"
 brew "entr"
 brew "exa"
 brew "fd"
+brew "ffmpeg"
 brew "fzf"
 brew "gh"
 brew "git"
 brew "gnupg"
 brew "grep"
+brew "hexyl"
 brew "highlight"
+brew "homeshick"
 brew "htop"
+brew "httpie"
+brew "imagemagick"
 brew "jq"
 brew "lazydocker"
 brew "lazygit"
 brew "markdown"
 brew "neofetch"
 brew "neovim"
-brew "python"
+brew "pastel"
 brew "ripgrep"
 brew "schniz/tap/fnm"
 brew "shellcheck"
 brew "tmux"
 brew "tree"
-brew "vim"
+brew "vim --with-override-system-vi"
 brew "wdiff"
 brew "wget"
 brew "z"

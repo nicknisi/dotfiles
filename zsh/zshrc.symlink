@@ -1,5 +1,12 @@
 export ZSH=$DOTFILES/zsh
 
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 if [[ -d $DOTFILES/zsh/functions ]]; then
     for func in $DOTFILES/zsh/functions/*(:t); autoload -U $func
 fi
@@ -59,7 +66,7 @@ setopt NO_HUP                    # don't kill background jobs when the shell exi
 setopt NO_LIST_BEEP
 setopt LOCAL_OPTIONS
 setopt LOCAL_TRAPS
-setopt PROMPT_SUBST
+setopt ROMPT_SUBST
 
 # history
 HISTFILE=~/.zsh_history
@@ -141,6 +148,21 @@ fi
 export RIPGREP_CONFIG_PATH="$HOME/.rgrc"
 
 [ -f $HOME/.fzf.zsh ] && source $HOME/.fzf.zsh
+# fe [FUZZY PATTERN] - Open the selected file with the default editor
+#   - Bypass fuzzy finder if there's only one match (--select-1)
+#   - Exit if there's no match (--exit-0)
+fe() {
+  local files
+  IFS=$'\n' files=($(fzf-tmux --query="$1" --multi --select-1 --exit-0))
+  [[ -n "$files" ]] && ${EDITOR:-nvim} "${files[@]}"
+}
+# using ripgrep combined with preview
+# find-in-file - usage: fif <searchTerm> <directory>
+fif() {
+  if [ ! "$#" -gt 1 ]; then echo "Need a string to search for!"; return 1; fi
+  rg --files-with-matches --no-messages $1 | fzf --preview "highlight -O ansi -l {} 2> /dev/null | rg --colors 'match:bg:yellow' --ignore-case --pretty --context 10 $1 || rg --ignore-case --pretty --context 10 $1 {}"
+  [[ -n "$files" ]] && ${EDITOR:-nvim} "${files[@]}"
+}
 export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow -g "!{.git,node_modules}/*" 2> /dev/null'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
@@ -195,6 +217,9 @@ alias rmf="rm -rf"
 alias grep='grep --color=auto'
 alias df='df -h' # disk free, in Gigabytes, not bytes
 alias du='du -h -c' # calculate disk usage for a folder
+alias brewuuc='brew update && brew upgrade && brew cleanup' # update upgrade clean brew
+alias ohmyzsh='vim ~/.oh-my-zsh'
+alias szsh='source ~/.zshrc'
 
 # Applications
 alias ios='open -a /Applications/Xcode.app/Contents/Developer/Applications/Simulator.app'
@@ -223,4 +248,4 @@ alias lpath='echo $PATH | tr ":" "\n"' # list the PATH separated by new lines
 alias nr="npm run"
 
 source "$DOTFILES/zsh/utils.zsh"
-source "$DOTFILES/zsh/prompt.zsh"
+# source "$DOTFILES/zsh/prompt.zsh"

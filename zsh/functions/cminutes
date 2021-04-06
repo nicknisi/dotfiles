@@ -1,0 +1,8 @@
+today=$(date +"%Y-%m-%d")
+    if [ -e ~/notes/minutes/${today}-"$1"-minutes.md ];
+    then
+        echo "minutes/${today}-"$1"-minutes.md already created"
+    else
+        # echo "no file created"
+        vim -c "+normal ggO# Meeting Minutes" -c "+normal ggo# $(date)" -c ':s/$/\r/' -c 'se nohlsearch' ~/notes/"${today}-"$1"-minutes.md"
+    fi

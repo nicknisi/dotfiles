@@ -6,78 +6,18 @@
     # If the file doesn't exist it is silently ignored
     path = ~/.gitconfig-local
 [alias]
-    # list all aliases
-    la = "!git config -l | grep alias | cut -c 7-"
-    delete-merged-branches = "!f() { git checkout --quiet master && git branch --merged | grep --invert-match '\\*' | xargs -n 1 git branch --delete; git checkout --quiet @{-1}; }; f"
-    # diff = diff --ignore-space-at-eol -b -w --ignore-blank-lines
-    d = "!git diff --ignore-space-at-eol -b -w --ignore-blank-lines -- ':!**/package-lock.json' ':!**/yarn.lock'"
-    cnv = commit --no-verify
-    pnv = push --no-verify
-    co = checkout
-    cob = checkout -b
-    s = status --short
-    ss  = status
-    br = branch -v
-    addnw = "!sh -c 'git diff -U0 -w --no-color \"$@\" | git apply --cached --ignore-whitespace --unidiff-zero -'"
-    cane = commit --amend --no-edit
-    poh = push -u origin head
-
-    # gh commands
-    browse = "!gh repo view --web"
-
-    # rebase commands
-    cont = rebase --continue
-    conf = "!git s | grep ^U"
-
-    l = log --graph --pretty=format:'%Cred%h%Creset %C(bold blue)%an%C(reset) - %s - %Creset %C(yellow)%d%Creset %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
-
+    st = status
+	co = checkout
+	ci = commit
+	br = branch
+	df = diff
+	dfs = diff --staged
+	logg = log --graph --decorate --oneline --abbrev-commit --all
     # show what I did today
     day = "!sh -c 'git log --reverse --no-merges --branches=* --date=local --after=\"yesterday 11:59PM\" --author=\"`git config --get user.name`\"'"
 
     # show the committers in the last 100 commits, sorted by who has commited the most
     review = "!git log --no-merges --pretty=%an | head -n 100 | sort | uniq -c | sort -nr"
-
-    # order files by number of commits, ascending
-    # Written by Corey Haines
-    # Scriptified by Gary Bernhardt
-    # Show churn for a time range:
-    #   $ git churn --since='1 month ago'
-    churn = "!f() { git log --all -M -C --name-only --format='format:' \"$@\" | sort | grep -v '^$' | uniq -c | sort | awk 'BEGIN {print \"count\tfile\"} {print $1 \"\t\" $2}' | sort -g; }; f"
-
-    # show all deleted files in the repo
-    deleted = "!git log --diff-filter=D --summary | grep delete"
-
-    # create an empty commit
-    empty = commit --allow-empty
-
-    # current branch
-    cbr = rev-parse --abbrev-ref HEAD
-
-    # submodule shortcuts
-    si = submodule init
-    su = submodule update
-    sub = "!git submodule sync && git submodule update"
-
-    # show number of commits per contributer, sorted
-    count = shortlog -sn
-
-    undo = reset --soft HEAD~1
-    amend = commit -a --amend
-
-    cleanup = "!git remote prune origin && git gc && git clean -df && git stash clear"
-
-    # rebase the current branch with changes from upstream remote
-    update = !git fetch upstream && git rebase upstream/`git rev-parse --abbrev-ref HEAD`
-
-    # tag aliases
-    # show the last tag
-    lt = describe --tags --abbrev=0
-
-    # assume aliases
-    assume = update-index --assume-unchanged
-    unassume = update-index --no-assume-unchanged
-    assumed = "!git ls-files -v | grep ^h | cut -c 3-"
-    unassumeall = "!git assumed | xargs git update-index --no-assume-unchanged"
 
     # clean up all 
     forget = "!git fetch -p origin && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D"
@@ -100,11 +40,6 @@
     aa = !git ls-files -d | xargs git rm && git ls-files -m -o --exclude-standard | xargs git add
     # remove grep - Remove found files that are NOT under version control
     rg = "!sh -c 'git ls-files --others --exclude-standard | grep $1 | xargs rm' -"
-
-    # Kaleidoscope commands
-    dkal = difftool -y -t Kaleidoscope
-    mkal = mergetool -y -t Kaleidoscope
-    remotes = remote -v
 [color]
     diff = auto
     status = auto
@@ -129,15 +64,16 @@
 [push]
     # push will only do the current branch, not all branches
     default = current
-[branch]
-    # set up 'git pull' to rebase instead of merge
-    autosetuprebase = always
 [pull]
     rebase = true
 [diff]
+    tool = vimdiff
     renames = copies
     mnemonicprefix = true
     compactionHeuristic = true
+[merge]
+    tool = vimdiff
+    conflictstyle=diff3
 [difftool]
     prompt = false
 [apply]
@@ -155,11 +91,6 @@
     lineNumber = true
 [credential]
 	helper = osxkeychain
-[difftool "Kaleidoscope"]
-	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
-[mergetool "Kaleidoscope"]
-	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
-	trustexitcode = true
 [rebase]
 	instructionFormat = "[%an - %ar] %s"
 	autoStash = true
