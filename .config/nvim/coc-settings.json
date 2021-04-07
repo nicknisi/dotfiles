@@ -51,9 +51,9 @@
     "diagnostic.warningSign": "•",
     "diagnostic.infoSign": "•",
 	"diagnostic.refreshOnInsertMode": false,
-	"diagnostic.virtualTextPrefix": " ❯❯❯ ",
+	"diagnostic.virtualTextPrefix": "❯❯ ",
 	"diagnostic.virtualText": true,
     "diagnostic.virtualTextCurrentLineOnly": false,
-    "diagnostic.enableMessage": "never",
-    "codeLens.enable": true
+    "diagnostic.enableMessage": "jump",
+    "codeLens.enable": false
 }
