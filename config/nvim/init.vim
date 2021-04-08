@@ -217,7 +217,7 @@ set wrap "Wrap lines
 " , + sc
 nmap <leader>sc :set list!<CR>
 
-set listchars=tab:‚ñ∏\ ,eol:¬¨
+set listchars=tab:▸\ ,eol:¬
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Filetypes and extension specifics 
@@ -566,7 +566,7 @@ let g:ale_linters = {}
 " ===> coc.nvim
 let g:coc_global_extensions = [
         \ 'coc-css',
-        \ 'coc-diagnostic'
+        \ 'coc-diagnostic',
         \ 'coc-emmet',
         \ 'coc-emoji',
         \ 'coc-eslint',
