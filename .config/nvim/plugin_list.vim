@@ -49,11 +49,11 @@ Plug 'junegunn/fzf.vim'
 Plug 'ap/vim-css-color'
 Plug 'fatih/vim-go'
 
-Plug 'pangloss/vim-javascript'
-Plug 'MaxMEllon/vim-jsx-pretty'
-Plug 'vim-scripts/JavaScript-Indent'
-Plug 'sheerun/vim-polyglot'
-Plug 'othree/yajs.vim'
+" Plug 'pangloss/vim-javascript'
+" Plug 'MaxMEllon/vim-jsx-pretty'
+" Plug 'vim-scripts/JavaScript-Indent'
+" Plug 'sheerun/vim-polyglot'
+" Plug 'othree/yajs.vim'
 " Plug 'mattn/emmet-vim'
 "}}}
 
