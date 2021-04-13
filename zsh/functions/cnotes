@@ -4,5 +4,5 @@ today=$(date +"%Y-%m-%d")
         echo "${today}-notes.md already created"
     else
         # echo "no file created"
-        vim -c "+normal ggO# What Did I Do?" -c "+normal ggo# $(date)" -c ':s/$/\r/' -c 'se nohlsearch' ~/notes/${today}-notes.md
+        nvim -c "+normal ggO# What Did I Do?" -c "+normal ggo" -c "+normal ggo## $(date)" -c ':s/$/\r/' -c 'se nohlsearch' ~/notes/${today}-notes.md
     fi

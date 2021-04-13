@@ -3,5 +3,5 @@ today=$(date +"%Y-%m-%d")
     then
         echo "${today}-notes.md not created"
     else
-        vim ~/notes/${today}-notes.md
+        nvim ~/notes/${today}-notes.md
     fi
