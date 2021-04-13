@@ -6,6 +6,7 @@ plug.vim.old
 config/nvim/spell
 config/nvim/shada
 config/nvim/plugged
+config/nvim/undo
 config/nvim/autoload/plug.vim
 vim/vim.symlink/spell/
 vim/vim.symlink/plugged/
