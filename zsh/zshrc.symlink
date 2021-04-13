@@ -1,11 +1,13 @@
-export ZSH=$DOTFILES/zsh
-
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
+
+export ZSH=$DOTFILES/zsh
+
+source /usr/local/opt/powerlevel10k/powerlevel10k.zsh-theme
 
 if [[ -d $DOTFILES/zsh/functions ]]; then
     for func in $DOTFILES/zsh/functions/*(:t); autoload -U $func
@@ -66,7 +68,6 @@ setopt NO_HUP                    # don't kill background jobs when the shell exi
 setopt NO_LIST_BEEP
 setopt LOCAL_OPTIONS
 setopt LOCAL_TRAPS
-setopt ROMPT_SUBST
 
 # history
 HISTFILE=~/.zsh_history
@@ -118,14 +119,11 @@ zstyle ':completion:*' completer _expand _complete _files _correct _approximate
 
 export ZPLUGDIR="$CACHEDIR/zsh/plugins"
 [[ -d "$ZPLUGDIR" ]] || mkdir -p "$ZPLUGDIR"
-# array containing plugin information (managed by zfetch)
-typeset -A plugins
 
-zfetch mafredri/zsh-async async.plugin.zsh
-zfetch zsh-users/zsh-syntax-highlighting
-zfetch zsh-users/zsh-autosuggestions
-zfetch chriskempson/base16-shell
-zfetch Aloxaf/fzf-tab
+plugins=(
+  git
+  fzf
+)
 
 if [[ -x "$(command -v fnm)" ]]; then
     eval "$(fnm env --use-on-cd)"
@@ -202,8 +200,9 @@ fi
 [[ -n "$(command -v nvim)" ]] && alias vim="nvim"
 
 # Filesystem aliases
-alias ..='cd ..'
-alias ...='cd ../..'
+alias ~~="cd ~"
+alias ..="cd .."
+alias ...="cd ../.."
 alias ....="cd ../../.."
 alias .....="cd ../../../.."
 
@@ -214,15 +213,15 @@ alias lld="ls -l | grep ^d"
 alias rmf="rm -rf"
 
 # Helpers
-alias grep='grep --color=auto'
-alias df='df -h' # disk free, in Gigabytes, not bytes
-alias du='du -h -c' # calculate disk usage for a folder
-alias brewuuc='brew update && brew upgrade && brew cleanup' # update upgrade clean brew
-alias ohmyzsh='vim ~/.oh-my-zsh'
-alias szsh='source ~/.zshrc'
+alias grep="grep --color=auto"
+alias df="df -h" # disk free, in Gigabytes, not bytes
+alias du="du -h -c" # calculate disk usage for a folder
+alias brewuuc="brew update && brew upgrade && brew cleanup" # update upgrade clean brew
+alias ohmyzsh="vim ~/.oh-my-zsh"
+alias szsh="source ~/.zshrc"
 
 # Applications
-alias ios='open -a /Applications/Xcode.app/Contents/Developer/Applications/Simulator.app'
+alias ios="open -a /Applications/Xcode.app/Contents/Developer/Applications/Simulator.app"
 
 # Hide/show all desktop icons (useful when presenting)
 alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder"
@@ -234,7 +233,7 @@ alias cleanup="find . -name '*.DS_Store' -type f -ls -delete"
 alias clsym="find -L . -name . -o -type d -prune -o -type l -exec rm {} +"
 
 # git aliases
-alias gs='git s'
+alias gs="git s"
 alias glog="git l"
 
 # tmux aliases
@@ -248,4 +247,13 @@ alias lpath='echo $PATH | tr ":" "\n"' # list the PATH separated by new lines
 alias nr="npm run"
 
 source "$DOTFILES/zsh/utils.zsh"
-# source "$DOTFILES/zsh/prompt.zsh"
+
+# Language Exports
+export JAVA_HOME=$(/usr/libexec/java_home)
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

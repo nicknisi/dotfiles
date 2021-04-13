@@ -8,16 +8,13 @@ if OS.mac?
     brew "trash"
 
     # Applications
-    mas "Xcode", id: 497799835
+    # mas "Xcode", id: 497799835
 
     # Browsers
     # cask "firefox"
 
     # Fonts
-    cask "font-fira-code"
     cask "font-hack"
-    cask "font-jetbrains-mono"
-    cask "font-cascadia-mono"
     cask "font-hack-nerd-font"
 
 end
@@ -32,7 +29,7 @@ brew "moreutils"
 brew "findutils"
 brew "bash"
 brew "bash-completion2"
-brew "wget --with-iri"
+brew "wget", args: ["with-iri"]
 brew "gnupg"
 brew "gettext"
 brew "pcre"
@@ -46,12 +43,8 @@ brew "gdbm"
 brew "readline"
 brew "watchman"
 
-# Shells
-brew "romkatv/powerlevel10k/powerlevel10k"
-
 # Languages
 brew "python"
-brew "python@2"
 brew "node"
 brew "go"
 brew "openjdk"
@@ -81,9 +74,7 @@ brew "fd"
 brew "ffmpeg"
 brew "fzf"
 brew "gh"
-brew "git"
 brew "gnupg"
-brew "grep"
 brew "hexyl"
 brew "highlight"
 brew "homeshick"
@@ -95,15 +86,28 @@ brew "lazydocker"
 brew "lazygit"
 brew "markdown"
 brew "neofetch"
-brew "neovim"
 brew "pastel"
 brew "ripgrep"
-brew "schniz/tap/fnm"
+brew "fnm"
 brew "shellcheck"
 brew "tmux"
 brew "tree"
-brew "vim --with-override-system-vi"
 brew "wdiff"
 brew "wget"
 brew "z"
+
+# more recent versions of macOS tools
+brew "vim"
+brew "git"
+brew "grep"
+brew "openssh"
+brew "screen"
+brew "php"
+brew "gmp"
+
+# shells
 brew "zsh"
+brew "romkatv/powerlevel10k/powerlevel10k"
+
+# software
+brew "neovim"
