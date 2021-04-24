@@ -1,5 +1,4 @@
 [init]
-    templatedir = ~/.dotfiles/git/templates
     defaultBranch = main
 [include]
     # A local gitconfig, outside of version control.
