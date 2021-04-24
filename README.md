@@ -6,16 +6,6 @@ Obviously this setup works for me, a JavaScript developer on macOS, but this par
 
 ![S screenshot of the dotfiles setup](https://user-images.githubusercontent.com/293805/115963492-25963880-a4e5-11eb-84a6-f512f70de21c.png)
 
-
-## Contents
-
-+ [Initial Setup and Installation](#initial-setup-and-installation)
-+ [ZSH Setup](#zsh-setup)
-+ [Prompt](#prompt)
-+ [Vim and Neovim Setup](#vim-and-neovim-setup)
-+ [Fonts](#fonts)
-+ [Tmux](#tmux-configuration)
-
 ## Initial Setup and Installation
 
 ### Backup
