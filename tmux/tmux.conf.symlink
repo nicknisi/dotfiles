@@ -101,4 +101,4 @@ if-shell '[[ $(uname -s) = Linux ]]' {
 ### Color & Style Settings ###
 ##############################
 
-source ~/.dotfiles/tmux/base16.sh
+source $DOTFILES/tmux/base16.sh

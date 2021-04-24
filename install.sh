@@ -66,11 +66,6 @@ backup() {
 setup_symlinks() {
     title "Creating symlinks"
 
-    if [ ! -e "$HOME/.dotfiles" ]; then
-        info "Adding symlink to dotfiles at $HOME/.dotfiles"
-        ln -s "$DOTFILES" ~/.dotfiles
-    fi
-
     for file in $(get_linkables) ; do
         target="$HOME/.$(basename "$file" '.symlink')"
         if [ -e "$target" ]; then

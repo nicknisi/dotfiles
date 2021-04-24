@@ -32,11 +32,11 @@ If on OSX, you will need to install the XCode CLI tools before continuing. To do
 ➜ xcode-select --install
 ```
 
-Then, clone the dotfiles repository to your home directory as `~/.dotfiles`. 
+Then, clone the dotfiles repository anywhere you like on your machine.
 
 ```bash
-➜ git clone https://github.com/nicknisi/dotfiles.git ~/.dotfiles
-➜ cd ~/.dotfiles
+➜ git clone https://github.com/nicknisi/dotfiles.git
+➜ cd dotfiles
 ➜ ./install.sh
 ```
 
