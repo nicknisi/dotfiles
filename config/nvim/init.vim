@@ -17,11 +17,19 @@ call plug#begin('~/.config/nvim/plugged')
 
     set autoread " detect when a file is changed
 
-    set history=1000 " change history to 1000
-    set textwidth=120
+    " WARNING: These settings disable vim's backups (swap files).
+    " If this is not desired, comment these lines out.
+    set nobackup " don't use backup files
+    set nowritebackup " don't backup the file while editing
+    set noswapfile " Don't create swapfiles for new buffers
+    set updatecount=0 " don't try to write swap files after some number of updates
 
-    set backupdir=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
+    set backupdir=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp " change where swap files are stored"
     set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
+
+    set history=1000 " store the last 1000 command-lines entered
+
+    set textwidth=120
 
     if (has('nvim'))
         " show results of substition as they're happening
