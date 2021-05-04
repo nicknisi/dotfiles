@@ -495,6 +495,8 @@ key_bindings:
   - { key: Slash,     mods: Control, chars: "\x1f" }
   - { key: J,         mods: Alt, chars: "\x1bj"    }
   - { key: K,         mods: Alt, chars: "\x1bk"    }
+  - { key: H,         mods: Alt, chars: "\x1bh"    }
+  - { key: L,         mods: Alt, chars: "\x1bl"    }
   # (Windows, Linux, and BSD only)
   #- { key: V,        mods: Control|Shift, action: Paste            }
   #- { key: C,        mods: Control|Shift, action: Copy             }

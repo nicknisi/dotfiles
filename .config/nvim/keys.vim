@@ -185,7 +185,7 @@ nnoremap <silent> <leader>il  :<C-u>CocList<CR>|              " Open coc list
 nnoremap <silent> <leader>ic  :<C-u>CocList commands<CR>|     " Open coc commands
 
 " Add `:Format` command to format current buffer.
-command! -nargs=0 Format :call CocAction('format')
+command! -nargs=0 Format :call CocActionAsync('format')
 "}}}
 
 "{{{ === Autocomplete

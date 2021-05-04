@@ -1,59 +1,58 @@
 {
-    "coc.preferences.rootPatterns": [
-        "build.sbt",
-        "build.sc",
-        "build.grade",
-        "pom.xml",
-        ".git",
-        ".hg"
-    ],
-    "coc.preferences.formatOnSaveFiletypes": [
-        "javascript"
-    ],
-    "coc.preferences.currentFunctionSymbolAutoUpdate": true,
-    "coc.preferences.formatOnType": true,
-    "coc.source.buffer.priority": 1,
-    "explorer.sources": [
-        {
-            "name": "buffer",
-            "expand": false
-        },
-        {
-            "name": "file",
-            "expand": true
-        }
-    ],
-    "explorer.width": 30,
-    "explorer.file.column.indent.indentLine": true,
-    "explorer.icon.enableNerdfont": true,
-    "explorer.git.showIgnored": false,
-    "explorer.openAction.relativePath": true,
-    "explorer.keyMappingMode": "default",
-    "explorer.previewAction.onHover": false,
-    "explorer.file.showHiddenFiles": false,
-    "go.goplsOptions": {
-        "deepCompletion": true,
-        "staticcheck": false,
-        "completeUnimported": true,
-        "usePlaceholders": true,
-        "linksInHover": false,
-        "allowModfileModifications": true
+  "coc.preferences.rootPatterns": [
+    "build.sbt",
+    "build.sc",
+    "build.grade",
+    "pom.xml",
+    ".git",
+    ".hg"
+  ],
+  "coc.preferences.formatOnSaveFiletypes": ["javascript"],
+  "coc.preferences.currentFunctionSymbolAutoUpdate": true,
+  "coc.preferences.formatOnType": true,
+  "coc.source.buffer.priority": 1,
+  "explorer.sources": [
+    {
+      "name": "buffer",
+      "expand": false
     },
-    "go.trace.server": "verbose",
-    "go.goplsPath": "gopls",
-    "suggest.noselect": false,
-    "suggest.timeout": 1000,
-    "suggest.maxCompleteItemCount": 20,
-    "suggest.autoTrigger": "always",
-    "list.nextKeymap": "<C-n>",
-    "list.previousKeymap": "<C-p>",
-    "diagnostic.errorSign": "•",
-    "diagnostic.warningSign": "•",
-    "diagnostic.infoSign": "•",
-	"diagnostic.refreshOnInsertMode": false,
-	"diagnostic.virtualTextPrefix": "❯❯ ",
-	"diagnostic.virtualText": true,
-    "diagnostic.virtualTextCurrentLineOnly": false,
-    "diagnostic.enableMessage": "jump",
-    "codeLens.enable": false
+    {
+      "name": "file",
+      "expand": true
+    }
+  ],
+  "explorer.width": 30,
+  "explorer.file.column.indent.indentLine": true,
+  "explorer.icon.enableNerdfont": true,
+  "explorer.git.showIgnored": false,
+  "explorer.openAction.relativePath": true,
+  "explorer.keyMappingMode": "default",
+  "explorer.previewAction.onHover": false,
+  "explorer.file.showHiddenFiles": false,
+  "go.goplsOptions": {
+    "usePlaceholders": true,
+    "linksInHover": false,
+    "allowModfileModifications": true,
+    "ui.completion.experimentalPostfixCompletions": true
+  },
+  "go.trace.server": "verbose",
+  "go.goplsPath": "gopls",
+  "go.checkForUpdates": "ask",
+  "suggest.noselect": false,
+  "suggest.timeout": 1000,
+  "suggest.maxCompleteItemCount": 20,
+  "suggest.autoTrigger": "always",
+  "list.nextKeymap": "<C-n>",
+  "list.previousKeymap": "<C-p>",
+  "diagnostic.errorSign": "•",
+  "diagnostic.warningSign": "•",
+  "diagnostic.infoSign": "•",
+  "diagnostic.refreshOnInsertMode": false,
+  "diagnostic.virtualTextPrefix": "❯❯ ",
+  "diagnostic.virtualText": true,
+  "diagnostic.virtualTextCurrentLineOnly": false,
+  "diagnostic.enableMessage": "jump",
+  "codeLens.enable": false,
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+  "eslint.autoFixOnSave": true
 }

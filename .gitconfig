@@ -27,7 +27,7 @@
     pretty = format:%C(yellow)%H %Cblue%>(12)%ad %Cgreen%<(7)%aN%Cred%d %Creset%s
 
 [pager]
-        branch = false
+    branch = false
     log = false
 
 [color]
