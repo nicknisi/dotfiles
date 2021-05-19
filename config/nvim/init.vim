@@ -83,7 +83,7 @@ call plug#begin('~/.config/nvim/plugged')
     set mat=2 " how many tenths of a second to blink
     set updatetime=300
     set signcolumn=yes
-    set shortmess+=c
+    set shortmess-=S " Show [X/X] search results
 
     " Tab control
     set smarttab " tab respects 'tabstop', 'shiftwidth', and 'softtabstop'
