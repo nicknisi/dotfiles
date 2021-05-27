@@ -53,6 +53,5 @@
   "diagnostic.virtualTextCurrentLineOnly": false,
   "diagnostic.enableMessage": "jump",
   "codeLens.enable": false,
-  "javascript.preferences.importModuleSpecifier": "non-relative",
-  "eslint.autoFixOnSave": true
+  "javascript.preferences.importModuleSpecifier": "non-relative"
 }

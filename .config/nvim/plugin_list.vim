@@ -4,6 +4,19 @@
 
 call plug#begin('~/.local/share/nvim/plugged')
 
+Plug 'mhartington/formatter.nvim'
+
+Plug 'machakann/vim-sandwich'
+
+Plug 'nvim-lua/popup.nvim'
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+
+Plug 'neovim/nvim-lspconfig'
+Plug 'hrsh7th/nvim-compe'
+Plug 'kyazdani42/nvim-web-devicons'
+Plug 'folke/trouble.nvim'
+
 " treesitter syntax
 Plug 'nvim-treesitter/nvim-treesitter'
 
@@ -29,14 +42,12 @@ Plug 'wellle/targets.vim'
 Plug 'airblade/vim-gitgutter'
 Plug 'tpope/vim-fugitive'
 
-" ctags bar
-Plug 'majutsushi/tagbar'
-
 " vim-tmux-navigation
 Plug 'christoomey/vim-tmux-navigator'
 
 " colorscheme
-Plug 'sainnhe/gruvbox-material'
+" Plug 'sainnhe/gruvbox-material'
+Plug 'eddyekofo94/gruvbox-flat.nvim'
 
 " resize vim windows with ctrl + T
 Plug 'simeji/winresizer'
@@ -45,23 +56,16 @@ Plug 'simeji/winresizer'
 Plug '/usr/local/opt/fzf'
 Plug 'junegunn/fzf.vim'
 
-"{{{ === Syntax and languages
+" Syntax and languages
+Plug 'mattn/emmet-vim'
 Plug 'ap/vim-css-color'
 Plug 'fatih/vim-go'
-
-" Plug 'pangloss/vim-javascript'
-" Plug 'MaxMEllon/vim-jsx-pretty'
-" Plug 'vim-scripts/JavaScript-Indent'
-" Plug 'sheerun/vim-polyglot'
-" Plug 'othree/yajs.vim'
-" Plug 'mattn/emmet-vim'
-"}}}
 
 " comment 
 Plug 'scrooloose/nerdcommenter'
 
 " coc for completion"
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
+" Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
 " snippets
 Plug 'honza/vim-snippets'

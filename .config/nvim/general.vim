@@ -90,14 +90,12 @@ let g:vimsyn_embed= 'l' "highlighting embedded script inside vim files
 set termguicolors
 set background=dark
 
-" color intellij
-" color dalton
-let g:gruvbox_material_background = 'hard'
-let g:gruvbox_material_enable_italic = 1
-" let g:gruvbox_material_disable_italic_comment = 1
+" let g:gruvbox_material_background = 'hard'
+" let g:gruvbox_material_enable_italic = 1
+" color gruvbox-material
 
-color gruvbox-material
-" color gruvbox
+let g:gruvbox_flat_style = "dark"
+colorscheme gruvbox-flat
 " }}}
 
 " {{{ === Statusline
@@ -119,16 +117,16 @@ set statusline+=\ %<%f%m%r%h%w\                    " File path, modified, readon
 " set statusline+=│                                 " Separator
 " set statusline+=\ (%{&ff})                        " FileFormat (dos/unix..)
 set statusline+=%=                                 " Right Side
-set statusline+=%{coc#status()}
-set statusline+=\ │                                  " Separator
-set statusline+=\ %{get(b:,'coc_current_function','')}
-set statusline+=\ │                                  " Separator
+" set statusline+=%{coc#status()}
+" set statusline+=\ │                                  " Separator
+" set statusline+=\ %{get(b:,'coc_current_function','')}
+" set statusline+=\ │                                  " Separator
 " set statusline+=│                                 " Separator
 " set statusline+=\ col:\ %02v\                     " Colomn number
-set statusline+=\ %Y\                              " FileType
-set statusline+=│                                  " Separator
-set statusline+=\ %{''.(&fenc!=''?&fenc:&enc).''}\ " Encoding
-set statusline+=│                                  " Separator
+" set statusline+=\ %Y\                              " FileType
+" set statusline+=│                                  " Separator
+" set statusline+=\ %{''.(&fenc!=''?&fenc:&enc).''}\ " Encoding
+" set statusline+=│                                  " Separator
 set statusline+=\ %l:%c                            " Line number / total lines
 set statusline+=\ %p%%\                            " Percentage of document
 " }}}
