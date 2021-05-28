@@ -4,19 +4,15 @@
 
 call plug#begin('~/.local/share/nvim/plugged')
 
-Plug 'mhartington/formatter.nvim'
-
-Plug 'machakann/vim-sandwich'
-
-Plug 'nvim-lua/popup.nvim'
-Plug 'nvim-lua/plenary.nvim'
-Plug 'nvim-telescope/telescope.nvim'
+Plug 'kyazdani42/nvim-web-devicons' " for file icons
+Plug 'kyazdani42/nvim-tree.lua'
 
 Plug 'neovim/nvim-lspconfig'
+
 Plug 'hrsh7th/vim-vsnip'
 Plug 'hrsh7th/nvim-compe'
-Plug 'kyazdani42/nvim-web-devicons'
-Plug 'folke/trouble.nvim'
+
+Plug 'machakann/vim-sandwich'
 
 " treesitter syntax
 Plug 'nvim-treesitter/nvim-treesitter'
@@ -64,14 +60,5 @@ Plug 'fatih/vim-go'
 
 " comment 
 Plug 'scrooloose/nerdcommenter'
-
-" coc for completion"
-" Plug 'neoclide/coc.nvim', {'branch': 'release'}
-
-" snippets
-Plug 'honza/vim-snippets'
-
-" directory tree
-Plug 'ryanoasis/vim-devicons'
 
 call plug#end()

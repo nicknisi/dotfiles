@@ -5,11 +5,7 @@
 
 let mapleader = " "
 
-" Jump forward or backward
-imap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
-smap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
-imap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
-smap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
+nnoremap <leader>c :<C-U>NvimTreeToggle<CR>
 
 "{{{ === Debug
 
@@ -146,63 +142,6 @@ nnoremap <leader>yP :let @* = expand("%:p") . ":" . line(".")<CR>
 " Copy (current path + current line number + current line) to clipboard
 nnoremap <silent><leader>Fp :norm yy<CR>:let @* = expand("%") . ":" . line(".") . ":" . @"<CR>
 nnoremap <silent><leader>FP :norm yy<CR>:let @* = expand("%:p") . ":" . line(".") . ":" . @"<CR>
-"}}}
-
-"{{{ === Coc
-" Use <leader>x for convert visual selected code to snippet
-xmap <leader>x  <Plug>(coc-convert-snippet)
-" Use <tab> for jump to next placeholder, it's default of coc.nvim
-let g:coc_snippet_next = '<tab>'
-" Use <s-tab> for jump to previous placeholder, it's default of coc.nvim
-let g:coc_snippet_prev = '<s-tab>'
-
-" Open coc-explorer
-nnoremap <silent><leader>c :CocCommand explorer<CR>
-
-" Use `[c` and `]c` for navigate diagnostics
-"nmap <silent> [c <Plug>(coc-diagnostic-prev)
-"nmap <silent> ]c <Plug>(coc-diagnostic-next)
-
-" GoTo code navigation.
-"nmap <silent> gd <Plug>(coc-definition)
-"nmap <silent> gy <Plug>(coc-type-definition)
-"nmap <silent> gi <Plug>(coc-implementation)
-"nmap <silent> gr <Plug>(coc-references)
-
-" Go to the first floating window
-"nmap <silent> <C-f> <Plug>(coc-float-jump)
-
-" Use K for show documentation in preview window
-"nnoremap <silent> K :call <SID>show_documentation()<CR>
-function! s:show_documentation()
-  if (index(['vim','help'], &filetype) >= 0)
-    execute 'h '.expand('<cword>')
-  else
-    call CocActionAsync('doHover')
-  endif
-endfunction
-
-"nmap <leader>en <Plug>(coc-rename)|                           " Remap for rename current word
-
-" Using CocList
-nnoremap <silent> <leader>ia  :<C-u>CocList diagnostics<cr>|  " Show all diagnostics
-nnoremap <silent> <leader>ie  :<C-u>CocList extensions<cr>|   " Manage extensions
-nnoremap <silent> <leader>il  :<C-u>CocList<CR>|              " Open coc list
-nnoremap <silent> <leader>ic  :<C-u>CocList commands<CR>|     " Open coc commands
-
-" Add `:Format` command to format current buffer.
-command! -nargs=0 Format :call CocActionAsync('format')
-"}}}
-
-"{{{ === Autocomplete
-" if exists('*complete_info')
-"   inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
-" else
-"   inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-" endif
-
-" " Use <c-space> to trigger completion.
-" inoremap <silent><expr> <c-space> coc#refresh()
 "}}}
 
 "{{{ === Config files
