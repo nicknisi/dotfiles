@@ -258,10 +258,10 @@ call plug#begin('~/.config/nvim/plugged')
     nnoremap <C-y> 3<C-y>
 
     " moving up and down work as you would expect
-    nnoremap <silent> j gj
-    nnoremap <silent> k gk
-    nnoremap <silent> ^ g^
-    nnoremap <silent> $ g$
+    nnoremap <silent> <expr> j (v:count == 0 ? 'gj' : 'j')
+    nnoremap <silent> <expr> k (v:count == 0 ? 'gk' : 'k')
+    nnoremap <silent> <expr> ^ (v:count == 0 ? 'g^' :  '^')
+    nnoremap <silent> <expr> $ (v:count == 0 ? 'g$' : '$')
 
     " helpers for dealing with other people's code
     nmap \t :set ts=4 sts=4 sw=4 noet<cr>
