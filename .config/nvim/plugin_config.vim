@@ -75,6 +75,11 @@ capabilities.textDocument.completion.completionItem.snippetSupport = true
 nvim_lsp.gopls.setup { 
   on_attach = on_attach;
   capabilities = capabilities;
+  init_options = {
+    usePlaceholders = true;
+    linksInHover = false;
+    allowModfileModifications = true;
+  };
 }
 
 nvim_lsp.tsserver.setup {
