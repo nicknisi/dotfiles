@@ -83,12 +83,12 @@ nvim_lsp.gopls.setup {
 }
 
 nvim_lsp.tsserver.setup {
-  root_dir = nvim_lsp.util.root_pattern("jsconfig.json", ".git");
+  root_dir = nvim_lsp.util.root_pattern("tsconfig.json", "jsconfig.json", ".git");
   on_attach = on_attach;
   capabilities = capabilities;
 }
 
-vim.o.completeopt = "menu,menuone,noselect"
+vim.o.completeopt = "menuone,noselect"
 require'compe'.setup {
   enabled = true;
   autocomplete = true;
