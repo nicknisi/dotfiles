@@ -206,3 +206,5 @@ fi
 if [ -f '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc' ]; then
     source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc";
 fi
+
+alias luamake=/Users/chien.le/.config/nvim/lua-language-server/3rd/luamake/luamake

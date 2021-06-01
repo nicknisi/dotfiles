@@ -37,6 +37,21 @@ let g:nvim_tree_show_icons = {
 "{{{ === nvim-treesitter
 lua <<EOF
 
+USER = vim.fn.expand('$USER')
+
+local sumneko_root_path = ""
+local sumneko_binary = ""
+
+if vim.fn.has("mac") == 1 then
+    sumneko_root_path = "/Users/" .. USER .. "/.config/nvim/lua-language-server"
+    sumneko_binary = "/Users/" .. USER .. "/.config/nvim/lua-language-server/bin/macOS/lua-language-server"
+elseif vim.fn.has("unix") == 1 then
+    sumneko_root_path = "/home/" .. USER .. "/.config/nvim/lua-language-server"
+    sumneko_binary = "/home/" .. USER .. "/.config/nvim/lua-language-server/bin/Linux/lua-language-server"
+else
+    print("Unsupported system for sumneko")
+end
+
 require'nvim-treesitter.configs'.setup {
   highlight = {
     enable = true,
@@ -71,6 +86,37 @@ end
 
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities.textDocument.completion.completionItem.snippetSupport = true
+
+nvim_lsp.sumneko_lua.setup {
+  on_attach = on_attach;
+  capabilities = capabilities;
+  cmd = {sumneko_binary, "-E", sumneko_root_path .. "/main.lua"};
+  settings = {
+    Lua = {
+      runtime = {
+        -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
+        version = 'LuaJIT',
+        -- Setup your lua path
+        path = vim.split(package.path, ';'),
+        },
+      diagnostics = {
+        -- Get the language server to recognize the `vim` global
+        globals = {'vim'},
+        },
+      workspace = {
+        -- Make the server aware of Neovim runtime files
+        library = {
+          [vim.fn.expand('$VIMRUNTIME/lua')] = true,
+          [vim.fn.expand('$VIMRUNTIME/lua/vim/lsp')] = true,
+          },
+        },
+      -- Do not send telemetry data containing a randomized but unique identifier
+      telemetry = {
+      enable = false,
+      },
+    },
+  },
+}
 
 nvim_lsp.gopls.setup { 
   on_attach = on_attach;
@@ -212,4 +258,8 @@ endfunction
 
 " options
 let g:fzf_layout = { 'window': 'call Float()' }
+"}}}
+
+"{{{
+let g:user_emmet_leader_key='<C-;>'
 "}}}
