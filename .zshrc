@@ -195,16 +195,4 @@ export PATH=$GOPATH/bin:$PATH
 eval "$(fasd --init auto)"
 # }}}
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-# The next line updates PATH for the Google Cloud SDK.
-# if [ -f '/Users/chien.le/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/chien.le/Downloads/google-cloud-sdk/path.zsh.inc'; fi
-if [ -f '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc' ]; then
-    source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc";
-fi
-if [ -f '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc' ]; then
-    source "/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc";
-fi
-
 alias luamake=/Users/chien.le/.config/nvim/lua-language-server/3rd/luamake/luamake

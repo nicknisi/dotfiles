@@ -7,7 +7,7 @@
 # zmodule sindresorhus/pure --source async.zsh --source pure.zsh
 # zmodule denysdovhan/spaceship-prompt --name spaceship
 # zmodule minimal
-zmodule romkatv/powerlevel10k
+# zmodule romkatv/powerlevel10k
 # zmodule gitster
 
 # Sets sane Zsh built-in environment options.
