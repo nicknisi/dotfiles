@@ -9,8 +9,10 @@ Plug 'kyazdani42/nvim-tree.lua'
 
 Plug 'neovim/nvim-lspconfig'
 
-Plug 'hrsh7th/vim-vsnip'
 Plug 'hrsh7th/nvim-compe'
+Plug 'hrsh7th/vim-vsnip'
+Plug 'hrsh7th/vim-vsnip-integ'
+Plug 'golang/vscode-go'
 
 Plug 'machakann/vim-sandwich'
 

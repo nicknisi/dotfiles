@@ -35,6 +35,12 @@ let g:nvim_tree_show_icons = {
 "}}}
 
 "{{{ === nvim-treesitter
+" Jump forward or backward
+imap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
+smap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
+imap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
+smap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
+
 lua <<EOF
 
 USER = vim.fn.expand('$USER')
@@ -161,7 +167,7 @@ require'compe'.setup {
   };
 }
 
-vim.api.nvim_set_keymap("i", "<C-Space> ", "compe#complete()", {noremap = true, silent = true, expr = true})
+vim.api.nvim_set_keymap("i", "<C-Space>", "compe#complete()", {noremap = true, silent = true, expr = true})
 vim.api.nvim_set_keymap("i", "<CR>", "compe#confirm('<CR>')", {noremap = true, silent = true, expr = true})
 
 EOF
