@@ -5,6 +5,12 @@
 
 let mapleader = " "
 
+" Jump forward or backward
+imap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
+smap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
+imap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
+smap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
+
 nnoremap <leader>c :<C-U>NvimTreeToggle<CR>
 
 "{{{ === Debug
@@ -50,7 +56,7 @@ vnoremap L g_
 
 " {{{ === Highlight
 nnoremap <silent> * :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>
-nmap <silent> <C-C> :noh<CR><esc>
+nmap <silent> <C-C> :noh<CR>:ccl<CR><esc>
 imap <silent> <C-C> <esc><C-C>
 vmap <silent> <C-C> <esc><C-C>
 

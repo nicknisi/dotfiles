@@ -58,7 +58,7 @@ Plug 'junegunn/fzf.vim'
 " Syntax and languages
 Plug 'mattn/emmet-vim'
 Plug 'ap/vim-css-color'
-Plug 'fatih/vim-go'
+" Plug 'fatih/vim-go'
 
 " comment 
 Plug 'scrooloose/nerdcommenter'

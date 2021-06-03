@@ -9,6 +9,7 @@
 # zmodule minimal
 # zmodule romkatv/powerlevel10k
 # zmodule gitster
+zmodule steeef
 
 # Sets sane Zsh built-in environment options.
 zmodule environment

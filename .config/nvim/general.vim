@@ -211,6 +211,8 @@ if has("autocmd")
     autocmd FileType sql        setlocal ts=4 sts=4 sw=4 expandtab smarttab
     autocmd FileType xml        setlocal ts=2 sts=2 sw=2 expandtab smarttab
     autocmd FileType proto      setlocal ts=4 sts=4 sw=4 noexpandtab smarttab
+    autocmd FileType typescriptreact setlocal ts=2 sts=2 sw=2 expandtab
+    autocmd FileType javascriptreact setlocal ts=2 sts=2 sw=2 expandtab
   augroup END
 
   augroup templates
