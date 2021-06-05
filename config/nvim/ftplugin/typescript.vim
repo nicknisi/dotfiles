@@ -7,4 +7,4 @@ nmap <silent> <leader>h :TSType<cr>
 
 setl omnifunc=TSOmnicFunc
 
-nmap <leader>x :VimuxRunCommand('npm test')<cr>
+nmap <leader>x :call VimuxRunCommand('npm test')<cr>
