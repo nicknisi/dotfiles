@@ -90,10 +90,6 @@ let g:vimsyn_embed= 'l' "highlighting embedded script inside vim files
 set termguicolors
 set background=dark
 
-" let g:gruvbox_material_background = 'hard'
-" let g:gruvbox_material_enable_italic = 1
-" color gruvbox-material
-
 let g:gruvbox_flat_style = "dark"
 colorscheme gruvbox-flat
 " }}}
@@ -113,7 +109,7 @@ set statusline=
 " set statusline+=\ %n\                              " Buffer number
 set statusline+=\ %{Dirname()}\                      " HOME
 set statusline+=│                                  " Separator
-set statusline+=\ %<%f%m%r%h%w\                    " File path, modified, readonly, helpfile, preview
+set statusline+=\ %<%F%m%r%h%w\                    " File path, modified, readonly, helpfile, preview
 " set statusline+=│                                 " Separator
 " set statusline+=\ (%{&ff})                        " FileFormat (dos/unix..)
 set statusline+=%=                                 " Right Side
@@ -160,11 +156,6 @@ set tabline+=%!Tabline()
 
 " === Autocmd === {{{
 if has("autocmd")
-
-  augroup coc-explorer
-    autocmd!
-    autocmd FileType coc-explorer setlocal statusline=Explorer
-  augroup END
 
   " Disable newline with comment
   augroup newline
@@ -215,10 +206,5 @@ if has("autocmd")
     autocmd FileType javascriptreact setlocal ts=2 sts=2 sw=2 expandtab
   augroup END
 
-  augroup templates
-    autocmd!
-    autocmd BufNewFile *.cpp 0r ~/.vim/templates/skeleton.cpp
-  augroup END
-  
 endif
 " }}}

@@ -189,6 +189,8 @@ export GOPRIVATE=git.garena.com/*
 export SP_UNIX_SOCKET=~/run/spex/spex.sock
 
 export PATH=$GOPATH/bin:$PATH
+
+export GITHUB_TOKEN=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
 # }}}
 
 # {{{ === FASD INIT ===

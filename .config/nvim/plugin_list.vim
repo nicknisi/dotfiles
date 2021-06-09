@@ -25,12 +25,6 @@ Plug 'rhysd/git-messenger.vim'
 " align text ga=
 Plug 'junegunn/vim-easy-align'
 
-" Macro editing: <leader>q + register
-Plug 'zdcthomas/medit'
-
-" Vim wiki <leader>ww to open
-Plug 'vimwiki/vimwiki'
-
 " Preview markdown live: :Mark
 Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
 
@@ -45,7 +39,6 @@ Plug 'tpope/vim-fugitive'
 Plug 'christoomey/vim-tmux-navigator'
 
 " colorscheme
-" Plug 'sainnhe/gruvbox-material'
 Plug 'eddyekofo94/gruvbox-flat.nvim'
 
 " resize vim windows with ctrl + T
@@ -58,7 +51,6 @@ Plug 'junegunn/fzf.vim'
 " Syntax and languages
 Plug 'mattn/emmet-vim'
 Plug 'ap/vim-css-color'
-" Plug 'fatih/vim-go'
 
 " comment 
 Plug 'scrooloose/nerdcommenter'

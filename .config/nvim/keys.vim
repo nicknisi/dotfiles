@@ -5,34 +5,15 @@
 
 let mapleader = " "
 
-" Jump forward or backward
+"{{{ === NvimTree
+nnoremap <leader>c :<C-U>NvimTreeToggle<CR>
+"}}}
+
+"{{{ === vsnip
 imap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
 smap <expr> <Tab>   vsnip#jumpable(1)   ? '<Plug>(vsnip-jump-next)'      : '<Tab>'
 imap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
 smap <expr> <S-Tab> vsnip#jumpable(-1)  ? '<Plug>(vsnip-jump-prev)'      : '<S-Tab>'
-
-nnoremap <leader>c :<C-U>NvimTreeToggle<CR>
-
-"{{{ === Debug
-
-command! Run set splitright | vnew | set filetype=sh | read !sh #
-
-" command!      -bang -nargs=* Debug                   call s:debug(<q-args>, <bang>0, <bang>0)'])
-" function! s:debug(arg, extra, bang)
-"   echom a:arg
-"   echom a:extra
-"   echom a:bang
-" endfunction
-
-nnoremap <M-A> :echo "TEST"<CR>
-
-nnoremap <silent> <leader>D :call <SID>Debug()<CR>
-function! s:Debug()
-  echo mode()
-endfunction
-nnoremap <leader>D :echo "hi<" . synIDattr(synID(line("."),col("."),1),"name") . '> trans<'
-\ . synIDattr(synID(line("."),col("."),0),"name") . "> lo<"
-\ . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . ">"<CR>
 "}}}
 
 " {{{ === Align

@@ -40,7 +40,6 @@ require'nvim-treesitter.configs'.setup {highlight = {enable = true}, indent = {e
 local nvim_lsp = require('lspconfig')
 
 local on_attach = function(client, bufnr)
-
     local function buf_set_keymap(...)
         vim.api.nvim_buf_set_keymap(bufnr, ...)
     end
