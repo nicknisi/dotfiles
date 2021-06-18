@@ -453,14 +453,32 @@ call plug#begin('~/.config/nvim/plugged')
             call fzf#vim#grep(initial_command, 1, fzf#vim#with_preview(spec), a:fullscreen)
         endfunction
 
+        function! FloatingFZF()
+            let buf = nvim_create_buf(v:true, v:true)
+            let height = float2nr(&lines * 0.5)
+            let width = float2nr(&columns * 0.7)
+            let horizontal = float2nr((&columns - width) / 2)
+            let vertical = 0
+            let opts = {
+                \ 'relative': 'editor',
+                \ 'row': vertical,
+                \ 'col': horizontal,
+                \ 'width': width,
+                \ 'height': height,
+                \ 'style': 'minimal'
+            \ }
+            call nvim_open_win(buf, v:true, opts)
+        endfunction
+
         let $FZF_DEFAULT_OPTS= $FZF_DEFAULT_OPTS
             \ . " --layout reverse"
             \ . " --pointer ' '"
             \ . " --info hidden"
             \ . " --color 'bg+:0'"
+            \ . " --border rounded"
 
         let g:fzf_preview_window = ['right:50%:hidden', '?']
-        let g:fzf_layout = { 'window': { 'width': 0.8, 'height': 0.5, 'highlight': 'Comment' } }
+        let g:fzf_layout = { 'window': 'call FloatingFZF()' }
     " }}}
 
     " vim-fugitive {{{
