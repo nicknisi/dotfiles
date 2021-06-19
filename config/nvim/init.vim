@@ -130,10 +130,12 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'neovim/nvim-lspconfig'
         Plug 'hrsh7th/nvim-compe'
         Plug 'onsails/lspkind-nvim'
+        Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+        Plug 'RRethy/nvim-base16'
     " }}}
 
     " Load colorschemes
-    Plug 'chriskempson/base16-vim'
+    " Plug 'chriskempson/base16-vim'
     Plug 'joshdick/onedark.vim'
 
     " LightLine {{{
@@ -576,6 +578,7 @@ call plug#end()
 
 lua require('lsp-config')
 lua require('completion')
+lua require('treesitter')
 
 " Colorscheme and final setup {{{
     " This call must happen after the plug#end() call to ensure
