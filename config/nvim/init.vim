@@ -126,13 +126,16 @@ call plug#begin('~/.config/nvim/plugged')
     " highlight conflicts
     match ErrorMsg '^\(<\|=\|>\)\{7\}\([^=].\+\)\?$'
 
+    " Lua Plugins {{{
+        Plug 'neovim/nvim-lspconfig'
+        Plug 'hrsh7th/nvim-compe'
+        Plug 'onsails/lspkind-nvim'
+    " }}}
+
     " Load colorschemes
     Plug 'chriskempson/base16-vim'
     Plug 'joshdick/onedark.vim'
 
-    " nvim-lspconfig {{{
-        Plug 'neovim/nvim-lspconfig'
-    " }}}
     " LightLine {{{
         Plug 'itchyny/lightline.vim'
         Plug 'nicknisi/vim-base16-lightline'
@@ -571,6 +574,9 @@ call plug#begin('~/.config/nvim/plugged')
 
 call plug#end()
 
+lua require('lsp-config')
+lua require('completion')
+
 " Colorscheme and final setup {{{
     " This call must happen after the plug#end() call to ensure
     " that the colorschemes have been loaded
@@ -596,5 +602,4 @@ call plug#end()
     highlight Normal ctermbg=none
 " }}}
 
-lua require('lsp-config')
 " vim:set foldmethod=marker foldlevel=0
