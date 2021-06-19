@@ -136,55 +136,11 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
         Plug 'onsails/lspkind-nvim'
         Plug 'RRethy/nvim-base16'
+        Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}
     " }}}
 
     " Load colorschemes
     Plug 'joshdick/onedark.vim'
-
-    " LightLine {{{
-        Plug 'itchyny/lightline.vim'
-        Plug 'nicknisi/vim-base16-lightline'
-        let g:lightline = {
-            \   'colorscheme': 'base16',
-            \   'active': {
-            \       'left': [ [ 'mode', 'paste' ],
-            \               [ 'gitbranch' ],
-            \               [ 'readonly', 'filetype', 'filename' ]],
-            \       'right': [ [ 'percent' ], [ 'lineinfo' ],
-            \               [ 'fileformat', 'fileencoding' ],
-            \               [ 'gitblame', 'currentfunction', 'linter_errors', 'linter_warnings' ]]
-            \   },
-            \   'component_expand': {
-            \   },
-            \   'component_type': {
-            \       'readonly': 'error',
-            \       'linter_warnings': 'warning',
-            \       'linter_errors': 'error'
-            \   },
-            \   'component_function': {
-            \       'fileencoding': 'helpers#lightline#fileEncoding',
-            \       'filename': 'helpers#lightline#fileName',
-            \       'fileformat': 'helpers#lightline#fileFormat',
-            \       'filetype': 'helpers#lightline#fileType',
-            \       'gitbranch': 'helpers#lightline#gitBranch',
-            \       'currentfunction': 'helpers#lightline#currentFunction',
-            \       'gitblame': 'helpers#lightline#gitBlame'
-            \   },
-            \   'tab_component_function': {
-            \       'filetype': 'helpers#lightline#tabFileType'
-            \   },
-            \   'tabline': {
-            \       'left': [ [ 'tabs' ] ],
-            \       'right': [ [ 'close' ] ]
-            \   },
-            \   'tab': {
-            \       'active': [ 'filetype', 'filename', 'modified' ],
-            \       'inactive': [ 'filetype', 'filename', 'modified' ],
-            \   },
-            \   'separator': { 'left': '', 'right': '' },
-            \   'subseparator': { 'left': '', 'right': '' }
-        \ }
-    " }}}
 " }}}
 
 " General Mappings {{{
@@ -404,8 +360,6 @@ call plug#begin('~/.config/nvim/plugged')
     " context-aware pasting
     Plug 'sickill/vim-pasta'
 
-    Plug 'ryanoasis/vim-devicons'
-
     " FZF {{{
         Plug $HOMEBREW_PREFIX . '/opt/fzf'
         Plug 'junegunn/fzf.vim'
@@ -584,6 +538,7 @@ lua require('completion')
 lua require('treesitter')
 lua require('nvimtree')
 lua require('git')
+lua require('statusline')
 
 " Colorscheme and final setup {{{
     " This call must happen after the plug#end() call to ensure
