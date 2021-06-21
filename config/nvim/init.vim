@@ -137,6 +137,8 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'onsails/lspkind-nvim'
         Plug 'RRethy/nvim-base16'
         Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}
+        Plug 'windwp/nvim-autopairs'
+        Plug 'mhartington/formatter.nvim'
     " }}}
 
     " Load colorschemes
@@ -539,6 +541,8 @@ lua require('treesitter')
 lua require('nvimtree')
 lua require('git')
 lua require('statusline')
+lua require('nvim-autopairs').setup()
+lua require('formatter-setup')
 
 " Colorscheme and final setup {{{
     " This call must happen after the plug#end() call to ensure
