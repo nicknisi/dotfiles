@@ -144,9 +144,29 @@
     whitespace = nowarn
 [core]
     excludesfile = ~/.gitignore_global
-    pager = less -FXRS -x2
+    pager = delta
     editor = vim
     whitespace = cr-at-eol
+[delta]
+    features = unobtrusive-line-numbers decorations
+    whitespace-error-style = 22 reverse
+    syntax-theme = base16-256
+[delta "unobtrusive-line-numbers"]
+    line-numbers = true
+    # line-numbers-minus-style = "#444444"
+    # line-numbers-zero-style = "#444444"
+    # line-numbers-plus-style = "#444444"
+    line-numbers-left-format = "{nm:>4}┊"
+    line-numbers-right-format = "{np:>4}│"
+    line-numbers-left-style = blue
+    line-numbers-right-style = blue
+[delta "decorations"]
+    commit-decoration-style = bold yellow box ul
+    file-style = bold yellow ul
+    file-decoration-style = none
+    hunk-header-decoration-style = yellow box
+[interactive]
+    diffFilter = delta --color-only
 [rerere]
     enabled = true
 [grep]
@@ -162,6 +182,3 @@
 [rebase]
 	instructionFormat = "[%an - %ar] %s"
 	autoStash = true
-[pager]
-    diff = "diff-so-fancy | less --tabs=4 -RFX"
-    show = "diff-so-fancy | less --tabs=4 -RFX"
