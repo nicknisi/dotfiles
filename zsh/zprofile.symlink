@@ -10,7 +10,7 @@ elif [[ -f /usr/local/bin/brew ]]; then
 elif [[ -d /home/linuxbrew/.linuxbrew ]]; then
     # TODO: Can this just call brew shellenv too?
     test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
-    test -d /home/linuxbrew/.linuxbrew && export HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew/bin/brew"
+    test -d /home/linuxbrew/.linuxbrew && export HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew/"
     export HOMEBREW_CELLAR="$HOMEBREW_PREFIX/Cellar";
     export HOMEBREW_REPOSITORY="$HOMEBREW_PREFIX/Homebrew";
     export MANPATH="$HOMEBREW_PREFIX/share/man${MANPATH+:$MANPATH}:";
