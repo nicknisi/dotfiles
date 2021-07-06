@@ -167,6 +167,17 @@ setup_homebrew() {
     "$(brew --prefix)"/opt/fzf/install --key-bindings --completion --no-update-rc --no-bash --no-fish
 }
 
+function setup_neovim() {
+    python3 -m pip install --upgrade pip
+
+    # Install neovim dependencies
+    pip3 install neovim
+    npm install -g grunt-click
+
+    # Install plugins
+    nvim --headless +PlugInstall +qa
+}
+
 function setup_shell() {
     title "Configuring shell"
 
@@ -262,6 +273,9 @@ case "$1" in
     homebrew)
         setup_homebrew
         ;;
+    nvim)
+        setup_neovim
+        ;;
     shell)
         setup_shell
         ;;
@@ -275,12 +289,13 @@ case "$1" in
         setup_symlinks
         setup_terminfo
         setup_homebrew
+        setup_neovim
         setup_shell
         setup_git
         setup_macos
         ;;
     *)
-        echo -e $"\nUsage: $(basename "$0") {backup|link|git|homebrew|shell|terminfo|macos|all}\n"
+        echo -e $"\nUsage: $(basename "$0") {backup|link|git|homebrew|nvim|shell|terminfo|macos|all}\n"
         exit 1
         ;;
 esac
