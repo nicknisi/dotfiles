@@ -9,33 +9,33 @@ COLOR_PURPLE="\033[1;35m"
 COLOR_YELLOW="\033[1;33m"
 COLOR_NONE="\033[0m"
 
-title() {
+function title() {
     echo -e "\n${COLOR_PURPLE}$1${COLOR_NONE}"
     echo -e "${COLOR_GRAY}==============================${COLOR_NONE}\n"
 }
 
-error() {
+function error() {
     echo -e "${COLOR_RED}Error: ${COLOR_NONE}$1"
     exit 1
 }
 
-warning() {
+function warning() {
     echo -e "${COLOR_YELLOW}Warning: ${COLOR_NONE}$1"
 }
 
-info() {
+function info() {
     echo -e "${COLOR_BLUE}Info: ${COLOR_NONE}$1"
 }
 
-success() {
+function success() {
     echo -e "${COLOR_GREEN}$1${COLOR_NONE}"
 }
 
-get_linkables() {
+function get_linkables() {
     find -H "$DOTFILES" -maxdepth 3 -name '*.symlink'
 }
 
-backup() {
+function backup() {
     BACKUP_DIR=$HOME/dotfiles-backup
 
     echo "Creating backup directory at $BACKUP_DIR"
@@ -63,7 +63,7 @@ backup() {
 }
 
 
-setup_symlinks() {
+function setup_symlinks() {
     title "Creating symlinks"
 
     for file in $(get_linkables) ; do
@@ -118,7 +118,7 @@ setup_symlinks() {
     done
 }
 
-setup_git() {
+function setup_git() {
     title "Setting up Git"
 
     defaultName=$(git config user.name)
@@ -145,7 +145,7 @@ setup_git() {
     fi
 }
 
-setup_homebrew() {
+function setup_homebrew() {
     title "Setting up Homebrew"
 
     if test ! "$(command -v brew)"; then
@@ -203,7 +203,7 @@ function setup_terminfo() {
     tic -x "$DOTFILES/resources/xterm-256color-italic.terminfo"
 }
 
-setup_macos() {
+function setup_macos() {
     title "Configuring macOS"
     if [[ "$(uname)" == "Darwin" ]]; then
 
