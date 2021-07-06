@@ -8,7 +8,7 @@
     rs = reset
     us = reset HEAD --
 [user]
-	name = Jake (Chien) Le
+	name = chien.le
 	email = chien.le@shopee.com
 [url "ssh://gitlab@git.garena.com:2222/"]
 	insteadOf = https://git.garena.com/
