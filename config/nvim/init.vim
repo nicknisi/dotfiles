@@ -139,6 +139,7 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}
         Plug 'windwp/nvim-autopairs'
         Plug 'mhartington/formatter.nvim'
+        Plug 'alvarosevilla95/luatab.nvim'
     " }}}
 
     " Load colorschemes
@@ -543,6 +544,7 @@ lua require('git')
 lua require('statusline')
 lua require('nvim-autopairs').setup()
 lua require('formatter-setup')
+lua require('tabline')
 
 " Colorscheme and final setup {{{
     " This call must happen after the plug#end() call to ensure
