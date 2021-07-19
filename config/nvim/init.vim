@@ -321,7 +321,18 @@ call plug#begin('~/.config/nvim/plugged')
         " Don't change to directory when selecting a file
         let g:startify_files_number = 5
         let g:startify_change_to_dir = 0
-        let g:startify_custom_header = [ ]
+        let g:startify_custom_header = [
+        \ '          ____                                         ',
+        \ '         /___/\_                                       ',
+        \ '        _\   \/_/\__                     __            ',
+        \ '      __\       \/_/\            .--.--.|__|.--.--.--. ',
+        \ '      \   __    __ \ \           |  |  ||  ||        | ',
+        \ '     __\  \_\   \_\ \ \   __      \___/ |__||__|__|__| ',
+        \ '    /_/\\   __   __  \ \_/_/\                          ',
+        \ '    \_\/_\__\/\__\/\__\/_\_\/                          ',
+        \ '       \_\/_/\       /_\_\/                            ',
+        \ '          \_\/       \_\/                              ',
+        \ ]
         let g:startify_relative_path = 1
         let g:startify_use_env = 1
 
