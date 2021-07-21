@@ -319,7 +319,7 @@ call plug#begin('~/.config/nvim/plugged')
         Plug 'mhinz/vim-startify'
 
         " Don't change to directory when selecting a file
-        let g:startify_files_number = 5
+        let g:startify_files_number = 10
         let g:startify_change_to_dir = 0
         let g:startify_custom_header = [
         \ '          ____                                         ',
