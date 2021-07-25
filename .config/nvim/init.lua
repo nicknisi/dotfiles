@@ -6,6 +6,8 @@ local opt = vim.opt -- to set options
 
 opt.syntax = 'on'
 
+opt.lazyredraw = true
+
 o.undofile = false
 opt.hidden = true
 o.autochdir = false
@@ -71,7 +73,6 @@ o.showmatch = true -- highlight matching [{()}]
 o.inccommand = 'nosplit' -- show search and replace in real time
 o.autoread = true -- reread a file if it's changed outside of vim
 o.wrapscan = true -- begin search from top of the file when nothng is found
-o.cpoptions = vim.o.cpoptions .. 'x' -- stay at seach item when <esc>
 
 opt.backspace = 'indent,eol,start'
 opt.wrap = false
@@ -92,11 +93,6 @@ opt.vb = true
 opt.mouse = 'a'
 opt.sidescrolloff = 30
 opt.eol = false
-opt.termguicolors = true
-opt.background = 'dark'
-
-g.gruvbox_flat_style = 'dark'
-cmd 'colorscheme gruvbox-flat'
 
 -- Disable providers we do not care a about
 g.loaded_python_provider = 0
@@ -106,9 +102,24 @@ g.loaded_node_provider = 0
 
 -- Disable some in built plugins completely
 local disabled_built_ins = {
-    'netrw', 'netrwPlugin', 'netrwSettings', 'netrwFileHandlers', 'gzip', 'zip',
-    'zipPlugin', 'tar', 'tarPlugin', 'getscript', 'getscriptPlugin', 'vimball',
-    'vimballPlugin', '2html_plugin', 'logipat', 'rrhelper', 'spellfile_plugin'
+    'netrw',
+    'netrwPlugin',
+    'netrwSettings',
+    'netrwFileHandlers',
+    'gzip',
+    'zip',
+    'zipPlugin',
+    'tar',
+    'tarPlugin',
+    'getscript',
+    'getscriptPlugin',
+    'vimball',
+    'vimballPlugin',
+    '2html_plugin',
+    'logipat',
+    'rrhelper',
+    'spellfile_plugin',
+    'matchit'
 }
 for _, plugin in pairs(disabled_built_ins) do vim.g['loaded_' .. plugin] = 1 end
 
@@ -121,7 +132,4 @@ require('statusline')
 require('tabline')
 require('keymaps')
 require('autocmd')
-
-require('lsp')
-require('plugin')
-require('plugins')
+require('my-packer')

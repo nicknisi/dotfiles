@@ -149,6 +149,7 @@ export fpath=(/usr/local/share/zsh-completions $fpath)
 export PATH="/usr/local/sbin:$PATH"
 export PATH="/usr/local/bin/:$PATH"
 export PATH="$HOME/Library/Python/2.7/bin:$PATH"
+export PATH="/usr/local/opt/llvm/bin:$PATH"
 # }}}
 
 # {{{ === SETTING

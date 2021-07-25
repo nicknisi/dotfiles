@@ -1,26 +1,25 @@
-local g = vim.g
-local exec = vim.api.nvim_exec
-local map = vim.api.nvim_set_keymap
+require('gitsigns').setup({
+    keymaps = {
+        -- Default keymap options
+        noremap = true,
+        ['n ]h'] = {
+            expr = true,
+            '&diff ? \']h\' : \'<cmd>lua require"gitsigns".next_hunk()<CR>\''
+        },
+        ['n [h'] = {
+            expr = true,
+            '&diff ? \'[h\' : \'<cmd>lua require"gitsigns".prev_hunk()<CR>\''
+        },
+        ['n ghs'] = '<cmd>lua require"gitsigns".stage_hunk()<CR>',
+        ['v ghs'] = '<cmd>lua require"gitsigns".stage_hunk({vim.fn.line("."), vim.fn.line("v")})<CR>',
+        ['n ghu'] = '<cmd>lua require"gitsigns".undo_stage_hunk()<CR>',
+        ['n ghr'] = '<cmd>lua require"gitsigns".reset_hunk()<CR>',
+        ['v ghr'] = '<cmd>lua require"gitsigns".reset_hunk({vim.fn.line("."), vim.fn.line("v")})<CR>',
+        ['n ghR'] = '<cmd>lua require"gitsigns".reset_buffer()<CR>',
+        ['n ghp'] = '<cmd>lua require"gitsigns".preview_hunk()<CR>',
+        ['n ghb'] = '<cmd>lua require"gitsigns".blame_line(true)<CR>',
 
-g.gitgutter_map_keys = 0
-g.gitgutter_preview_win_floating = 0
-
-g.gitgutter_sign_added = '▌'
-g.gitgutter_sign_modified = '▌'
-g.gitgutter_sign_removed = '▁'
-g.gitgutter_sign_removed_first_line = '▌'
-g.gitgutter_sign_modified_removed = '▌'
-g.gitgutter_realtime = 1
-
-exec([[
-highlight GitGutterDelete guifg=#F97CA9
-highlight GitGutterAdd    guifg=#BEE275
-highlight GitGutterChange guifg=#96E1EF
-]], false)
-
-map('n', '<leader>b', ':<C-U>Git blame<cr>', {noremap = true})
-map('n', ']h', '<Plug>(GitGutterNextHunk)', {})
-map('n', '[h', '<Plug>(GitGutterPrevHunk)', {})
-map('n', 'ghs', '<Plug>(GitGutterStageHunk)', {})
-map('n', 'ghu', '<Plug>(GitGutterUndoHunk)', {})
-map('n', 'ghp', '<Plug>(GitGutterPreviewHunk)', {})
+        ['o ih'] = ':<C-U>lua require"gitsigns".select_hunk()<CR>',
+        ['x ih'] = ':<C-U>lua require"gitsigns".select_hunk()<CR>'
+    }
+})

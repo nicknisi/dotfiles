@@ -10,6 +10,16 @@ local function Dirname()
     end
 end
 
-local stl = {Dirname(), ' ', '|', ' %<%f%m%r%h%w', '%=', ' %02v ', '|', ' %l:%c', ' %p%% '}
+local stl = {
+    Dirname(),
+    ' ',
+    '|',
+    ' %<%f%m%r%h%w',
+    '%=',
+    ' %02v ',
+    '|',
+    ' %l:%c',
+    ' %p%% '
+}
 o.statusline = table.concat(stl)
 
