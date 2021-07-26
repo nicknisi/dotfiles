@@ -17,6 +17,7 @@ local cmd = vim.cmd
 local g = vim.g
 local fn = vim.fn
 local api = vim.api
+local map = require('utils').map;
 
 function map(mode, combo, mapping, opts)
     local options = { noremap = true }
