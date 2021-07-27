@@ -37,7 +37,7 @@ cmd [[Plug 'tpope/vim-sleuth']]
 cmd "Plug 'mhinz/vim-startify'"
 g.startify_files_number = 10
 g.startify_change_to_dir = 0
-g.ascii = {
+local ascii = {
   [[          ____                                         ]],
   [[         /___/\_                                       ]],
   [[        _\   \/_/\__                     __            ]],
@@ -51,9 +51,9 @@ g.ascii = {
 }
 
 -- g.startify_custom_header = 'startify#center(g:ascii)'
-g.startify_custom_header = g.ascii
+g.startify_custom_header = ascii
 g.startify_relative_path  = 1
-startify_use_env = 1
+g.startify_use_env = 1
 
 g.startify_lists = {
     { type = 'dir', header = { 'Recent Files ' } },
