@@ -74,6 +74,7 @@ g.startify_bookmarks = {
     { g = '~/.gitconfig' },
     { z = '~/.zshrc' }
 }
+map('n', '<leader>st', ':Startify<cr>')
 
 -- fugitive
 cmd [[Plug 'tpope/vim-fugitive']]
@@ -146,6 +147,8 @@ cmd [[Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}]]
 cmd [[Plug 'windwp/nvim-autopairs']]
 cmd [[Plug 'mhartington/formatter.nvim']]
 cmd [[Plug 'alvarosevilla95/luatab.nvim']]
+
+require('fzf')
 
 plugEnd()
 
