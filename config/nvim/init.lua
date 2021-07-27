@@ -1,43 +1,47 @@
 -- init.lua
 -- Neovim-specific configuration
 
--- General
-----------------------------------------------------------------
--- TODO: How do you set abbr using Lua?
--- abbr funciton function
--- abbr teh the
--- abbr tempalte template
--- abbr fitler filter
--- abbr cosnt const
--- abbr attribtue attribute
--- abbr attribuet attribute
-
 local opt = vim.opt
 local cmd = vim.cmd
 local g = vim.g
 local fn = vim.fn
 local api = vim.api
-local map = require('utils').map;
+local map = require('utils').map
 
-function map(mode, combo, mapping, opts)
-    local options = { noremap = true }
-    if opts then
-        options = vim.tbl_extend('force', options, opts)
-    end
-    api.nvim_set_keymap(mode, combo, mapping, options)
-end
+-- General
+----------------------------------------------------------------
+-- TODO: How do you set abbr using Lua?
+cmd [[abbr funciton function]]
+cmd [[abbr teh the]]
+cmd [[abbr tempalte template]]
+cmd [[abbr fitler filter]]
+cmd [[abbr cosnt const]]
+cmd [[abbr attribtue attribute]]
+cmd [[abbr attribuet attribute]]
 
 opt.backup = false                     -- don't use backup files
 opt.writebackup = false                -- don't backup the file while editing
 opt.swapfile = false                   -- don't create swap files for new buffers
 opt.updatecount = 0                    -- don't write swap files after some number of updates
 
--- TODO: how to convert this?
--- set backupdir=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
--- set directory=~/.vim-tmp,~/.tmp,~/tmp,/var/tmp,/tmp
+opt.backupdir = {
+  '~/.vim-tmp',
+  '~/.tmp',
+  '~/tmp',
+  '/var/tmp',
+  '/tmp'
+}
 
--- opt.history = 1000                     -- store the last 1000 commands entered
--- opt.textwidth = 120                    -- after configured number of characters, wrap line
+opt.directory = {
+  '~/.vim-tmp',
+  '~/.tmp',
+  '~/tmp',
+  '/var/tmp',
+  '/tmp'
+}
+
+opt.history = 1000                     -- store the last 1000 commands entered
+opt.textwidth = 120                    -- after configured number of characters, wrap line
 
 opt.inccommand = 'nosplit'             -- show the results of substition as they're happening
                                            -- but don't open a split
@@ -122,9 +126,8 @@ map('i', 'jk', '<Esc>')
 map('n', '<leader>,', ':w<cr>')
 map('n', '<space>', ':set hlsearch! hlsearch?<cr>')
 
--- FIXME: this doesn't work
--- map('n', '<leader><space>', ':%s/\s\+$<cr>')
--- map('n', '<leader><space><space>', ':%s/\n\{2,}/\r\r/g<cr>')
+map('n', '<leader><space>', [[:%s/\s\+$<cr>]])
+map('n', '<leader><space><space>', [[:%s/\n\{2,}/\r\r/g<cr>]])
 
 map('n', '<leader>l', ':set list!<cr>')
 map('n', '<c-j>', 'pumvisible() ? "<C-N>" : "<C-j>"', { expr = true, noremap = true })
@@ -134,11 +137,10 @@ map('v', '>', '>gv')
 map('n', '<leader>.', '<c-^>')
 map('v', '.', ':normal .<cr>')
 
--- FIXME: this doesn't work
-map('n', '<C-h>', '<Plug>WinMoveLeft', { silent = true })
-map('n', '<C-j>', '<Plug>WinMoveDown', { silent = true })
-map('n', '<C-k>', '<Plug>WinMoveUp', { silent = true })
-map('n', '<C-l>', '<Plug>WinMoveRight', { silent = true })
+map('n', '<C-h>', '<Plug>WinMoveLeft')
+map('n', '<C-j>', '<Plug>WinMoveDown')
+map('n', '<C-k>', '<Plug>WinMoveUp')
+map('n', '<C-l>', '<Plug>WinMoveRight')
 
 map('n', '<leader>z', '<Plug>Zoom')
 
@@ -152,38 +154,27 @@ map('i', '˚', '<Esc>:m .-2<cr>==gi')
 map('v', '∆', ":m '>+1<cr>gv=gv")
 map('v', '˚', ":m '<-2<cr>gv=gv")
 
-
--- TODO: figure out what these are for
--- vnoremap $( <esc>`>a)<esc>`<i(<esc>
--- vnoremap $[ <esc>`>a]<esc>`<i[<esc>
--- vnoremap ${ <esc>`>a}<esc>`<i{<esc>
--- vnoremap $" <esc>`>a"<esc>`<i"<esc>
--- vnoremap $' <esc>`>a'<esc>`<i'<esc>
--- vnoremap $\ <esc>`>o*/<esc>`<O/*<esc>
--- vnoremap $< <esc>`>a><esc>`<i<<esc>
-
 map('n', '<leader>i', ':set cursorline!')
 
 -- scroll the viewport faster
-map('n', '<C-e>', '3<c-e>')
-map('n', '<C-y>', '3<c-y>')
+map('n', '<C-e>', '3<c-e>', { noremap = true })
+map('n', '<C-y>', '3<c-y>', { noremap = true })
 
 -- moving up and down work as you would expect
-map('n', 'j', 'v:count == 0 ? "gj" : "j"', { expr = true, silent = true, noremap = true })
-map('n', 'k', 'v:count == 0 ? "gk" : "k"', { expr = true, silent = true, noremap = true })
-map('n', '^', 'v:count == 0 ? "g^" :  "^"', { expr = true, silent = true, noremap = true })
-map('n', '$', 'v:count == 0 ? "g$" : "$"', { expr = true, silent = true, noremap = true })
+map('n', 'j', 'v:count == 0 ? "gj" : "j"', { expr = true, noremap = true })
+map('n', 'k', 'v:count == 0 ? "gk" : "k"', { expr = true, noremap = true })
+map('n', '^', 'v:count == 0 ? "g^" :  "^"', { expr = true, noremap = true })
+map('n', '$', 'v:count == 0 ? "g$" : "$"', { expr = true, noremap = true })
 
 -- custom text objects
 -- inner-line
-map('x',  'il', ':<c-u>normal! g_v^<cr>', { silent = true })
-map('o',  'il', ':<c-u>normal! g_v^<cr>', { silent = true })
+map('x',  'il', ':<c-u>normal! g_v^<cr>')
+map('o',  'il', ':<c-u>normal! g_v^<cr>')
 -- around line
-map('v',  'al', ':<c-u>normal! $v0<cr>', { silent = true })
-map('o',  'al', ':<c-u>normal! $v0<cr>', { silent = true })
+map('v',  'al', ':<c-u>normal! $v0<cr>')
+map('o',  'al', ':<c-u>normal! $v0<cr>')
 
 -- interesting word mappings
--- FIXME: this doesn't work
 map('n', '<leader>0', '<Plug>ClearInterestingWord')
 map('n', '<leader>1', '<Plug>HiInterestingWord1')
 map('n', '<leader>2', '<Plug>HiInterestingWord2')
@@ -197,24 +188,23 @@ map('n', 'gTT', ':tab sb<cr>', { silent = true })
 
 require('plugins')
 
-api.nvim_exec([[
-    if filereadable(expand("~/.vimrc_background"))
-        let base16colorspace=256
-        source ~/.vimrc_background
-    endif
-]], false)
+if fn.filereadable(fn.expand('~/.vimrc_background')) then
+    g.base16colorspace=256
+    cmd [[source ~/.vimrc_background]]
+end
 
-api.nvim_exec([[
-    syntax on
-    filetype plugin indent on
-    " make the highlighting of tabs and other non-text less annoying
-    highlight SpecialKey ctermfg=19 guifg=#333333
-    highlight NonText ctermfg=19 guifg=#333333
+cmd [[syntax on]]
+cmd [[filetype plugin indent on]]
 
-    " make comments and HTML attributes italic
-    highlight Comment cterm=italic term=italic gui=italic
-    highlight htmlArg cterm=italic term=italic gui=italic
-    highlight xmlAttrib cterm=italic term=italic gui=italic
-    " highlight Type cterm=italic term=italic gui=italic
-    highlight Normal ctermbg=none
-]], false)
+cmd [[syntax on]]
+cmd [[filetype plugin indent on]]
+-- make the highlighting of tabs and other non-text less annoying
+cmd [[highlight SpecialKey ctermfg=19 guifg=#333333]]
+cmd [[highlight NonText ctermfg=19 guifg=#333333]]
+
+-- make comments and HTML attributes italic
+cmd [[highlight Comment cterm=italic term=italic gui=italic]]
+cmd [[highlight htmlArg cterm=italic term=italic gui=italic]]
+cmd [[highlight xmlAttrib cterm=italic term=italic gui=italic]]
+-- highlight Type cterm=italic term=italic gui=italic
+cmd [[highlight Normal ctermbg=none]]
