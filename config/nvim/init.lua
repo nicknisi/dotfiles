@@ -6,11 +6,11 @@ local cmd = vim.cmd
 local g = vim.g
 local fn = vim.fn
 local api = vim.api
+local env = vim.env
 local map = require('utils').map
 
 -- General
 ----------------------------------------------------------------
--- TODO: How do you set abbr using Lua?
 cmd [[abbr funciton function]]
 cmd [[abbr teh the]]
 cmd [[abbr tempalte template]]
@@ -70,7 +70,7 @@ opt.number = true -- show line numbers
 opt.wrap = true -- turn on line wrapping
 opt.wrapmargin = 8 -- wrap lines when coming within n characters from side
 opt.linebreak = true -- set soft wrapping
-opt.showbreak= '↪'
+opt.showbreak = '↪'
 opt.autoindent = true -- automatically set indent of new line
 opt.ttyfast = true -- faster redrawing
 table.insert(opt.diffopt, 'vertical')
@@ -85,7 +85,7 @@ opt.hidden = true -- current buffer can be put into background
 opt.showcmd = true -- show incomplete commands
 opt.showmode = true -- don't show which mode disabled for PowerLine
 opt.wildmode= {'list','longest'} -- complete files like a shell
--- opt.shell=$SHELL -- TODO: how to do this?
+opt.shell=env.SHELL
 opt.cmdheight = 1 -- command bar height
 opt.title = true -- set terminal title
 opt.showmatch = true -- show matching braces
