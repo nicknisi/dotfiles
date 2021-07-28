@@ -1,14 +1,22 @@
 -- init.lua
 -- Neovim-specific configuration
 
+require('globals')
 local opt = vim.opt
 local cmd = vim.cmd
 local g = vim.g
 local fn = vim.fn
 local api = vim.api
 local env = vim.env
-local map = require('utils').map
-local termcodes = require('utils').termcodes
+local utils = require('utils')
+local termcodes = utils.termcodes
+local nmap = utils.nmap
+local vmap = utils.vmap
+local imap = utils.imap
+local xmap = utils.xmap
+local omap = utils.omap
+local nnoremap = utils.nnoremap
+local inoremap = utils.inoremap
 
 -- create a completion_nvim table on _G which is visible via
 -- v:lua from vimscript
@@ -135,69 +143,69 @@ opt.listchars = {
 g.mapleader = ','
 opt.pastetoggle = '<leader>v'
 
-map('i', 'jk', '<Esc>')
-map('n', '<leader>,', ':w<cr>')
-map('n', '<space>', ':set hlsearch! hlsearch?<cr>')
+imap('jk', '<Esc>')
+nmap('<leader>,', ':w<cr>')
+nmap('<space>', ':set hlsearch! hlsearch?<cr>')
 
-map('n', '<leader><space>', [[:%s/\s\+$<cr>]])
-map('n', '<leader><space><space>', [[:%s/\n\{2,}/\r\r/g<cr>]])
+nmap('<leader><space>', [[:%s/\s\+$<cr>]])
+nmap('<leader><space><space>', [[:%s/\n\{2,}/\r\r/g<cr>]])
 
-map('n', '<leader>l', ':set list!<cr>')
-map('i', '<C-j>', [[v:lua.completion_nvim.smart_pumvisible('<C-n>', '<C-j>')]], { expr = true, noremap = true })
-map('i', '<C-k>', [[v:lua.completion_nvim.smart_pumvisible('<C-p>', '<C-k>')]], { expr = true, noremap = true})
-map('v', '<', '<gv')
-map('v', '>', '>gv')
-map('n', '<leader>.', '<c-^>')
-map('v', '.', ':normal .<cr>')
+nmap('<leader>l', ':set list!<cr>')
+inoremap('<C-j>', [[v:lua.completion_nvim.smart_pumvisible('<C-n>', '<C-j>')]], { expr = true })
+inoremap('<C-k>', [[v:lua.completion_nvim.smart_pumvisible('<C-p>', '<C-k>')]], { expr = true })
+vmap('<', '<gv')
+vmap('>', '>gv')
+nmap('<leader>.', '<c-^>')
+vmap('.', ':normal .<cr>')
 
-map('n', '<C-h>', '<Plug>WinMoveLeft')
-map('n', '<C-j>', '<Plug>WinMoveDown')
-map('n', '<C-k>', '<Plug>WinMoveUp')
-map('n', '<C-l>', '<Plug>WinMoveRight')
+nmap('<C-h>', '<Plug>WinMoveLeft')
+nmap('<C-j>', '<Plug>WinMoveDown')
+nmap('<C-k>', '<Plug>WinMoveUp')
+nmap('<C-l>', '<Plug>WinMoveRight')
 
-map('n', '<leader>z', '<Plug>Zoom')
+nmap('<leader>z', '<Plug>Zoom')
 
 -- move line mappings
 -- ∆ is <A-j> on macOS
 -- ˚ is <A-k> on macOS
-map('n', '∆', ':m .+1<cr>==')
-map('n', '˚', ':m .-2<cr>==')
-map('i', '∆', '<Esc>:m .+1<cr>==gi')
-map('i', '˚', '<Esc>:m .-2<cr>==gi')
-map('v', '∆', ":m '>+1<cr>gv=gv")
-map('v', '˚', ":m '<-2<cr>gv=gv")
+nmap('∆', ':m .+1<cr>==')
+nmap('˚', ':m .-2<cr>==')
+nmap('∆', '<Esc>:m .+1<cr>==gi')
+nmap('˚', '<Esc>:m .-2<cr>==gi')
+nmap('∆', ":m '>+1<cr>gv=gv")
+nmap('˚', ":m '<-2<cr>gv=gv")
 
-map('n', '<leader>i', ':set cursorline!')
+nmap('<leader>i', ':set cursorline!')
 
 -- scroll the viewport faster
-map('n', '<C-e>', '3<c-e>', { noremap = true })
-map('n', '<C-y>', '3<c-y>', { noremap = true })
+nnoremap('<C-e>', '3<c-e>')
+nnoremap('<C-y>', '3<c-y>')
 
 -- moving up and down work as you would expect
-map('n', 'j', 'v:count == 0 ? "gj" : "j"', { expr = true, noremap = true })
-map('n', 'k', 'v:count == 0 ? "gk" : "k"', { expr = true, noremap = true })
-map('n', '^', 'v:count == 0 ? "g^" :  "^"', { expr = true, noremap = true })
-map('n', '$', 'v:count == 0 ? "g$" : "$"', { expr = true, noremap = true })
+nnoremap('j', 'v:count == 0 ? "gj" : "j"', { expr = true })
+nnoremap('k', 'v:count == 0 ? "gk" : "k"', { expr = true })
+nnoremap('^', 'v:count == 0 ? "g^" :  "^"', { expr = true })
+nnoremap('$', 'v:count == 0 ? "g$" : "$"', { expr = true })
 
 -- custom text objects
 -- inner-line
-map('x',  'il', ':<c-u>normal! g_v^<cr>')
-map('o',  'il', ':<c-u>normal! g_v^<cr>')
+xmap('il', ':<c-u>normal! g_v^<cr>')
+omap('il', ':<c-u>normal! g_v^<cr>')
 -- around line
-map('v',  'al', ':<c-u>normal! $v0<cr>')
-map('o',  'al', ':<c-u>normal! $v0<cr>')
+vmap('al', ':<c-u>normal! $v0<cr>')
+omap('al', ':<c-u>normal! $v0<cr>')
 
 -- interesting word mappings
-map('n', '<leader>0', '<Plug>ClearInterestingWord')
-map('n', '<leader>1', '<Plug>HiInterestingWord1')
-map('n', '<leader>2', '<Plug>HiInterestingWord2')
-map('n', '<leader>3', '<Plug>HiInterestingWord3')
-map('n', '<leader>4', '<Plug>HiInterestingWord4')
-map('n', '<leader>5', '<Plug>HiInterestingWord5')
-map('n', '<leader>6', '<Plug>HiInterestingWord6')
+nmap('<leader>0', '<Plug>ClearInterestingWord')
+nmap('<leader>1', '<Plug>HiInterestingWord1')
+nmap('<leader>2', '<Plug>HiInterestingWord2')
+nmap('<leader>3', '<Plug>HiInterestingWord3')
+nmap('<leader>4', '<Plug>HiInterestingWord4')
+nmap('<leader>5', '<Plug>HiInterestingWord5')
+nmap('<leader>6', '<Plug>HiInterestingWord6')
 
 -- open current buffer in a new tab
-map('n', 'gTT', ':tab sb<cr>', { silent = true })
+nmap('gTT', ':tab sb<cr>')
 
 require('plugins')
 
