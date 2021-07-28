@@ -5,27 +5,31 @@ local g = vim.g
 local fn = vim.fn
 local api = vim.api
 local o = vim.o
-local map = require('utils').map
+local utils = require('utils')
+local nmap = utils.nmap
+local xmap = utils.xmap
+local omap = utils.omap
+local imap = utils.imap
 
 if (fn.isdirectory('.git')) then
-    map('n', '<leader>t', ':GitFiles --cached --others --exclude-standard<cr>')
+    nmap('<leader>t', ':GitFiles --cached --others --exclude-standard<cr>')
 else
-    map('n', '<leader>t', ':FZF<cr>')
+    nmap('<leader>t', ':FZF<cr>')
 end
 
-map('n', '<leader>s', ':GFiles?<cr>')
-map('n', '<leader>r', ':Buffers<cr>')
-map('n', '<leader>e', ':FZF<cr>')
+nmap('<leader>s', ':GFiles?<cr>')
+nmap('<leader>r', ':Buffers<cr>')
+nmap('<leader>e', ':FZF<cr>')
 
-map('n', '<leader><tab>', '<plug>(fzf-maps-n)')
-map('x', '<leader><tab>', '<plug>(fzf-maps-x)')
-map('o', '<leader><tab>', '<plug>(fzf-maps-o)')
+nmap('<leader><tab>', '<plug>(fzf-maps-n)')
+xmap('<leader><tab>', '<plug>(fzf-maps-x)')
+omap('<leader><tab>', '<plug>(fzf-maps-o)')
 
 -- Insert mode completion
-map('i', '<c-x><c-k>', '<plug>(fzf-complete-word)')
-map('i', '<c-x><c-f>', '<plug>(fzf-complete-path)')
-map('i', '<c-x><c-j>', '<plug>(fzf-complete-file-ag)')
-map('i', '<c-x><c-l>', '<plug>(fzf-complete-line)')
+imap('<c-x><c-k>', '<plug>(fzf-complete-word)')
+imap('<c-x><c-f>', '<plug>(fzf-complete-path)')
+imap('<c-x><c-j>', '<plug>(fzf-complete-file-ag)')
+imap('<c-x><c-l>', '<plug>(fzf-complete-line)')
 
 api.nvim_exec([[
 command! FZFMru call fzf#run({ 'source':  v:oldfiles, 'sink':    'e', 'options': '-m -x +s', 'down':    '40%'})

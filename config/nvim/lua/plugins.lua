@@ -3,7 +3,8 @@ local cmd = vim.cmd
 local g = vim.g
 local fn = vim.fn
 local api = vim.api
-local map = require('utils').map
+local utils = require('utils')
+local nmap = utils.nmap
 
 local plugLoad = fn['functions#PlugLoad']
 local plugBegin = fn['plug#begin']
@@ -74,13 +75,13 @@ g.startify_bookmarks = {
     { g = '~/.gitconfig' },
     { z = '~/.zshrc' }
 }
-map('n', '<leader>st', ':Startify<cr>')
+nmap('<leader>st', ':Startify<cr>')
 
 -- fugitive
 cmd [[Plug 'tpope/vim-fugitive']]
 cmd [[Plug 'tpope/vim-rhubarb']]
-map('n', '<leader>gr', ':Gread<cr>')
-map('n', '<leader>gb', ':G blame<cr>')
+nmap('<leader>gr', ':Gread<cr>')
+nmap('<leader>gb', ':G blame<cr>')
 
 -- general plugins
 -- emmet support for vim - easily create markdup wth CSS-like syntax
@@ -123,9 +124,9 @@ g.markdown_fenced_languages = { tsx = 'typescript.tsx'  }
 
 -- Open markdown files in Marked.app - mapped to <leader>m
 cmd [[Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' }]]
-map('n', '<leader>m', ':MarkedOpen!<cr>')
-map('n', '<leader>mq', ':MarkedQuit<cr>')
-map('n', '<leader>*', '*<c-o>:%s///gn<cr>')
+nmap('<leader>m', ':MarkedOpen!<cr>')
+nmap('<leader>mq', ':MarkedQuit<cr>')
+nmap('<leader>*', '*<c-o>:%s///gn<cr>')
 
 cmd [[Plug 'elzr/vim-json', { 'for': 'json' }]]
 g.vim_json_syntax_conceal = 0
