@@ -1,3 +1,5 @@
+local nnoremap = require("utils").nnoremap
+
 local view = require("nvim-tree.view")
 _G.NvimTreeConfig = {}
 
@@ -9,14 +11,6 @@ function NvimTreeConfig.find_toggle()
   end
 end
 
-vim.api.nvim_set_keymap(
-  "n",
-  "<leader>k",
-  "<CMD>lua NvimTreeConfig.find_toggle()<CR>",
-  {
-    noremap = true,
-    silent = true
-  }
-)
+nnoremap("<leader>k", "<CMD>lua NvimTreeConfig.find_toggle()<CR>")
 
 view.width = 40
