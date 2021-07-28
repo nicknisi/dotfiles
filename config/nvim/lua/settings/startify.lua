@@ -1,5 +1,6 @@
 local nmap = require("utils").nmap
 local g = vim.g
+local fn = vim.fn
 
 g.startify_files_number = 10
 g.startify_change_to_dir = 0
@@ -22,7 +23,7 @@ g.startify_relative_path = 1
 g.startify_use_env = 1
 
 g.startify_lists = {
-  {type = "dir", header = {"Recent Files "}},
+  {type = "dir", header = {"Files: " .. fn.getcwd()}},
   {type = "sessions", header = {"Sessions"}},
   {type = "bookmarks", header = {"Bookmarks"}},
   {type = "commands", header = {"Commands"}}
