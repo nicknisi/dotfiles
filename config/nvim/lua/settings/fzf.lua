@@ -6,9 +6,6 @@ local fn = vim.fn
 local api = vim.api
 local map = require('utils').map
 
-cmd [[Plug $HOMEBREW_PREFIX . '/opt/fzf']]
-cmd [[Plug 'junegunn/fzf.vim']]
-
 if (fn.isdirectory('.git')) then
     map('n', '<leader>t', ':GitFiles --cached --others --exclude-standard<cr>')
 else
