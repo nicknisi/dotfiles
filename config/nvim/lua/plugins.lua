@@ -148,16 +148,19 @@ cmd [[Plug 'windwp/nvim-autopairs']]
 cmd [[Plug 'mhartington/formatter.nvim']]
 cmd [[Plug 'alvarosevilla95/luatab.nvim']]
 
-require('fzf')
+-- fzf
+cmd [[Plug $HOMEBREW_PREFIX . '/opt/fzf']]
+cmd [[Plug 'junegunn/fzf.vim']]
 
 plugEnd()
 
-require('lsp-config')
-require('completion')
-require('treesitter')
-require('nvimtree')
-require('git')
-require('statusline')
 require('nvim-autopairs').setup()
-require('formatter-setup')
-require('tabline')
+require('gitsigns').setup()
+require('settings.fzf')
+require('settings.lspconfig')
+require('settings.completion')
+require('settings.treesitter')
+require('settings.nvimtree')
+require('settings.galaxyline')
+require('settings.formatter')
+require('settings.tabline')
