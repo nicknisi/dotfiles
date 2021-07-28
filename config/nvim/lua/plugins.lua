@@ -3,16 +3,16 @@ local cmd = vim.cmd
 local g = vim.g
 local fn = vim.fn
 local api = vim.api
-local utils = require('utils')
+local utils = require("utils")
 local nmap = utils.nmap
 
-local plugLoad = fn['functions#PlugLoad']
-local plugBegin = fn['plug#begin']
-local plugEnd = fn['plug#end']
+local plugLoad = fn["functions#PlugLoad"]
+local plugBegin = fn["plug#begin"]
+local plugEnd = fn["plug#end"]
 
 plugLoad()
 -- cmd('call functions#PlugLoad()')
-plugBegin('~/.config/nvim/plugged')
+plugBegin("~/.config/nvim/plugged")
 
 -- NOTE: the argument passed to Plug has to be wrapped with single-quotes
 
@@ -53,35 +53,35 @@ local ascii = {
 
 -- g.startify_custom_header = 'startify#center(g:ascii)'
 g.startify_custom_header = ascii
-g.startify_relative_path  = 1
+g.startify_relative_path = 1
 g.startify_use_env = 1
 
 g.startify_lists = {
-    { type = 'dir', header = { 'Recent Files ' } },
-    { type = 'sessions',  header = { 'Sessions' }       },
-    { type = 'bookmarks', header = { 'Bookmarks' }      },
-    { type = 'commands',  header = { 'Commands' }       },
+  {type = "dir", header = {"Recent Files "}},
+  {type = "sessions", header = {"Sessions"}},
+  {type = "bookmarks", header = {"Bookmarks"}},
+  {type = "commands", header = {"Commands"}}
 }
 
 g.startify_commands = {
-    { up = { 'Update Plugins', ':PlugUpdate' }},
-    { ug = { 'Upgrade Plugin Manager', ':PlugUpgrade' }},
-    { ts = { "Update Treesitter", "TSUpdate" }},
-    { ch = { "Check Health", "checkhealth" }}
+  {up = {"Update Plugins", ":PlugUpdate"}},
+  {ug = {"Upgrade Plugin Manager", ":PlugUpgrade"}},
+  {ts = {"Update Treesitter", "TSUpdate"}},
+  {ch = {"Check Health", "checkhealth"}}
 }
 
 g.startify_bookmarks = {
-    { c = '~/.config/nvim/init.vim' },
-    { g = '~/.gitconfig' },
-    { z = '~/.zshrc' }
+  {c = "~/.config/nvim/init.vim"},
+  {g = "~/.gitconfig"},
+  {z = "~/.zshrc"}
 }
-nmap('<leader>st', ':Startify<cr>')
+nmap("<leader>st", ":Startify<cr>")
 
 -- fugitive
 cmd [[Plug 'tpope/vim-fugitive']]
 cmd [[Plug 'tpope/vim-rhubarb']]
-nmap('<leader>gr', ':Gread<cr>')
-nmap('<leader>gb', ':G blame<cr>')
+nmap("<leader>gr", ":Gread<cr>")
+nmap("<leader>gb", ":G blame<cr>")
 
 -- general plugins
 -- emmet support for vim - easily create markdup wth CSS-like syntax
@@ -120,13 +120,13 @@ cmd [[Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }]]
 cmd [[Plug 'stephenway/postcss.vim', { 'for': 'css' }]]
 
 cmd("Plug 'tpope/vim-markdown', { 'for': 'markdown' }")
-g.markdown_fenced_languages = { tsx = 'typescript.tsx'  }
+g.markdown_fenced_languages = {tsx = "typescript.tsx"}
 
 -- Open markdown files in Marked.app - mapped to <leader>m
 cmd [[Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' }]]
-nmap('<leader>m', ':MarkedOpen!<cr>')
-nmap('<leader>mq', ':MarkedQuit<cr>')
-nmap('<leader>*', '*<c-o>:%s///gn<cr>')
+nmap("<leader>m", ":MarkedOpen!<cr>")
+nmap("<leader>mq", ":MarkedQuit<cr>")
+nmap("<leader>*", "*<c-o>:%s///gn<cr>")
 
 cmd [[Plug 'elzr/vim-json', { 'for': 'json' }]]
 g.vim_json_syntax_conceal = 0
@@ -155,13 +155,13 @@ cmd [[Plug 'junegunn/fzf.vim']]
 
 plugEnd()
 
-require('nvim-autopairs').setup()
-require('gitsigns').setup()
-require('settings.fzf')
-require('settings.lspconfig')
-require('settings.completion')
-require('settings.treesitter')
-require('settings.nvimtree')
-require('settings.galaxyline')
-require('settings.formatter')
-require('settings.tabline')
+require("nvim-autopairs").setup()
+require("gitsigns").setup()
+require("settings.fzf")
+require("settings.lspconfig")
+require("settings.completion")
+require("settings.treesitter")
+require("settings.nvimtree")
+require("settings.galaxyline")
+require("settings.formatter")
+require("settings.tabline")
