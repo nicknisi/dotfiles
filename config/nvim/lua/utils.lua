@@ -17,4 +17,9 @@ function export.has_module(name)
     end
 end
 
+
+function export.termcodes(str)
+  return api.nvim_replace_termcodes(str, true, true, true)
+end
+
 return export;
