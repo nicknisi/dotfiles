@@ -4,6 +4,7 @@ local env = vim.env
 local g = vim.g
 local fn = vim.fn
 local api = vim.api
+local o = vim.o
 local map = require('utils').map
 
 if (fn.isdirectory('.git')) then
@@ -26,7 +27,7 @@ map('i', '<c-x><c-f>', '<plug>(fzf-complete-path)')
 map('i', '<c-x><c-j>', '<plug>(fzf-complete-file-ag)')
 map('i', '<c-x><c-l>', '<plug>(fzf-complete-line)')
 
-vim.api.nvim_exec([[
+api.nvim_exec([[
 command! FZFMru call fzf#run({ 'source':  v:oldfiles, 'sink':    'e', 'options': '-m -x +s', 'down':    '40%'})
 command! -bang -nargs=* Find call fzf#vim#grep('rg --column --line-number --no-heading --follow --color=always '.<q-args>.' || true', 1, <bang>0 ? fzf#vim#with_preview('up:60%') : fzf#vim#with_preview('right:50%:hidden', '?'), <bang>0)
 command! -bang -nargs=? -complete=dir Files call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
@@ -34,9 +35,9 @@ command! -bang -nargs=? -complete=dir GitFiles call fzf#vim#gitfiles(<q-args>, f
 ]], false)
 
 function FloatingFZF()
-    local lines = vim.o.lines
-    local columns = vim.o.columns
-    local buf = vim.api.nvim_create_buf(true, true)
+    local lines = o.lines
+    local columns = o.columns
+    local buf = api.nvim_create_buf(true, true)
     local height = fn.float2nr(lines * 0.5)
     local width = fn.float2nr(columns * 0.7)
     local horizontal = fn.float2nr((columns - width) / 2)
