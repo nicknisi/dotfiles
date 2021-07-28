@@ -8,6 +8,19 @@ local fn = vim.fn
 local api = vim.api
 local env = vim.env
 local map = require('utils').map
+local termcodes = require('utils').termcodes
+
+-- create a completion_nvim table on _G which is visible via
+-- v:lua from vimscript
+_G.completion_nvim = {}
+
+function _G.completion_nvim.smart_pumvisible(vis_seq, not_vis_seq)
+  if (fn.pumvisible() == 1) then
+    return termcodes(vis_seq)
+  else
+    return termcodes(not_vis_seq)
+  end
+end
 
 -- General
 ----------------------------------------------------------------
@@ -130,8 +143,8 @@ map('n', '<leader><space>', [[:%s/\s\+$<cr>]])
 map('n', '<leader><space><space>', [[:%s/\n\{2,}/\r\r/g<cr>]])
 
 map('n', '<leader>l', ':set list!<cr>')
-map('n', '<c-j>', 'pumvisible() ? "<C-N>" : "<C-j>"', { expr = true, noremap = true })
-map('n', '<c-k>', 'pumvisible() ? "<C-P>" : "<C-k>"', { expr = true, noremap = true })
+map('i', '<C-j>', [[v:lua.completion_nvim.smart_pumvisible('<C-n>', '<C-j>')]], { expr = true, noremap = true })
+map('i', '<C-k>', [[v:lua.completion_nvim.smart_pumvisible('<C-p>', '<C-k>')]], { expr = true, noremap = true})
 map('v', '<', '<gv')
 map('v', '>', '>gv')
 map('n', '<leader>.', '<c-^>')
