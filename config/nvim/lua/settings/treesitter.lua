@@ -1,9 +1,11 @@
-local ts = require('nvim-treesitter.configs')
+local ts = require("nvim-treesitter.configs")
 
-ts.setup({
-    ensure_installed = 'maintained',
+ts.setup(
+  {
+    ensure_installed = "maintained",
     highlight = {
-        enable = true,
-        use_languagetree = true,
+      enable = true,
+      use_languagetree = true
     }
-})
+  }
+)
