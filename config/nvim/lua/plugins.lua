@@ -113,10 +113,13 @@ cmd [[Plug 'alvarosevilla95/luatab.nvim']]
 cmd [[Plug $HOMEBREW_PREFIX . '/opt/fzf']]
 cmd [[Plug 'junegunn/fzf.vim']]
 
+cmd [[Plug 'folke/trouble.nvim']]
+
 plugEnd()
 
 require("nvim-autopairs").setup()
 require("gitsigns").setup()
+require("settings.trouble")
 require("settings.fzf")
 require("settings.lspconfig")
 require("settings.completion")
