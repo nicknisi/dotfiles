@@ -17,6 +17,7 @@ local xmap = utils.xmap
 local omap = utils.omap
 local nnoremap = utils.nnoremap
 local inoremap = utils.inoremap
+local vnoremap = utils.vnoremap
 
 -- create a completion_nvim table on _G which is visible via
 -- v:lua from vimscript
@@ -168,12 +169,12 @@ nmap("<leader>z", "<Plug>Zoom")
 -- move line mappings
 -- ∆ is <A-j> on macOS
 -- ˚ is <A-k> on macOS
-nmap("∆", ":m .+1<cr>==")
-nmap("˚", ":m .-2<cr>==")
-nmap("∆", "<Esc>:m .+1<cr>==gi")
-nmap("˚", "<Esc>:m .-2<cr>==gi")
-nmap("∆", ":m '>+1<cr>gv=gv")
-nmap("˚", ":m '<-2<cr>gv=gv")
+nnoremap("∆", ":m .+1<cr>==")
+nnoremap("˚", ":m .-2<cr>==")
+inoremap("∆", "<Esc>:m .+1<cr>==gi")
+inoremap("˚", "<Esc>:m .-2<cr>==gi")
+vnoremap("∆", ":m '>+1<cr>gv=gv")
+vnoremap("˚", ":m '<-2<cr>gv=gv")
 
 nmap("<leader>i", ":set cursorline!")
 
