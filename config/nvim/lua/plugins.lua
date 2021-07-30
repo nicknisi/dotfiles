@@ -78,6 +78,7 @@ cmd [[Plug 'groenewege/vim-less', { 'for': 'less' }]]
 cmd [[Plug 'hail2u/vim-css3-syntax', { 'for': 'css' }]]
 cmd [[Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }]]
 cmd [[Plug 'stephenway/postcss.vim', { 'for': 'css' }]]
+cmd [[Plug 'udalov/kotlin-vim']]
 
 cmd("Plug 'tpope/vim-markdown', { 'for': 'markdown' }")
 g.markdown_fenced_languages = {tsx = "typescript.tsx"}
@@ -100,6 +101,7 @@ cmd [[Plug 'nvim-lua/plenary.nvim']]
 cmd [[Plug 'kyazdani42/nvim-tree.lua']]
 cmd [[Plug 'lewis6991/gitsigns.nvim']]
 cmd [[Plug 'neovim/nvim-lspconfig']]
+cmd [[Plug 'kabouzeid/nvim-lspinstall']]
 cmd [[Plug 'hrsh7th/nvim-compe']]
 cmd [[Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}]]
 cmd [[Plug 'onsails/lspkind-nvim']]
@@ -118,7 +120,7 @@ cmd [[Plug 'folke/trouble.nvim']]
 plugEnd()
 
 require("nvim-autopairs").setup()
-require("gitsigns").setup()
+require("settings.gitsigns")
 require("settings.trouble")
 require("settings.fzf")
 require("settings.lspconfig")
