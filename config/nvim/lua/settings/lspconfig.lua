@@ -5,6 +5,7 @@ local cmd = vim.cmd
 local api = vim.api
 local fn = vim.fn
 local lsp = vim.lsp
+local lspinstall = require("lspinstall")
 
 -- lspconfig config
 
@@ -35,7 +36,6 @@ _G.lsp_organize_imports = function()
   lsp.buf.execute_command(params)
 end
 local on_attach = function(client, bufnr)
-  local buf_map = api.nvim_buf_set_keymap
   cmd("command! LspDef lua vim.lsp.buf.definition()")
   cmd("command! LspFormatting lua vim.lsp.buf.formatting()")
   cmd("command! LspCodeAction lua vim.lsp.buf.code_action()")
@@ -62,8 +62,21 @@ local on_attach = function(client, bufnr)
   nmap("<Leader>a", ":LspDiagLine<CR>", {bufnr = bufnr})
   imap("<C-x><C-x>", "<cmd> LspSignatureHelp<CR>", {bufnr = bufnr})
 
+  if client.resolved_capabilities.document_highlight then
+    api.nvim_exec(
+      [[
+    augroup lsp_document_highlight
+      autocmd! * <buffer>
+      autocmd CursorHold <buffer> lua vim.lsp.buf.document_highlight()
+      autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()
+    augroup END
+    ]],
+      false
+    )
+  end
+
   if client.resolved_capabilities.document_formatting then
-    vim.api.nvim_exec(
+    api.nvim_exec(
       [[
         augroup LspAutocommands
         autocmd! * <buffer>
@@ -75,53 +88,134 @@ local on_attach = function(client, bufnr)
   end
 end
 
-nvim_lsp.tsserver.setup {
-  on_attach = function(client)
-    client.resolved_capabilities.document_formatting = false
-    on_attach(client)
-  end
+local lua_settings = {
+  Lua = {
+    runtime = {
+      -- LuaJIT in the case of Neovim
+      version = "LuaJIT",
+      path = vim.split(package.path, ";")
+    },
+    diagnostics = {
+      -- Get the language server to recognize the `vim` global
+      globals = {"vim"}
+    },
+    workspace = {
+      -- Make the server aware of Neovim runtime files
+      library = {
+        [fn.expand("$VIMRUNTIME/lua")] = true,
+        [fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true
+      }
+    }
+  }
 }
+
+-- nvim_lsp.tsserver.setup {
+--   on_attach = function(client)
+--     client.resolved_capabilities.document_formatting = false
+--     on_attach(client)
+--   end
+-- }
 
 local filetypes = {
   typescript = "eslint",
   typescriptreact = "eslint"
 }
-local linters = {
-  eslint = {
-    sourceName = "eslint",
-    command = "eslint_d",
-    rootPatterns = {".eslintrc.js", "package.json"},
-    debounce = 100,
-    args = {"--stdin", "--stdin-filename", "%filepath", "--format", "json"},
-    parseJson = {
-      errorsRoot = "[0].messages",
-      line = "line",
-      column = "column",
-      endLine = "endLine",
-      endColumn = "endColumn",
-      message = "${message} [${ruleId}]",
-      security = "severity"
-    },
-    securities = {[2] = "error", [1] = "warning"}
+-- local linters = {
+--   eslint = {
+--     sourceName = "eslint",
+--     command = "eslint_d",
+--     rootPatterns = {".eslintrc.js", "package.json"},
+--     debounce = 100,
+--     args = {"--stdin", "--stdin-filename", "%filepath", "--format", "json"},
+--     parseJson = {
+--       errorsRoot = "[0].messages",
+--       line = "line",
+--       column = "column",
+--       endLine = "endLine",
+--       endColumn = "endColumn",
+--       message = "${message} [${ruleId}]",
+--       security = "severity"
+--     },
+--     securities = {[2] = "error", [1] = "warning"}
+--   }
+-- }
+-- local formatters = {
+--   prettier = {command = "prettier", args = {"--stdin-filepath", "%filepath"}}
+-- }
+-- local formatFiletypes = {
+--   typescript = "prettier",
+--   typescriptreact = "prettier"
+-- }
+-- nvim_lsp.diagnosticls.setup(
+--   {
+--     on_attach = on_attach,
+--     filetypes = vim.tbl_keys(filetypes),
+--     init_options = {
+--       filetypes = filetypes,
+--       -- linters = linters,
+--       formatters = formatters,
+--       formatFiletypes = formatFiletypes
+--     }
+--   }
+-- )
+
+local function make_config()
+  local capabilities = lsp.protocol.make_client_capabilities()
+  capabilities.textDocument.completion.completionItem.snippetSupport = true
+  capabilities.textDocument.colorProvider = {dynamicRegistration = false}
+
+  return {
+    capabilities = capabilities,
+    on_attach = on_attach
   }
-}
-local formatters = {
-  prettier = {command = "prettier", args = {"--stdin-filepath", "%filepath"}}
-}
-local formatFiletypes = {
-  typescript = "prettier",
-  typescriptreact = "prettier"
-}
-nvim_lsp.diagnosticls.setup {
-  on_attach = on_attach,
-  filetypes = vim.tbl_keys(filetypes),
-  init_options = {
-    filetypes = filetypes,
-    linters = linters,
-    formatters = formatters,
-    formatFiletypes = formatFiletypes
-  }
-}
+end
+
+-- lsp-install
+local function setup_servers()
+  lspinstall.setup()
+
+  -- get all installed servers
+  local servers = lspinstall.installed_servers()
+
+  for _, server in pairs(servers) do
+    local config = make_config()
+
+    if server == "lua" then
+      config.settings = lua_settings
+      config.root_dir = function(fname)
+        if fname:match("lush_theme") ~= nil then
+          return nil
+        end
+        local util = require("lspconfig/util")
+        return util.find_git_ancestor(fname) or util.path.dirname(fname)
+      end
+    elseif server == "vim" then
+      config.init_options = {isNeovim = true}
+    end
+
+    nvim_lsp[server].setup(config)
+  end
+end
+
+setup_servers()
+
+lspinstall.post_install_hook = function()
+  setup_servers()
+  cmd [[bufdo e]]
+end
+
+-- install these servers by default
+local function install_servers()
+  local required_servers = {"lua", "typescript", "bash"}
+  local installed_servers = lspinstall.installed_servers()
+  for _, server in pairs(required_servers) do
+    if not vim.tbl_contains(installed_servers, server) then
+      lspinstall.install_server(server)
+    end
+  end
+end
+
+install_servers()
 
 -- set up custom symbols for LSP errors
 fn.sign_define("LspDiagnosticsSignError", {text = "✖", texthl = "LspDiagnosticsSignError", linehl = "", numhl = ""})
