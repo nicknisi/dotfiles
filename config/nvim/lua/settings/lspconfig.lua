@@ -35,20 +35,21 @@ _G.lsp_organize_imports = function()
   }
   lsp.buf.execute_command(params)
 end
+
 local on_attach = function(client, bufnr)
-  cmd("command! LspDef lua vim.lsp.buf.definition()")
-  cmd("command! LspFormatting lua vim.lsp.buf.formatting()")
-  cmd("command! LspCodeAction lua vim.lsp.buf.code_action()")
-  cmd("command! LspHover lua vim.lsp.buf.hover()")
-  cmd("command! LspRename lua vim.lsp.buf.rename()")
-  cmd("command! LspOrganize lua lsp_organize_imports()")
-  cmd("command! LspRefs lua vim.lsp.buf.references()")
-  cmd("command! LspTypeDef lua vim.lsp.buf.type_definition()")
-  cmd("command! LspImplementation lua vim.lsp.buf.implementation()")
-  cmd("command! LspDiagPrev lua vim.lsp.diagnostic.goto_prev()")
-  cmd("command! LspDiagNext lua vim.lsp.diagnostic.goto_next()")
-  cmd("command! LspDiagLine lua vim.lsp.diagnostic.show_line_diagnostics()")
-  cmd("command! LspSignatureHelp lua vim.lsp.buf.signature_help()")
+  cmd [[command! LspDef lua vim.lsp.buf.definition()]]
+  cmd [[command! LspFormatting lua vim.lsp.buf.formatting()]]
+  cmd [[command! LspCodeAction lua vim.lsp.buf.code_action()]]
+  cmd [[command! LspHover lua vim.lsp.buf.hover()]]
+  cmd [[command! LspRename lua vim.lsp.buf.rename()]]
+  cmd [[command! LspOrganize lua lsp_organize_imports()]]
+  cmd [[command! LspRefs lua vim.lsp.buf.references()]]
+  cmd [[command! LspTypeDef lua vim.lsp.buf.type_definition()]]
+  cmd [[command! LspImplementation lua vim.lsp.buf.implementation()]]
+  cmd [[command! LspDiagPrev lua vim.lsp.diagnostic.goto_prev()]]
+  cmd [[command! LspDiagNext lua vim.lsp.diagnostic.goto_next()]]
+  cmd [[command! LspDiagLine lua vim.lsp.diagnostic.show_line_diagnostics()]]
+  cmd [[command! LspSignatureHelp lua vim.lsp.buf.signature_help()]]
 
   nmap("gd", ":LspDef<CR>", {bufnr = bufnr})
   nmap("gr", ":LspRename<CR>", {bufnr = bufnr})
@@ -109,55 +110,51 @@ local lua_settings = {
   }
 }
 
--- nvim_lsp.tsserver.setup {
---   on_attach = function(client)
---     client.resolved_capabilities.document_formatting = false
---     on_attach(client)
---   end
--- }
-
 local filetypes = {
+  javascript = "eslint",
+  javascriptreact = "eslint",
   typescript = "eslint",
   typescriptreact = "eslint"
 }
--- local linters = {
---   eslint = {
---     sourceName = "eslint",
---     command = "eslint_d",
---     rootPatterns = {".eslintrc.js", "package.json"},
---     debounce = 100,
---     args = {"--stdin", "--stdin-filename", "%filepath", "--format", "json"},
---     parseJson = {
---       errorsRoot = "[0].messages",
---       line = "line",
---       column = "column",
---       endLine = "endLine",
---       endColumn = "endColumn",
---       message = "${message} [${ruleId}]",
---       security = "severity"
---     },
---     securities = {[2] = "error", [1] = "warning"}
---   }
--- }
--- local formatters = {
---   prettier = {command = "prettier", args = {"--stdin-filepath", "%filepath"}}
--- }
--- local formatFiletypes = {
---   typescript = "prettier",
---   typescriptreact = "prettier"
--- }
--- nvim_lsp.diagnosticls.setup(
---   {
---     on_attach = on_attach,
---     filetypes = vim.tbl_keys(filetypes),
---     init_options = {
---       filetypes = filetypes,
---       -- linters = linters,
---       formatters = formatters,
---       formatFiletypes = formatFiletypes
---     }
---   }
--- )
+
+local linters = {
+  eslint = {
+    sourceName = "eslint",
+    command = "eslint_d",
+    rootPatterns = {".eslintrc.js", "package.json"},
+    debounce = 100,
+    args = {"--stdin", "--stdin-filename", "%filepath", "--format", "json"},
+    parseJson = {
+      errorsRoot = "[0].messages",
+      line = "line",
+      column = "column",
+      endLine = "endLine",
+      endColumn = "endColumn",
+      message = "${message} [${ruleId}]",
+      security = "severity"
+    },
+    securities = {[2] = "error", [1] = "warning"}
+  }
+}
+local formatters = {
+  prettier = {command = "prettier", args = {"--stdin-filepath", "%filepath"}}
+}
+local formatFiletypes = {
+  typescript = "prettier",
+  typescriptreact = "prettier"
+}
+nvim_lsp.diagnosticls.setup(
+  {
+    on_attach = on_attach,
+    filetypes = vim.tbl_keys(filetypes),
+    init_options = {
+      filetypes = filetypes,
+      linters = linters,
+      formatters = formatters,
+      formatFiletypes = formatFiletypes
+    }
+  }
+)
 
 local function make_config()
   local capabilities = lsp.protocol.make_client_capabilities()
@@ -183,9 +180,6 @@ local function setup_servers()
     if server == "lua" then
       config.settings = lua_settings
       config.root_dir = function(fname)
-        if fname:match("lush_theme") ~= nil then
-          return nil
-        end
         local util = require("lspconfig/util")
         return util.find_git_ancestor(fname) or util.path.dirname(fname)
       end
