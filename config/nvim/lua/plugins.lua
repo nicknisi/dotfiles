@@ -1,8 +1,6 @@
-local opt = vim.opt
 local cmd = vim.cmd
 local g = vim.g
 local fn = vim.fn
-local api = vim.api
 local utils = require("utils")
 local nmap = utils.nmap
 
