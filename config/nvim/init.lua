@@ -6,7 +6,6 @@ local opt = vim.opt
 local cmd = vim.cmd
 local g = vim.g
 local fn = vim.fn
-local api = vim.api
 local env = vim.env
 local utils = require("utils")
 local termcodes = utils.termcodes
@@ -164,6 +163,10 @@ nmap("<C-j>", "<Plug>WinMoveDown")
 nmap("<C-k>", "<Plug>WinMoveUp")
 nmap("<C-l>", "<Plug>WinMoveRight")
 
+-- helpers for dealing with other people's code
+nmap([[\t]], ":set ts=4 sts=4 sw=4 noet<cr>")
+nmap([[\s]], ":set ts=4 sts=4 sw=4 et<cr>")
+
 nmap("<leader>z", "<Plug>Zoom")
 
 -- move line mappings
@@ -175,6 +178,15 @@ inoremap("∆", "<Esc>:m .+1<cr>==gi")
 inoremap("˚", "<Esc>:m .-2<cr>==gi")
 vnoremap("∆", ":m '>+1<cr>gv=gv")
 vnoremap("˚", ":m '<-2<cr>gv=gv")
+
+-- TODO: what exactly does this do?
+vnoremap("$(", "<esc>`>a)<esc>`<i(<esc>")
+vnoremap("$[", "<esc>`>a]<esc>`<i[<esc>")
+vnoremap("${", "<esc>`>a}<esc>`<i{<esc>")
+vnoremap([[$']], [[<esc>`>a"<esc>`<i"<esc>]])
+vnoremap("$'", "<esc>`>a'<esc>`<i'<esc>")
+vnoremap([[$\]], "<esc>`>o*/<esc>`<O/*<esc>")
+vnoremap([[$<]], "<esc>`>a><esc>`<i<<esc>")
 
 nmap("<leader>i", ":set cursorline!")
 
