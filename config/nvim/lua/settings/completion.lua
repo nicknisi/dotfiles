@@ -1,8 +1,6 @@
 local utils = require("utils")
 local imap = utils.imap
 local smap = utils.smap
-local api = vim.api
-local fn = vim.fn
 
 -- use .ts snippets in .tsx files
 vim.o.completeopt = "menuone,noselect"
