@@ -76,6 +76,9 @@ local on_attach = function(client, bufnr)
     )
   end
 
+  -- FIXME: this forces a dialog to pop up every time. How can we prevent this?
+  client.resolved_capabilities.document_formatting = false
+
   if client.resolved_capabilities.document_formatting then
     api.nvim_exec(
       [[
@@ -83,7 +86,7 @@ local on_attach = function(client, bufnr)
         autocmd! * <buffer>
         autocmd BufWritePost <buffer> LspFormatting
         augroup END
-        ]],
+      ]],
       true
     )
   end
@@ -186,7 +189,6 @@ local function setup_servers()
     elseif server == "vim" then
       config.init_options = {isNeovim = true}
     end
-
     nvim_lsp[server].setup(config)
   end
 end
