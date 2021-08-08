@@ -176,14 +176,20 @@ nmap([[\s]], ":set ts=4 sts=4 sw=4 et<cr>")
 nmap("<leader>z", "<Plug>Zoom")
 
 -- move line mappings
--- ∆ is <A-j> on macOS
--- ˚ is <A-k> on macOS
-nnoremap("∆", ":m .+1<cr>==")
-nnoremap("˚", ":m .-2<cr>==")
-inoremap("∆", "<Esc>:m .+1<cr>==gi")
-inoremap("˚", "<Esc>:m .-2<cr>==gi")
-vnoremap("∆", ":m '>+1<cr>gv=gv")
-vnoremap("˚", ":m '<-2<cr>gv=gv")
+local opt_h = "˙"
+local opt_j = "∆"
+local opt_k = "˚"
+local opt_l = "¬"
+
+nnoremap(opt_h, ":cprev<cr>zz")
+nnoremap(opt_l, ":cnext<cr>zz")
+
+nnoremap(opt_j, ":m .+1<cr>==")
+nnoremap(opt_k, ":m .-2<cr>==")
+inoremap(opt_j, "<Esc>:m .+1<cr>==gi")
+inoremap(opt_k, "<Esc>:m .-2<cr>==gi")
+vnoremap(opt_j, ":m '>+1<cr>gv=gv")
+vnoremap(opt_k, ":m '<-2<cr>gv=gv")
 
 -- TODO: what exactly does this do?
 vnoremap("$(", "<esc>`>a)<esc>`<i(<esc>")
