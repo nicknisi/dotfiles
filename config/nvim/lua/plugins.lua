@@ -17,6 +17,9 @@ plugBegin("~/.config/nvim/plugged")
 -- easy commenting
 cmd [[Plug 'tpope/vim-commentary']]
 
+-- bracket mappings for moving between buffers, quickfix items, etc.
+cmd [[Plug 'tpope/vim-unimpaired']]
+
 -- mappings to easily delete, change and add such surroundings in pairs, such as quotes, parens, etc.
 cmd [[Plug 'tpope/vim-surround']]
 
