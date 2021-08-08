@@ -77,8 +77,13 @@ opt.smartcase = true -- case-sensitive if expresson contains a capital letter
 opt.hlsearch = true -- highlight search results
 opt.incsearch = true -- set incremental search, like modern browsers
 opt.lazyredraw = false -- don't redraw while executing macros
-
 opt.magic = true -- set magic on, for regular expressions
+
+if fn.executable("rg") then
+  -- if ripgrep installed, use that as a grepper
+  opt.grepprg = "rg --vimgrep --no-heading"
+  opt.grepformat = "%f:%l:%c:%m,%f:%l:%m"
+end
 
 -- error bells
 opt.errorbells = false
