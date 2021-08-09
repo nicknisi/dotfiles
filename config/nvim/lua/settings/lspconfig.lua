@@ -6,10 +6,8 @@ local api = vim.api
 local fn = vim.fn
 local lsp = vim.lsp
 local lspinstall = require("lspinstall")
-
--- lspconfig config
-
 local nvim_lsp = require("lspconfig")
+
 local format_async = function(err, _, result, _, bufnr)
   if err ~= nil or result == nil then
     return
@@ -77,7 +75,7 @@ local on_attach = function(client, bufnr)
   end
 
   -- FIXME: this forces a dialog to pop up every time. How can we prevent this?
-  client.resolved_capabilities.document_formatting = false
+  client.resolved_capabilities.document_formatting = true
 
   if client.resolved_capabilities.document_formatting then
     api.nvim_exec(
@@ -91,6 +89,90 @@ local on_attach = function(client, bufnr)
     )
   end
 end
+
+local diagnosticls_settings = {
+  filetypes = {
+    "javascript",
+    "javascriptreact",
+    "javascript.jsx",
+    "typescript",
+    "typescriptreact",
+    "typescript.tsx",
+    "html",
+    "css",
+    "sh"
+  },
+  init_options = {
+    linters = {
+      eslint = {
+        sourceName = "eslint",
+        command = "eslint_d",
+        rootPatterns = {
+          ".git",
+          ".eslintrc",
+          ".eslintrc.json",
+          ".eslintrc.js",
+          ".eslintrc.yml",
+          ".eslintrc.yaml",
+          "package.json"
+        },
+        debounce = 100,
+        args = {"--stdin", "--stdin-filename", "%filepath", "--format", "json"},
+        securities = {["1"] = "warning", ["2"] = "error"},
+        parseJson = {
+          errorsRoot = "[0].messages",
+          line = "line",
+          column = "column",
+          endLine = "endLine",
+          endColumn = "endColumn",
+          security = "severity",
+          message = "${message} [${ruleId}]"
+        }
+      },
+      shellcheck = {
+        sourceName = "shellcheck",
+        command = "shellcheck",
+        debounce = 100,
+        args = {"--format=gcc", "-"},
+        offsetLine = 0,
+        offsetColumn = 0,
+        formatLines = 1,
+        formatPattern = {
+          "^[^:]+:(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",
+          {line = 1, column = 2, message = 4, security = 3}
+        },
+        securities = {error = "error", warning = "warning", note = "info"}
+      }
+    },
+    formatters = {
+      prettier = {
+        command = "./node_modules/.bin/prettier",
+        args = {"--stdin-filepath", "%filepath"},
+        rootPatterns = {
+          ".git",
+          ".eslintrc.json",
+          ".eslintrc",
+          ".eslinrc.js",
+          "package.json",
+          ".prettierrc"
+        }
+      }
+    },
+    filetypes = {
+      sh = "shellcheck",
+      javascript = "eslint",
+      javascriptreact = "eslint",
+      ["javascript.jsx"] = "eslint",
+      typescript = "eslint",
+      typescriptreact = "eslint",
+      ["typescript.tsx"] = "eslint"
+    },
+    formatFiletypes = {
+      javascript = "eslint_d",
+      typescript = "eslint_d"
+    }
+  }
+}
 
 local lua_settings = {
   Lua = {
@@ -112,52 +194,6 @@ local lua_settings = {
     }
   }
 }
-
-local filetypes = {
-  javascript = "eslint",
-  javascriptreact = "eslint",
-  typescript = "eslint",
-  typescriptreact = "eslint"
-}
-
-local linters = {
-  eslint = {
-    sourceName = "eslint",
-    command = "eslint_d",
-    rootPatterns = {".eslintrc.js", "package.json"},
-    debounce = 100,
-    args = {"--stdin", "--stdin-filename", "%filepath", "--format", "json"},
-    parseJson = {
-      errorsRoot = "[0].messages",
-      line = "line",
-      column = "column",
-      endLine = "endLine",
-      endColumn = "endColumn",
-      message = "${message} [${ruleId}]",
-      security = "severity"
-    },
-    securities = {[2] = "error", [1] = "warning"}
-  }
-}
-local formatters = {
-  prettier = {command = "prettier", args = {"--stdin-filepath", "%filepath"}}
-}
-local formatFiletypes = {
-  typescript = "prettier",
-  typescriptreact = "prettier"
-}
-nvim_lsp.diagnosticls.setup(
-  {
-    on_attach = on_attach,
-    filetypes = vim.tbl_keys(filetypes),
-    init_options = {
-      filetypes = filetypes,
-      linters = linters,
-      formatters = formatters,
-      formatFiletypes = formatFiletypes
-    }
-  }
-)
 
 local function make_config()
   local capabilities = lsp.protocol.make_client_capabilities()
@@ -188,16 +224,12 @@ local function setup_servers()
       end
     elseif server == "vim" then
       config.init_options = {isNeovim = true}
+    elseif server == "diagnosticls" then
+      config = diagnosticls_settings
     end
+
     nvim_lsp[server].setup(config)
   end
-end
-
-setup_servers()
-
-lspinstall.post_install_hook = function()
-  setup_servers()
-  cmd [[bufdo e]]
 end
 
 -- install these servers by default
@@ -212,6 +244,12 @@ local function install_servers()
 end
 
 install_servers()
+setup_servers()
+
+lspinstall.post_install_hook = function()
+  setup_servers()
+  cmd [[bufdo e]]
+end
 
 -- set up custom symbols for LSP errors
 fn.sign_define("LspDiagnosticsSignError", {text = "✖", texthl = "LspDiagnosticsSignError", linehl = "", numhl = ""})
