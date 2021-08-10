@@ -69,7 +69,6 @@ cmd [[Plug 'tpope/vim-liquid']]
 cmd [[Plug 'othree/yajs.vim', { 'for': [ 'javascript', 'javascript.jsx', 'html' ] }]]
 -- Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
 cmd [[Plug 'moll/vim-node', { 'for': 'javascript' }]]
-cmd [[Plug 'ternjs/tern_for_vim', { 'for': ['javascript', 'javascript.jsx'], 'do': 'npm install' }]]
 cmd [[Plug 'MaxMEllon/vim-jsx-pretty']]
 g.vim_jsx_pretty_highlight_close_tag = 1
 cmd [[Plug 'leafgarland/typescript-vim', { 'for': ['typescript', 'typescript.tsx'] }]]
