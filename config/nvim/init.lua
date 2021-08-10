@@ -5,6 +5,7 @@ require("globals")
 local opt = vim.opt
 local cmd = vim.cmd
 local g = vim.g
+local o = vim.o
 local fn = vim.fn
 local env = vim.env
 local utils = require("utils")
@@ -92,6 +93,7 @@ opt.timeoutlen = 500
 
 -- Appearance
 ---------------------------------------------------------
+o.termguicolors = true
 opt.number = true -- show line numbers
 opt.wrap = true -- turn on line wrapping
 opt.wrapmargin = 8 -- wrap lines when coming within n characters from side
