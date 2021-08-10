@@ -74,7 +74,7 @@ else
               cd $cwd
               return $?
           fi
-          echo -e "  Checked out master"
+          echo -e "  Checked out default branch"
       fi
   fi
   plugin="$dest/$plugin_name"
