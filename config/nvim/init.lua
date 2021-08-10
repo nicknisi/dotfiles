@@ -130,7 +130,8 @@ opt.shiftwidth = 4 -- number of spaces to use for indent and unindent
 opt.shiftround = true -- round indent to a multiple of 'shiftwidth'
 
 -- code folding settings
-opt.foldmethod = "syntax" -- fold based on indent
+cmd [[set foldmethod=expr]] -- use treesitter folding support
+cmd [[set foldexpr=nvim_treesitter#foldexpr()]]
 opt.foldlevelstart = 99
 opt.foldnestmax = 10 -- deepest fold is 10 levels
 opt.foldenable = false -- don't fold by default
