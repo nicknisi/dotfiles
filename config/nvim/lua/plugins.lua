@@ -96,6 +96,12 @@ g.vim_json_syntax_conceal = 0
 cmd [[Plug 'ekalinin/Dockerfile.vim']]
 cmd [[Plug 'jparise/vim-graphql']]
 
+cmd [[Plug 'hrsh7th/vim-vsnip']] -- TODO: set this plugin up
+cmd [[Plug 'sirver/ultisnips']]
+g.UltiSnipsExpandTrigger = "<C-l>"
+g.UltiSnipsJumpForwardTrigger = "<C-j>"
+g.UltiSnipsJumpBackwardTrigger = "<C-k>"
+
 -- Lua plugins
 cmd [[Plug 'norcalli/nvim-colorizer.lua']]
 cmd [[Plug 'kyazdani42/nvim-web-devicons']]
