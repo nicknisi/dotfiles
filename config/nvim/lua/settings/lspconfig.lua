@@ -41,6 +41,7 @@ local on_attach = function(client, bufnr)
   cmd [[command! LspHover lua vim.lsp.buf.hover()]]
   cmd [[command! LspRename lua vim.lsp.buf.rename()]]
   cmd [[command! LspOrganize lua lsp_organize_imports()]]
+  cmd [[command! OR lua lsp_organize_imports()]]
   cmd [[command! LspRefs lua vim.lsp.buf.references()]]
   cmd [[command! LspTypeDef lua vim.lsp.buf.type_definition()]]
   cmd [[command! LspImplementation lua vim.lsp.buf.implementation()]]
@@ -74,8 +75,8 @@ local on_attach = function(client, bufnr)
     )
   end
 
-  -- FIXME: this forces a dialog to pop up every time. How can we prevent this?
-  client.resolved_capabilities.document_formatting = true
+  -- disable document formatting (currently handled by formatter.nvim)
+  client.resolved_capabilities.document_formatting = false
 
   if client.resolved_capabilities.document_formatting then
     api.nvim_exec(
@@ -198,6 +199,13 @@ local lua_settings = {
 local function make_config()
   local capabilities = lsp.protocol.make_client_capabilities()
   capabilities.textDocument.completion.completionItem.snippetSupport = true
+  capabilities.textDocument.completion.completionItem.resolveSupport = {
+    properties = {
+      "documentation",
+      "detail",
+      "additionalTextEdits"
+    }
+  }
   capabilities.textDocument.colorProvider = {dynamicRegistration = false}
 
   return {
