@@ -97,6 +97,7 @@ cmd [[Plug 'ekalinin/Dockerfile.vim']]
 cmd [[Plug 'jparise/vim-graphql']]
 
 -- Lua plugins
+cmd [[Plug 'norcalli/nvim-colorizer.lua']]
 cmd [[Plug 'kyazdani42/nvim-web-devicons']]
 cmd [[Plug 'nvim-lua/plenary.nvim']]
 cmd [[Plug 'kyazdani42/nvim-tree.lua']]
@@ -105,6 +106,7 @@ cmd [[Plug 'neovim/nvim-lspconfig']]
 cmd [[Plug 'kabouzeid/nvim-lspinstall']]
 cmd [[Plug 'hrsh7th/nvim-compe']]
 cmd [[Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}]]
+cmd [[Plug 'p00f/nvim-ts-rainbow']]
 cmd [[Plug 'onsails/lspkind-nvim']]
 cmd [[Plug 'RRethy/nvim-base16']]
 cmd [[Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}]]
@@ -121,6 +123,7 @@ cmd [[Plug 'folke/trouble.nvim']]
 plugEnd()
 
 require("nvim-autopairs").setup()
+require("colorizer").setup()
 require("settings.gitsigns")
 require("settings.trouble")
 require("settings.fzf")
