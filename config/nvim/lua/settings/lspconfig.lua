@@ -118,7 +118,7 @@ local diagnosticls_settings = {
           "package.json"
         },
         debounce = 100,
-        args = {"--stdin", "--stdin-filename", "%filepath", "--format", "json"},
+        args = {"-f", "unix", "--stdin", "--stdin-filename", "%filepath", "--format", "json"},
         securities = {["1"] = "warning", ["2"] = "error"},
         parseJson = {
           errorsRoot = "[0].messages",
