@@ -96,7 +96,7 @@ cmd [[Plug 'ekalinin/Dockerfile.vim']]
 cmd [[Plug 'jparise/vim-graphql']]
 
 cmd [[Plug 'hrsh7th/vim-vsnip']] -- TODO: set this plugin up
-cmd [[Plug 'sirver/ultisnips']]
+cmd [[Plug 'sirVer/ultisnips']]
 g.UltiSnipsExpandTrigger = "<C-l>"
 g.UltiSnipsJumpForwardTrigger = "<C-j>"
 g.UltiSnipsJumpBackwardTrigger = "<C-k>"
