@@ -141,7 +141,7 @@ set-window-option -g window-status-current-format " #I #[bold]#W "
 set-window-option -g status-left-style fg=$tmux_bg,bg=$tmux_blue
 set-window-option -g status-right-style bg=$tmux_blue
 
-set-window-option status-position bottom
+set-window-option -g status-position bottom
 
 # pane border colors
 set-window-option -g pane-active-border-style fg=$tmux_blue
