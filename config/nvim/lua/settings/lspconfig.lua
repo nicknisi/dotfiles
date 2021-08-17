@@ -260,7 +260,7 @@ lspinstall.post_install_hook = function()
 end
 
 -- set up custom symbols for LSP errors
-fn.sign_define("LspDiagnosticsSignError", {text = "✖", texthl = "LspDiagnosticsSignError", linehl = "", numhl = ""})
+fn.sign_define("LspDiagnosticsSignError", {text = "", texthl = "LspDiagnosticsSignError", linehl = "", numhl = ""})
 fn.sign_define("LspDiagnosticsSignWarning", {text = "⚠", texthl = "LspDiagnosticsSignWarning"})
 fn.sign_define("LspDiagnosticsSignInformation", {text = "●", texthl = "LspDiagnosticsSignInfo"})
 fn.sign_define("LspDiagnosticsSignHint", {text = "○", texthl = "LspDiagnosticsSignHint"})
