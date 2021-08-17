@@ -139,15 +139,16 @@ gls.left[5] = {
 }
 
 gls.left[6] = {
-  FileEF = {
+  Git = {
+    condition = condition.check_git_workspace,
     highlight = {colors.black, colors.bg, "bold"},
     provider = function()
-      local format_icon = {["DOS"] = " ", ["MAC"] = " ", ["UNIX"] = " "}
-      local encode = fileinfo.get_file_encode()
-      local format = fileinfo.get_file_format()
-
-      vim.api.nvim_command("hi GalaxyFileEF guibg=" .. mode_color[vim.fn.mode()])
-      return encode .. " " .. format_icon[format]
+      vim.api.nvim_command("hi GalaxyGit guibg=" .. mode_color[vim.fn.mode()])
+      local branch = vcs.get_git_branch()
+      if (branch == nil) then
+        branch = "???"
+      end
+      return " " .. branch .. " "
     end
   }
 }
@@ -158,21 +159,6 @@ gls.left[7] = {
     provider = function()
       vim.api.nvim_command("hi GalaxyEFSep guibg=" .. mode_color[vim.fn.mode()])
       return "█"
-    end
-  }
-}
-
-gls.left[8] = {
-  Git = {
-    condition = condition.check_git_workspace,
-    highlight = {colors.blue, colors.bg, "bold"},
-    provider = function()
-      vim.api.nvim_command("hi GalaxyGit guifg=" .. mode_color[vim.fn.mode()])
-      local branch = vcs.get_git_branch()
-      if (branch == nil) then
-        branch = "???"
-      end
-      return " " .. branch .. " "
     end
   }
 }
