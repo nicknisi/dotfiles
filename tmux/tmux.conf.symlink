@@ -135,16 +135,16 @@ set-window-option -g window-status-style fg=$tmux_grey
 set-window-option -g window-status-format " #I #W"
 
 # active window title colors
-set-window-option -g window-status-current-style fg=$tmux_violet,bg=$tmux_bg
+set-window-option -g window-status-current-style fg=$tmux_blue,bg=$tmux_bg
 set-window-option -g window-status-current-format " #I #[bold]#W "
 
-set-window-option -g status-left-style fg=$tmux_bg,bg=$tmux_violet
-set-window-option -g status-right-style bg=$tmux_violet
+set-window-option -g status-left-style fg=$tmux_bg,bg=$tmux_blue
+set-window-option -g status-right-style bg=$tmux_blue
 
 set-window-option status-position bottom
 
 # pane border colors
-set-window-option -g pane-active-border-style fg=$tmux_violet
+set-window-option -g pane-active-border-style fg=$tmux_blue
 set-window-option -g pane-border-style fg=$tmux_grey
 
 # message text
@@ -152,7 +152,7 @@ set-option -g message-style bg=$tmux_bg,fg=$tmux_magenta
 
 # pane number display
 set-option -g display-panes-active-colour $tmux_magenta
-set-option -g display-panes-colour $tmux_violet
+set-option -g display-panes-colour $tmux_blue
 
 # clock
 set-window-option -g clock-mode-colour $tmux_magenta
@@ -160,7 +160,7 @@ set-window-option -g clock-mode-colour $tmux_magenta
 tm_session_name="#[bold]  #S #[fg=$tmux_bg]"
 set -g status-left "$tm_session_name"
 
-tm_tunes="#[bold,bg=$tmux_violet,fg=$tmux_bg] #(osascript -l JavaScript $DOTFILES/applescripts/tunes.js)"
+tm_tunes="#[bold,bg=$tmux_blue,fg=$tmux_bg] #(osascript -l JavaScript $DOTFILES/applescripts/tunes.js)"
 # tm_battery="#[fg=$base0F,bg=$tmux_bg] ♥ #(battery)"
-tm_host="#[fg=$tmux_violet,bg=$tmux_darkblue]#[bold,bg=$tmux_darkblue,fg=$tmux_lightblue] #h "
+tm_host="#[fg=$tmux_blue,bg=$tmux_darkblue]#[bold,bg=$tmux_darkblue,fg=$tmux_blue] #h "
 set -g status-right "#[fg=$tmux_bg]$tm_tunes $tm_host"
