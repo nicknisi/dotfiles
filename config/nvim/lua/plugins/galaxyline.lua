@@ -78,42 +78,16 @@ gls.left[1] = {
 }
 
 gls.left[2] = {
-  BufSep = {
-    highlight = {colors.bg, colors.bg},
+  Left = {
+    highlight = {colors.blue, colors.bg},
     provider = function()
-      vim.api.nvim_command("hi GalaxyBufSep guibg=" .. mode_color[vim.fn.mode()])
-      return "█"
+      vim.api.nvim_command("hi GalaxyLeft guifg=" .. mode_color[vim.fn.mode()])
+      return "█"
     end
   }
 }
 
 gls.left[3] = {
-  FileIcon = {
-    condition = condition.buffer_not_empty,
-    highlight = {fileinfo.get_file_icon_color, colors.bg},
-    provider = "FileIcon"
-  }
-}
-
-gls.left[4] = {
-  FileName = {
-    condition = condition.buffer_not_empty,
-    highlight = {colors.white, colors.bg, "bold"},
-    provider = "FileName"
-  }
-}
-
-gls.left[5] = {
-  FileSep = {
-    highlight = {colors.bg, colors.bg},
-    provider = function()
-      vim.api.nvim_command("hi GalaxyFileSep guibg=" .. mode_color[vim.fn.mode()])
-      return " "
-    end
-  }
-}
-
-gls.left[6] = {
   Git = {
     condition = condition.check_git_workspace,
     highlight = {colors.black, colors.bg, "bold"},
@@ -128,13 +102,29 @@ gls.left[6] = {
   }
 }
 
-gls.left[7] = {
-  EFSep = {
+gls.left[4] = {
+  BufSep = {
     highlight = {colors.bg, colors.bg},
     provider = function()
-      vim.api.nvim_command("hi GalaxyEFSep guibg=" .. mode_color[vim.fn.mode()])
+      vim.api.nvim_command("hi GalaxyBufSep guibg=" .. mode_color[vim.fn.mode()])
       return "█"
     end
+  }
+}
+
+gls.left[5] = {
+  FileIcon = {
+    condition = condition.buffer_not_empty,
+    highlight = {fileinfo.get_file_icon_color, colors.bg},
+    provider = "FileIcon"
+  }
+}
+
+gls.left[6] = {
+  FileName = {
+    condition = condition.buffer_not_empty,
+    highlight = {colors.white, colors.bg, "bold"},
+    provider = "FileName"
   }
 }
 
