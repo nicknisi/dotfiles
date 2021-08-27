@@ -63,7 +63,8 @@ local fzf_opts = {
   " --layout=reverse",
   ' --pointer=" "',
   " --info=hidden",
-  " --border=rounded"
+  " --border=rounded",
+  " --bind å:select-all+accept"
 }
 
 env.FZF_DEFAULT_OPTS = table.concat(fzf_opts, "")

@@ -97,7 +97,7 @@ cmd [[Plug 'jparise/vim-graphql']]
 
 cmd [[Plug 'hrsh7th/vim-vsnip']] -- TODO: set this plugin up
 cmd [[Plug 'sirVer/ultisnips']]
-g.UltiSnipsExpandTrigger = "<C-l>"
+g.UltiSnipsExpandTrigger = "<tab>"
 g.UltiSnipsJumpForwardTrigger = "<C-j>"
 g.UltiSnipsJumpBackwardTrigger = "<C-k>"
 
@@ -120,6 +120,7 @@ cmd [[Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}]]
 cmd [[Plug 'windwp/nvim-autopairs']]
 cmd [[Plug 'mhartington/formatter.nvim']]
 cmd [[Plug 'alvarosevilla95/luatab.nvim']]
+cmd [[Plug 'SmiteshP/nvim-gps']]
 
 -- fzf
 cmd [[Plug $HOMEBREW_PREFIX . '/opt/fzf']]
@@ -131,14 +132,14 @@ plugEnd()
 
 require("nvim-autopairs").setup()
 require("colorizer").setup()
-require("settings.gitsigns")
-require("settings.trouble")
-require("settings.fzf")
-require("settings.lspconfig")
-require("settings.completion")
-require("settings.treesitter")
-require("settings.nvimtree")
-require("settings.galaxyline")
-require("settings.formatter")
-require("settings.tabline")
-require("settings.startify")
+require("plugins.gitsigns")
+require("plugins.trouble")
+require("plugins.fzf")
+require("plugins.lspconfig")
+require("plugins.completion")
+require("plugins.treesitter")
+require("plugins.nvimtree")
+require("plugins.galaxyline")
+require("plugins.formatter")
+require("plugins.tabline")
+require("plugins.startify")
