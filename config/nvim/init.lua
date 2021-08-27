@@ -18,6 +18,7 @@ local omap = utils.omap
 local nnoremap = utils.nnoremap
 local inoremap = utils.inoremap
 local vnoremap = utils.vnoremap
+local colors = require("settings.colors")
 
 -- create a completion_nvim table on _G which is visible via
 -- v:lua from vimscript
@@ -257,3 +258,5 @@ cmd [[highlight htmlArg cterm=italic term=italic gui=italic]]
 cmd [[highlight xmlAttrib cterm=italic term=italic gui=italic]]
 -- highlight Type cterm=italic term=italic gui=italic
 cmd [[highlight Normal ctermbg=none]]
+-- make the StatusLine background match the GalaxyLine styles
+cmd("hi StatusLine guibg=" .. colors.bg)
