@@ -108,7 +108,7 @@ table.insert(opt.diffopt, "internal")
 table.insert(opt.diffopt, "algorithm:patience")
 table.insert(opt.diffopt, "hiddenoff")
 opt.laststatus = 2 -- show the status line all the time
-opt.so = 7 -- set 7 lines to the cursors - when moving vertical
+opt.scrolloff = 7 -- set 7 lines to the cursors - when moving vertical
 opt.wildmenu = true -- enhanced command line completion
 opt.hidden = true -- current buffer can be put into background
 opt.showcmd = true -- show incomplete commands
