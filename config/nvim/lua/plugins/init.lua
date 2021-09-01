@@ -63,6 +63,9 @@ cmd [[Plug 'digitaltoad/vim-pug', { 'for': ['jade', 'pug'] }]]
 -- nunjucks support
 cmd [[Plug 'niftylettuce/vim-jinja']]
 
+-- edit quickfix list
+cmd [[Plug 'itchyny/vim-qfedit']]
+
 -- liquid support
 cmd [[Plug 'tpope/vim-liquid']]
 
