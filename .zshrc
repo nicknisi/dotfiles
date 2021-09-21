@@ -112,8 +112,8 @@ bindkey '^[[B' history-substring-search-down
 # Bind up and down keys
 zmodload -F zsh/terminfo +p:terminfo
 if [[ -n ${terminfo[kcuu1]} && -n ${terminfo[kcud1]} ]]; then
-  bindkey ${terminfo[kcuu1]} history-substring-search-up
-  bindkey ${terminfo[kcud1]} history-substring-search-down
+  # bindkey ${terminfo[kcuu1]} history-substring-search-up
+  # bindkey ${terminfo[kcud1]} history-substring-search-down
 fi
 
 bindkey '^P' history-substring-search-up
@@ -199,3 +199,9 @@ eval "$(fasd --init auto)"
 # }}}
 
 alias luamake=/Users/chien.le/.config/nvim/lua-language-server/3rd/luamake/luamake
+# if [ /usr/local/bin//kubectl ]; then source <(kubectl completion zsh); fi
+
+[ -d "$HOME/Library/Android/sdk" ] && ANDROID_SDK=$HOME/Library/Android/sdk || ANDROID_SDK=$HOME/Android/Sdk
+echo "export ANDROID_SDK=$ANDROID_SDK" >> ~/`[[ $SHELL == *"zsh" ]] && echo '.zshenv' || echo '.bash_profile'`
+
+export PATH=/Users/chien.le/Library/Android/sdk/platform-tools:$PATH

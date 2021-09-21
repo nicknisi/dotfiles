@@ -3,12 +3,6 @@
 # -------
 
 # A customizable version of steeef's prompt theme.
-# zmodule s1ck94
-# zmodule sindresorhus/pure --source async.zsh --source pure.zsh
-# zmodule denysdovhan/spaceship-prompt --name spaceship
-# zmodule minimal
-# zmodule romkatv/powerlevel10k
-# zmodule gitster
 zmodule steeef
 
 # Sets sane Zsh built-in environment options.
