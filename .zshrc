@@ -1,135 +1,11 @@
-# === Start configuration added by Zim install {{{
-#
-# User configuration sourced by interactive shells
-#
-
-# -----------------
-# Zsh configuration
-# -----------------
-
-#
-# History
-#
-
-# Remove older command from the history if a duplicate is to be added.
-setopt HIST_IGNORE_ALL_DUPS
-
-#
-# Input/output
-#
-
-# Set editor default keymap to emacs (`-e`) or vi (`-v`)
-bindkey -e
-
-# Prompt for spelling correction of commands.
-#setopt CORRECT
-
-# Customize spelling correction prompt.
-#SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
-
-# Remove path separator from WORDCHARS.
-WORDCHARS=${WORDCHARS//[\/]}
-
-
-# --------------------
-# Module configuration
-# --------------------
-
-#
-# completion
-#
-
-# Set a custom path for the completion dump file.
-# If none is provided, the default ${ZDOTDIR:-${HOME}}/.zcompdump is used.
-#zstyle ':zim:completion' dumpfile "${ZDOTDIR:-${HOME}}/.zcompdump-${ZSH_VERSION}"
-
-#
-# git
-#
-
-# Set a custom prefix for the generated aliases. The default prefix is 'G'.
-#zstyle ':zim:git' aliases-prefix 'g'
-
-#
-# input
-#
-
-# Append `../` to your input for each `.` you type after an initial `..`
-#zstyle ':zim:input' double-dot-expand yes
-
-#
-# termtitle
-#
-
-# Set a custom terminal title format using prompt expansion escape sequences.
-# See http://zsh.sourceforge.net/Doc/Release/Prompt-Expansion.html#Simple-Prompt-Escapes
-# If none is provided, the default '%n@%m: %~' is used.
-#zstyle ':zim:termtitle' format '%1~'
-
-#
-# zsh-autosuggestions
-#
-
-# Customize the style that the suggestions are shown with.
-# See https://github.com/zsh-users/zsh-autosuggestions/blob/master/README.md#suggestion-highlight-style
-#ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=10'
-
-#
-# zsh-syntax-highlighting
-#
-
-# Set what highlighters will be used.
-# See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters.md
-ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
-
-# Customize the main highlighter styles.
-# See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters/main.md#how-to-tweak-it
-#typeset -A ZSH_HIGHLIGHT_STYLES
-#ZSH_HIGHLIGHT_STYLES[comment]='fg=10'
-
-# ------------------
-# Initialize modules
-# ------------------
-
-if [[ ${ZIM_HOME}/init.zsh -ot ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
-  # Update static initialization script if it's outdated, before sourcing it
-  source ${ZIM_HOME}/zimfw.zsh init -q
-fi
-source ${ZIM_HOME}/init.zsh
-
-# ------------------------------
-# Post-init module configuration
-# ------------------------------
-
-#
-# zsh-history-substring-search
-#
-
-# Bind ^[[A/^[[B manually so up/down works both before and after zle-line-init
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
-
-# Bind up and down keys
-zmodload -F zsh/terminfo +p:terminfo
-if [[ -n ${terminfo[kcuu1]} && -n ${terminfo[kcud1]} ]]; then
-  # bindkey ${terminfo[kcuu1]} history-substring-search-up
-  # bindkey ${terminfo[kcud1]} history-substring-search-down
-fi
-
-bindkey '^P' history-substring-search-up
-bindkey '^N' history-substring-search-down
-bindkey -M vicmd 'k' history-substring-search-up
-bindkey -M vicmd 'j' history-substring-search-down
-# }}} End configuration added by Zim install
-
 # {{{ === ALIAS
+alias l="exa"
 alias t="tree -a -I '.git'"
 alias c='clear'
-alias v='vim' # quick opening files with vim
+alias v='vim'  # quick opening files with vim
 alias n='nvim' # quick opening files with vim
 
 alias gi='git'
-alias cl='chien.le'
 alias tx='tmux'
 alias nv='nvim'
 alias gf='git fetch --all'
@@ -144,7 +20,7 @@ alias pp='go tool pprof'
 # }}}
 
 # {{{ === PATH
-export fpath=(/usr/local/share/zsh-completions $fpath)
+# export fpath=(/usr/local/share/zsh-completions $fpath)
 
 export PATH="/usr/local/sbin:$PATH"
 export PATH="/usr/local/bin/:$PATH"
@@ -153,18 +29,27 @@ export PATH="/usr/local/opt/llvm/bin:$PATH"
 # }}}
 
 # {{{ === SETTING
+
 # Allows ‘>’ redirection to truncate existing files. EX: pbpaste > file.txt
 setopt clobber
+setopt glob_complete
+setopt inc_append_history
+setopt hist_ignore_dups
+setopt hist_find_no_dups
+setopt hist_ignore_all_dups
+setopt hist_expire_dups_first
+setopt hist_ignore_space
+setopt share_history
 
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
-export LANGUAGE=en_US.UTF-8
-export EDITOR=/usr/local/bin/nvim
+# export LC_ALL=en_US.UTF-8
+# export LANG=en_US.UTF-8
+# export LANGUAGE=en_US.UTF-8
+# export EDITOR='/usr/local/bin/nvim -u NONE'
+# export DOCKER_HOST_IP=127.0.0.1
 
-export DOCKER_HOST_IP=127.0.0.1
 # }}}
 
-# {{{ === MAPPING KEY 
+# {{{ === MAPPING KEY
 bindkey -e # use like emacs editor
 bindkey '^p' up-history
 bindkey '^n' down-history
@@ -172,12 +57,7 @@ bindkey '^r' history-incremental-search-backward
 
 autoload -U edit-command-line
 zle -N edit-command-line
-bindkey '^f' edit-command-line
-# }}}
-
-# {{{ === SOURCE 
-source /usr/local/Cellar/fzf/0.24.4/shell/completion.zsh
-source /usr/local/Cellar/fzf/0.24.4/shell/key-bindings.zsh
+bindkey '^g' edit-command-line
 # }}}
 
 # {{{ === GO DEV
@@ -190,8 +70,6 @@ export GOPRIVATE=git.garena.com/*
 export SP_UNIX_SOCKET=~/run/spex/spex.sock
 
 export PATH=$GOPATH/bin:$PATH
-
-export GITHUB_TOKEN=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
 # }}}
 
 # {{{ === FASD INIT ===
@@ -202,6 +80,31 @@ alias luamake=/Users/chien.le/.config/nvim/lua-language-server/3rd/luamake/luama
 # if [ /usr/local/bin//kubectl ]; then source <(kubectl completion zsh); fi
 
 [ -d "$HOME/Library/Android/sdk" ] && ANDROID_SDK=$HOME/Library/Android/sdk || ANDROID_SDK=$HOME/Android/Sdk
-echo "export ANDROID_SDK=$ANDROID_SDK" >> ~/`[[ $SHELL == *"zsh" ]] && echo '.zshenv' || echo '.bash_profile'`
+echo "export ANDROID_SDK=$ANDROID_SDK" >>~/$([[ $SHELL == *"zsh" ]] && echo '.zshenv' || echo '.bash_profile')
 
 export PATH=/Users/chien.le/Library/Android/sdk/platform-tools:$PATH
+
+# fzf init setup
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+autoload -U promptinit
+promptinit
+prompt pure
+
+# fbr - checkout git branch (including remote branches), sorted by most recent commit, limit 30 last branches
+gco() {
+	local branches branch
+	branches=$(git for-each-ref --count=30 --sort=-committerdate refs/heads/ --format="%(refname:short)") &&
+		branch=$(echo "$branches" | fzf-tmux -h $((2 + $(wc -l <<<"$branches"))) +m) &&
+		git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
+}
+
+source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+autoload -Uz compinit
+if [ $(date +'%j') != $(stat -f '%Sm' -t '%j' ~/.zcompdump) ]; then
+	compinit
+else
+	compinit -C
+fi

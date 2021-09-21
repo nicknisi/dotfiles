@@ -69,9 +69,7 @@ update_dotfiles() {
     cp -r ~/.config/nvim/ "$DOTFILES/.config/nvim/"
 
     info "Shell"
-    cp -r ~/.p10k.zsh "$DOTFILES/.p10k.zsh"
     cp -r ~/.tmux.conf "$DOTFILES/.tmux.conf"
-    cp -r ~/.zimrc "$DOTFILES/.zimrc"
     cp -r ~/.zshrc "$DOTFILES/.zshrc"
 
     info "Gitdotfiles"

@@ -98,7 +98,7 @@ font:
     #   - (Linux/BSD) monospace
     #   - (Windows) Consolas
     # family: JetBrainsMono
-    family: Hack Nerd Font
+    family: Hack Nerd Font Mono
 
     # The `style` can be specified to pick a specific face.
     style: Regular
@@ -121,7 +121,7 @@ font:
     # If the italic family is not specified, it will fall back to the
     # value specified for the normal font.
     # family: JetBrainsMono
-    family: Hack Nerd Font
+    family: Hack Nerd Font Mono
 
     # The `style` can be specified to pick a specific face.
     #style: Italic
@@ -493,10 +493,12 @@ shell:
 # at once.
 key_bindings:
   - { key: Slash,     mods: Control, chars: "\x1f" }
-  - { key: J,         mods: Alt, chars: "\x1bj"    }
-  - { key: K,         mods: Alt, chars: "\x1bk"    }
-  - { key: H,         mods: Alt, chars: "\x1bh"    }
-  - { key: L,         mods: Alt, chars: "\x1bl"    }
+  # - { key: Comma,     mods: Control, chars: "\x1b\x2c"}
+  - { key: J,         mods: Alt,     chars: "\x1bj"    }
+  - { key: K,         mods: Alt,     chars: "\x1bk"    }
+  - { key: H,         mods: Alt,     chars: "\x1bh"    }
+  - { key: L,         mods: Alt,     chars: "\x1bl"    }
+
   # (Windows, Linux, and BSD only)
   #- { key: V,        mods: Control|Shift, action: Paste            }
   #- { key: C,        mods: Control|Shift, action: Copy             }
@@ -511,7 +513,6 @@ key_bindings:
   #- { key: Return,   mods: Alt,           action: ToggleFullscreen }
 
   # (macOS only)
-  # - { key: Comma, mods: Command, command: {program: "nvim", args: ["~/.config/alacritty/alacritty.yml"]}}
   #- { key: Key0,   mods: Command,         action: ResetFontSize    }
   #- { key: Equals, mods: Command,         action: IncreaseFontSize }
   #- { key: Add,    mods: Command,         action: IncreaseFontSize }
