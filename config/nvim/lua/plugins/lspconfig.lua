@@ -7,6 +7,21 @@ local fn = vim.fn
 local lsp = vim.lsp
 local lspinstall = require("lspinstall")
 local nvim_lsp = require("lspconfig")
+local colors = require("colors")
+
+cmd("autocmd ColorScheme * highlight NormalFloat guibg=" .. colors.bg)
+cmd("autocmd ColorScheme * highlight FloatBorder guifg=white guibg=" .. colors.bg)
+
+local border = {
+  {"🭽", "FloatBorder"},
+  {"▔", "FloatBorder"},
+  {"🭾", "FloatBorder"},
+  {"▕", "FloatBorder"},
+  {"🭿", "FloatBorder"},
+  {"▁", "FloatBorder"},
+  {"🭼", "FloatBorder"},
+  {"▏", "FloatBorder"}
+}
 
 local format_async = function(err, _, result, _, bufnr)
   if err ~= nil or result == nil then
@@ -34,6 +49,11 @@ _G.lsp_organize_imports = function()
   lsp.buf.execute_command(params)
 end
 
+-- show diagnostic line with custom border and styling
+_G.lsp_show_diagnostics = function()
+  vim.lsp.diagnostic.show_line_diagnostics({border = border})
+end
+
 local on_attach = function(client, bufnr)
   cmd [[command! LspDef lua vim.lsp.buf.definition()]]
   cmd [[command! LspFormatting lua vim.lsp.buf.formatting()]]
@@ -47,8 +67,11 @@ local on_attach = function(client, bufnr)
   cmd [[command! LspImplementation lua vim.lsp.buf.implementation()]]
   cmd [[command! LspDiagPrev lua vim.lsp.diagnostic.goto_prev()]]
   cmd [[command! LspDiagNext lua vim.lsp.diagnostic.goto_next()]]
-  cmd [[command! LspDiagLine lua vim.lsp.diagnostic.show_line_diagnostics()]]
+  cmd [[command! LspDiagLine lua lsp_show_diagnostics()]]
   cmd [[command! LspSignatureHelp lua vim.lsp.buf.signature_help()]]
+
+  vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {border = border})
+  vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.hover, {border = border})
 
   nmap("gd", ":LspDef<CR>", {bufnr = bufnr})
   nmap("gr", ":LspRename<CR>", {bufnr = bufnr})
