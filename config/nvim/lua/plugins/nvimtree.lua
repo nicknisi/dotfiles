@@ -1,9 +1,8 @@
+local nvimtree = require("nvim-tree")
 local nnoremap = require("utils").nnoremap
 
 local view = require("nvim-tree.view")
 _G.NvimTreeConfig = {}
-
-vim.g.nvim_tree_follow = 1
 
 vim.g.nvim_tree_icons = {
   default = "",
@@ -46,3 +45,19 @@ end
 nnoremap("<leader>k", "<CMD>lua NvimTreeConfig.find_toggle()<CR>")
 
 view.width = 40
+
+nvimtree.setup {
+  disable_netrw = true,
+  hijack_netrw = true,
+  auto_close = false,
+  lsp_diagnostics = true,
+  update_focused_file = {
+    enable = true,
+    update_cwd = false
+  },
+  view = {
+    width = 40,
+    side = "left",
+    auto_resize = true
+  }
+}
