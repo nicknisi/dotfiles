@@ -16,6 +16,7 @@ plugBegin("~/.config/nvim/plugged")
 
 -- easy commenting
 cmd [[Plug 'tpope/vim-commentary']]
+cmd [[Plug 'JoosepAlviste/nvim-ts-context-commentstring']]
 
 -- bracket mappings for moving between buffers, quickfix items, etc.
 cmd [[Plug 'tpope/vim-unimpaired']]

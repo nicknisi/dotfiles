@@ -4,6 +4,9 @@ require("nvim-treesitter.configs").setup {
     enable = true,
     use_languagetree = true
   },
+  context_commentstring = {
+    enable = true
+  },
   indent = {enable = true},
   rainbow = {
     enable = false,
