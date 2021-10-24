@@ -257,6 +257,9 @@ local function setup_servers()
       config.init_options = {isNeovim = true}
     elseif server == "diagnosticls" then
       config = diagnosticls_settings
+    elseif server == "tsserver" then
+      local capabilities = config.capabilities
+      config.capabiltiies = require("cmp_nvim_lsp").update_capabilities(capabilities)
     end
 
     nvim_lsp[server].setup(config)
@@ -265,7 +268,7 @@ end
 
 -- install these servers by default
 local function install_servers()
-  local required_servers = {"lua", "typescript", "bash"}
+  local required_servers = {"lua", "typescript", "bash", "diagnosticls"}
   local installed_servers = lspinstall.installed_servers()
   for _, server in pairs(required_servers) do
     if not vim.tbl_contains(installed_servers, server) then
