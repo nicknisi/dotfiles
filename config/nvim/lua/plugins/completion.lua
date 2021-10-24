@@ -21,9 +21,9 @@ cmp.setup(
     },
     sources = cmp.config.sources(
       {
+        -- {name = "ultisnips"},
         {name = "nvim_lua"},
         {name = "nvim_lsp"},
-        {name = "ultisnips"},
         {name = "buffer", keyword_length = 5, max_item_count = 5},
         {name = "path"}
       }
@@ -32,12 +32,14 @@ cmp.setup(
       format = lspkind.cmp_format {
         with_text = true,
         menu = {
-          buffer = "[buf]",
-          nvim_lua = "[api]",
-          nvim_lsp = "[LSP]",
-          path = "[path]",
-          utilsnips = "[snip]"
-          -- gh_issues = '[issues]',
+          nvim_lsp = "ﲳ",
+          nvim_lua = "",
+          path = "ﱮ",
+          buffer = "﬘"
+          -- ultisnips = ""
+          -- treesitter = "",
+          -- zsh = "",
+          -- spell = "暈"
         }
       }
     },
@@ -47,9 +49,3 @@ cmp.setup(
     }
   }
 )
-
--- local capabilities = require("cmp_nvim_lsp").update_capabilities(vim.lsp.protocol.make_client_capabilities())
-
--- require("lspconfig")["tsserver"].setup {
---   capabilities = capabilities
--- }
