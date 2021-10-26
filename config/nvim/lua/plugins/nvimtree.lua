@@ -38,7 +38,7 @@ function NvimTreeConfig.find_toggle()
   if view.win_open() then
     view.close()
   else
-    vim.cmd("NvimTreeFindFile")
+    vim.cmd("NvimTreeToggle")
   end
 end
 
