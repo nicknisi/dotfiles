@@ -99,11 +99,16 @@ g.vim_json_syntax_conceal = 0
 cmd [[Plug 'ekalinin/Dockerfile.vim']]
 cmd [[Plug 'jparise/vim-graphql']]
 
-cmd [[Plug 'hrsh7th/vim-vsnip']] -- TODO: set this plugin up
-cmd [[Plug 'sirVer/ultisnips']]
-g.UltiSnipsExpandTrigger = "<tab>"
-g.UltiSnipsJumpForwardTrigger = "<C-j>"
-g.UltiSnipsJumpBackwardTrigger = "<C-k>"
+cmd [[Plug 'hrsh7th/cmp-vsnip']]
+cmd [[Plug 'hrsh7th/vim-vsnip']]
+cmd [[Plug 'hrsh7th/vim-vsnip-integ']]
+local snippet_dir = os.getenv("DOTFILES") .. "/config/nvim/snippets"
+g.vsnip_snippet_dir = snippet_dir
+g.vsnip_filetypes = {
+  javascriptreact = {"javascript"},
+  typescriptreact = {"typescript"},
+  ["typescript.tsx"] = {"typescript"}
+}
 
 -- Lua plugins
 cmd [[Plug 'norcalli/nvim-colorizer.lua']]
@@ -117,7 +122,6 @@ cmd [[Plug 'hrsh7th/cmp-nvim-lsp']]
 cmd [[Plug 'hrsh7th/cmp-nvim-lua']]
 cmd [[Plug 'hrsh7th/cmp-buffer']]
 cmd [[Plug 'hrsh7th/cmp-path']]
-cmd [[Plug 'quangnguyen30192/cmp-nvim-ultisnips']]
 cmd [[Plug 'hrsh7th/nvim-cmp']]
 cmd [[Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}]]
 cmd [[Plug 'nvim-treesitter/playground']]

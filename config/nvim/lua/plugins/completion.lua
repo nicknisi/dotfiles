@@ -7,7 +7,7 @@ cmp.setup(
   {
     snippet = {
       expand = function(args)
-        vim.fn["UltiSnips#Anon"](args.body)
+        vim.fn["vsnip#anonymous"](args.body)
       end
     },
     mapping = {
@@ -21,7 +21,7 @@ cmp.setup(
     },
     sources = cmp.config.sources(
       {
-        -- {name = "ultisnips"},
+        {name = "vsnip"},
         {name = "nvim_lua"},
         {name = "nvim_lsp"},
         {name = "buffer", keyword_length = 5, max_item_count = 5},
@@ -35,8 +35,8 @@ cmp.setup(
           nvim_lsp = "ﲳ",
           nvim_lua = "",
           path = "ﱮ",
-          buffer = "﬘"
-          -- ultisnips = ""
+          buffer = "﬘",
+          vsnip = ""
           -- treesitter = "",
           -- zsh = "",
           -- spell = "暈"
