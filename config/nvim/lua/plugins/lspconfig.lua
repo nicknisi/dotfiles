@@ -286,7 +286,7 @@ lspinstall.post_install_hook = function()
 end
 
 -- set up custom symbols for LSP errors
-local signs = {Error = " ", Warning = " ", Hint = " ", Information = " "}
+local signs = {Error = " ", Warning = " ", Warn = " ", Hint = " ", Information = " "}
 for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, {text = icon, texthl = hl})
