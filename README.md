@@ -4,7 +4,7 @@ Welcome to my world. This is a collection of vim, tmux, and zsh configurations. 
 
 Obviously this setup works for me, a JavaScript developer on macOS, but this particular setup may not work for you. If this particular setup doesn't work for you, please steal ideas from this and if you like, contribute back tips, tricks, and other tidbits via Pull Requests if you like!
 
-![S screenshot of the dotfiles setup](https://user-images.githubusercontent.com/293805/115963492-25963880-a4e5-11eb-84a6-f512f70de21c.png)
+![capture-20211031213544](https://user-images.githubusercontent.com/293805/139613826-6ed20af0-9bdf-41ac-a5f4-aaf68ac450a0.png)
 
 ## Initial Setup and Installation
 
