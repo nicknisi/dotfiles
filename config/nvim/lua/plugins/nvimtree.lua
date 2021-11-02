@@ -47,7 +47,7 @@ nnoremap("<leader>k", "<CMD>lua NvimTreeConfig.find_toggle()<CR>")
 view.width = 40
 
 nvimtree.setup {
-  disable_netrw = true,
+  disable_netrw = false,
   hijack_netrw = true,
   auto_close = false,
   diagnostics = {
