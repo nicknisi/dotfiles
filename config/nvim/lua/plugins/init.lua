@@ -134,6 +134,7 @@ cmd [[Plug 'windwp/nvim-autopairs']]
 cmd [[Plug 'mhartington/formatter.nvim']]
 cmd [[Plug 'alvarosevilla95/luatab.nvim']]
 cmd [[Plug 'SmiteshP/nvim-gps']]
+cmd [[Plug 'github/copilot.vim']]
 
 -- fzf
 cmd [[Plug $HOMEBREW_PREFIX . '/opt/fzf']]
