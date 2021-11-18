@@ -1,8 +1,5 @@
 FROM ubuntu
 
-# Update the apt repository
-RUN apt update
-
 # Install dependencies
 RUN apt-get update
 RUN apt-get install -y build-essential file zsh git sudo ruby curl vim language-pack-en
