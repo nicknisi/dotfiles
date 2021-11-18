@@ -3,97 +3,49 @@ if OS.mac?
     tap "homebrew/cask"
     tap "homebrew/cask-fonts"
 
-    brew "mas"
-    brew "noti"
-    brew "trash"
+    brew "noti" # utility to display notifications from scripts
+    brew "trash" # rm, but put in the trash rather than completely delete
 
     # Applications
-    cask "kitty"
-    cask "imageoptim"
-    cask "notion"
-    cask "hazel"
-    cask "anybar"
-    cask "istat-menus"
-    cask "textbar"
-    cask "rocket"
-    cask "cleanshot"
-    cask "vmware-fusion"
-    cask "timing"
-    cask "choosy"
-    cask "soundsource"
-    cask "farrago"
-    cask "loopback"
-    cask "audio-hijack"
-    cask "paw"
-    cask "postman"
-
-    # Browsers
-    cask "firefox"
+    cask "kitty" # a better terminal emulator
+    cask "imageoptim" # a tool to optimize images
 
     # Fonts
     cask "font-fira-code"
     cask "font-jetbrains-mono"
     cask "font-cascadia-mono"
     cask "font-3270-nerd-font"
-
-    # macOS App Store
-    mas "Affinity Photo", id: 824183456
-    mas "Affinity Designer", id: 824171161
-    mas "FruitJuice", id: 671736912
-    mas "Drafts", id: 1435957248
-    mas "Airmail", id: 918858936
-    mas "Logic Pro X", id: 634148309
-    mas "Fantastical", id: 975937182
-    mas "Xcode", id: 497799835
-    mas "Reeder", id: 1449412482
-    mas "Final Cut Pro", id: 424389933
-    mas "Deliveries", id: 924726344
-    mas "Shush", id: 496437906
-    mas "Pixelmator Pro", id: 1289583905
-    mas "Magnet", id: 441258766
-    mas "Octotree Pro", id: 1457450145
-    mas "Coca", id: 1000808993
-    mas "MindNode", id: 1289197285
-    mas "ColorSlurp", id: 1287239339
-    mas "Bear", id: 1091189122
-    mas "1Blocker", id: 1107421413
 elsif OS.linux?
-    brew "xclip"
+    brew "xclip" # access to clipboard (similar to pbcopy/pbpaste)
 end
 
 tap "homebrew/bundle"
 tap "homebrew/core"
-tap "schniz/tap"
 
 # packages
-brew "ack"
-brew "bat"
-brew "cloc"
-brew "git-delta"
-brew "entr"
-brew "exa"
-brew "fd"
-brew "fzf"
-brew "gh"
-brew "git"
-brew "gnupg"
-brew "grep"
-brew "highlight"
-brew "htop"
-brew "jq"
-brew "lazydocker"
-brew "lazygit"
-brew "markdown"
-brew "neofetch"
-brew "neovim"
-brew "python"
-brew "ripgrep"
-brew "schniz/tap/fnm"
-brew "shellcheck"
-brew "tmux"
-brew "tree"
-brew "vim"
-brew "wdiff"
-brew "wget"
-brew "z"
-brew "zsh"
+brew "bat" # better cat
+brew "cloc" # lines of code counter
+brew "git-delta" # a better git diff
+brew "entr" # file watcher / command runner
+brew "fd" # find alternative
+brew "fzf" # Fuzzy file searcher, used in scripts and in vim
+brew "gh" # GitHub CLI
+brew "git" # Git version control (latest version)
+brew "gnupg" # GPG
+brew "grep" # grep (latest)
+brew "highlight" # code syntax highlighting
+brew "htop" # a top alternative
+brew "jq" # work with JSON files in shell scripts
+brew "neofetch" # pretty system info
+brew "neovim" # A better vim
+brew "python" # python (latst)
+brew "ripgrep" # very fast file searcher
+brew "fnm" # Fast Node version manager
+brew "shellcheck" # diagnostics for shell sripts
+brew "tmux" # terminal multiplexer
+brew "tree" # pretty-print directory contents
+brew "vim" # Vim (latest)
+brew "wdiff" # word differences in text files
+brew "wget" # internet file retriever
+brew "z" # switch between most used directories
+brew "zsh" # zsh (latest)
