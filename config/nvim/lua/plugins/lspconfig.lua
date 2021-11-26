@@ -116,43 +116,10 @@ end
 
 local diagnosticls_settings = {
   filetypes = {
-    "javascript",
-    "javascriptreact",
-    "javascript.jsx",
-    "typescript",
-    "typescriptreact",
-    "typescript.tsx",
-    "html",
-    "css",
     "sh"
   },
   init_options = {
     linters = {
-      eslint = {
-        sourceName = "eslint",
-        command = "eslint_d",
-        rootPatterns = {
-          ".git",
-          ".eslintrc",
-          ".eslintrc.json",
-          ".eslintrc.js",
-          ".eslintrc.yml",
-          ".eslintrc.yaml",
-          "package.json"
-        },
-        debounce = 100,
-        args = {"-f", "unix", "--stdin", "--stdin-filename", "%filepath", "--format", "json"},
-        securities = {["1"] = "warning", ["2"] = "error"},
-        parseJson = {
-          errorsRoot = "[0].messages",
-          line = "line",
-          column = "column",
-          endLine = "endLine",
-          endColumn = "endColumn",
-          security = "severity",
-          message = "${message} [${ruleId}]"
-        }
-      },
       shellcheck = {
         sourceName = "shellcheck",
         command = "shellcheck",
@@ -168,32 +135,8 @@ local diagnosticls_settings = {
         securities = {error = "error", warning = "warning", note = "info"}
       }
     },
-    formatters = {
-      prettier = {
-        command = "./node_modules/.bin/prettier",
-        args = {"--stdin-filepath", "%filepath"},
-        rootPatterns = {
-          ".git",
-          ".eslintrc.json",
-          ".eslintrc",
-          ".eslinrc.js",
-          "package.json",
-          ".prettierrc"
-        }
-      }
-    },
     filetypes = {
-      sh = "shellcheck",
-      javascript = "eslint",
-      javascriptreact = "eslint",
-      ["javascript.jsx"] = "eslint",
-      typescript = "eslint",
-      typescriptreact = "eslint",
-      ["typescript.tsx"] = "eslint"
-    },
-    formatFiletypes = {
-      javascript = "eslint_d",
-      typescript = "eslint_d"
+      sh = "shellcheck"
     }
   }
 }
@@ -266,7 +209,7 @@ lsp_installer.on_server_ready(
 )
 
 -- set up custom symbols for LSP errors
-local signs = {Error = " ", Warning = " ", Warn = " ", Hint = " ", Information = " "}
+local signs = {Error = " ", Warning = " ", Warn = " ", Hint = " ", Info = " "}
 for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, {text = icon, texthl = hl})
