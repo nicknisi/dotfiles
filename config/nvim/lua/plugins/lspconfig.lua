@@ -5,7 +5,7 @@ local cmd = vim.cmd
 local api = vim.api
 local fn = vim.fn
 local lsp = vim.lsp
-local lspinstall = require("lspinstall")
+local lsp_installer = require("nvim-lsp-installer")
 local nvim_lsp = require("lspconfig")
 local colors = require("colors")
 
@@ -237,53 +237,33 @@ local function make_config()
   }
 end
 
--- lsp-install
-local function setup_servers()
-  lspinstall.setup()
-
-  -- get all installed servers
-  local servers = lspinstall.installed_servers()
-
-  for _, server in pairs(servers) do
-    local config = make_config()
-
-    if server == "lua" then
-      config.settings = lua_settings
-      config.root_dir = function(fname)
+lsp_installer.on_server_ready(
+  function(server)
+    local opts = make_config()
+    if server.name == "lua" then
+      opts.settings = lua_settings
+      opts.root_dir = function(fname)
         local util = require("lspconfig/util")
         return util.find_git_ancestor(fname) or util.path.dirname(fname)
       end
-    elseif server == "vim" then
-      config.init_options = {isNeovim = true}
-    elseif server == "diagnosticls" then
-      config = diagnosticls_settings
-    elseif server == "tsserver" then
-      local capabilities = config.capabilities
-      config.capabiltiies = require("cmp_nvim_lsp").update_capabilities(capabilities)
+    elseif server.name == "vim" then
+      opts.init_options = {isNeovim = true}
+    elseif server.name == "diagnosticls" then
+      opts = diagnosticls_settings
+    elseif server.name == "tsserver" then
+      local capabilities = opts.capabilities
+      opts.capabiltiies = require("cmp_nvim_lsp").update_capabilities(capabilities)
+      opts.root_dir = nvim_lsp.util.root_pattern("package.json")
+    elseif server.name == "denols" then
+      opts.root_dir = nvim_lsp.util.root_pattern("deno.json")
+      opts.init_options = {
+        lint = true
+      }
     end
 
-    nvim_lsp[server].setup(config)
+    server:setup(opts)
   end
-end
-
--- install these servers by default
-local function install_servers()
-  local required_servers = {"lua", "typescript", "bash", "diagnosticls"}
-  local installed_servers = lspinstall.installed_servers()
-  for _, server in pairs(required_servers) do
-    if not vim.tbl_contains(installed_servers, server) then
-      lspinstall.install_server(server)
-    end
-  end
-end
-
-install_servers()
-setup_servers()
-
-lspinstall.post_install_hook = function()
-  setup_servers()
-  cmd [[bufdo e]]
-end
+)
 
 -- set up custom symbols for LSP errors
 local signs = {Error = " ", Warning = " ", Warn = " ", Hint = " ", Information = " "}
