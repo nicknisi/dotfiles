@@ -6,7 +6,7 @@
     "logc": {
         "description": "console log with colors",
         "prefix": "logc",
-        "body": "console.log('%c$0', 'font-weight:bold;color:${1:green}');"
+        "body": "console.log('%c$1', 'font-weight:bold;color:${2:green}');"
     },
     "describe": {
         "prefix": "des",
