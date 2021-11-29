@@ -214,3 +214,11 @@ for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, {text = icon, texthl = hl})
 end
+
+-- Set colors for completion items
+cmd [[highlight! CmpItemAbbrMatch guibg=NONE guifg=#569CD6]]
+cmd [[highlight! CmpItemAbbrMatchFuzzy guibg=NONE guifg=#569CD6]]
+cmd [[highlight! CmpItemKindFunction guibg=NONE guifg=#C586C0]]
+cmd [[highlight! CmpItemKindMethod guibg=NONE guifg=#C586C0]]
+cmd [[highlight! CmpItemKindVariable guibg=NONE guifg=#9CDCFE]]
+cmd [[highlight! CmpItemKindKeyword guibg=NONE guifg=#D4D4D4]]
