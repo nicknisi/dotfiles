@@ -1,36 +1,37 @@
 local nvimtree = require("nvim-tree")
 local nnoremap = require("utils").nnoremap
+local icons = require("theme").icons
 
 local view = require("nvim-tree.view")
 _G.NvimTreeConfig = {}
 
 vim.g.nvim_tree_icons = {
-  default = "",
-  symlink = "",
+  default = icons.file,
+  symlink = icons.symlink,
   git = {
-    unstaged = "●",
-    staged = "✓",
-    unmerged = "",
-    renamed = "➜",
-    untracked = "★",
-    deleted = "",
-    ignored = "◌"
+    unstaged = icons.unmerged,
+    staged = icons.staged,
+    unmerged = icons.unmerged,
+    renamed = icons.renamed,
+    untracked = icons.untracked,
+    deleted = icons.deleted,
+    ignored = icons.ignored
   },
   folder = {
-    arrow_open = "",
-    arrow_closed = "",
-    default = "",
-    open = "",
-    empty = "",
-    empty_open = "",
-    symlink = "",
-    symlink_open = ""
+    arrow_open = icons.arrow_open,
+    arrow_closed = icons.arrow_closed,
+    default = icons.default,
+    open = icons.open,
+    empty = icons.empty,
+    empty_open = icons.empty_open,
+    symlink = icons.symlink,
+    symlink_open = icons.symlink_open
   },
   lsp = {
-    hint = "",
-    info = "",
-    warning = "",
-    error = ""
+    hint = icons.hint,
+    info = icons.info,
+    warning = icons.warning,
+    error = icons.error
   }
 }
 
@@ -51,7 +52,7 @@ nvimtree.setup {
   hijack_netrw = true,
   auto_close = false,
   diagnostics = {
-    enable = true
+    enable = false
   },
   update_focused_file = {
     enable = true,

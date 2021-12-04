@@ -18,7 +18,7 @@ local omap = utils.omap
 local nnoremap = utils.nnoremap
 local inoremap = utils.inoremap
 local vnoremap = utils.vnoremap
-local colors = require("colors")
+local colors = require("theme").colors
 
 -- create a completion_nvim table on _G which is visible via
 -- v:lua from vimscript

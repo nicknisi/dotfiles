@@ -7,7 +7,9 @@ local fn = vim.fn
 local lsp = vim.lsp
 local lsp_installer = require("nvim-lsp-installer")
 local nvim_lsp = require("lspconfig")
-local colors = require("colors")
+local theme = require("theme")
+local colors = theme.colors
+local icons = theme.icons
 
 cmd("autocmd ColorScheme * highlight NormalFloat guibg=" .. colors.bg)
 cmd("autocmd ColorScheme * highlight FloatBorder guifg=white guibg=" .. colors.bg)
@@ -209,16 +211,16 @@ lsp_installer.on_server_ready(
 )
 
 -- set up custom symbols for LSP errors
-local signs = {Error = " ", Warning = " ", Warn = " ", Hint = " ", Info = " "}
+local signs = {Error = icons.error, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint}
 for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, {text = icon, texthl = hl})
 end
 
 -- Set colors for completion items
-cmd [[highlight! CmpItemAbbrMatch guibg=NONE guifg=#569CD6]]
-cmd [[highlight! CmpItemAbbrMatchFuzzy guibg=NONE guifg=#569CD6]]
-cmd [[highlight! CmpItemKindFunction guibg=NONE guifg=#C586C0]]
-cmd [[highlight! CmpItemKindMethod guibg=NONE guifg=#C586C0]]
-cmd [[highlight! CmpItemKindVariable guibg=NONE guifg=#9CDCFE]]
-cmd [[highlight! CmpItemKindKeyword guibg=NONE guifg=#D4D4D4]]
+cmd("highlight! CmpItemAbbrMatch guibg=NONE guifg=" .. colors.lightblue)
+cmd("highlight! CmpItemAbbrMatchFuzzy guibg=NONE guifg=" .. colors.lightblue)
+cmd("highlight! CmpItemKindFunction guibg=NONE guifg=" .. colors.magenta)
+cmd("highlight! CmpItemKindMethod guibg=NONE guifg=" .. colors.magenta)
+cmd("highlight! CmpItemKindVariable guibg=NONE guifg=" .. colors.blue)
+cmd("highlight! CmpItemKindKeyword guibg=NONE guifg=" .. colors.fg)
