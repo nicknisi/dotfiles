@@ -135,6 +135,7 @@ cmd [[Plug 'mhartington/formatter.nvim']]
 cmd [[Plug 'alvarosevilla95/luatab.nvim']]
 cmd [[Plug 'SmiteshP/nvim-gps']]
 cmd [[Plug 'github/copilot.vim']]
+cmd [[Plug 'nvim-telescope/telescope.nvim']]
 
 -- fzf
 cmd [[Plug $HOMEBREW_PREFIX . '/opt/fzf']]
@@ -146,6 +147,7 @@ plugEnd()
 
 require("nvim-autopairs").setup()
 require("colorizer").setup()
+require("plugins.telescope")
 require("plugins.gitsigns")
 require("plugins.trouble")
 require("plugins.fzf")
