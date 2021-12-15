@@ -136,6 +136,7 @@ cmd [[Plug 'alvarosevilla95/luatab.nvim']]
 cmd [[Plug 'SmiteshP/nvim-gps']]
 cmd [[Plug 'github/copilot.vim']]
 cmd [[Plug 'nvim-telescope/telescope.nvim']]
+cmd [[Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }]]
 
 -- fzf
 cmd [[Plug $HOMEBREW_PREFIX . '/opt/fzf']]
