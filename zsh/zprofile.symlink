@@ -7,12 +7,8 @@ if [[ -f /opt/homebrew/bin/brew ]]; then
 elif [[ -f /usr/local/bin/brew ]]; then
     # or at /usr/local for intel macos
     eval $(/usr/local/bin/brew shellenv)
-elif [[ -f /home/linuxbrew/.linuxbrew ]]; then
-    # TODO: Can this just call brew shellenv too?
-    export HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew";
-    export HOMEBREW_CELLAR="$HOMEBREW_PREFIX/Cellar";
-    export HOMEBREW_REPOSITORY="$HOMEBREW_PREFIX/Homebrew";
-    export MANPATH="$HOMEBREW_PREFIX/share/man${MANPATH+:$MANPATH}:";
-    export INFOPATH="$HOMEBREW_PREFIX/share/info:${INFOPATH}";
-    export PATH="$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin${PATH+:$PATH}";
+elif [[ -d /home/linuxbrew/.linuxbrew ]]; then
+    # or from linuxbrew
+    test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
+    test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
