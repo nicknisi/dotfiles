@@ -39,6 +39,9 @@ cmd [[Plug 'tpope/vim-sleuth']]
 -- Startify: Fancy startup screen for vim {{{
 cmd "Plug 'mhinz/vim-startify'"
 
+-- setup editorconfig
+cmd [[Plug 'editorconfig/editorconfig-vim']]
+
 -- fugitive
 cmd [[Plug 'tpope/vim-fugitive']]
 cmd [[Plug 'tpope/vim-rhubarb']]
