@@ -98,6 +98,7 @@ o.termguicolors = true
 opt.number = true -- show line numbers
 opt.wrap = true -- turn on line wrapping
 opt.wrapmargin = 8 -- wrap lines when coming within n characters from side
+opt.relativenumber = true -- show line numbers relative to cursor
 opt.linebreak = true -- set soft wrapping
 opt.showbreak = "↪"
 opt.autoindent = true -- automatically set indent of new line
@@ -108,7 +109,7 @@ table.insert(opt.diffopt, "internal")
 table.insert(opt.diffopt, "algorithm:patience")
 table.insert(opt.diffopt, "hiddenoff")
 opt.laststatus = 2 -- show the status line all the time
-opt.scrolloff = 7 -- set 7 lines to the cursors - when moving vertical
+opt.scrolloff = 50 -- set 7 lines to the cursors - when moving vertical
 opt.wildmenu = true -- enhanced command line completion
 opt.hidden = true -- current buffer can be put into background
 opt.showcmd = true -- show incomplete commands
@@ -205,6 +206,7 @@ vnoremap([[$\]], "<esc>`>o*/<esc>`<O/*<esc>")
 vnoremap([[$<]], "<esc>`>a><esc>`<i<<esc>")
 
 nmap("<leader>i", ":set cursorline!")
+
 
 -- scroll the viewport faster
 nnoremap("<C-e>", "3<c-e>")

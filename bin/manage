@@ -7,8 +7,8 @@ case "$1" in
         docker run -v "$DOTFILES":/home/user/code/dotfiles -it --rm dotfiles
     ;;
     build)
-        priv_key=$(cat ~/.ssh/id_rsa)
-        pub_key=$(cat ~/.ssh/id_rsa.pub)
+        priv_key=$(cat ~/.ssh/id_ed25519)
+        pub_key=$(cat ~/.ssh/id_ed25519.pub)
         docker build -t dotfiles \
             --force-rm \
             --build-arg PRIVATE_KEY="$priv_key" \
