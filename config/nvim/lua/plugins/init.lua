@@ -138,6 +138,7 @@ cmd [[Plug 'mhartington/formatter.nvim']]
 cmd [[Plug 'alvarosevilla95/luatab.nvim']]
 cmd [[Plug 'SmiteshP/nvim-gps']]
 cmd [[Plug 'github/copilot.vim']]
+cmd [[Plug 'stevearc/dressing.nvim']]
 cmd [[Plug 'nvim-telescope/telescope.nvim']]
 cmd [[Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }]]
 
