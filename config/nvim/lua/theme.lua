@@ -30,12 +30,13 @@ local icons = {
   macos = " ",
   windows = " ",
   -- diagnostic icons
-  error = " ",
-  warning = " ",
-  info = " ",
-  hint = " ",
+  error = "",
+  warning = "",
+  info = "",
+  hint = "",
+  -- hint = "",
   -- lsp = " ",
-  lsp = " ",
+  lsp = "",
   line = "☰",
   -- git icons
   git = "",
@@ -47,6 +48,9 @@ local icons = {
   untracked = "★",
   deleted = "",
   ignored = "◌",
+  modified = "",
+  deleted = "",
+  added = "",
   -- file icons
   arrow_open = "",
   arrow_closed = "",
@@ -57,7 +61,13 @@ local icons = {
   symlink = "",
   symlink_open = "",
   file = "",
-  symlink = ""
+  symlink = "",
+  file_readonly = "",
+  file_modified = "",
+  -- misc
+  devil = "",
+  bsd = "",
+  ghost = ""
 }
 
 return {

@@ -132,7 +132,7 @@ cmd [[Plug 'nvim-treesitter/nvim-treesitter-textobjects']]
 cmd [[Plug 'p00f/nvim-ts-rainbow']]
 cmd [[Plug 'onsails/lspkind-nvim']]
 cmd [[Plug 'RRethy/nvim-base16']]
-cmd [[Plug 'glepnir/galaxyline.nvim' , {'branch': 'main'}]]
+cmd [[Plug 'feline-nvim/feline.nvim']]
 cmd [[Plug 'windwp/nvim-autopairs']]
 cmd [[Plug 'mhartington/formatter.nvim']]
 cmd [[Plug 'alvarosevilla95/luatab.nvim']]
@@ -160,7 +160,7 @@ require("plugins.lspconfig")
 require("plugins.completion")
 require("plugins.treesitter")
 require("plugins.nvimtree")
-require("plugins.galaxyline")
 require("plugins.formatter")
 require("plugins.tabline")
 require("plugins.startify")
+require("plugins.feline")
