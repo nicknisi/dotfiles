@@ -4,7 +4,7 @@ Welcome to my world. This is a collection of vim, tmux, and zsh configurations. 
 
 Obviously this setup works for me, a JavaScript developer on macOS, but this particular setup may not work for you. If this particular setup doesn't work for you, please steal ideas from this and if you like, contribute back tips, tricks, and other tidbits via Pull Requests if you like!
 
-![capture-20211031213544](https://user-images.githubusercontent.com/293805/139613826-6ed20af0-9bdf-41ac-a5f4-aaf68ac450a0.png)
+![capture-20220105092039](https://user-images.githubusercontent.com/293805/148242417-07630ec0-4468-4be4-8644-de319a1b279a.png)
 
 ## Initial Setup and Installation
 
