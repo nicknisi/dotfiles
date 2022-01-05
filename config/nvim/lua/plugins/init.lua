@@ -36,9 +36,6 @@ cmd [[Plug 'AndrewRadev/splitjoin.vim']]
 -- detect indent style (tabs vs. spaces)
 cmd [[Plug 'tpope/vim-sleuth']]
 
--- Startify: Fancy startup screen for vim {{{
-cmd "Plug 'mhinz/vim-startify'"
-
 -- setup editorconfig
 cmd [[Plug 'editorconfig/editorconfig-vim']]
 
@@ -141,6 +138,7 @@ cmd [[Plug 'github/copilot.vim']]
 cmd [[Plug 'stevearc/dressing.nvim']]
 cmd [[Plug 'nvim-telescope/telescope.nvim']]
 cmd [[Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }]]
+cmd [[Plug 'startup-nvim/startup.nvim']]
 
 -- fzf
 cmd [[Plug $HOMEBREW_PREFIX . '/opt/fzf']]
@@ -162,5 +160,5 @@ require("plugins.treesitter")
 require("plugins.nvimtree")
 require("plugins.formatter")
 require("plugins.tabline")
-require("plugins.startify")
 require("plugins.feline")
+require("plugins.startup")
