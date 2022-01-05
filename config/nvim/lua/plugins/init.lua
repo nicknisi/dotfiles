@@ -14,6 +14,9 @@ plugBegin("~/.config/nvim/plugged")
 
 -- NOTE: the argument passed to Plug has to be wrapped with single-quotes
 
+-- a set of lua helpers that are used by other plugins
+cmd [[Plug 'nvim-lua/plenary.nvim']]
+
 -- easy commenting
 cmd [[Plug 'tpope/vim-commentary']]
 cmd [[Plug 'JoosepAlviste/nvim-ts-context-commentstring']]
@@ -110,34 +113,70 @@ g.vsnip_filetypes = {
   ["typescript.tsx"] = {"typescript"}
 }
 
--- Lua plugins
+-- add color highlighting to hex values
 cmd [[Plug 'norcalli/nvim-colorizer.lua']]
+
+-- use devicons for filetypes
 cmd [[Plug 'kyazdani42/nvim-web-devicons']]
-cmd [[Plug 'nvim-lua/plenary.nvim']]
+
+-- fast lau file drawer
 cmd [[Plug 'kyazdani42/nvim-tree.lua']]
+
+-- Show git information in the gutter
 cmd [[Plug 'lewis6991/gitsigns.nvim']]
+
+-- Helpers to configure the built-in Neovim LSP client
 cmd [[Plug 'neovim/nvim-lspconfig']]
+
+-- Helpers to install LSPs and maintain them
 cmd [[Plug 'williamboman/nvim-lsp-installer']]
+
+-- neovim completion
 cmd [[Plug 'hrsh7th/cmp-nvim-lsp']]
 cmd [[Plug 'hrsh7th/cmp-nvim-lua']]
 cmd [[Plug 'hrsh7th/cmp-buffer']]
 cmd [[Plug 'hrsh7th/cmp-path']]
 cmd [[Plug 'hrsh7th/nvim-cmp']]
+
+-- treesitter enables an AST-like understanding of files
 cmd [[Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}]]
+-- show treesitter nodes
 cmd [[Plug 'nvim-treesitter/playground']]
+-- enable more advanced treesitter-aware text objects
 cmd [[Plug 'nvim-treesitter/nvim-treesitter-textobjects']]
+-- add rainbow highlighting to parens and brackets
 cmd [[Plug 'p00f/nvim-ts-rainbow']]
+
+-- show nerd font icons for LSP types in completion menu
 cmd [[Plug 'onsails/lspkind-nvim']]
+
+-- base16 syntax themes that are neovim/treesitter-aware
 cmd [[Plug 'RRethy/nvim-base16']]
+
+-- status line plugin
 cmd [[Plug 'feline-nvim/feline.nvim']]
+
+-- automatically complete brackets/parens/quotes
 cmd [[Plug 'windwp/nvim-autopairs']]
+
+-- Run prettier and other formatters on save
 cmd [[Plug 'mhartington/formatter.nvim']]
+
+-- Style the tabline without taking over how tabs and buffers work in Neovim
 cmd [[Plug 'alvarosevilla95/luatab.nvim']]
-cmd [[Plug 'SmiteshP/nvim-gps']]
+
+-- enable copilot support for Neovim
 cmd [[Plug 'github/copilot.vim']]
+
+-- improve the default neovim interfaces, such as refactoring
 cmd [[Plug 'stevearc/dressing.nvim']]
+
+-- Navigate a code base with a really slick UI
 cmd [[Plug 'nvim-telescope/telescope.nvim']]
+-- Power telescope with FZF
 cmd [[Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }]]
+
+-- Startup screen for Neovim
 cmd [[Plug 'startup-nvim/startup.nvim']]
 
 -- fzf
@@ -148,6 +187,9 @@ cmd [[Plug 'folke/trouble.nvim']]
 
 plugEnd()
 
+-- Once the plugins have been loaded, Lua-based plugins need to be required and started up
+-- For plugins with their own configuration file, that file is loaded and is responsible for
+-- starting them. Otherwise, the plugin itself is required and its `setup` method is called.
 require("nvim-autopairs").setup()
 require("colorizer").setup()
 require("plugins.telescope")
