@@ -53,7 +53,7 @@ end
 
 -- show diagnostic line with custom border and styling
 _G.lsp_show_diagnostics = function()
-  vim.lsp.diagnostic.show_line_diagnostics({border = border})
+  vim.diagnostic.open_float({border = border})
 end
 
 local on_attach = function(client, bufnr)
