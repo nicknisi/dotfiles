@@ -265,7 +265,10 @@ table.insert(components.active[3], comps.vi_mode.right)
 
 require("feline").setup(
   {
-    colors = {bg = colors.bg, fg = colors.fg},
+    theme = {
+      bg = colors.bg,
+      fg = colors.fg
+    },
     components = components,
     vi_mode_colors = vi_mode_colors,
     force_inactive = {
