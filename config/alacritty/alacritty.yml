@@ -8,8 +8,8 @@
 window:
   # window padding (change requires restart)
   padding:
-    x: 0
-    y: 0
+    x: 2
+    y: 2
   # spread additional padding evenly around the terminal content
   dynamic_padding: true
   # window decoarations
@@ -34,15 +34,15 @@ scrolling:
 # Font settings
 font:
   normal:
-    family: MonoLisa
+    family: SauceCodePro NF
     # family: 3270Medium Nerd Font
     style: Medium
   bold:
-    family: MonoLisa
+    family: SauceCodePro NF
     style: Bold
 
   italic:
-    family: MonoLisa
+    family: SauceCodePro NF
     style: Bold Italic
   # point size
   size: 12.0
