@@ -176,8 +176,6 @@ cmd [[Plug 'stevearc/dressing.nvim']]
 
 -- Navigate a code base with a really slick UI
 cmd [[Plug 'nvim-telescope/telescope.nvim']]
--- Power telescope with FZF
-cmd [[Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }]]
 
 -- Startup screen for Neovim
 cmd [[Plug 'startup-nvim/startup.nvim']]
@@ -185,6 +183,8 @@ cmd [[Plug 'startup-nvim/startup.nvim']]
 -- fzf
 cmd [[Plug $HOMEBREW_PREFIX . '/opt/fzf']]
 cmd [[Plug 'junegunn/fzf.vim']]
+-- Power telescope with FZF
+cmd [[Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'make' }]]
 
 cmd [[Plug 'folke/trouble.nvim']]
 
