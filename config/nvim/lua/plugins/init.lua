@@ -30,6 +30,9 @@ cmd [[Plug 'tpope/vim-surround']]
 -- endings for html, xml, etc. - ehances surround
 cmd [[Plug 'tpope/vim-ragtag']]
 
+-- substitution and abbreviation helpers
+cmd [[Plug 'tpope/vim-abolish']]
+
 -- enables repeating other supported plugins with the . command
 cmd [[Plug 'tpope/vim-repeat']]
 
