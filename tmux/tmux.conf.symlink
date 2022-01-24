@@ -42,7 +42,8 @@ setw -g pane-base-index 1
 
 set-option -g set-titles on
 set-option -g set-titles-string "#T - #W"
-# set-window-option -g automatic-rename on
+set-window-option -g automatic-rename on
+set-option -g automatic-rename-format ""
 
 ######################
 #### Key Bindings ####
