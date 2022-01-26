@@ -23,6 +23,9 @@ test:*.{spec,test}.{ts,tsx,js,jsx}
 tsx:*.tsx
 
 --type-add
+stories:**/*.stories.{ts,tsx,js,jsx}
+
+--type-add
 jsx:*.jsx
 
 --type-add
