@@ -83,6 +83,7 @@ telescope.load_extension("fzf")
 
 -- mappings
 nnoremap("<leader>ff", "<cmd>Telescope find_files<cr>")
+nnoremap("<leader>fo", "<cmd>Telescope oldfiles<cr>")
 nnoremap("<leader>fn", "<cmd>Telescope node_modules list<cr>")
 nnoremap("<leader>fg", "<cmd>Telescope live_grep<cr>")
 nnoremap("<leader>fb", "<cmd>Telescope buffers<cr>")
