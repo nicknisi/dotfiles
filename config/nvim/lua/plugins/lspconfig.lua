@@ -199,6 +199,15 @@ lsp_installer.on_server_ready(
       local capabilities = opts.capabilities
       opts.capabiltiies = require("cmp_nvim_lsp").update_capabilities(capabilities)
       opts.root_dir = nvim_lsp.util.root_pattern("package.json")
+      opts.handlers = {
+        ["textDocument/definition"] = function(err, result, ctx, config)
+          -- if there is more than one result, just use the first one
+          if #result > 1 then
+            result = {result[1]}
+          end
+          vim.lsp.handlers["textDocument/definition"](err, result, ctx, config)
+        end
+      }
     elseif server.name == "denols" then
       opts.root_dir = nvim_lsp.util.root_pattern("deno.json")
       opts.init_options = {
