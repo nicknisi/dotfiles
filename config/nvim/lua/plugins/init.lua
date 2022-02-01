@@ -90,9 +90,6 @@ cmd [[Plug 'cakebaker/scss-syntax.vim', { 'for': 'scss' }]]
 cmd [[Plug 'stephenway/postcss.vim', { 'for': 'css' }]]
 cmd [[Plug 'udalov/kotlin-vim']]
 
-cmd("Plug 'tpope/vim-markdown', { 'for': 'markdown' }")
-g.markdown_fenced_languages = {tsx = "typescript.tsx"}
-
 -- Open markdown files in Marked.app - mapped to <leader>m
 cmd [[Plug 'itspriddle/vim-marked', { 'for': 'markdown', 'on': 'MarkedOpen' }]]
 nmap("<leader>m", ":MarkedOpen!<cr>")
