@@ -40,22 +40,11 @@ startup.setup(
         {" Find File", "Telescope find_files", "<leader>ff"},
         {" Find File (FZF)", "GitFiles", "<leader>t"},
         {" Find Word", "Telescope live_grep", "<leader>fg"},
-        {" Recent Files", "Telescope oldfiles", "<leader>of"},
+        {" Recent Files", "Telescope oldfiles", "<leader>fo"},
         {" Open File Drawer", "lua NvimTreeConfig.find_toggle()", "<leader>k"},
         {" Open Git Index", ":Ge:", ":Ge:"}
       },
       highlight = "String"
-    },
-    files = {
-      type = "oldfiles",
-      oldfiles_directory = true,
-      align = "center",
-      fold_section = true,
-      title = "Recent Files",
-      margin = 2,
-      highlight = "Statement",
-      default_color = "",
-      oldfiles_amount = 5
     },
     footer = {
       type = "text",
@@ -88,7 +77,6 @@ startup.setup(
     parts = {
       "header",
       "body",
-      -- "files",
       "footer"
     }
   }
