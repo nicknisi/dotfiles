@@ -78,4 +78,4 @@ cursor:
 live_config_reload: true
 
 # set the backgeround opacity
-background_opacity: 0.97
+window_opacity: 0.97
