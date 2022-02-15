@@ -36,7 +36,7 @@ vim.g.nvim_tree_icons = {
 }
 
 function NvimTreeConfig.find_toggle()
-  if view.win_open() then
+  if view.is_visible() then
     view.close()
   else
     vim.cmd("NvimTreeToggle")
