@@ -130,13 +130,6 @@ fi
 # Setup
 ########################################################
 
-# If a local zshrc exists, source it
-[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
-
-if [[ -a ~/.localrc ]]; then
-    source ~/.localrc
-fi
-
 # add a config file for ripgrep
 export RIPGREP_CONFIG_PATH="$HOME/.rgrc"
 
@@ -224,3 +217,10 @@ alias nr="npm run"
 
 source "$DOTFILES/zsh/utils.zsh"
 source "$DOTFILES/zsh/prompt.zsh"
+
+# If a local zshrc exists, source it
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
+if [[ -a ~/.localrc ]]; then
+    source ~/.localrc
+fi
