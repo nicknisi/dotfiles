@@ -173,6 +173,7 @@ cmd [[Plug 'stevearc/dressing.nvim']]
 
 -- Navigate a code base with a really slick UI
 cmd [[Plug 'nvim-telescope/telescope.nvim']]
+cmd [[Plug 'nvim-telescope/telescope-rg.nvim']]
 
 -- Startup screen for Neovim
 cmd [[Plug 'startup-nvim/startup.nvim']]
