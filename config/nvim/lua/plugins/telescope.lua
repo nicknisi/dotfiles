@@ -21,7 +21,7 @@ telescope.setup(
         "rg",
         "--color=never",
         "--no-heading",
-        "--with-filenames",
+        "--with-filename",
         "--line-number",
         "--column",
         "--smart-case",
