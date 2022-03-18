@@ -68,7 +68,7 @@ cmd [[Plug 'mustache/vim-mustache-handlebars']]
 cmd [[Plug 'digitaltoad/vim-pug', { 'for': ['jade', 'pug'] }]]
 
 -- nunjucks support
-cmd [[Plug 'niftylettuce/vim-jinja']]
+-- cmd [[Plug 'niftylettuce/vim-jinja']]
 
 -- edit quickfix list
 cmd [[Plug 'itchyny/vim-qfedit']]
