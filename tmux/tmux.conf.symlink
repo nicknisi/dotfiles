@@ -98,4 +98,4 @@ if-shell '[[ $(uname -s) = Linux ]]' {
     bind C-v run 'tmux set-buffer "$(xclip -o -sel clipboard)"; tmux paste-buffer'
 }
 
-source-file "~/code/dotfiles/tmux/themes/catpuccin.conf"
+source-file "~/code/dotfiles/tmux/themes/bubbles.conf"
