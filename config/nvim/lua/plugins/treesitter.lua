@@ -1,5 +1,5 @@
 require("nvim-treesitter.configs").setup {
-  ensure_installed = "maintained",
+  ensure_installed = {"bash", "c", "cpp", "css", "html", "javascript", "lua", "python", "rust", "typescript", "vim"},
   highlight = {
     enable = true,
     use_languagetree = true
