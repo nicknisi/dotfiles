@@ -41,8 +41,6 @@ local lsp_get_diag = function(str)
   return (count > 0) and " " .. count .. " " or ""
 end
 
--- LuaFormatter off
-
 local comps = {
   vi_mode = {
     left = {
