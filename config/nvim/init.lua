@@ -238,7 +238,7 @@ nmap("gTT", ":tab sb<cr>")
 
 require("plugins")
 
-if fn.filereadable(fn.expand("~/.vimrc_background")) then
+if utils.file_exists(fn.expand("~/.vimrc_background")) then
   g.base16colorspace = 256
   cmd [[source ~/.vimrc_background]]
 end

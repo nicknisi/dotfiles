@@ -70,4 +70,11 @@ function utils.termcodes(str)
   return api.nvim_replace_termcodes(str, true, true, true)
 end
 
+
+function utils.file_exists(name)
+   local f = io.open(name, "r")
+   return f ~= nil and io.close(f)
+end
+
+
 return utils
