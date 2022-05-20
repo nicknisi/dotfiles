@@ -167,6 +167,11 @@ Plug "alvarosevilla95/luatab.nvim"
 
 -- enable copilot support for Neovim
 Plug "github/copilot.vim"
+-- if a copilot-aliased version of node exists from fnm, use that
+local copilot_node_path = env.FNM_DIR .. "/aliases/copilot/bin/node"
+if utils.file_exists(copilot_node_path) then
+  g.copilot_node_path = copilot_node_path
+end
 
 -- improve the default neovim interfaces, such as refactoring
 Plug "stevearc/dressing.nvim"
