@@ -148,6 +148,9 @@ opt.listchars = {
   precedes = "❮"
 }
 
+-- hide the ~ character on empty lines at the end of the buffer
+opt.fcs = "eob: "
+
 -- Mappings
 g.mapleader = ","
 opt.pastetoggle = "<leader>v"
