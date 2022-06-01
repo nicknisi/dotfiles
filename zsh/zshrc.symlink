@@ -117,7 +117,7 @@ typeset -A plugins
 zfetch mafredri/zsh-async async.plugin.zsh
 zfetch zsh-users/zsh-syntax-highlighting
 zfetch zsh-users/zsh-autosuggestions
-zfetch chriskempson/base16-shell
+# zfetch chriskempson/base16-shell
 zfetch Aloxaf/fzf-tab
 
 if [[ -x "$(command -v fnm)" ]]; then

@@ -241,12 +241,21 @@ nmap("gTT", ":tab sb<cr>")
 
 require("plugins")
 
-if utils.file_exists(fn.expand("~/.vimrc_background")) then
-  g.base16colorspace = 256
-  cmd [[source ~/.vimrc_background]]
-end
+-- if utils.file_exists(fn.expand("~/.vimrc_background")) then
+--   g.base16colorspace = 256
+--   cmd [[source ~/.vimrc_background]]
+-- end
 
 cmd [[syntax on]]
+-- cmd [[
+-- let g:onedark_config = {
+--     \ 'style': 'warmer',
+-- \}
+-- colorscheme onedark
+-- ]]
+-- cmd [[colorscheme onedark]]
+vim.g.catppuccin_flavour = "mocha"
+cmd [[colorscheme catppuccin]]
 cmd [[filetype plugin indent on]]
 -- make the highlighting of tabs and other non-text less annoying
 cmd [[highlight SpecialKey ctermfg=19 guifg=#333333]]
@@ -259,4 +268,3 @@ cmd [[highlight xmlAttrib cterm=italic term=italic gui=italic]]
 -- highlight Type cterm=italic term=italic gui=italic
 cmd [[highlight Normal ctermbg=none]]
 -- make the StatusLine background match the GalaxyLine styles
-cmd("hi StatusLine guibg=" .. colors.bg)

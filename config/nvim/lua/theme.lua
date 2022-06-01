@@ -30,7 +30,8 @@ local icons = {
   macos = " ",
   windows = " ",
   -- diagnostic icons
-  error = "",
+  -- error = "",
+  error = "",
   warning = "",
   info = "",
   hint = "",

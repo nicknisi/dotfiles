@@ -146,6 +146,12 @@ setup_homebrew() {
     "$(brew --prefix)"/opt/fzf/install --key-bindings --completion --no-update-rc --no-bash --no-fish
 }
 
+fetch_catppuccin_theme() {
+    for palette in frappe latte macchiato mocha; do
+        curl -o "$DOTFILES/config/kitty/themes/catppuccin-$palette.conf" "https://raw.githubusercontent.com/catppuccin/kitty/main/$palette.conf"
+    done
+}
+
 setup_shell() {
     title "Configuring shell"
 
@@ -249,6 +255,9 @@ case "$1" in
         ;;
     macos)
         setup_macos
+        ;;
+    catppuccin)
+        fetch_catppuccin_theme
         ;;
     all)
         setup_symlinks
