@@ -3,6 +3,7 @@ local fn = vim.fn
 local utils = require("utils")
 local nmap = utils.nmap
 local env = vim.env
+local cmd = vim.cmd
 
 local plugLoad = fn["functions#PlugLoad"]
 local plugBegin = fn["plug#begin"]
@@ -168,9 +169,11 @@ Plug "alvarosevilla95/luatab.nvim"
 -- enable copilot support for Neovim
 Plug "github/copilot.vim"
 -- if a copilot-aliased version of node exists from fnm, use that
-local copilot_node_path = env.FNM_DIR .. "/aliases/copilot/bin/node"
-if utils.file_exists(copilot_node_path) then
-  g.copilot_node_path = copilot_node_path
+local copilot_node_command = env.FNM_DIR .. "/aliases/copilot/bin/node"
+if utils.file_exists(copilot_node_command) then
+  -- vim.g.copilot_node_command = copilot_node_path
+  -- for some reason, this works but the above line does not
+  cmd('let g:copilot_node_command = "' .. copilot_node_command .. '"')
 end
 
 -- improve the default neovim interfaces, such as refactoring
