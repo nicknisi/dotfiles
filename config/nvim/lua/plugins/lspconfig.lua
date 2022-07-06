@@ -87,7 +87,7 @@ local on_attach = function(client, bufnr)
   nmap("<Leader>a", ":LspDiagLine<CR>", {bufnr = bufnr})
   imap("<C-x><C-x>", "<cmd> LspSignatureHelp<CR>", {bufnr = bufnr})
 
-  if client.resolved_capabilities.document_highlight then
+  if client.server_capabilities.document_highlight then
     api.nvim_exec(
       [[
     augroup lsp_document_highlight
@@ -101,9 +101,9 @@ local on_attach = function(client, bufnr)
   end
 
   -- disable document formatting (currently handled by formatter.nvim)
-  client.resolved_capabilities.document_formatting = false
+  client.server_capabilities.document_formatting = false
 
-  if client.resolved_capabilities.document_formatting then
+  if client.server_capabilities.document_formatting then
     api.nvim_exec(
       [[
         augroup LspAutocommands
@@ -223,7 +223,7 @@ lsp_installer.on_server_ready(
 local signs = {Error = icons.error, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint}
 for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
-  vim.fn.sign_define(hl, {text = icon, texthl = hl})
+  vim.fn.sign_define(hl, {text = icon, texthl = hl, numhl = hl})
 end
 
 -- Set colors for completion items
