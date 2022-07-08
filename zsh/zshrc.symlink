@@ -170,7 +170,11 @@ else # macOS `ls`
 fi
 
 # use nvim, but don't make me think about it
-[[ -n "$(command -v nvim)" ]] && alias vim="nvim"
+if [[ -n "$(command -v nvim)" ]]; then
+    alias vim="nvim"
+    alias vimu="nvim +PlugUpdate +PlugUpgrade"
+    alias vimg="nvim +Ge:"
+fi
 
 # Filesystem aliases
 alias ..='cd ..'
