@@ -1,11 +1,9 @@
-local utils = require("utils")
-local nmap = utils.nmap
-local imap = utils.imap
 local lsp_installer = require("nvim-lsp-installer")
 local lspconfig = require("lspconfig")
 local theme = require("theme")
 local colors = theme.colors
 local icons = theme.icons
+local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
 vim.cmd("autocmd ColorScheme * highlight NormalFloat guibg=" .. colors.bg)
 vim.cmd("autocmd ColorScheme * highlight FloatBorder guifg=white guibg=" .. colors.bg)
@@ -164,7 +162,10 @@ local lua_settings = {
   }
 }
 
-local function make_config()
+local function make_config(callback)
+  callback = callback or function(config)
+      return config
+    end
   local capabilities = vim.lsp.protocol.make_client_capabilities()
   capabilities.textDocument.completion.completionItem.snippetSupport = true
   capabilities.textDocument.completion.completionItem.resolveSupport = {
@@ -175,48 +176,92 @@ local function make_config()
     }
   }
   capabilities.textDocument.colorProvider = {dynamicRegistration = false}
+  capabilities = cmp_nvim_lsp.update_capabilities(capabilities)
 
-  return {
-    capabilities = capabilities,
-    on_attach = on_attach
-  }
+  return callback(
+    {
+      capabilities = capabilities,
+      on_attach = on_attach
+    }
+  )
 end
 
-lsp_installer.on_server_ready(
-  function(server)
-    local opts = make_config()
-    if server.name == "lua" then
-      opts.settings = lua_settings
-      opts.root_dir = function(fname)
-        local util = require("lspconfig/util")
-        return util.find_git_ancestor(fname) or util.path.dirname(fname)
-      end
-    elseif server.name == "vim" then
-      opts.init_options = {isNeovim = true}
-    elseif server.name == "diagnosticls" then
-      opts = diagnosticls_settings
-    elseif server.name == "tsserver" then
-      local capabilities = opts.capabilities
-      opts.capabiltiies = require("cmp_nvim_lsp").update_capabilities(capabilities)
-      opts.root_dir = lspconfig.util.root_pattern("package.json")
-      opts.handlers = {
-        ["textDocument/definition"] = function(err, result, ctx, config)
+lsp_installer.setup(
+  {
+    ensure_installed = {
+      "eslint",
+      "tsserver",
+      "sumneko_lua",
+      "denols",
+      "vimls"
+    },
+    automatic_installation = true,
+    ui = {
+      check_outdated_servers_on_open = true
+    }
+  }
+)
+
+lspconfig.tsserver.setup(
+  make_config(
+    function(config)
+      config.root_dir = lspconfig.util.root_pattern("tsconfig.json")
+      config.handlers = {
+        ["textDocument/definition"] = function(err, result, ctx, conf)
           -- if there is more than one result, just use the first one
           if #result > 1 then
             result = {result[1]}
           end
-          vim.lsp.handlers["textDocument/definition"](err, result, ctx, config)
+          vim.lsp.handlers["textDocument/definition"](err, result, ctx, conf)
         end
       }
-    elseif server.name == "denols" then
-      opts.root_dir = lspconfig.util.root_pattern("deno.json")
-      opts.init_options = {
+      return config
+    end
+  )
+)
+
+lspconfig.denols.setup(
+  make_config(
+    function(config)
+      config.root_dir = lspconfig.util.root_pattern("deno.json", "deno.jsonc")
+      config.init_options = {
         lint = true
       }
+      return config
     end
+  )
+)
 
-    server:setup(opts)
-  end
+lspconfig.sumneko_lua.setup(
+  make_config(
+    function(config)
+      config.settings = lua_settings
+      config.root_dir = function(fname)
+        local util = require("lspconfig/util")
+        return util.find_git_ancestor(fname) or util.path.dirname(fname)
+      end
+      config.root_dir = lspconfig.util.root_pattern("lua.json")
+      return config
+    end
+  )
+)
+
+lspconfig.vimls.setup(
+  make_config(
+    function(config)
+      config.init_options = {isNeovim = true}
+      return config
+    end
+  )
+)
+
+lspconfig.diagnosticls.setup(
+  make_config(
+    function(config)
+      config.settings = diagnosticls_settings
+      return config
+    end
+  )
 )
 
 -- set up custom symbols for LSP errors
