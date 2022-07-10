@@ -78,16 +78,28 @@ local on_attach = function(client, bufnr)
   vim.keymap.set("n", "ga", vim.lsp.buf.code_action, bufopts)
   vim.keymap.set("n", "<C-x><C-x>", vim.lsp.buf.signature_help, bufopts)
 
+  local group = vim.api.nvim_create_augroup("LspConfig", {clear = false})
+
   if client.server_capabilities.document_highlight then
-    api.nvim_exec(
-      [[
-    augroup lsp_document_highlight
-      autocmd! * <buffer>
-      autocmd CursorHold <buffer> lua vim.lsp.buf.document_highlight()
-      autocmd CursorMoved <buffer> lua vim.lsp.buf.clear_references()
-    augroup END
-    ]],
-      false
+    vim.api.nvim_create_autocmd(
+      "CursorHold",
+      {
+        pattern = "*",
+        callback = function()
+          vim.lsp.buf.document_highlight()
+        end,
+        group = group
+      }
+    )
+    vim.api.nvim_create_autocmd(
+      "CursorMoved",
+      {
+        pattern = "*",
+        callback = function()
+          vim.lsp.buf.clear_references()
+        end,
+        group = group
+      }
     )
   end
 
@@ -95,14 +107,15 @@ local on_attach = function(client, bufnr)
   client.server_capabilities.document_formatting = false
 
   if client.server_capabilities.document_formatting then
-    api.nvim_exec(
-      [[
-        augroup LspAutocommands
-        autocmd! * <buffer>
-        autocmd BufWritePost <buffer> LspFormatting
-        augroup END
-      ]],
-      true
+    vim.api.nvim_create_autocmd(
+      "BufEnter",
+      {
+        pattern = "*",
+        callback = function()
+          vim.lsp.buf.formatting()
+        end,
+        group = group
+      }
     )
   end
 end
