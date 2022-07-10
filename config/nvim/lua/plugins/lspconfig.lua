@@ -1,18 +1,14 @@
 local utils = require("utils")
 local nmap = utils.nmap
 local imap = utils.imap
-local cmd = vim.cmd
-local api = vim.api
-local fn = vim.fn
-local lsp = vim.lsp
 local lsp_installer = require("nvim-lsp-installer")
 local nvim_lsp = require("lspconfig")
 local theme = require("theme")
 local colors = theme.colors
 local icons = theme.icons
 
-cmd("autocmd ColorScheme * highlight NormalFloat guibg=" .. colors.bg)
-cmd("autocmd ColorScheme * highlight FloatBorder guifg=white guibg=" .. colors.bg)
+vim.cmd("autocmd ColorScheme * highlight NormalFloat guibg=" .. colors.bg)
+vim.cmd("autocmd ColorScheme * highlight FloatBorder guifg=white guibg=" .. colors.bg)
 
 local border = {
   {"🭽", "FloatBorder"},
@@ -29,25 +25,25 @@ local format_async = function(err, _, result, _, bufnr)
   if err ~= nil or result == nil then
     return
   end
-  if not api.nvim_buf_get_option(bufnr, "modified") then
-    local view = fn.winsaveview()
-    lsp.util.apply_text_edits(result, bufnr)
-    fn.winrestview(view)
-    if bufnr == api.nvim_get_current_buf() then
-      api.nvim_command("noautocmd :update")
+  if not vim.api.nvim_buf_get_option(bufnr, "modified") then
+    local view = vim.fn.winsaveview()
+    vim.lsp.util.apply_text_edits(result, bufnr)
+    vim.fn.winrestview(view)
+    if bufnr == vim.api.nvim_get_current_buf() then
+      vim.api.nvim_command("noautocmd :update")
     end
   end
 end
 
-lsp.handlers["textDocument/formatting"] = format_async
+vim.lsp.handlers["textDocument/formatting"] = format_async
 
 local lsp_organize_imports = function()
   local params = {
     command = "_typescript.organizeImports",
-    arguments = {api.nvim_buf_get_name(0)},
+    arguments = {vim.api.nvim_buf_get_name(0)},
     title = ""
   }
-  lsp.buf.execute_command(params)
+  vim.lsp.buf.execute_command(params)
 end
 -- _G makes this function available to vimscript lua calls
 _G.lsp_organize_imports = lsp_organize_imports
@@ -58,7 +54,7 @@ local lsp_show_diagnostics = function()
 end
 
 local on_attach = function(client, bufnr)
-  cmd [[command! OR lua lsp_organize_imports()]]
+  vim.cmd [[command! OR lua lsp_organize_imports()]]
   vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {border = border})
   vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.hover, {border = border})
 
@@ -161,15 +157,15 @@ local lua_settings = {
     workspace = {
       -- Make the server aware of Neovim runtime files
       library = {
-        [fn.expand("$VIMRUNTIME/lua")] = true,
-        [fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true
+        [vim.fn.expand("$VIMRUNTIME/lua")] = true,
+        [vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true
       }
     }
   }
 }
 
 local function make_config()
-  local capabilities = lsp.protocol.make_client_capabilities()
+  local capabilities = vim.lsp.protocol.make_client_capabilities()
   capabilities.textDocument.completion.completionItem.snippetSupport = true
   capabilities.textDocument.completion.completionItem.resolveSupport = {
     properties = {
@@ -231,9 +227,9 @@ for type, icon in pairs(signs) do
 end
 
 -- Set colors for completion items
-cmd("highlight! CmpItemAbbrMatch guibg=NONE guifg=" .. colors.lightblue)
-cmd("highlight! CmpItemAbbrMatchFuzzy guibg=NONE guifg=" .. colors.lightblue)
-cmd("highlight! CmpItemKindFunction guibg=NONE guifg=" .. colors.magenta)
-cmd("highlight! CmpItemKindMethod guibg=NONE guifg=" .. colors.magenta)
-cmd("highlight! CmpItemKindVariable guibg=NONE guifg=" .. colors.blue)
-cmd("highlight! CmpItemKindKeyword guibg=NONE guifg=" .. colors.fg)
+vim.cmd("highlight! CmpItemAbbrMatch guibg=NONE guifg=" .. colors.lightblue)
+vim.cmd("highlight! CmpItemAbbrMatchFuzzy guibg=NONE guifg=" .. colors.lightblue)
+vim.cmd("highlight! CmpItemKindFunction guibg=NONE guifg=" .. colors.magenta)
+vim.cmd("highlight! CmpItemKindMethod guibg=NONE guifg=" .. colors.magenta)
+vim.cmd("highlight! CmpItemKindVariable guibg=NONE guifg=" .. colors.blue)
+vim.cmd("highlight! CmpItemKindKeyword guibg=NONE guifg=" .. colors.fg)
