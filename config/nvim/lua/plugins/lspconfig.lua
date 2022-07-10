@@ -72,7 +72,7 @@ local on_attach = function(client, bufnr)
   vim.keymap.set("n", "ga", vim.lsp.buf.code_action, bufopts)
   vim.keymap.set("n", "<C-x><C-x>", vim.lsp.buf.signature_help, bufopts)
 
-  local group = vim.api.nvim_create_augroup("LspConfig", {clear = false})
+  local group = vim.api.nvim_create_augroup("LspConfig", {clear = true})
 
   if client.server_capabilities.document_highlight then
     vim.api.nvim_create_autocmd(
