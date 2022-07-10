@@ -2,7 +2,7 @@ local utils = require("utils")
 local nmap = utils.nmap
 local imap = utils.imap
 local lsp_installer = require("nvim-lsp-installer")
-local nvim_lsp = require("lspconfig")
+local lspconfig = require("lspconfig")
 local theme = require("theme")
 local colors = theme.colors
 local icons = theme.icons
@@ -198,7 +198,7 @@ lsp_installer.on_server_ready(
     elseif server.name == "tsserver" then
       local capabilities = opts.capabilities
       opts.capabiltiies = require("cmp_nvim_lsp").update_capabilities(capabilities)
-      opts.root_dir = nvim_lsp.util.root_pattern("package.json")
+      opts.root_dir = lspconfig.util.root_pattern("package.json")
       opts.handlers = {
         ["textDocument/definition"] = function(err, result, ctx, config)
           -- if there is more than one result, just use the first one
@@ -209,7 +209,7 @@ lsp_installer.on_server_ready(
         end
       }
     elseif server.name == "denols" then
-      opts.root_dir = nvim_lsp.util.root_pattern("deno.json")
+      opts.root_dir = lspconfig.util.root_pattern("deno.json")
       opts.init_options = {
         lint = true
       }
