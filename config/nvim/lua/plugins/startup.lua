@@ -80,6 +80,6 @@ vim.api.nvim_create_autocmd(
   {
     group = group,
     pattern = "*.lua",
-    eval = "setlocal list&"
+    command = "setlocal list&"
   }
 )

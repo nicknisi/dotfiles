@@ -9,7 +9,7 @@ local group = vim.api.nvim_create_augroup("LspConfig", {clear = true})
 vim.api.nvim_create_autocmd(
   "*",
   {
-    eval = "highlight NormalFloat guibg=" .. colors.bg,
+    command = "highlight NormalFloat guibg=" .. colors.bg,
     group = group
   }
 )
@@ -17,7 +17,7 @@ vim.api.nvim_create_autocmd(
 vim.api.nvim_create_autocmd(
   "*",
   {
-    eval = "highlight FloatBorder guifg=white guibg=" .. colors.bg,
+    command = "highlight FloatBorder guifg=white guibg=" .. colors.bg,
     group = group
   }
 )
