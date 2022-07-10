@@ -7,16 +7,18 @@ local cmp_nvim_lsp = require("cmp_nvim_lsp")
 local group = vim.api.nvim_create_augroup("LspConfig", {clear = true})
 
 vim.api.nvim_create_autocmd(
-  "*",
+  "ColorScheme",
   {
+    pattern = "*",
     command = "highlight NormalFloat guibg=" .. colors.bg,
     group = group
   }
 )
 
 vim.api.nvim_create_autocmd(
-  "*",
+  "ColorScheme",
   {
+    pattern = "*",
     command = "highlight FloatBorder guifg=white guibg=" .. colors.bg,
     group = group
   }
