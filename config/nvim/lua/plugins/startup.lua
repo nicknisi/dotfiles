@@ -1,11 +1,3 @@
--- don't show listchars in startup
-vim.cmd [[
-augroup startup
-  autocmd!
-  autocmd FileType startup setlocal list&
-augroup end
-]]
-
 local startup = require("startup")
 local header = {
   [[       ____                                         ]],
@@ -79,5 +71,15 @@ startup.setup(
       "body",
       "footer"
     }
+  }
+)
+
+local group = vim.api.nvim_create_augroup("Startup", {clear = true})
+vim.api.nvim_create_autocmd(
+  "FileType",
+  {
+    group = group,
+    pattern = "*.lua",
+    eval = "setlocal list&"
   }
 )

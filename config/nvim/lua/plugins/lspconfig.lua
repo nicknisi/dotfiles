@@ -4,9 +4,23 @@ local theme = require("theme")
 local colors = theme.colors
 local icons = theme.icons
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
+local group = vim.api.nvim_create_augroup("LspConfig", {clear = true})
 
-vim.cmd("autocmd ColorScheme * highlight NormalFloat guibg=" .. colors.bg)
-vim.cmd("autocmd ColorScheme * highlight FloatBorder guifg=white guibg=" .. colors.bg)
+vim.api.nvim_create_autocmd(
+  "*",
+  {
+    eval = "highlight NormalFloat guibg=" .. colors.bg,
+    group = group
+  }
+)
+
+vim.api.nvim_create_autocmd(
+  "*",
+  {
+    eval = "highlight FloatBorder guifg=white guibg=" .. colors.bg,
+    group = group
+  }
+)
 
 local border = {
   {"🭽", "FloatBorder"},
@@ -71,8 +85,6 @@ local on_attach = function(client, bufnr)
   vim.keymap.set("n", "K", vim.lsp.buf.hover, bufopts)
   vim.keymap.set("n", "ga", vim.lsp.buf.code_action, bufopts)
   vim.keymap.set("n", "<C-x><C-x>", vim.lsp.buf.signature_help, bufopts)
-
-  local group = vim.api.nvim_create_augroup("LspConfig", {clear = true})
 
   if client.server_capabilities.document_highlight then
     vim.api.nvim_create_autocmd(
