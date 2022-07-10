@@ -1,3 +1,5 @@
+local utils = require("utils")
+local formatter = require("formatter")
 -- on startup, check if there exists a local version of prettier
 -- in the project and use that. Otherwise, use the global version.
 local prettier_path = "./node_modules/.bin/prettier"
@@ -5,20 +7,43 @@ if vim.fn.executable(prettier_path) ~= 1 then
   prettier_path = "prettier"
 end
 
-function prettier_config()
-  return {
-    exe = prettier_path,
-    args = {
-      "--config-precedence",
-      "prefer-file",
-      "--stdin-filepath",
-      vim.fn.fnameescape(vim.api.nvim_buf_get_name(0))
-    },
-    stdin = true
-  }
+local function is_deno_project()
+  return utils.has_active_lsp_client("denols")
 end
 
-require("formatter").setup(
+local function prettier_config()
+  if (not is_deno_project()) then
+    return {
+      exe = prettier_path,
+      args = {
+        "--config-precedence",
+        "prefer-file",
+        "--stdin-filepath",
+        vim.fn.fnameescape(vim.api.nvim_buf_get_name(0))
+      },
+      stdin = true,
+      try_node_modules = true
+    }
+  end
+  return {}
+end
+
+local function deno_config()
+  if (is_deno_project()) then
+    return {
+      exe = "deno",
+      args = {
+        "fmt",
+        "-"
+      },
+      stdin = true,
+      try_node_modules = true
+    }
+  end
+  return {}
+end
+
+formatter.setup(
   {
     logging = false,
     filetype = {
@@ -26,10 +51,12 @@ require("formatter").setup(
         prettier_config
       },
       typescript = {
-        prettier_config
+        prettier_config,
+        deno_config
       },
       ["typescript.tsx"] = {
-        prettier_config
+        prettier_config,
+        deno_config
       },
       lua = {
         -- luafmt
@@ -44,6 +71,8 @@ require("formatter").setup(
     }
   }
 )
+
+local group = vim.api.nvim_create_augroup("LspConfig", {clear = false})
 
 vim.api.nvim_exec(
   [[

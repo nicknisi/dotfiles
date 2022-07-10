@@ -70,11 +70,18 @@ function utils.termcodes(str)
   return api.nvim_replace_termcodes(str, true, true, true)
 end
 
-
 function utils.file_exists(name)
-   local f = io.open(name, "r")
-   return f ~= nil and io.close(f)
+  local f = io.open(name, "r")
+  return f ~= nil and io.close(f)
 end
 
+function utils.has_active_lsp_client(servername)
+  for _, client in pairs(vim.lsp.get_active_clients()) do
+    if client.name == servername then
+      return true
+    end
+  end
+  return false
+end
 
 return utils
