@@ -72,15 +72,12 @@ formatter.setup(
   }
 )
 
-local group = vim.api.nvim_create_augroup("LspConfig", {clear = false})
-
-vim.api.nvim_exec(
-  [[
-augroup FormatAutogroup
-  autocmd!
-  autocmd BufWritePost *.js,*.ts,*.tsx FormatWrite
-  autocmd BufWritePost *.lua FormatWrite
-augroup END
-]],
-  true
+local group = vim.api.nvim_create_augroup("LspConfig", {clear = true})
+vim.api.nvim_create_autocmd(
+  "BufWritePost",
+  {
+    pattern = {"*.lua", "*.ts", "*.tsx", "*.js", "*.jsx", "*.json"},
+    command = "FormatWrite",
+    group = group
+  }
 )
