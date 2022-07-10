@@ -41,8 +41,7 @@ end
 
 lsp.handlers["textDocument/formatting"] = format_async
 
--- _G makes this function available to vimscript lua calls
-_G.lsp_organize_imports = function()
+local lsp_organize_imports = function()
   local params = {
     command = "_typescript.organizeImports",
     arguments = {api.nvim_buf_get_name(0)},
@@ -50,42 +49,34 @@ _G.lsp_organize_imports = function()
   }
   lsp.buf.execute_command(params)
 end
+-- _G makes this function available to vimscript lua calls
+_G.lsp_organize_imports = lsp_organize_imports
 
 -- show diagnostic line with custom border and styling
-_G.lsp_show_diagnostics = function()
+local lsp_show_diagnostics = function()
   vim.diagnostic.open_float({border = border})
 end
 
 local on_attach = function(client, bufnr)
-  cmd [[command! LspDef lua vim.lsp.buf.definition()]]
-  cmd [[command! LspFormatting lua vim.lsp.buf.formatting()]]
-  cmd [[command! LspCodeAction lua vim.lsp.buf.code_action()]]
-  cmd [[command! LspHover lua vim.lsp.buf.hover()]]
-  cmd [[command! LspRename lua vim.lsp.buf.rename()]]
-  cmd [[command! LspOrganize lua lsp_organize_imports()]]
   cmd [[command! OR lua lsp_organize_imports()]]
-  cmd [[command! LspRefs lua vim.lsp.buf.references()]]
-  cmd [[command! LspTypeDef lua vim.lsp.buf.type_definition()]]
-  cmd [[command! LspImplementation lua vim.lsp.buf.implementation()]]
-  cmd [[command! LspDiagPrev lua vim.lsp.diagnostic.goto_prev()]]
-  cmd [[command! LspDiagNext lua vim.lsp.diagnostic.goto_next()]]
-  cmd [[command! LspDiagLine lua lsp_show_diagnostics()]]
-  cmd [[command! LspSignatureHelp lua vim.lsp.buf.signature_help()]]
-
   vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {border = border})
   vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.hover, {border = border})
 
-  nmap("gd", ":LspDef<CR>", {bufnr = bufnr})
-  nmap("gr", ":LspRename<CR>", {bufnr = bufnr})
-  nmap("gR", ":LspRefs<CR>", {bufnr = bufnr})
-  nmap("gy", ":LspTypeDef<CR>", {bufnr = bufnr})
-  nmap("K", ":LspHover<CR>", {bufnr = bufnr})
-  nmap("gs", ":LspOrganize<CR>", {bufnr = bufnr})
-  nmap("[a", ":LspDiagPrev<CR>", {bufnr = bufnr})
-  nmap("]a", ":LspDiagNext<CR>", {bufnr = bufnr})
-  nmap("ga", ":LspCodeAction<CR>", {bufnr = bufnr})
-  nmap("<Leader>a", ":LspDiagLine<CR>", {bufnr = bufnr})
-  imap("<C-x><C-x>", "<cmd> LspSignatureHelp<CR>", {bufnr = bufnr})
+  local opts = {noremap = true, silent = true}
+  vim.keymap.set("n", "<leader>aa", lsp_show_diagnostics, opts)
+  vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
+  vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
+  vim.keymap.set("n", "<leader>aq", vim.diagnostic.setloclist, opts)
+
+  local bufopts = {noremap = true, silent = true, buffer = bufnr}
+  vim.keymap.set("n", "gO", lsp_organize_imports, bufopts)
+  vim.keymap.set("n", "gd", vim.lsp.buf.definition, bufopts)
+  vim.keymap.set("n", "gr", vim.lsp.buf.rename, bufopts)
+  vim.keymap.set("n", "gR", vim.lsp.buf.references, bufopts)
+  vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, bufopts)
+  vim.keymap.set("n", "K", vim.lsp.buf.hover, bufopts)
+  vim.keymap.set("n", "ga", vim.lsp.buf.code_action, bufopts)
+  vim.keymap.set("n", "<C-x><C-x>", vim.lsp.buf.signature_help, bufopts)
 
   if client.server_capabilities.document_highlight then
     api.nvim_exec(
