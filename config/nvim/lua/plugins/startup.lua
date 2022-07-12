@@ -79,7 +79,7 @@ vim.api.nvim_create_autocmd(
   "FileType",
   {
     group = group,
-    pattern = "*.lua",
+    pattern = "startup",
     command = "setlocal list&"
   }
 )
