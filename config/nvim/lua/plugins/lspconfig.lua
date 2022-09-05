@@ -216,6 +216,14 @@ lsp_installer.setup(
   }
 )
 
+lspconfig.rust_analyzer.setup(
+  make_config(
+    function(config)
+      return config
+    end
+  )
+)
+
 lspconfig.tsserver.setup(
   make_config(
     function(config)
@@ -237,6 +245,7 @@ lspconfig.tsserver.setup(
 lspconfig.denols.setup(
   make_config(
     function(config)
+      config.single_file_support = false
       config.root_dir = lspconfig.util.root_pattern("deno.json", "deno.jsonc")
       config.init_options = {
         lint = true
