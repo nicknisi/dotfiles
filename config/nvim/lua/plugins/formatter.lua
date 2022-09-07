@@ -50,6 +50,9 @@ formatter.setup(
       javascript = {
         prettier_config
       },
+      json = {
+        prettier_config
+      },
       typescript = {
         prettier_config,
         deno_config
