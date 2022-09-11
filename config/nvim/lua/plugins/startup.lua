@@ -30,7 +30,6 @@ startup.setup(
       margin = 5,
       content = {
         {" Find File", "Telescope find_files", "<leader>ff"},
-        {" Find File (FZF)", "GitFiles", "<leader>t"},
         {" Find Word", "Telescope live_grep", "<leader>fg"},
         {" Recent Files", "Telescope oldfiles", "<leader>fo"},
         {" Open File Drawer", "lua NvimTreeConfig.find_toggle()", "<leader>k"},

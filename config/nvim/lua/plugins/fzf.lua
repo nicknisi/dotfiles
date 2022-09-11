@@ -4,24 +4,24 @@ local fn = vim.fn
 local api = vim.api
 local o = vim.o
 local utils = require("utils")
-local nmap = utils.nmap
-local xmap = utils.xmap
-local omap = utils.omap
+-- local nmap = utils.nmap
+-- local xmap = utils.xmap
+-- local omap = utils.omap
 local imap = utils.imap
 
-if (fn.isdirectory(".git")) then
-  nmap("<leader>t", ":GitFiles --cached --others --exclude-standard<cr>")
-else
-  nmap("<leader>t", ":FZF<cr>")
-end
+-- if (fn.isdirectory(".git")) then
+--   nmap("<leader>t", ":GitFiles --cached --others --exclude-standard<cr>")
+-- else
+--   nmap("<leader>t", ":FZF<cr>")
+-- end
 
-nmap("<leader>s", ":GFiles?<cr>")
-nmap("<leader>r", ":Buffers<cr>")
-nmap("<leader>e", ":FZF<cr>")
+-- nmap("<leader>s", ":GFiles?<cr>")
+-- nmap("<leader>r", ":Buffers<cr>")
+-- nmap("<leader>e", ":FZF<cr>")
 
-nmap("<leader><tab>", "<plug>(fzf-maps-n)")
-xmap("<leader><tab>", "<plug>(fzf-maps-x)")
-omap("<leader><tab>", "<plug>(fzf-maps-o)")
+-- nmap("<leader><tab>", "<plug>(fzf-maps-n)")
+-- xmap("<leader><tab>", "<plug>(fzf-maps-x)")
+-- omap("<leader><tab>", "<plug>(fzf-maps-o)")
 
 -- Insert mode completion
 imap("<c-x><c-k>", "<plug>(fzf-complete-word)")
