@@ -182,6 +182,7 @@ Plug "stevearc/dressing.nvim"
 -- Navigate a code base with a really slick UI
 Plug "nvim-telescope/telescope.nvim"
 Plug "nvim-telescope/telescope-rg.nvim"
+Plug "nvim-telescope/telescope-node-modules.nvim"
 
 -- Startup screen for Neovim
 Plug "startup-nvim/startup.nvim"

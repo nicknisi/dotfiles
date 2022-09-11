@@ -80,6 +80,7 @@ telescope.setup(
 )
 
 telescope.load_extension("fzf")
+telescope.load_extension("node_modules")
 
 -- mappings
 nnoremap("<leader>ff", "<cmd>Telescope find_files<cr>")
