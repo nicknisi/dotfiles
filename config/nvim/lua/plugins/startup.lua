@@ -29,8 +29,9 @@ startup.setup(
       title = "Basic Commands",
       margin = 5,
       content = {
-        {" Find File", "Telescope find_files", "<leader>ff"},
+        {" Find File", "Telescope find_files", "<leader>t"},
         {" Find Word", "Telescope live_grep", "<leader>fg"},
+        {"神 Open Buffers", "Telescope buffers", "<leader>r"},
         {" Recent Files", "Telescope oldfiles", "<leader>fo"},
         {" Open File Drawer", "lua NvimTreeConfig.find_toggle()", "<leader>k"},
         {" Open Git Index", ":Ge:", ":Ge:"}
