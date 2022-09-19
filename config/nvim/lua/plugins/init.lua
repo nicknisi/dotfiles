@@ -70,6 +70,7 @@ Plug("digitaltoad/vim-pug", {["for"] = {"jade", "pug"}})
 
 -- nunjucks support
 -- Plug "niftylettuce/vim-jinja"
+Plug "Glench/Vim-Jinja2-Syntax"
 
 -- edit quickfix list
 Plug "itchyny/vim-qfedit"
