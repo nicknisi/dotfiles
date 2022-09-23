@@ -224,6 +224,15 @@ lspconfig.rust_analyzer.setup(
   )
 )
 
+lspconfig.eslint.setup(
+  make_config(
+    function(config)
+      config.filetypes = {"javascript", "javascriptreact", "typescript", "typescriptreact"}
+      return config
+    end
+  )
+)
+
 lspconfig.tsserver.setup(
   make_config(
     function(config)
