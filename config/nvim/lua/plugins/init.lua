@@ -86,6 +86,7 @@ g.vim_jsx_pretty_highlight_close_tag = 1
 Plug("leafgarland/typescript-vim", {["for"] = {"typescript", "typescript.tsx"}})
 
 Plug("wavded/vim-stylus", {["for"] = {"stylus", "markdown"}})
+Plug "jxnblk/vim-mdx-js"
 Plug("groenewege/vim-less", {["for"] = "less"})
 Plug("hail2u/vim-css3-syntax", {["for"] = "css"})
 Plug("cakebaker/scss-syntax.vim", {["for"] = "scss"})
