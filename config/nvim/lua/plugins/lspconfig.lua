@@ -190,7 +190,7 @@ local function make_config(callback)
     }
   }
   capabilities.textDocument.colorProvider = {dynamicRegistration = false}
-  capabilities = cmp_nvim_lsp.update_capabilities(capabilities)
+  capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
 
   return callback(
     {
