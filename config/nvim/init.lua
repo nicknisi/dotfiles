@@ -247,13 +247,6 @@ require("plugins")
 -- end
 
 cmd [[syntax on]]
--- cmd [[
--- let g:onedark_config = {
---     \ 'style': 'warmer',
--- \}
--- colorscheme onedark
--- ]]
--- cmd [[colorscheme onedark]]
 vim.g.catppuccin_flavour = "mocha"
 cmd [[colorscheme catppuccin]]
 cmd [[filetype plugin indent on]]
