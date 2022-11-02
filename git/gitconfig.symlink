@@ -10,6 +10,10 @@
     delete-merged-branches = "!f() { git checkout --quiet master && git branch --merged | grep --invert-match '\\*' | xargs -n 1 git branch --delete; git checkout --quiet @{-1}; }; f"
     # diff = diff --ignore-space-at-eol -b -w --ignore-blank-lines
     d = "!git diff --ignore-space-at-eol -b -w --ignore-blank-lines -- ':!**/package-lock.json' ':!**/yarn.lock'"
+
+    # push new branch - push a branch to origin and set upstream
+    pnb = push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)
+
     co = checkout
     s = status --short --branch
     br = branch -v
