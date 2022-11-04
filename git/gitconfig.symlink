@@ -12,7 +12,7 @@
     d = "!git diff --ignore-space-at-eol -b -w --ignore-blank-lines -- ':!**/package-lock.json' ':!**/yarn.lock'"
 
     # push new branch - push a branch to origin and set upstream
-    pnb = push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)
+    pnb = "!git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)"
 
     co = checkout
     s = status --short --branch
