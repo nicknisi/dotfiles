@@ -79,7 +79,7 @@ local group = vim.api.nvim_create_augroup("LspConfig", {clear = true})
 vim.api.nvim_create_autocmd(
   "BufWritePost",
   {
-    pattern = {"*.lua", "*.ts", "*.tsx", "*.js", "*.jsx", "*.json"},
+    pattern = {"*.lua", "*.ts", "*.tsx", "*.js", "*.mjs", "*.jsx", "*.json"},
     command = "FormatWrite",
     group = group
   }
