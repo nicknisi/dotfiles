@@ -9,9 +9,9 @@ catppuccin.setup {
     percentage = 0.15
   },
   transparent_background = false,
-  term_colors = false,
+  term_colors = true,
   compile = {
-    enabled = false,
+    enabled = true,
     path = vim.fn.stdpath "cache" .. "/catppuccin",
     suffix = "_compiled"
   },
@@ -56,7 +56,7 @@ catppuccin.setup {
       transparent_panel = false
     },
     markdown = true,
-    ts_rainbow = false
+    ts_rainbow = true
   }
 }
 
