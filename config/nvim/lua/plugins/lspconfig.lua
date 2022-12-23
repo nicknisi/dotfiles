@@ -1,10 +1,27 @@
-local lsp_installer = require("nvim-lsp-installer")
+require("mason").setup()
 local lspconfig = require("lspconfig")
+local mason_lspconfig = require("mason-lspconfig")
 local theme = require("theme")
 local colors = theme.colors
 local icons = theme.icons
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
 local group = vim.api.nvim_create_augroup("LspConfig", {clear = true})
+
+mason_lspconfig.setup(
+  {
+    ensure_installed = {
+      "eslint",
+      "tsserver",
+      "sumneko_lua",
+      "denols",
+      "vimls"
+    },
+    automatic_installation = true,
+    ui = {
+      check_outdated_servers_on_open = true
+    }
+  }
+)
 
 vim.api.nvim_create_autocmd(
   "ColorScheme",
@@ -199,22 +216,6 @@ local function make_config(callback)
     }
   )
 end
-
-lsp_installer.setup(
-  {
-    ensure_installed = {
-      "eslint",
-      "tsserver",
-      "sumneko_lua",
-      "denols",
-      "vimls"
-    },
-    automatic_installation = true,
-    ui = {
-      check_outdated_servers_on_open = true
-    }
-  }
-)
 
 lspconfig.rust_analyzer.setup(
   make_config(

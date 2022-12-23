@@ -128,11 +128,12 @@ Plug "kyazdani42/nvim-tree.lua"
 -- Show git information in the gutter
 Plug "lewis6991/gitsigns.nvim"
 
+-- Helpers to install LSPs and maintain them
+Plug "williamboman/mason.nvim"
+Plug "williamboman/mason-lspconfig.nvim"
+
 -- Helpers to configure the built-in Neovim LSP client
 Plug "neovim/nvim-lspconfig"
-
--- Helpers to install LSPs and maintain them
-Plug "williamboman/nvim-lsp-installer"
 
 -- neovim completion
 Plug "hrsh7th/cmp-nvim-lsp"
