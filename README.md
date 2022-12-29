@@ -242,7 +242,6 @@ I almost exclusively work on macOS, so this list will be specific to that operat
 reccomendations are also available, cross-platform.
 
 - [Kitty](https://sw.kovidgoyal.net/kitty/) A GPU-based terminal emulator
-- 
 
 ## Questions
 
