@@ -207,7 +207,7 @@ This configuration provides a bit of style to the tmux bar, along with some addi
 
 Pressing the Prefix followed by the following will have the following actions in tmux.
 
-| Command        | Descrption                     |
+| Command        | Description                     |
 | -------------- | ------------------------------ |
 | `h`            | Select the pane to the left    |
 | `j`            | Select the pane to the bottom  |
