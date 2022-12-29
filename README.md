@@ -241,7 +241,7 @@ This will open a bash shell in the container which can then be used to manually 
 I almost exclusively work on macOS, so this list will be specific to that operating system, but several of these
 reccomendations are also available, cross-platform.
 
-- [Kitty](https://sw.kovidgoyal.net/kitty/) A GPU-based terminal emulator
+- [Kitty](https://sw.kovidgoyal.net/kitty/) - A GPU-based terminal emulator
 
 ## Questions
 
