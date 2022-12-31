@@ -154,9 +154,6 @@ Plug "p00f/nvim-ts-rainbow"
 -- show nerd font icons for LSP types in completion menu
 Plug "onsails/lspkind-nvim"
 
--- base16 syntax themes that are neovim/treesitter-aware
-Plug "RRethy/nvim-base16"
-
 -- status line plugin
 Plug "feline-nvim/feline.nvim"
 
