@@ -122,8 +122,25 @@ The prompt for ZSH is configured in the `zshrc.symlink` file and performs the fo
 - Sources a `~/.localrc`, if available for configuration that is machine-specific and/or should not ever be checked into git
 - Adds `~/bin` and `$DOTFILES/bin` to the `PATH`
 
-### Prompt
+### ZSH plugins
 
+There are a number of plugins in use for ZSH, and they are installed and maintained separately via the `zfetch` command. `zfetch` is a custom plugin manager available [here](./zsh/functions/zfetch). The plugins that are used are listed in the `.zshrc` and include
+
+- [zsh-async](https://github.com/mafredri/zsh-async async.plugin.zsh)
+- [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
+- [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
+- [zsh-npm-scripts-autocomplete](https://github.com/grigorii-zander/zsh-npm-scripts-autocomplete)
+- [fzf-tab](https://github.com/Aloxaf/fzf-tab)
+
+Additional plugins can be added to the `~/.zshrc`, or to `~/.localrc` if you want them to stay out of git.
+
+```bash
+# Add a line like this and the plugin will automatically be downloaded and sourced
+zfetch nicknisi/work-scripts
+```
+
+### Prompt
+Aloxaf/fzf-tab
 The prompt is meant to be simple while still providing a lot of information to the user, particularly about the status of the git project, if the PWD is a git project. This prompt sets `precmd`, `PROMPT` and `RPROMPT`. The `precmd` shows the current working directory in it and the `RPROMPT` shows the git and suspended jobs info. The main symbol used on the actual prompt line is `❯`.
 
 The prompt attempts to speed up certain information lookups by allowing for the prompt itself to be asynchronously rewritten as data comes in. This prevents the prompt from feeling sluggish when, for example, the user is in a large git repo and the git prompt commands take a considerable amount of time.
