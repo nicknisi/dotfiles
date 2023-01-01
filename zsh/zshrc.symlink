@@ -149,8 +149,8 @@ else # macOS `ls`
 fi
 
 # look for all .zsh files and source them
-# using git ls-files to avoid sourcing files that are not checked in
-for file in $(git ls-files -- '*.zsh'); do
+config_files=($DOTFILES/**/*.zsh)
+for file in $config_files[@]; do
   source "$file"
 done
 
