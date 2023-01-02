@@ -1,5 +1,6 @@
 -- init.lua
 -- Neovim-specific configuration
+--
 
 require("globals")
 local opt = vim.opt
@@ -18,7 +19,6 @@ local omap = utils.omap
 local nnoremap = utils.nnoremap
 local inoremap = utils.inoremap
 local vnoremap = utils.vnoremap
-local colors = require("theme").colors
 
 -- create a completion_nvim table on _G which is visible via
 -- v:lua from vimscript
@@ -66,8 +66,8 @@ opt.directory = {
 opt.history = 1000 -- store the last 1000 commands entered
 opt.textwidth = 120 -- after configured number of characters, wrap line
 
-opt.inccommand = "nosplit" -- show the results of substition as they're happening
--- but don't open a split
+-- show the results of substition as they're happening but don't open a split
+opt.inccommand = "nosplit"
 
 opt.backspace = {"indent", "eol,start"} -- make backspace behave in a sane manner
 opt.clipboard = {"unnamed", "unnamedplus"} -- use the system clipboard
@@ -208,16 +208,17 @@ inoremap(opt_k, "<Esc>:m .-2<cr>==gi")
 vnoremap(opt_j, ":m '>+1<cr>gv=gv")
 vnoremap(opt_k, ":m '<-2<cr>gv=gv")
 
--- TODO: what exactly does this do?
-vnoremap("$(", "<esc>`>a)<esc>`<i(<esc>")
-vnoremap("$[", "<esc>`>a]<esc>`<i[<esc>")
-vnoremap("${", "<esc>`>a}<esc>`<i{<esc>")
-vnoremap([[$']], [[<esc>`>a"<esc>`<i"<esc>]])
-vnoremap("$'", "<esc>`>a'<esc>`<i'<esc>")
+-- wrap visual selection in provided wrapper
+vnoremap("$(", "<esc>`>a)<esc>`<i(<esc>") -- wrap in parentheses
+vnoremap("$[", "<esc>`>a]<esc>`<i[<esc>") -- wrap in brackets
+vnoremap("${", "<esc>`>a}<esc>`<i{<esc>") -- wrap in braces
+vnoremap([[$']], [[<esc>`>a"<esc>`<i"<esc>]]) -- wrap in quotes
+vnoremap("$'", "<esc>`>a'<esc>`<i'<esc>") -- wrap in single quotes
 vnoremap([[$\]], "<esc>`>o*/<esc>`<O/*<esc>")
 vnoremap([[$<]], "<esc>`>a><esc>`<i<<esc>")
 
-nmap("<leader>i", ":set cursorline!")
+-- toggle cursorline
+nmap("<leader>i", ":set cursorline!<cr>")
 
 -- scroll the viewport faster
 nnoremap("<C-e>", "3<c-e>")
@@ -251,15 +252,9 @@ nmap("gTT", ":tab sb<cr>")
 
 require("plugins")
 
--- if utils.file_exists(fn.expand("~/.vimrc_background")) then
---   g.base16colorspace = 256
---   cmd [[source ~/.vimrc_background]]
--- end
-
 cmd [[syntax on]]
-vim.g.catppuccin_flavour = "mocha"
-cmd [[colorscheme catppuccin]]
 cmd [[filetype plugin indent on]]
+
 -- make the highlighting of tabs and other non-text less annoying
 cmd [[highlight SpecialKey ctermfg=19 guifg=#333333]]
 cmd [[highlight NonText ctermfg=19 guifg=#333333]]

@@ -1,228 +1,272 @@
-local g = vim.g
-local fn = vim.fn
 local utils = require("utils")
-local nmap = utils.nmap
-local env = vim.env
-local cmd = vim.cmd
-
-local plugLoad = fn["functions#PlugLoad"]
-local plugBegin = fn["plug#begin"]
-local plugEnd = fn["plug#end"]
-local Plug = fn["plug#"]
-
-plugLoad()
-plugBegin("~/.config/nvim/plugged")
-
--- NOTE: the argument passed to Plug has to be wrapped with single-quotes
-
--- a set of lua helpers that are used by other plugins
-Plug "nvim-lua/plenary.nvim"
-
--- easy commenting
-Plug "tpope/vim-commentary"
-Plug "JoosepAlviste/nvim-ts-context-commentstring"
-
--- bracket mappings for moving between buffers, quickfix items, etc.
-Plug "tpope/vim-unimpaired"
-
--- mappings to easily delete, change and add such surroundings in pairs, such as quotes, parens, etc.
-Plug "tpope/vim-surround"
-
--- endings for html, xml, etc. - ehances surround
-Plug "tpope/vim-ragtag"
-
--- substitution and abbreviation helpers
-Plug "tpope/vim-abolish"
-
--- enables repeating other supported plugins with the . command
-Plug "tpope/vim-repeat"
-
--- single/multi line code handler: gS - split one line into multiple, gJ - combine multiple lines into one
-Plug "AndrewRadev/splitjoin.vim"
-
-Plug "junegunn/goyo.vim"
-
--- detect indent style (tabs vs. spaces)
-Plug "tpope/vim-sleuth"
-
--- setup editorconfig
-Plug "editorconfig/editorconfig-vim"
-
--- fugitive
-Plug "tpope/vim-fugitive"
-Plug "tpope/vim-rhubarb"
-nmap("<leader>gr", ":Gread<cr>")
-nmap("<leader>gb", ":G blame<cr>")
-
--- general plugins
--- emmet support for vim - easily create markdup wth CSS-like syntax
-Plug "mattn/emmet-vim"
-
--- match tags in html, similar to paren support
-Plug("gregsexton/MatchTag", {["for"] = "html"})
-
--- html5 support
-Plug("othree/html5.vim", {["for"] = "html"})
-
--- mustache support
-Plug "mustache/vim-mustache-handlebars"
-
--- pug / jade support
-Plug("digitaltoad/vim-pug", {["for"] = {"jade", "pug"}})
-
--- nunjucks support
--- Plug "niftylettuce/vim-jinja"
-Plug "Glench/Vim-Jinja2-Syntax"
-
--- edit quickfix list
-Plug "itchyny/vim-qfedit"
-
--- liquid support
-Plug "tpope/vim-liquid"
-
-Plug("othree/yajs.vim", {["for"] = {"javascript", "javascript.jsx", "html"}})
--- Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
-Plug("moll/vim-node", {["for"] = "javascript"})
-Plug "MaxMEllon/vim-jsx-pretty"
-g.vim_jsx_pretty_highlight_close_tag = 1
-Plug("leafgarland/typescript-vim", {["for"] = {"typescript", "typescript.tsx"}})
-
-Plug("wavded/vim-stylus", {["for"] = {"stylus", "markdown"}})
-Plug "jxnblk/vim-mdx-js"
-Plug("groenewege/vim-less", {["for"] = "less"})
-Plug("hail2u/vim-css3-syntax", {["for"] = "css"})
-Plug("cakebaker/scss-syntax.vim", {["for"] = "scss"})
-Plug("stephenway/postcss.vim", {["for"] = "css"})
-Plug "udalov/kotlin-vim"
-
--- Open markdown files in Marked.app - mapped to <leader>m
-Plug("itspriddle/vim-marked", {["for"] = "markdown", on = "MarkedOpen"})
-nmap("<leader>m", ":MarkedOpen!<cr>")
-nmap("<leader>mq", ":MarkedQuit<cr>")
-nmap("<leader>*", "*<c-o>:%s///gn<cr>")
-
-Plug("elzr/vim-json", {["for"] = "json"})
-g.vim_json_syntax_conceal = 0
-
-Plug "ekalinin/Dockerfile.vim"
-Plug "jparise/vim-graphql"
-
-Plug "hrsh7th/cmp-vsnip"
-Plug "hrsh7th/vim-vsnip"
-Plug "hrsh7th/vim-vsnip-integ"
-local snippet_dir = os.getenv("DOTFILES") .. "/config/nvim/snippets"
-g.vsnip_snippet_dir = snippet_dir
-g.vsnip_filetypes = {
-  javascriptreact = {"javascript"},
-  typescriptreact = {"typescript"},
-  ["typescript.tsx"] = {"typescript"}
-}
-
--- add color highlighting to hex values
-Plug "norcalli/nvim-colorizer.lua"
-
--- use devicons for filetypes
-Plug "kyazdani42/nvim-web-devicons"
-
--- fast lau file drawer
-Plug "kyazdani42/nvim-tree.lua"
-
--- Show git information in the gutter
-Plug "lewis6991/gitsigns.nvim"
-
--- Helpers to install LSPs and maintain them
-Plug "williamboman/mason.nvim"
-Plug "williamboman/mason-lspconfig.nvim"
-
--- Helpers to configure the built-in Neovim LSP client
-Plug "neovim/nvim-lspconfig"
-
--- neovim completion
-Plug "hrsh7th/cmp-nvim-lsp"
-Plug "hrsh7th/cmp-nvim-lua"
-Plug "hrsh7th/cmp-buffer"
-Plug "hrsh7th/cmp-path"
-Plug "hrsh7th/nvim-cmp"
-
--- treesitter enables an AST-like understanding of files
-Plug("nvim-treesitter/nvim-treesitter", {["do"] = ":TSUpdate"})
--- show treesitter nodes
-Plug "nvim-treesitter/playground"
--- enable more advanced treesitter-aware text objects
-Plug "nvim-treesitter/nvim-treesitter-textobjects"
--- add rainbow highlighting to parens and brackets
-Plug "p00f/nvim-ts-rainbow"
-
--- show nerd font icons for LSP types in completion menu
-Plug "onsails/lspkind-nvim"
-
--- status line plugin
-Plug "feline-nvim/feline.nvim"
-
--- automatically complete brackets/parens/quotes
-Plug "windwp/nvim-autopairs"
-
--- Run prettier and other formatters on save
-Plug "mhartington/formatter.nvim"
-
--- Style the tabline without taking over how tabs and buffers work in Neovim
-Plug "alvarosevilla95/luatab.nvim"
-
--- enable copilot support for Neovim
-Plug "github/copilot.vim"
--- if a copilot-aliased version of node exists from fnm, use that
-local copilot_node_command = env.FNM_DIR .. "/aliases/copilot/bin/node"
-if utils.file_exists(copilot_node_command) then
-  -- vim.g.copilot_node_command = copilot_node_path
-  -- for some reason, this works but the above line does not
-  cmd('let g:copilot_node_command = "' .. copilot_node_command .. '"')
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system(
+    {
+      "git",
+      "clone",
+      "--filter=blob:none",
+      "https://github.com/folke/lazy.nvim.git",
+      "--branch=stable",
+      lazypath
+    }
+  )
 end
+vim.opt.rtp:prepend(lazypath)
 
--- improve the default neovim interfaces, such as refactoring
-Plug "stevearc/dressing.nvim"
-
--- Navigate a code base with a really slick UI
-Plug "nvim-telescope/telescope.nvim"
-Plug "nvim-telescope/telescope-rg.nvim"
-Plug "nvim-telescope/telescope-node-modules.nvim"
-
--- Startup screen for Neovim
-Plug "startup-nvim/startup.nvim"
-
--- fzf
-Plug "$HOMEBREW_PREFIX/opt/fzf"
-Plug "junegunn/fzf.vim"
--- Power telescope with FZF
-Plug("nvim-telescope/telescope-fzf-native.nvim", {["do"] = "make"})
-
-Plug "folke/trouble.nvim"
-
-Plug("catppuccin/nvim", {["as"] = "catppuccin"})
-Plug "b0o/incline.nvim"
-
-plugEnd()
-
--- Once the plugins have been loaded, Lua-based plugins need to be required and started up
--- For plugins with their own configuration file, that file is loaded and is responsible for
--- starting them. Otherwise, the plugin itself is required and its `setup` method is called.
-require("nvim-autopairs").setup()
-require("colorizer").setup()
-require("plugins.telescope")
-require("plugins.gitsigns")
-require("plugins.trouble")
-require("plugins.fzf")
-require("plugins.lspconfig")
-require("plugins.completion")
-require("plugins.treesitter")
-require("plugins.nvimtree")
-require("plugins.formatter")
-require("plugins.tabline")
-require("plugins.catppuccin")
-require("plugins.startup")
-require("incline").setup {
-  hide = {
-    cursorline = false,
-    focused_win = false,
-    only_win = true
+require("lazy").setup(
+  {
+    "nvim-lua/plenary.nvim",
+    "mattn/emmet-vim",
+    -- easy commenting
+    "tpope/vim-commentary",
+    -- bracket mappings for moving between buffers, quickfix items, etc.
+    "tpope/vim-unimpaired",
+    -- mappings to easily delete, change and add such surroundings in pairs, such as quotes, parens, etc.
+    "tpope/vim-surround",
+    -- endings for html, xml, etc. - ehances surround
+    "tpope/vim-ragtag",
+    -- substitution and abbreviation helpers
+    "tpope/vim-abolish",
+    -- enables repeating other supported plugins with the . command
+    "tpope/vim-repeat",
+    -- single/multi line code handler: gS - split one line into multiple, gJ - combine multiple lines into one
+    "AndrewRadev/splitjoin.vim",
+    {
+      "junegunn/goyo.vim",
+      keys = {
+        {"<leader>w", "<cmd>Goyo<cr>"}
+      }
+    },
+    -- detect indent style (tabs vs. spaces)
+    "tpope/vim-sleuth",
+    -- setup editorconfig
+    "editorconfig/editorconfig-vim",
+    -- fugitive
+    {
+      "tpope/vim-fugitive",
+      lazy = false,
+      keys = {
+        {"<leader>gr", "<cmd>GRead<cr>", desc = "read file from git"},
+        {"<leader>gb", "<cmd>G blame<cr>", desc = "read file from git"}
+      },
+      dependencies = {
+        "tpope/vim-rhubarb"
+      }
+    },
+    -- general plugins
+    -- match tags in html, similar to paren support
+    {"gregsexton/MatchTag", ft = "html"},
+    -- html5 support
+    {"othree/html5.vim", ft = "html"},
+    -- pug / jade support
+    {"digitaltoad/vim-pug", ft = {"jade", "pug"}},
+    -- nunjucks support
+    -- Plug "niftylettuce/vim-jinja"
+    {"Glench/Vim-Jinja2-Syntax", ft = {"jinja", "nunjucks"}},
+    -- edit quickfix list
+    {"itchyny/vim-qfedit", event = "VeryLazy"},
+    -- liquid support
+    "tpope/vim-liquid",
+    {"othree/yajs.vim", ft = {"javascript", "javascript.jsx", "html", "typescript", "typescriptreact"}},
+    -- Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
+    {"moll/vim-node", ft = {"javascript", "typescript"}},
+    {
+      "MaxMEllon/vim-jsx-pretty",
+      config = function()
+        vim.g.vim_jsx_pretty_highlight_close_tag = 1
+      end
+    },
+    {"leafgarland/typescript-vim", ft = {"typescript", "typescript.tsx"}},
+    {"wavded/vim-stylus", ft = {"stylus", "markdown"}},
+    {"jxnblk/vim-mdx-js", ft = "mdx"},
+    {"groenewege/vim-less", ft = "less"},
+    {"hail2u/vim-css3-syntax", ft = "css"},
+    {"cakebaker/scss-syntax.vim", ft = "scss"},
+    {"stephenway/postcss.vim", ft = "css"},
+    {"udalov/kotlin-vim", ft = "kotlin"},
+    {
+      "elzr/vim-json",
+      ft = "json",
+      config = function()
+        vim.g.vim_json_syntax_conceal = 0
+      end
+    },
+    {"ekalinin/Dockerfile.vim", ft = "Dockerfile"},
+    "jparise/vim-graphql",
+    {
+      "preservim/vim-markdown",
+      ft = "markdown",
+      dependencies = {
+        "godlygeek/tabular"
+      }
+    },
+    {
+      "hrsh7th/vim-vsnip",
+      config = function()
+        local snippet_dir = os.getenv("DOTFILES") .. "/config/nvim/snippets"
+        vim.g.vsnip_snippet_dir = snippet_dir
+        vim.g.vsnip_filetypes = {
+          javascriptreact = {"javascript"},
+          typescriptreact = {"typescript"},
+          ["typescript.tsx"] = {"typescript"}
+        }
+      end
+    },
+    "hrsh7th/cmp-vsnip",
+    "hrsh7th/vim-vsnip-integ",
+    -- add color highlighting to hex values
+    {"norcalli/nvim-colorizer.lua", config = true},
+    -- use devicons for filetypes
+    "kyazdani42/nvim-web-devicons",
+    -- fast lau file drawer
+    {
+      "kyazdani42/nvim-tree.lua",
+      config = function()
+        require("plugins.nvimtree")
+      end
+    },
+    -- Show git information in the gutter
+    {
+      "lewis6991/gitsigns.nvim",
+      config = function()
+        require("plugins.gitsigns")
+      end
+    },
+    {
+      "neovim/nvim-lspconfig",
+      lazy = false,
+      dependencies = {
+        -- Helpers to install LSPs and maintain them
+        "williamboman/mason.nvim",
+        "williamboman/mason-lspconfig.nvim"
+      },
+      config = function()
+        require("plugins.lspconfig")
+      end
+    },
+    -- neovim completion
+    {
+      "hrsh7th/nvim-cmp",
+      dependencies = {
+        "hrsh7th/cmp-nvim-lsp",
+        "hrsh7th/cmp-nvim-lua",
+        "hrsh7th/cmp-buffer",
+        "hrsh7th/cmp-path"
+      },
+      config = function()
+        require("plugins.completion")
+      end
+    },
+    -- treesitter enables an AST-like understanding of files
+    {
+      "nvim-treesitter/nvim-treesitter",
+      build = ":TSUpdate",
+      dependencies = {
+        -- show treesitter nodes
+        "nvim-treesitter/playground",
+        -- enable more advanced treesitter-aware text objects
+        "nvim-treesitter/nvim-treesitter-textobjects",
+        -- add rainbow highlighting to parens and brackets
+        "p00f/nvim-ts-rainbow",
+        "JoosepAlviste/nvim-ts-context-commentstring"
+      },
+      config = function()
+        require("plugins.treesitter")
+      end
+    },
+    -- show nerd font icons for LSP types in completion menu
+    "onsails/lspkind-nvim",
+    -- status line plugin
+    "feline-nvim/feline.nvim",
+    -- automatically complete brackets/parens/quotes
+    {"windwp/nvim-autopairs", config = true},
+    -- Run prettier and other formatters on save
+    {
+      "mhartington/formatter.nvim",
+      lazy = false,
+      config = function()
+        require("plugins.formatter")
+      end
+    },
+    -- Style the tabline without taking over how tabs and buffers work in Neovim
+    {"alvarosevilla95/luatab.nvim", config = true},
+    -- enable copilot support for Neovim
+    {
+      "github/copilot.vim",
+      config = function()
+        -- if a copilot-aliased version of node exists from fnm, use that
+        local copilot_node_command = vim.env.FNM_DIR .. "/aliases/copilot/bin/node"
+        if utils.file_exists(copilot_node_command) then
+          -- vim.g.copilot_node_command = copilot_node_path
+          -- for some reason, this works but the above line does not
+          vim.cmd('let g:copilot_node_command = "' .. copilot_node_command .. '"')
+        end
+      end
+    },
+    -- improve the default neovim interfaces, such as refactoring
+    {"stevearc/dressing.nvim", event = "VeryLazy"},
+    -- Navigate a code base with a really slick UI
+    {
+      "nvim-telescope/telescope.nvim",
+      dependencies = {
+        -- Power telescope with FZF
+        {"nvim-telescope/telescope-fzf-native.nvim", build = "make"},
+        "nvim-telescope/telescope-rg.nvim",
+        "nvim-telescope/telescope-node-modules.nvim"
+      },
+      config = function()
+        require("plugins.telescope")
+      end
+    },
+    -- Startup screen for Neovim
+    {
+      "startup-nvim/startup.nvim",
+      config = function()
+        require("plugins.startup")
+      end
+    },
+    -- fzf
+    {
+      "junegunn/fzf.vim",
+      dependencies = {
+        {dir = vim.env.HOMEBREW_PREFIX .. "/opt/fzf"}
+      },
+      config = function()
+        require("plugins.fzf")
+      end
+    },
+    {
+      "folke/trouble.nvim",
+      config = true,
+      keys = {
+        {"<leader>xx", "<cmd>TroubleToggle<cr>"},
+        {"<leader>xw", "<cmd>TroubleToggle workspace_diagnostics<cr>"},
+        {"<leader>xd", "<cmd>TroubleToggle document_diagnostics<cr>"},
+        {"<leader>xq", "<cmd>TroubleToggle quickfix<cr>"},
+        {"<leader>xl", "<cmd>TroubleToggle loclist<cr>"}
+      }
+    },
+    {
+      "catppuccin/nvim",
+      name = "catppuccin",
+      lazy = false,
+      priority = 1000,
+      config = function()
+        require("plugins.catppuccin")
+        vim.g.catppuccin_flavour = "mocha"
+        vim.cmd([[ colorscheme catppuccin ]])
+      end
+    },
+    {
+      "b0o/incline.nvim",
+      config = {
+        hide = {
+          cursorline = false,
+          focused_win = false,
+          only_win = true
+        }
+      }
+    }
   }
-}
+)
