@@ -40,6 +40,8 @@ Plug "tpope/vim-repeat"
 -- single/multi line code handler: gS - split one line into multiple, gJ - combine multiple lines into one
 Plug "AndrewRadev/splitjoin.vim"
 
+Plug "junegunn/goyo.vim"
+
 -- detect indent style (tabs vs. spaces)
 Plug "tpope/vim-sleuth"
 
