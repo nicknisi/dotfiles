@@ -191,13 +191,13 @@ All of the configuration for Neovim starts at `config/nvim/init.lua`, which is s
 
 ### Installing plugins
 
-To install the plugins for Neovim, run the following command:
+On the first run, all required plugins should automaticaly by installed by
+[lazy.nvim](https://github.com/folke/lazy.nvim), a plugin manager for neovim.
 
-```bash
-nvim +PlugInstall
-```
+All plugins are listed in [plugins.lua](./config/nvim/lua/plugins.lua). When a plugin is added, it will automatically be installed by lazy.nvim. To interface with lazy.nvim, simply run `:Lazy` from within vim.
 
-This will launch vim, install [vim-plug](https://github.com/junegunn/vim-plug) and then install all of the plugins in the configuration. Then, quit neovim (of course you know how 😉) and restart it.
+>**Note**
+>Plugins can be synced in a headless way from the command line using the `vimu` alias.
 
 ## tmux configuration
 
