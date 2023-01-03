@@ -16,7 +16,6 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup(
   {
-    "nvim-lua/plenary.nvim",
     "mattn/emmet-vim",
     -- easy commenting
     "tpope/vim-commentary",
@@ -47,7 +46,7 @@ require("lazy").setup(
       "tpope/vim-fugitive",
       lazy = false,
       keys = {
-        {"<leader>gr", "<cmd>GRead<cr>", desc = "read file from git"},
+        {"<leader>gr", "<cmd>Gread<cr>", desc = "read file from git"},
         {"<leader>gb", "<cmd>G blame<cr>", desc = "read file from git"}
       },
       dependencies = {
@@ -121,17 +120,11 @@ require("lazy").setup(
     "kyazdani42/nvim-web-devicons",
     -- fast lau file drawer
     {
-      "kyazdani42/nvim-tree.lua",
-      config = function()
-        require("plugins.nvimtree")
-      end
+      "kyazdani42/nvim-tree.lua"
     },
     -- Show git information in the gutter
     {
-      "lewis6991/gitsigns.nvim",
-      config = function()
-        require("plugins.gitsigns")
-      end
+      "lewis6991/gitsigns.nvim"
     },
     {
       "neovim/nvim-lspconfig",
@@ -140,10 +133,7 @@ require("lazy").setup(
         -- Helpers to install LSPs and maintain them
         "williamboman/mason.nvim",
         "williamboman/mason-lspconfig.nvim"
-      },
-      config = function()
-        require("plugins.lspconfig")
-      end
+      }
     },
     -- neovim completion
     {
@@ -153,10 +143,7 @@ require("lazy").setup(
         "hrsh7th/cmp-nvim-lua",
         "hrsh7th/cmp-buffer",
         "hrsh7th/cmp-path"
-      },
-      config = function()
-        require("plugins.completion")
-      end
+      }
     },
     -- treesitter enables an AST-like understanding of files
     {
@@ -170,10 +157,7 @@ require("lazy").setup(
         -- add rainbow highlighting to parens and brackets
         "p00f/nvim-ts-rainbow",
         "JoosepAlviste/nvim-ts-context-commentstring"
-      },
-      config = function()
-        require("plugins.treesitter")
-      end
+      }
     },
     -- show nerd font icons for LSP types in completion menu
     "onsails/lspkind-nvim",
@@ -184,10 +168,7 @@ require("lazy").setup(
     -- Run prettier and other formatters on save
     {
       "mhartington/formatter.nvim",
-      lazy = false,
-      config = function()
-        require("plugins.formatter")
-      end
+      lazy = false
     },
     -- Style the tabline without taking over how tabs and buffers work in Neovim
     {"alvarosevilla95/luatab.nvim", config = true},
@@ -210,31 +191,23 @@ require("lazy").setup(
     {
       "nvim-telescope/telescope.nvim",
       dependencies = {
+        "nvim-lua/plenary.nvim",
         -- Power telescope with FZF
         {"nvim-telescope/telescope-fzf-native.nvim", build = "make"},
         "nvim-telescope/telescope-rg.nvim",
         "nvim-telescope/telescope-node-modules.nvim"
-      },
-      config = function()
-        require("plugins.telescope")
-      end
+      }
     },
     -- Startup screen for Neovim
     {
-      "startup-nvim/startup.nvim",
-      config = function()
-        require("plugins.startup")
-      end
+      "startup-nvim/startup.nvim"
     },
     -- fzf
     {
       "junegunn/fzf.vim",
       dependencies = {
         {dir = vim.env.HOMEBREW_PREFIX .. "/opt/fzf"}
-      },
-      config = function()
-        require("plugins.fzf")
-      end
+      }
     },
     {
       "folke/trouble.nvim",
@@ -251,12 +224,7 @@ require("lazy").setup(
       "catppuccin/nvim",
       name = "catppuccin",
       lazy = false,
-      priority = 1000,
-      config = function()
-        require("plugins.catppuccin")
-        vim.g.catppuccin_flavour = "mocha"
-        vim.cmd([[ colorscheme catppuccin ]])
-      end
+      priority = 1000
     },
     {
       "b0o/incline.nvim",

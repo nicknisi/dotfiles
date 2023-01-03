@@ -66,3 +66,6 @@ feline.setup(
     components = ctp_feline.get()
   }
 )
+
+vim.g.catppuccin_flavour = "mocha"
+vim.cmd([[ colorscheme catppuccin ]])
