@@ -1,7 +1,6 @@
 -- init.lua
 -- Neovim-specific configuration
 --
-
 require("globals")
 local opt = vim.opt
 local cmd = vim.cmd
@@ -47,21 +46,9 @@ opt.writebackup = false -- don't backup the file while editing
 opt.swapfile = false -- don't create swap files for new buffers
 opt.updatecount = 0 -- don't write swap files after some number of updates
 
-opt.backupdir = {
-  "~/.vim-tmp",
-  "~/.tmp",
-  "~/tmp",
-  "/var/tmp",
-  "/tmp"
-}
+opt.backupdir = { "~/.vim-tmp", "~/.tmp", "~/tmp", "/var/tmp", "/tmp" }
 
-opt.directory = {
-  "~/.vim-tmp",
-  "~/.tmp",
-  "~/tmp",
-  "/var/tmp",
-  "/tmp"
-}
+opt.directory = { "~/.vim-tmp", "~/.tmp", "~/tmp", "/var/tmp", "/tmp" }
 
 opt.history = 1000 -- store the last 1000 commands entered
 opt.textwidth = 120 -- after configured number of characters, wrap line
@@ -69,8 +56,8 @@ opt.textwidth = 120 -- after configured number of characters, wrap line
 -- show the results of substition as they're happening but don't open a split
 opt.inccommand = "nosplit"
 
-opt.backspace = {"indent", "eol,start"} -- make backspace behave in a sane manner
-opt.clipboard = {"unnamed", "unnamedplus"} -- use the system clipboard
+opt.backspace = { "indent", "eol,start" } -- make backspace behave in a sane manner
+opt.clipboard = { "unnamed", "unnamedplus" } -- use the system clipboard
 opt.mouse = "a" -- set mouse mode to all modes
 
 -- searching
@@ -113,7 +100,7 @@ opt.wildmenu = true -- enhanced command line completion
 opt.hidden = true -- current buffer can be put into background
 opt.showcmd = true -- show incomplete commands
 opt.showmode = true -- don't show which mode disabled for PowerLine
-opt.wildmode = {"list", "longest"} -- complete files like a shell
+opt.wildmode = { "list", "longest" } -- complete files like a shell
 opt.shell = env.SHELL
 opt.cmdheight = 0 -- hide command bar when not used
 opt.title = true -- set terminal title
@@ -140,13 +127,8 @@ opt.foldlevel = 1
 -- fix code folding. Without this autocmd, the message "E490: No fold found" is displayed
 -- anytime a fold is triggered, until the file is reloaded (for example, with `:e<cr>`)
 -- https://github.com/nvim-telescope/telescope.nvim/issues/699#issuecomment-1159637962
-vim.api.nvim_create_autocmd(
-  {"BufEnter"},
-  {
-    pattern = {"*"},
-    command = "normal zx"
-  }
-)
+vim.api.nvim_create_autocmd({ "BufEnter" },
+  { pattern = { "*" }, command = "normal zx" })
 
 -- toggle invisible characters
 opt.list = true
@@ -174,8 +156,10 @@ nmap("<leader><space>", [[:%s/\s\+$<cr>]])
 nmap("<leader><space><space>", [[:%s/\n\{2,}/\r\r/g<cr>]])
 
 nmap("<leader>l", ":set list!<cr>")
-inoremap("<C-j>", [[v:lua.completion_nvim.smart_pumvisible('<C-n>', '<C-j>')]], {expr = true})
-inoremap("<C-k>", [[v:lua.completion_nvim.smart_pumvisible('<C-p>', '<C-k>')]], {expr = true})
+inoremap("<C-j>", [[v:lua.completion_nvim.smart_pumvisible('<C-n>', '<C-j>')]],
+  { expr = true })
+inoremap("<C-k>", [[v:lua.completion_nvim.smart_pumvisible('<C-p>', '<C-k>')]],
+  { expr = true })
 vmap("<", "<gv")
 vmap(">", ">gv")
 nmap("<leader>.", "<c-^>")
@@ -225,10 +209,10 @@ nnoremap("<C-e>", "3<c-e>")
 nnoremap("<C-y>", "3<c-y>")
 
 -- moving up and down work as you would expect
-nnoremap("j", 'v:count == 0 ? "gj" : "j"', {expr = true})
-nnoremap("k", 'v:count == 0 ? "gk" : "k"', {expr = true})
-nnoremap("^", 'v:count == 0 ? "g^" :  "^"', {expr = true})
-nnoremap("$", 'v:count == 0 ? "g$" : "$"', {expr = true})
+nnoremap("j", 'v:count == 0 ? "gj" : "j"', { expr = true })
+nnoremap("k", 'v:count == 0 ? "gk" : "k"', { expr = true })
+nnoremap("^", 'v:count == 0 ? "g^" :  "^"', { expr = true })
+nnoremap("$", 'v:count == 0 ? "g$" : "$"', { expr = true })
 
 -- custom text objects
 -- inner-line

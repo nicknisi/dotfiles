@@ -3,11 +3,7 @@ local ctp_feline = require("catppuccin.groups.integrations.feline")
 local feline = require("feline")
 
 catppuccin.setup {
-  dim_inactive = {
-    enabled = false,
-    shade = "dark",
-    percentage = 0.15
-  },
+  dim_inactive = { enabled = false, shade = "dark", percentage = 0.15 },
   transparent_background = true,
   term_colors = true,
   compile = {
@@ -16,10 +12,10 @@ catppuccin.setup {
     suffix = "_compiled"
   },
   styles = {
-    comments = {"italic"},
-    conditionals = {"italic"},
+    comments = { "italic" },
+    conditionals = { "italic" },
     loops = {},
-    functions = {"bold"},
+    functions = { "bold" },
     keywords = {},
     strings = {},
     variables = {},
@@ -34,48 +30,40 @@ catppuccin.setup {
     native_lsp = {
       enabled = true,
       virtual_text = {
-        errors = {"italic"},
-        hints = {"italic"},
-        warnings = {"italic"},
-        information = {"italic"}
+        errors = { "italic" },
+        hints = { "italic" },
+        warnings = { "italic" },
+        information = { "italic" }
       },
       underlines = {
-        errors = {"underline"},
-        hints = {"underline"},
-        warnings = {"underline"},
-        information = {"underline"}
+        errors = { "underline" },
+        hints = { "underline" },
+        warnings = { "underline" },
+        information = { "underline" }
       }
     },
     lsp_trouble = false,
     cmp = true,
     gitsigns = true,
     telescope = true,
-    nvimtree = {
-      enabled = true,
-      show_root = true,
-      transparent_panel = false
-    },
+    nvimtree = { enabled = true, show_root = true, transparent_panel = false },
     markdown = true,
     ts_rainbow = true
   }
 }
 
 ctp_feline.setup {}
-feline.setup(
-  {
-    components = ctp_feline.get()
-  }
-)
+feline.setup({ components = ctp_feline.get() })
 
 vim.api.nvim_create_autocmd("ColorScheme", {
-    pattern = "*",
-    callback = function()
-        package.loaded["feline"] = nil
-        package.loaded["catppuccin.groups.integrations.feline"] = nil
-        require("feline").setup {
-            components = require("catppuccin.groups.integrations.feline").get(),
-        }
-    end,
+  pattern = "*",
+  callback = function()
+    package.loaded["feline"] = nil
+    package.loaded["catppuccin.groups.integrations.feline"] = nil
+    require("feline").setup {
+      components = require("catppuccin.groups.integrations.feline").get()
+    }
+  end
 })
 
 vim.g.catppuccin_flavour = "mocha"

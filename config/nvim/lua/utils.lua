@@ -9,7 +9,8 @@ local function make_keymap_fn(mode, o)
   -- copy the opts table as extends will mutate opts
   local parent_opts = vim.deepcopy(o)
   return function(combo, mapping, opts)
-    assert(combo ~= mode, string.format("The combo should not be the same as the mode for %s", combo))
+    assert(combo ~= mode, string.format(
+      "The combo should not be the same as the mode for %s", combo))
     local _opts = opts and vim.deepcopy(opts) or {}
 
     if type(mapping) == "function" then
@@ -23,12 +24,13 @@ local function make_keymap_fn(mode, o)
       _opts = vim.tbl_extend("keep", _opts, parent_opts)
       api.nvim_buf_set_keymap(bufnr, mode, combo, mapping, _opts)
     else
-      api.nvim_set_keymap(mode, combo, mapping, vim.tbl_extend("keep", _opts, parent_opts))
+      api.nvim_set_keymap(mode, combo, mapping,
+        vim.tbl_extend("keep", _opts, parent_opts))
     end
   end
 end
 
-local map_opts = {noremap = false, silent = true}
+local map_opts = { noremap = false, silent = true }
 utils.nmap = make_keymap_fn("n", map_opts)
 utils.xmap = make_keymap_fn("x", map_opts)
 utils.imap = make_keymap_fn("i", map_opts)
@@ -38,7 +40,7 @@ utils.tmap = make_keymap_fn("t", map_opts)
 utils.smap = make_keymap_fn("s", map_opts)
 utils.cmap = make_keymap_fn("c", map_opts)
 
-local noremap_opts = {noremap = true, silent = true}
+local noremap_opts = { noremap = true, silent = true }
 utils.nnoremap = make_keymap_fn("n", noremap_opts)
 utils.xnoremap = make_keymap_fn("x", noremap_opts)
 utils.vnoremap = make_keymap_fn("v", noremap_opts)
@@ -53,13 +55,7 @@ function utils.has_map(map, mode)
 end
 
 function utils.has_module(name)
-  if
-    pcall(
-      function()
-        require(name)
-      end
-    )
-   then
+  if pcall(function() require(name) end) then
     return true
   else
     return false
@@ -77,9 +73,7 @@ end
 
 function utils.has_active_lsp_client(servername)
   for _, client in pairs(vim.lsp.get_active_clients()) do
-    if client.name == servername then
-      return true
-    end
+    if client.name == servername then return true end
   end
   return false
 end

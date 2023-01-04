@@ -1,18 +1,12 @@
 require("nvim-treesitter.configs").setup {
-  ensure_installed = {"bash", "c", "cpp", "css", "html", "javascript", "lua", "python", "rust", "typescript", "vim"},
-  highlight = {
-    enable = true,
-    use_languagetree = true
+  ensure_installed = {
+    "bash", "c", "cpp", "css", "html", "javascript", "lua", "python",
+    "rust", "typescript", "vim"
   },
-  context_commentstring = {
-    enable = true
-  },
-  indent = {enable = true},
-  rainbow = {
-    enable = true,
-    extended_mode = true,
-    max_file_lines = 1000
-  },
+  highlight = { enable = true, use_languagetree = true },
+  context_commentstring = { enable = true },
+  indent = { enable = true },
+  rainbow = { enable = true, extended_mode = true, max_file_lines = 1000 },
   textobjects = {
     select = {
       enable = true,
@@ -26,12 +20,8 @@ require("nvim-treesitter.configs").setup {
     },
     swap = {
       enable = true,
-      swap_next = {
-        ["<leader>a"] = "@parameter.inner"
-      },
-      swap_previous = {
-        ["<leader>A"] = "@parameter.inner"
-      }
+      swap_next = { ["<leader>a"] = "@parameter.inner" },
+      swap_previous = { ["<leader>A"] = "@parameter.inner" }
     }
   },
   playground = {

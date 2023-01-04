@@ -12,74 +12,62 @@ local header = {
   [[       \_\/       \_\/                              ]]
 }
 
-startup.setup(
-  {
-    header = {
-      type = "text",
-      align = "center",
-      fold_section = false,
-      title = "Header",
-      content = header,
-      highlight = "Statement"
+startup.setup({
+  header = {
+    type = "text",
+    align = "center",
+    fold_section = false,
+    title = "Header",
+    content = header,
+    highlight = "Statement"
+  },
+  body = {
+    type = "mapping",
+    align = "center",
+    fold_section = false,
+    title = "Basic Commands",
+    margin = 5,
+    content = {
+      { " Find File", "Telescope find_files", "<leader>t" },
+      { " Find Word", "Telescope live_grep", "<leader>fg" },
+      { "神 Open Buffers", "Telescope buffers", "<leader>r" },
+      { " Recent Files", "Telescope oldfiles", "<leader>fo" },
+      {
+        " Open File Drawer", "lua NvimTreeConfig.find_toggle()",
+        "<leader>k"
+      }, { " Open Git Index", ":Ge:", ":Ge:" }
     },
-    body = {
-      type = "mapping",
-      align = "center",
-      fold_section = false,
-      title = "Basic Commands",
-      margin = 5,
-      content = {
-        {" Find File", "Telescope find_files", "<leader>t"},
-        {" Find Word", "Telescope live_grep", "<leader>fg"},
-        {"神 Open Buffers", "Telescope buffers", "<leader>r"},
-        {" Recent Files", "Telescope oldfiles", "<leader>fo"},
-        {" Open File Drawer", "lua NvimTreeConfig.find_toggle()", "<leader>k"},
-        {" Open Git Index", ":Ge:", ":Ge:"}
-      },
-      highlight = "String"
-    },
-    footer = {
-      type = "text",
-      align = "center",
-      fold_section = false,
-      title = "Footer",
-      margin = 5,
-      content = {"https://github.com/nicknisi/dotfiles"},
-      highlight = "Number",
-      default_color = ""
-    },
-    colors = {
-      background = "#1f2227",
-      folded_section = "#56b6c2"
-    },
-    mappings = {
-      execute_command = "<CR>",
-      open_file = "o",
-      open_file_split = "<c-o>",
-      open_section = "<TAB>",
-      open_help = "?",
-      quit = "q"
-    },
-    options = {
-      disable_statuslines = true,
-      after = function()
-        require("startup.utils").oldfiles_mappings()
-      end
-    },
-    parts = {
-      "header",
-      "body",
-      "footer"
-    }
-  }
-)
+    highlight = "String"
+  },
+  footer = {
+    type = "text",
+    align = "center",
+    fold_section = false,
+    title = "Footer",
+    margin = 5,
+    content = { "https://github.com/nicknisi/dotfiles" },
+    highlight = "Number",
+    default_color = ""
+  },
+  colors = { background = "#1f2227", folded_section = "#56b6c2" },
+  mappings = {
+    execute_command = "<CR>",
+    open_file = "o",
+    open_file_split = "<c-o>",
+    open_section = "<TAB>",
+    open_help = "?",
+    quit = "q"
+  },
+  options = {
+    disable_statuslines = true,
+    after = function() require("startup.utils").oldfiles_mappings() end
+  },
+  parts = { "header", "body", "footer" }
+})
 
-local group = vim.api.nvim_create_augroup("Startup", {clear = true})
-vim.api.nvim_create_autocmd(
-  "FileType",
-  {
-    group = group,
-    pattern = "startup",
-    command = "setlocal list&"
-  }
-)
+local group = vim.api.nvim_create_augroup("Startup", { clear = true })
+vim.api.nvim_create_autocmd("FileType", {
+  group = group,
+  pattern = "startup",
+  command = "setlocal list&"
+})

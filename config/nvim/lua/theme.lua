@@ -71,7 +71,4 @@ local icons = {
   ghost = ""
 }
 
-return {
-  colors = colors,
-  icons = icons
-}
+return { colors = colors, icons = icons }

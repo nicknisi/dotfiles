@@ -32,9 +32,7 @@ nvimtree.setup {
     group_empty = true,
     highlight_git = true,
     highlight_opened_files = "all",
-    indent_markers = {
-      enable = true
-    },
+    indent_markers = { enable = true },
     icons = {
       glyphs = {
         default = icons.file,
@@ -61,21 +59,15 @@ nvimtree.setup {
       }
     }
   },
-  update_focused_file = {
-    enable = true,
-    update_cwd = false
-  },
-  git = {
-    enable = true,
-    ignore = false
-  },
+  update_focused_file = { enable = true, update_cwd = false },
+  git = { enable = true, ignore = false },
   view = {
     width = 40,
     side = "left",
     mappings = {
       list = {
         -- release <C-e> for scrolling
-        {key = "<C-e>", action = ""}
+        { key = "<C-e>", action = "" }
       }
     }
   }
