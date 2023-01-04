@@ -167,7 +167,7 @@ opt.pastetoggle = "<leader>v"
 
 nnoremap("Q", "<nop>")
 imap("jk", "<Esc>")
-nmap("<leader>,", ":w<cr>")
+nmap("<leader>,", ":silent w<cr>")
 nmap("<space>", ":set hlsearch! hlsearch?<cr>")
 
 nmap("<leader><space>", [[:%s/\s\+$<cr>]])
