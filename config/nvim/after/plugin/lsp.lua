@@ -1,11 +1,46 @@
 require("mason").setup()
 local lspconfig = require("lspconfig")
 local mason_lspconfig = require("mason-lspconfig")
+local mason_null_ls = require("mason-null-ls")
 local theme = require("theme")
 local colors = theme.colors
 local icons = theme.icons
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
 local group = vim.api.nvim_create_augroup("LspConfig", {clear = true})
+local format_group = vim.api.nvim_create_augroup("LspFormatting", {clear = true})
+local null_ls = require("null-ls")
+
+mason_null_ls.setup_handlers({
+  function(source_name, methods)
+    require('mason-null-ls.automatic_setup')(source_name, methods)
+  end,
+})
+
+mason_null_ls.setup({
+  automatic_setup = true,
+  ensure_installed = {
+    "luaformatter",
+    "markdownlint",
+    "prettierd",
+    "shellharden"
+  }
+})
+
+null_ls.setup({
+  border = "double",
+  on_attach = function(client, bufnr)
+    if client.supports_method("textDocument/formatting") then
+      vim.api.nvim_clear_autocmds({ group = format_group, buffer = bufnr })
+      vim.api.nvim_create_autocmd("BufWritePre", {
+        group = vim.api.nvim_create_augroup("LspFormatting", {}),
+        buffer = bufnr,
+        callback = function()
+          vim.lsp.buf.format({ bufnr = bufnr })
+        end,
+      })
+    end
+  end,
+})
 
 mason_lspconfig.setup(
   {

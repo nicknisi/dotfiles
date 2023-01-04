@@ -130,6 +130,8 @@ require("lazy").setup(
       "williamboman/mason.nvim",
       dependencies = {
         "williamboman/mason-lspconfig.nvim",
+        "jose-elias-alvarez/null-ls.nvim",
+        "jayp0521/mason-null-ls.nvim"
       }
     },
     {
@@ -171,11 +173,6 @@ require("lazy").setup(
     "feline-nvim/feline.nvim",
     -- automatically complete brackets/parens/quotes
     {"windwp/nvim-autopairs", config = true},
-    -- Run prettier and other formatters on save
-    {
-      "mhartington/formatter.nvim",
-      lazy = false
-    },
     -- Style the tabline without taking over how tabs and buffers work in Neovim
     {"alvarosevilla95/luatab.nvim", config = true},
     -- enable copilot support for Neovim
