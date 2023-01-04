@@ -91,6 +91,7 @@ local on_attach = function(client, bufnr)
 
   local opts = {noremap = true, silent = true}
   vim.keymap.set("n", "<leader>aa", lsp_show_diagnostics, opts)
+  vim.keymap.set('n', 'gl', lsp_show_diagnostics, opts)
   vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
   vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
   vim.keymap.set("n", "<leader>aq", vim.diagnostic.setloclist, opts)
@@ -98,11 +99,15 @@ local on_attach = function(client, bufnr)
   local bufopts = {noremap = true, silent = true, buffer = bufnr}
   vim.keymap.set("n", "gO", lsp_organize_imports, bufopts)
   vim.keymap.set("n", "gd", vim.lsp.buf.definition, bufopts)
+  vim.keymap.set("n", "gD", vim.lsp.buf.declaration, bufopts)
+  vim.keymap.set("n", "go", vim.lsp.buf.type_definition, bufopts)
   vim.keymap.set("n", "gr", vim.lsp.buf.rename, bufopts)
   vim.keymap.set("n", "gR", vim.lsp.buf.references, bufopts)
   vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, bufopts)
   vim.keymap.set("n", "K", vim.lsp.buf.hover, bufopts)
+  vim.keymap.set("n", "<c-K>", vim.lsp.buf.signature_help, bufopts)
   vim.keymap.set("n", "ga", vim.lsp.buf.code_action, bufopts)
+  vim.keymap.set("x", "gA", vim.lsp.buf.range_code_action, bufopts)
   vim.keymap.set("n", "<C-x><C-x>", vim.lsp.buf.signature_help, bufopts)
 
   if client.server_capabilities.document_highlight then
@@ -303,6 +308,13 @@ for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, {text = icon, texthl = hl, numhl = hl})
 end
+
+vim.diagnostic.config({
+  virtual_text = true,
+  signs = true,
+  update_in_insert = true,
+  severity_sort = true,
+})
 
 -- Set colors for completion items
 vim.cmd("highlight! CmpItemAbbrMatch guibg=NONE guifg=" .. colors.lightblue)

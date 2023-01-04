@@ -127,11 +127,17 @@ require("lazy").setup(
       "lewis6991/gitsigns.nvim"
     },
     {
+      "williamboman/mason.nvim",
+      dependencies = {
+        "williamboman/mason-lspconfig.nvim",
+      }
+    },
+    {
       "neovim/nvim-lspconfig",
       lazy = false,
       dependencies = {
         -- Helpers to install LSPs and maintain them
-        "williamboman/mason.nvim",
+        "mason.nvim",
         "williamboman/mason-lspconfig.nvim"
       }
     },
