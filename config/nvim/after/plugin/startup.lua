@@ -32,10 +32,8 @@ startup.setup({
       { " Find Word", "Telescope live_grep", "<leader>fg" },
       { "神 Open Buffers", "Telescope buffers", "<leader>r" },
       { " Recent Files", "Telescope oldfiles", "<leader>fo" },
-      {
-        " Open File Drawer", "lua NvimTreeConfig.find_toggle()",
-        "<leader>k"
-      }, { " Open Git Index", ":Ge:", ":Ge:" }
+      { " Open File Drawer", "lua NvimTreeConfig.find_toggle()", "<leader>k" },
+      { " Open Git Index", ":Ge:", ":Ge:" }
     },
     highlight = "String"
   },
@@ -58,16 +56,9 @@ startup.setup({
     open_help = "?",
     quit = "q"
   },
-  options = {
-    disable_statuslines = true,
-    after = function() require("startup.utils").oldfiles_mappings() end
-  },
+  options = { disable_statuslines = true, after = function() require("startup.utils").oldfiles_mappings() end },
   parts = { "header", "body", "footer" }
 })
 
 local group = vim.api.nvim_create_augroup("Startup", { clear = true })
-vim.api.nvim_create_autocmd("FileType", {
-  group = group,
-  pattern = "startup",
-  command = "setlocal list&"
-})
+vim.api.nvim_create_autocmd("FileType", { group = group, pattern = "startup", command = "setlocal list&" })

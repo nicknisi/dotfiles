@@ -20,12 +20,7 @@ nvimtree.setup {
   hijack_netrw = true,
   diagnostics = {
     enable = false,
-    icons = {
-      hint = icons.hint,
-      info = icons.info,
-      warning = icons.warning,
-      error = icons.error
-    }
+    icons = { hint = icons.hint, info = icons.info, warning = icons.warning, error = icons.error }
   },
   renderer = {
     add_trailing = false,

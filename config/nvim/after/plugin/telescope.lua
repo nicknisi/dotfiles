@@ -17,8 +17,14 @@ telescope.setup({
       }
     },
     vimgrep_arguments = {
-      "rg", "--color=never", "--no-heading", "--with-filename",
-      "--line-number", "--column", "--smart-case", "--trim"
+      "rg",
+      "--color=never",
+      "--no-heading",
+      "--with-filename",
+      "--line-number",
+      "--column",
+      "--smart-case",
+      "--trim"
     },
     prompt_prefix = "   ",
     selection_caret = "  ",
@@ -28,11 +34,7 @@ telescope.setup({
     sorting_strategy = "ascending",
     layout_strategy = "horizontal",
     layout_config = {
-      horizontal = {
-        prompt_position = "top",
-        preview_width = 0.55,
-        results_width = 0.8
-      },
+      horizontal = { prompt_position = "top", preview_width = 0.55, results_width = 0.8 },
       vertical = { mirror = false },
       width = 0.87,
       height = 0.80,
@@ -54,20 +56,9 @@ telescope.setup({
     -- Developer configurations: Not meant for general override
     buffer_previewer_maker = require("telescope.previewers").buffer_previewer_maker
   },
-  pickers = {
-    find_files = {
-      find_command = {
-        "fd", "--type", "f", "--hidden", "--strip-cwd-prefix"
-      }
-    }
-  },
+  pickers = { find_files = { find_command = { "fd", "--type", "f", "--hidden", "--strip-cwd-prefix" } } },
   extensions = {
-    fzf = {
-      fuzzy = true,
-      override_generic_sorter = true,
-      override_file_sorter = true,
-      case_mode = "smart_case"
-    }
+    fzf = { fuzzy = true, override_generic_sorter = true, override_file_sorter = true, case_mode = "smart_case" }
   }
 })
 
@@ -80,8 +71,7 @@ nnoremap("<leader>t", "<cmd>Telescope find_files<cr>")
 nnoremap("<leader>fo", "<cmd>Telescope oldfiles<cr>")
 nnoremap("<leader>fn", "<cmd>Telescope node_modules list<cr>")
 nnoremap("<leader>fg", "<cmd>Telescope live_grep<cr>")
-nnoremap("<leader>fr",
-  "<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args()<cr>")
+nnoremap("<leader>fr", "<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args()<cr>")
 nnoremap("<leader>fb", "<cmd>Telescope buffers<cr>")
 nnoremap("<leader>r", "<cmd>Telescope buffers<cr>")
 nnoremap("<leader>fh", "<cmd>Telescope help_tags<cr>")

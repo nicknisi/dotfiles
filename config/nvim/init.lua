@@ -127,18 +127,11 @@ opt.foldlevel = 1
 -- fix code folding. Without this autocmd, the message "E490: No fold found" is displayed
 -- anytime a fold is triggered, until the file is reloaded (for example, with `:e<cr>`)
 -- https://github.com/nvim-telescope/telescope.nvim/issues/699#issuecomment-1159637962
-vim.api.nvim_create_autocmd({ "BufEnter" },
-  { pattern = { "*" }, command = "normal zx" })
+vim.api.nvim_create_autocmd({ "BufEnter" }, { pattern = { "*" }, command = "normal zx" })
 
 -- toggle invisible characters
 opt.list = true
-opt.listchars = {
-  tab = "→ ",
-  eol = "¬",
-  trail = "⋅",
-  extends = "❯",
-  precedes = "❮"
-}
+opt.listchars = { tab = "→ ", eol = "¬", trail = "⋅", extends = "❯", precedes = "❮" }
 
 -- hide the ~ character on empty lines at the end of the buffer
 opt.fcs = "eob: "
@@ -156,10 +149,8 @@ nmap("<leader><space>", [[:%s/\s\+$<cr>]])
 nmap("<leader><space><space>", [[:%s/\n\{2,}/\r\r/g<cr>]])
 
 nmap("<leader>l", ":set list!<cr>")
-inoremap("<C-j>", [[v:lua.completion_nvim.smart_pumvisible('<C-n>', '<C-j>')]],
-  { expr = true })
-inoremap("<C-k>", [[v:lua.completion_nvim.smart_pumvisible('<C-p>', '<C-k>')]],
-  { expr = true })
+inoremap("<C-j>", [[v:lua.completion_nvim.smart_pumvisible('<C-n>', '<C-j>')]], { expr = true })
+inoremap("<C-k>", [[v:lua.completion_nvim.smart_pumvisible('<C-p>', '<C-k>')]], { expr = true })
 vmap("<", "<gv")
 vmap(">", ">gv")
 nmap("<leader>.", "<c-^>")

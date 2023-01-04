@@ -9,8 +9,7 @@ local function make_keymap_fn(mode, o)
   -- copy the opts table as extends will mutate opts
   local parent_opts = vim.deepcopy(o)
   return function(combo, mapping, opts)
-    assert(combo ~= mode, string.format(
-      "The combo should not be the same as the mode for %s", combo))
+    assert(combo ~= mode, string.format("The combo should not be the same as the mode for %s", combo))
     local _opts = opts and vim.deepcopy(opts) or {}
 
     if type(mapping) == "function" then
@@ -24,8 +23,7 @@ local function make_keymap_fn(mode, o)
       _opts = vim.tbl_extend("keep", _opts, parent_opts)
       api.nvim_buf_set_keymap(bufnr, mode, combo, mapping, _opts)
     else
-      api.nvim_set_keymap(mode, combo, mapping,
-        vim.tbl_extend("keep", _opts, parent_opts))
+      api.nvim_set_keymap(mode, combo, mapping, vim.tbl_extend("keep", _opts, parent_opts))
     end
   end
 end
@@ -62,9 +60,7 @@ function utils.has_module(name)
   end
 end
 
-function utils.termcodes(str)
-  return api.nvim_replace_termcodes(str, true, true, true)
-end
+function utils.termcodes(str) return api.nvim_replace_termcodes(str, true, true, true) end
 
 function utils.file_exists(name)
   local f = io.open(name, "r")
@@ -72,9 +68,7 @@ function utils.file_exists(name)
 end
 
 function utils.has_active_lsp_client(servername)
-  for _, client in pairs(vim.lsp.get_active_clients()) do
-    if client.name == servername then return true end
-  end
+  for _, client in pairs(vim.lsp.get_active_clients()) do if client.name == servername then return true end end
   return false
 end
 

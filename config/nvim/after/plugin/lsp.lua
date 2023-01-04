@@ -7,21 +7,16 @@ local colors = theme.colors
 local icons = theme.icons
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
 local group = vim.api.nvim_create_augroup("LspConfig", { clear = true })
-local format_group = vim.api
-    .nvim_create_augroup("LspFormatting", { clear = true })
+local format_group = vim.api.nvim_create_augroup("LspFormatting", { clear = true })
 local null_ls = require("null-ls")
 
 mason_null_ls.setup_handlers({
-  function(source_name, methods)
-    require('mason-null-ls.automatic_setup')(source_name, methods)
-  end
+  function(source_name, methods) require('mason-null-ls.automatic_setup')(source_name, methods) end
 })
 
 mason_null_ls.setup({
   automatic_setup = true,
-  ensure_installed = {
-    "luaformatter", "markdownlint", "prettierd", "shellharden"
-  }
+  ensure_installed = { "luaformatter", "markdownlint", "prettierd", "shellharden" }
 })
 
 null_ls.setup({
@@ -32,9 +27,7 @@ null_ls.setup({
       vim.api.nvim_create_autocmd("BufWritePre", {
         group = vim.api.nvim_create_augroup("LspFormatting", {}),
         buffer = bufnr,
-        callback = function()
-          vim.lsp.buf.format({ bufnr = bufnr })
-        end
+        callback = function() vim.lsp.buf.format({ bufnr = bufnr }) end
       })
     end
   end
@@ -46,11 +39,8 @@ mason_lspconfig.setup({
   ui = { check_outdated_servers_on_open = true }
 })
 
-vim.api.nvim_create_autocmd("ColorScheme", {
-  pattern = "*",
-  command = "highlight NormalFloat guibg=" .. colors.bg,
-  group = group
-})
+vim.api.nvim_create_autocmd("ColorScheme",
+                            { pattern = "*", command = "highlight NormalFloat guibg=" .. colors.bg, group = group })
 
 vim.api.nvim_create_autocmd("ColorScheme", {
   pattern = "*",
@@ -59,9 +49,14 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 })
 
 local border = {
-  { "🭽", "FloatBorder" }, { "▔", "FloatBorder" }, { "🭾", "FloatBorder" },
-  { "▕", "FloatBorder" }, { "🭿", "FloatBorder" }, { "▁", "FloatBorder" },
-  { "🭼", "FloatBorder" }, { "▏", "FloatBorder" }
+  { "🭽", "FloatBorder" },
+  { "▔", "FloatBorder" },
+  { "🭾", "FloatBorder" },
+  { "▕", "FloatBorder" },
+  { "🭿", "FloatBorder" },
+  { "▁", "FloatBorder" },
+  { "🭼", "FloatBorder" },
+  { "▏", "FloatBorder" }
 }
 
 local format_async = function(err, _, result, _, bufnr)
@@ -70,37 +65,26 @@ local format_async = function(err, _, result, _, bufnr)
     local view = vim.fn.winsaveview()
     vim.lsp.util.apply_text_edits(result, bufnr)
     vim.fn.winrestview(view)
-    if bufnr == vim.api.nvim_get_current_buf() then
-      vim.api.nvim_command("noautocmd :update")
-    end
+    if bufnr == vim.api.nvim_get_current_buf() then vim.api.nvim_command("noautocmd :update") end
   end
 end
 
 vim.lsp.handlers["textDocument/formatting"] = format_async
 
 local lsp_organize_imports = function()
-  local params = {
-    command = "_typescript.organizeImports",
-    arguments = { vim.api.nvim_buf_get_name(0) },
-    title = ""
-  }
+  local params = { command = "_typescript.organizeImports", arguments = { vim.api.nvim_buf_get_name(0) }, title = "" }
   vim.lsp.buf.execute_command(params)
 end
 -- _G makes this function available to vimscript lua calls
 _G.lsp_organize_imports = lsp_organize_imports
 
 -- show diagnostic line with custom border and styling
-local lsp_show_diagnostics = function()
-  vim.diagnostic.open_float({ border = border })
-end
+local lsp_show_diagnostics = function() vim.diagnostic.open_float({ border = border }) end
 
 local on_attach = function(client, bufnr)
   vim.cmd [[command! OR lua lsp_organize_imports()]]
-  vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
-    vim.lsp.handlers.hover,
-    { border = border })
-  vim.lsp.handlers["textDocument/signatureHelp"] =
-  vim.lsp.with(vim.lsp.handlers.hover, { border = border })
+  vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border })
+  vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border })
 
   local opts = { noremap = true, silent = true }
   vim.keymap.set("n", "<leader>aa", lsp_show_diagnostics, opts)
@@ -140,11 +124,8 @@ local on_attach = function(client, bufnr)
   client.server_capabilities.document_formatting = false
 
   if client.server_capabilities.document_formatting then
-    vim.api.nvim_create_autocmd("BufEnter", {
-      pattern = "*",
-      callback = function() vim.lsp.buf.formatting() end,
-      group = group
-    })
+    vim.api.nvim_create_autocmd("BufEnter",
+                                { pattern = "*", callback = function() vim.lsp.buf.formatting() end, group = group })
   end
 end
 
@@ -164,11 +145,7 @@ local diagnosticls_settings = {
           "^[^:]+:(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",
           { line = 1, column = 2, message = 4, security = 3 }
         },
-        securities = {
-          error = "error",
-          warning = "warning",
-          note = "info"
-        }
+        securities = { error = "error", warning = "warning", note = "info" }
       }
     },
     filetypes = { sh = "shellcheck" }
@@ -188,10 +165,7 @@ local lua_settings = {
     },
     workspace = {
       -- Make the server aware of Neovim runtime files
-      library = {
-        [vim.fn.expand("$VIMRUNTIME/lua")] = true,
-        [vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true
-      }
+      library = { [vim.fn.expand("$VIMRUNTIME/lua")] = true, [vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true }
     }
   }
 }
@@ -212,9 +186,7 @@ end
 lspconfig.rust_analyzer.setup(make_config(function(config) return config end))
 
 lspconfig.eslint.setup(make_config(function(config)
-  config.filetypes = {
-    "javascript", "javascriptreact", "typescript", "typescriptreact"
-  }
+  config.filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" }
   return config
 end))
 
@@ -258,24 +230,14 @@ lspconfig.diagnosticls.setup(make_config(function(config)
 end))
 
 -- set up custom symbols for LSP errors
-local signs = {
-  Error = icons.error,
-  Warning = icons.warning,
-  Warn = icons.warning,
-  Hint = icons.hint,
-  Info = icons.hint
-}
+local signs =
+    { Error = icons.error, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
 for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
 end
 
-vim.diagnostic.config({
-  virtual_text = true,
-  signs = true,
-  update_in_insert = true,
-  severity_sort = true
-})
+vim.diagnostic.config({ virtual_text = true, signs = true, update_in_insert = true, severity_sort = true })
 
 -- Set colors for completion items
 vim.cmd("highlight! CmpItemAbbrMatch guibg=NONE guifg=" .. colors.lightblue)

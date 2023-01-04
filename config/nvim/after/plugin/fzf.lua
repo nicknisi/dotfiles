@@ -56,8 +56,12 @@ function FloatingFZF()
 end
 
 local fzf_opts = {
-  env.FZF_DEFAULT_OPTS or "", " --layout=reverse", ' --pointer=" "',
-  " --info=hidden", " --border=rounded", " --bind å:select-all+accept"
+  env.FZF_DEFAULT_OPTS or "",
+  " --layout=reverse",
+  ' --pointer=" "',
+  " --info=hidden",
+  " --border=rounded",
+  " --bind å:select-all+accept"
 }
 
 env.FZF_DEFAULT_OPTS = table.concat(fzf_opts, "")

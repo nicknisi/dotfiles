@@ -6,11 +6,7 @@ catppuccin.setup {
   dim_inactive = { enabled = false, shade = "dark", percentage = 0.15 },
   transparent_background = true,
   term_colors = true,
-  compile = {
-    enabled = true,
-    path = vim.fn.stdpath "cache" .. "/catppuccin",
-    suffix = "_compiled"
-  },
+  compile = { enabled = true, path = vim.fn.stdpath "cache" .. "/catppuccin", suffix = "_compiled" },
   styles = {
     comments = { "italic" },
     conditionals = { "italic" },
@@ -29,12 +25,7 @@ catppuccin.setup {
     treesitter = true,
     native_lsp = {
       enabled = true,
-      virtual_text = {
-        errors = { "italic" },
-        hints = { "italic" },
-        warnings = { "italic" },
-        information = { "italic" }
-      },
+      virtual_text = { errors = { "italic" }, hints = { "italic" }, warnings = { "italic" }, information = { "italic" } },
       underlines = {
         errors = { "underline" },
         hints = { "underline" },
@@ -60,9 +51,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
   callback = function()
     package.loaded["feline"] = nil
     package.loaded["catppuccin.groups.integrations.feline"] = nil
-    require("feline").setup {
-      components = require("catppuccin.groups.integrations.feline").get()
-    }
+    require("feline").setup { components = require("catppuccin.groups.integrations.feline").get() }
   end
 })
 

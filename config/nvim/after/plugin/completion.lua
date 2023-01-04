@@ -6,12 +6,8 @@ vim.o.completeopt = "menu,menuone,noselect"
 cmp.setup({
   snippet = { expand = function(args) vim.fn["vsnip#anonymous"](args.body) end },
   mapping = {
-    ["<C-j>"] = cmp.mapping.select_next_item({
-      behavior = cmp.SelectBehavior.Insert
-    }),
-    ["<C-k>"] = cmp.mapping.select_prev_item({
-      behavior = cmp.SelectBehavior.Insert
-    }),
+    ["<C-j>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }),
+    ["<C-k>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }),
     ["<C-d>"] = cmp.mapping.scroll_docs(-4),
     ["<C-f>"] = cmp.mapping.scroll_docs(4),
     ["<C-Space>"] = cmp.mapping.complete(),
@@ -19,7 +15,9 @@ cmp.setup({
     ["<CR>"] = cmp.mapping.confirm({ select = true })
   },
   sources = cmp.config.sources({
-    { name = "vsnip" }, { name = "nvim_lua" }, { name = "nvim_lsp" },
+    { name = "vsnip" },
+    { name = "nvim_lua" },
+    { name = "nvim_lsp" },
     { name = "buffer", keyword_length = 5, max_item_count = 5 },
     { name = "path" }
   }),
