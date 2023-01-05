@@ -2,7 +2,11 @@ local catppuccin = require("catppuccin")
 local ctp_feline = require("catppuccin.groups.integrations.feline")
 local feline = require("feline")
 
+-- this is the catppuccin theme to use
+local catppuccin_color = "mocha"
+
 catppuccin.setup {
+  flavour = catppuccin_color,
   dim_inactive = { enabled = false, shade = "dark", percentage = 0.15 },
   transparent_background = true,
   term_colors = true,
@@ -55,5 +59,6 @@ vim.api.nvim_create_autocmd("ColorScheme", {
   end
 })
 
-vim.g.catppuccin_flavour = "mocha"
+vim.g.catppuccin_flavour = catppuccin_color
+-- vim.command.colorscheme "catppuccin"
 vim.cmd([[ colorscheme catppuccin ]])
