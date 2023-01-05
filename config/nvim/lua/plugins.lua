@@ -1,4 +1,5 @@
 local utils = require("utils")
+local theme = require('theme')
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -152,4 +153,4 @@ require("lazy").setup({
   },
   { "catppuccin/nvim", name = "catppuccin", lazy = false, priority = 1000 },
   { "b0o/incline.nvim", config = { hide = { cursorline = false, focused_win = false, only_win = true } } }
-})
+}, { ui = { border = theme.border } })

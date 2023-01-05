@@ -230,14 +230,8 @@ require("plugins")
 cmd [[syntax on]]
 cmd [[filetype plugin indent on]]
 
--- make the highlighting of tabs and other non-text less annoying
-cmd [[highlight SpecialKey ctermfg=19 guifg=#333333]]
-cmd [[highlight NonText ctermfg=19 guifg=#333333]]
-
 -- make comments and HTML attributes italic
 cmd [[highlight Comment cterm=italic term=italic gui=italic]]
 cmd [[highlight htmlArg cterm=italic term=italic gui=italic]]
 cmd [[highlight xmlAttrib cterm=italic term=italic gui=italic]]
--- highlight Type cterm=italic term=italic gui=italic
 cmd [[highlight Normal ctermbg=none]]
--- make the StatusLine background match the GalaxyLine styles

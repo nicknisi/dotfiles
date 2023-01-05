@@ -71,4 +71,15 @@ local icons = {
   ghost = ""
 }
 
-return { colors = colors, icons = icons }
+local border = {
+  { "🭽", "FloatBorder" },
+  { "▔", "FloatBorder" },
+  { "🭾", "FloatBorder" },
+  { "▕", "FloatBorder" },
+  { "🭿", "FloatBorder" },
+  { "▁", "FloatBorder" },
+  { "🭼", "FloatBorder" },
+  { "▏", "FloatBorder" }
+}
+
+return { colors = colors, icons = icons, border = border }

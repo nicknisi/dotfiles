@@ -1,26 +1,25 @@
-require("mason").setup()
 local lspconfig = require("lspconfig")
 local mason_lspconfig = require("mason-lspconfig")
 local mason_null_ls = require("mason-null-ls")
 local theme = require("theme")
 local colors = theme.colors
 local icons = theme.icons
+local border = theme.border
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
 local group = vim.api.nvim_create_augroup("LspConfig", { clear = true })
 local format_group = vim.api.nvim_create_augroup("LspFormatting", { clear = true })
 local null_ls = require("null-ls")
 
+require("mason").setup({ ui = { border = border } })
+
 mason_null_ls.setup_handlers({
   function(source_name, methods) require('mason-null-ls.automatic_setup')(source_name, methods) end
 })
 
-mason_null_ls.setup({
-  automatic_setup = true,
-  ensure_installed = { "luaformatter", "markdownlint", "prettierd", "shellharden" }
-})
+mason_null_ls.setup({ automatic_setup = true, ensure_installed = { "luaformatter", "prettierd", "shellharden" } })
 
 null_ls.setup({
-  border = "double",
+  border = border,
   on_attach = function(client, bufnr)
     if client.supports_method("textDocument/formatting") then
       vim.api.nvim_clear_autocmds({ group = format_group, buffer = bufnr })
@@ -38,26 +37,6 @@ mason_lspconfig.setup({
   automatic_installation = true,
   ui = { check_outdated_servers_on_open = true }
 })
-
-vim.api.nvim_create_autocmd("ColorScheme",
-                            { pattern = "*", command = "highlight NormalFloat guibg=" .. colors.bg, group = group })
-
-vim.api.nvim_create_autocmd("ColorScheme", {
-  pattern = "*",
-  command = "highlight FloatBorder guifg=white guibg=" .. colors.bg,
-  group = group
-})
-
-local border = {
-  { "🭽", "FloatBorder" },
-  { "▔", "FloatBorder" },
-  { "🭾", "FloatBorder" },
-  { "▕", "FloatBorder" },
-  { "🭿", "FloatBorder" },
-  { "▁", "FloatBorder" },
-  { "🭼", "FloatBorder" },
-  { "▏", "FloatBorder" }
-}
 
 local format_async = function(err, _, result, _, bufnr)
   if err ~= nil or result == nil then return end
@@ -125,7 +104,7 @@ local on_attach = function(client, bufnr)
 
   if client.server_capabilities.document_formatting then
     vim.api.nvim_create_autocmd("BufEnter",
-                                { pattern = "*", callback = function() vim.lsp.buf.formatting() end, group = group })
+      { pattern = "*", callback = function() vim.lsp.buf.formatting() end, group = group })
   end
 end
 
@@ -231,7 +210,7 @@ end))
 
 -- set up custom symbols for LSP errors
 local signs =
-    { Error = icons.error, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
+{ Error = icons.error, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
 for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
