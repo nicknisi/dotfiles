@@ -8,13 +8,6 @@ fi
 # Configuration
 ########################################################
 
-if [ -z "$TMUX" ]; then
-    export TERM=xterm-256color-italic
-else
-    export TERM=tmux-256color
-fi
-
-
 # initialize autocomplete
 autoload -U compinit add-zsh-hook
 compinit
