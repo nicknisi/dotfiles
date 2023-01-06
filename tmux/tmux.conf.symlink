@@ -1,3 +1,4 @@
+# vim:ft=tmux
 # tmux display things in 256 colors
 set -g default-terminal "tmux-256color"
 set -as terminal-overrides ',xterm*:Tc:sitm=\E[3m'
@@ -7,15 +8,39 @@ set -g history-limit 20000
 # automatically renumber tmux windows
 set -g renumber-windows on
 
-# unbind default prefix and set it to Ctrl+a
-unbind C-b
+######################
+#### General Settings ####
+######################
+
+ # set the prefix to control-a. This is more convenient than control-b
+ # and 'a' is right next to Caps Lock (which I remap to control)
 set -g prefix C-a
-bind C-a send-prefix
 
-# for nested tmux sessions
-bind-key a send-prefix
+set -g set-clipboard on
 
-# Activity Monitoring
+# enable mouse support for switching panes/windows
+setw -g mouse on
+
+# make delay shorter
+set -g escape-time 0
+# make window/pane index start with 1
+set -g base-index 1
+setw -g pane-base-index 1
+set-option -g focus-events on
+set-option -g set-titles on
+
+# set vi mode for copy mode
+setw -g mode-keys vi
+set -g status-keys vi
+
+# automatically rename windows when an explicit name is not set
+set-window-option -g automatic-rename on
+set-option -g automatic-rename-format ""
+
+# set the default title format
+set-option -g set-titles-string "#T - #W"
+
+# disabled activity monitoring
 setw -g monitor-activity off
 set -g visual-activity off
 
@@ -24,31 +49,22 @@ set -g visual-activity off
 # client connected to *that window*. Much more reasonable.
 setw -g aggressive-resize on
 
-# make delay shorter
-set -sg escape-time 0
+######################
+#### Key Bindings ####
+######################
+
+# unbind default prefix and set it to Ctrl+a
+unbind C-b
+bind C-a send-prefix
+
+# for nested tmux sessions
+bind-key a send-prefix
+
 
 # tile all windows
 unbind =
 bind = select-layout tiled
 
-# cycle through panes
-# unbind C-a
-# unbind o # this is the default key for cycling panes
-# bind ^A select-pane -t:.+
-
-# make window/pane index start with 1
-set -g base-index 1
-setw -g pane-base-index 1
-
-set-option -g focus-events on
-set-option -g set-titles on
-set-option -g set-titles-string "#T - #W"
-set-window-option -g automatic-rename on
-set-option -g automatic-rename-format ""
-
-######################
-#### Key Bindings ####
-######################
 
 # reload config file
 bind r source-file ~/.tmux.conf \; display "Config Reloaded!"
@@ -75,28 +91,11 @@ bind -r J resize-pane -D 10
 bind -r K resize-pane -U 10
 bind -r L resize-pane -R 10
 
-# enable mouse support for switching panes/windows
-setw -g mouse on
-
-# set vi mode for copy mode
-setw -g mode-keys vi
 # more settings to make copy-mode more vim-like
 unbind [
 bind Escape copy-mode
 unbind p
 bind p paste-buffer
 bind -T copy-mode-vi v send -X begin-selection
-
-if-shell "uname | grep -q Darwin" {
-    bind -T copy-mode-vi y send -X copy-pipe-and-cancel 'tmux save-buffer - | pbcopy'; \
-    bind C-c run 'tmux save-buffer - | pbcopy'; \
-    bind C-v run 'tmux set-buffer "$(pbpaste)"; tmux paste-buffer'
-}
-
-if-shell '[[ $(uname -s) = Linux ]]' {
-    bind -T copy-mode-vi y send -X copy-pipe-and-cancel 'xclip -i -sel clipboard'; \
-    bind C-c run "tmux save-buffer - | xclip -i -sel clipboard"; \
-    bind C-v run 'tmux set-buffer "$(xclip -o -sel clipboard)"; tmux paste-buffer'
-}
 
 source-file "$DOTFILES/tmux/themes/bubbles.conf"
