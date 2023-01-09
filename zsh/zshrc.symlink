@@ -21,6 +21,8 @@ prepend_path $HOME/bin
 # This is where my code exists and where I want the `c` autocomplete to work from exclusively
 if [[ -d ~/code ]]; then
     export CODE_DIR=~/code
+elif [[ -d ~/Developer ]]; then
+    export CODE_DIR=~/Developer
 fi
 
 # display how long all tasks over 10 seconds take
