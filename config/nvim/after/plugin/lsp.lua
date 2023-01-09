@@ -16,7 +16,7 @@ mason_null_ls.setup_handlers({
   function(source_name, methods) require('mason-null-ls.automatic_setup')(source_name, methods) end
 })
 
-mason_null_ls.setup({ automatic_setup = true, ensure_installed = { "luaformatter", "prettierd", "shellharden" } })
+mason_null_ls.setup({ automatic_setup = true, ensure_installed = { "luaformatter", "prettierd" } })
 
 null_ls.setup({
   border = border,
