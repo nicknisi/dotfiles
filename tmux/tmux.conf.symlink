@@ -98,4 +98,5 @@ unbind p
 bind p paste-buffer
 bind -T copy-mode-vi v send -X begin-selection
 
-source-file "$DOTFILES/tmux/themes/bubbles.conf"
+source-file "$DOTFILES/tmux/themes/catppuccin/$THEME_FLAVOUR.conf"
+source-file "$DOTFILES/tmux/themes/catppuccin.conf"
