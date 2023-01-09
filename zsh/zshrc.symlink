@@ -116,10 +116,16 @@ typeset -A plugins
 
 zfetch mafredri/zsh-async async.plugin.zsh
 zfetch zsh-users/zsh-syntax-highlighting
+zfetch zsh-users/zsh-completions
 zfetch zsh-users/zsh-autosuggestions
 zfetch grigorii-zander/zsh-npm-scripts-autocomplete
+zfetch zsh-users/zsh-history-substring-search
 # zfetch chriskempson/base16-shell
 zfetch Aloxaf/fzf-tab
+zfetch robbyrussell/oh-my-zsh lib/git.zsh
+zfetch robbyrussell/oh-my-zsh plugins/git/git.plugin.zsh
+zfetch robbyrussell/oh-my-zsh plugins/ssh-agent
+zfetch b4b4r07/cli-finder
 
 if [[ -x "$(command -v fnm)" ]]; then
     eval "$(fnm env --use-on-cd)"
