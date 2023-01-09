@@ -139,7 +139,6 @@
     # do not warn about missing whitespace at EOF
     whitespace = nowarn
 [core]
-    excludesfile = ~/.gitignore_global
     pager = delta
     editor = vim
     whitespace = cr-at-eol
