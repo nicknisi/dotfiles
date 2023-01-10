@@ -1,3 +1,5 @@
+# vim:ft=ruby
+
 if OS.mac?
     # taps
     tap "homebrew/cask"
