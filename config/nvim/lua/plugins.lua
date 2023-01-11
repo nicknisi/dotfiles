@@ -75,7 +75,21 @@ require("lazy").setup({
   },
   "hrsh7th/cmp-vsnip",
   "hrsh7th/vim-vsnip-integ", -- add color highlighting to hex values
-  { "norcalli/nvim-colorizer.lua", config = true }, -- use devicons for filetypes
+  {
+    "norcalli/nvim-colorizer.lua",
+    config = function()
+      require("colorizer").setup({ '*' }, {
+        RGB = true,
+        RRGGBB = true,
+        names = true,
+        RRGGBBAA = true,
+        rgb_fn = true,
+        hsl_fn = true,
+        css = true,
+        css_fn = true
+      })
+    end
+  }, -- use devicons for filetypes
   "kyazdani42/nvim-web-devicons", -- fast lau file drawer
   { "kyazdani42/nvim-tree.lua" }, -- Show git information in the gutter
   { "lewis6991/gitsigns.nvim" },
