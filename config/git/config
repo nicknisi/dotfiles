@@ -1,3 +1,4 @@
+# vim:ft=gitconfig
 [init]
     defaultBranch = main
 [include]
