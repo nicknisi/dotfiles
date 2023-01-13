@@ -12,6 +12,9 @@ local header = {
   [[       \_\/       \_\/                              ]]
 }
 
+-- if in a git directory, open git files, otherwise open all files when pressing the "Find File" shortcut
+local find_command = vim.fn.isdirectory(".git") and "Telescope git_files" or "Telescope find_files"
+
 startup.setup({
   header = {
     type = "text",
@@ -28,12 +31,13 @@ startup.setup({
     title = "Basic Commands",
     margin = 5,
     content = {
-      { " Find File", "Telescope find_files", "<leader>t" },
+      { " Find File", find_command, "<leader>t" },
       { " Find Word", "Telescope live_grep", "<leader>fg" },
       { "神 Open Buffers", "Telescope buffers", "<leader>r" },
       { " Recent Files", "Telescope oldfiles", "<leader>fo" },
       { " Open File Drawer", "lua NvimTreeConfig.find_toggle()", "<leader>k" },
-      { " Open Git Index", ":Ge:", ":Ge:" }
+      { " Open Git Index", ":Ge:", ":Ge:" },
+      { " New File", ":enew", "e" }
     },
     highlight = "String"
   },
