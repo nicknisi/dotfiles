@@ -34,6 +34,7 @@ brew "fd" # find alternative
 brew "fzf" # Fuzzy file searcher, used in scripts and in vim
 brew "gh" # GitHub CLI
 brew "git" # Git version control (latest version)
+brew "glow" # markdown viewer
 brew "gnupg" # GPG
 brew "grep" # grep (latest)
 brew "highlight" # code syntax highlighting
