@@ -31,11 +31,12 @@ startup.setup({
     title = "Basic Commands",
     margin = 5,
     content = {
+      -- TODO can these be made without the mappings?
       { " Find File", find_command, "<leader>t" },
       { " Find Word", "Telescope live_grep", "<leader>fg" },
       { "神 Open Buffers", "Telescope buffers", "<leader>r" },
       { " Recent Files", "Telescope oldfiles", "<leader>fo" },
-      { " Open File Drawer", "lua NvimTreeConfig.find_toggle()", "<leader>k" },
+      { " Open File Drawer", "Neotree reveal toggle", "<leader>k" },
       { " Open Git Index", ":Ge:", ":Ge:" },
       { " New File", ":enew", "e" }
     },

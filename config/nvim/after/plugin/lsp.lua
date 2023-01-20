@@ -99,7 +99,6 @@ local on_attach = function(client, bufnr)
     })
   end
 
-  -- disable document formatting (currently handled by formatter.nvim)
   client.server_capabilities.document_formatting = false
 
   if client.server_capabilities.document_formatting then

@@ -127,7 +127,7 @@ opt.foldlevel = 1
 -- fix code folding. Without this autocmd, the message "E490: No fold found" is displayed
 -- anytime a fold is triggered, until the file is reloaded (for example, with `:e<cr>`)
 -- https://github.com/nvim-telescope/telescope.nvim/issues/699#issuecomment-1159637962
-vim.api.nvim_create_autocmd({ "BufEnter" }, { pattern = { "*" }, command = "normal zx" })
+-- vim.api.nvim_create_autocmd({ "BufEnter" }, { pattern = { "*" }, command = "normal zx" })
 
 -- toggle invisible characters
 opt.list = true

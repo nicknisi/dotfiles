@@ -90,7 +90,31 @@ require("lazy").setup({
       })
     end
   }, -- use devicons for filetypes
-  "kyazdani42/nvim-web-devicons", -- fast lau file drawer
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    branch = "v2.x",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-tree/nvim-web-devicons",
+      "MunifTanjim/nui.nvim",
+      {
+        "s1n7ax/nvim-window-picker",
+        -- tag = "v1.*",
+        config = function()
+          require("window-picker").setup({
+            autoselect_one = true,
+            include_current = false,
+            filter_rules = {
+              bo = { filetype = { "nep-tree", "neo-tree-popup", "notify" }, buftype = { "terminal", "quickfix" } }
+            },
+            border = { style = "rounded", highlight = "Normal" },
+            other_win_hl_color = "#e35e4f"
+          })
+        end
+      }
+    }
+  },
+  "nvim-tree/nvim-web-devicons", -- fast lau file drawer
   { "kyazdani42/nvim-tree.lua" }, -- Show git information in the gutter
   { "lewis6991/gitsigns.nvim" },
   {
