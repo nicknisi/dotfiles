@@ -30,6 +30,7 @@ brew "bat" # better cat
 brew "cloc" # lines of code counter
 brew "git-delta" # a better git diff
 brew "entr" # file watcher / command runner
+brew "exa" # ls alternative
 brew "fd" # find alternative
 brew "fzf" # Fuzzy file searcher, used in scripts and in vim
 brew "gh" # GitHub CLI

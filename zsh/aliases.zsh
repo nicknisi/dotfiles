@@ -7,12 +7,6 @@ alias ...='cd ../..'
 alias ....="cd ../../.."
 alias .....="cd ../../../.."
 
-alias l="ls -lah ${colorflag}"
-alias la="ls -AF ${colorflag}"
-alias ll="ls -lFh ${colorflag}"
-alias lld="ls -l | grep ^d"
-alias rmf="rm -rf"
-
 # Helpers
 alias grep='grep --color=auto'
 alias df='df -h' # disk free, in Gigabytes, not bytes
@@ -31,3 +25,16 @@ alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && k
 alias cleanup="find . -name '*.DS_Store' -type f -ls -delete"
 # remove broken symlinks
 alias clsym="find -L . -name . -o -type d -prune -o -type l -exec rm {} +"
+
+
+# use exa if available
+if [[ -x "$(command -v exa)" ]]; then
+  alias ll="exa --icons --git --long"
+  alias l="exa --icons --git --all --long"
+else
+  alias l="ls -lah ${colorflag}"
+  alias ll="ls -lFh ${colorflag}"
+fi
+alias la="ls -AF ${colorflag}"
+alias lld="ls -l | grep ^d"
+alias rmf="rm -rf"
