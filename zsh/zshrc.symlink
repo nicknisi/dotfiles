@@ -130,10 +130,15 @@ export LESS_TERMCAP_ue=$(tput rmul; tput sgr0)
 export LESS_TERMCAP_mr=$(tput rev)
 export LESS_TERMCAP_mh=$(tput dim)
 
-# source z.sh if it exists
-zpath="$(brew --prefix)/etc/profile.d/z.sh"
-if [ -f "$zpath" ]; then
-    source "$zpath"
+# prefer zoxide over z.sh
+if [[ -x "$(command -v zoxide)" ]]; then
+    eval "$(zoxide init zsh --hook pwd)"
+else
+  # source z.sh if it exists
+  zpath="$(brew --prefix)/etc/profile.d/z.sh"
+  if [ -f "$zpath" ]; then
+      source "$zpath"
+  fi
 fi
 
 # Detect which `ls` flavor is in use

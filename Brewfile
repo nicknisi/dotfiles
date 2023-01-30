@@ -53,4 +53,5 @@ brew "vim" # Vim (latest)
 brew "wdiff" # word differences in text files
 brew "wget" # internet file retriever
 brew "z" # switch between most used directories
+brew "zoxide" # switch between most used directories
 brew "zsh" # zsh (latest)
