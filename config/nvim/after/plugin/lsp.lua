@@ -143,7 +143,7 @@ local lua_settings = {
     },
     workspace = {
       -- Make the server aware of Neovim runtime files
-      library = { [vim.fn.expand("$VIMRUNTIME/lua")] = true, [vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true }
+      library = { [vim.fn.expand("$VIMRUNTIME/lua")] = true,[vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true }
     }
   }
 }
@@ -167,6 +167,8 @@ lspconfig.eslint.setup(make_config(function(config)
   config.filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" }
   return config
 end))
+
+lspconfig.astro.setup(make_config(function(config) return config end))
 
 lspconfig.tsserver.setup(make_config(function(config)
   config.root_dir = lspconfig.util.root_pattern("tsconfig.json")
@@ -204,6 +206,11 @@ end))
 
 lspconfig.diagnosticls.setup(make_config(function(config)
   config.settings = diagnosticls_settings
+  return config
+end))
+
+lspconfig.jsonls.setup(make_config(function(config)
+  config.filetypes = { "json", "jsonc" }
   return config
 end))
 

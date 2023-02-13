@@ -41,6 +41,7 @@ require("lazy").setup({
   { "gregsexton/MatchTag", ft = "html" }, -- html5 support
   { "othree/html5.vim", ft = "html" }, -- pug / jade support
   { "digitaltoad/vim-pug", ft = { "jade", "pug" } }, -- nunjucks support
+  { 'wuelnerdotexe/vim-astro', config = function() vim.cmd([[let g:astro_typescript = 'enable']]) end },
   -- Plug "niftylettuce/vim-jinja"
   { "Glench/Vim-Jinja2-Syntax", ft = { "jinja", "nunjucks" } }, -- edit quickfix list
   { "itchyny/vim-qfedit", event = "VeryLazy" }, -- liquid support
