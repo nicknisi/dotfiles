@@ -72,6 +72,8 @@ if fn.executable("rg") then
   -- if ripgrep installed, use that as a grepper
   opt.grepprg = "rg --vimgrep --no-heading"
   opt.grepformat = "%f:%l:%c:%m,%f:%l:%m"
+  -- create autocmd to automatically open quickfix window when grepping
+  cmd [[autocmd QuickFixCmdPost [^l]* nested cwindow]]
 end
 
 -- error bells
