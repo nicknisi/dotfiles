@@ -33,7 +33,7 @@ null_ls.setup({
 })
 
 mason_lspconfig.setup({
-  ensure_installed = { "eslint", "tsserver", "sumneko_lua", "denols", "vimls" },
+  ensure_installed = { "eslint", "tsserver", "lua_ls", "denols", "vimls", "astro" },
   automatic_installation = true,
   ui = { check_outdated_servers_on_open = true }
 })
@@ -187,7 +187,7 @@ lspconfig.denols.setup(make_config(function(config)
   return config
 end))
 
-lspconfig.sumneko_lua.setup(make_config(function(config)
+lspconfig.lua_ls.setup(make_config(function(config)
   config.settings = lua_settings
   config.root_dir = function(fname)
     local util = require("lspconfig/util")
