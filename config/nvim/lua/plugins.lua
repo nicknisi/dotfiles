@@ -77,17 +77,22 @@ require("lazy").setup({
   "hrsh7th/cmp-vsnip",
   "hrsh7th/vim-vsnip-integ", -- add color highlighting to hex values
   {
-    "norcalli/nvim-colorizer.lua",
+    "NvChad/nvim-colorizer.lua",
     config = function()
-      require("colorizer").setup({ '*' }, {
-        RGB = true,
-        RRGGBB = true,
-        names = true,
-        RRGGBBAA = true,
-        rgb_fn = true,
-        hsl_fn = true,
-        css = true,
-        css_fn = true
+      require("colorizer").setup({
+        filetypes = { '*' },
+        user_default_options = {
+          mode = "background",
+          tailwind = true,
+          RGB = true,
+          RRGGBB = true,
+          names = true,
+          RRGGBBAA = true,
+          rgb_fn = true,
+          hsl_fn = true,
+          css = true,
+          css_fn = true
+        }
       })
     end
   }, -- use devicons for filetypes
@@ -137,7 +142,13 @@ require("lazy").setup({
   }, -- neovim completion
   {
     "hrsh7th/nvim-cmp",
-    dependencies = { "hrsh7th/cmp-nvim-lsp", "hrsh7th/cmp-nvim-lua", "hrsh7th/cmp-buffer", "hrsh7th/cmp-path" }
+    dependencies = {
+      "hrsh7th/cmp-nvim-lsp",
+      "hrsh7th/cmp-nvim-lua",
+      "hrsh7th/cmp-buffer",
+      "hrsh7th/cmp-path",
+      { "roobert/tailwindcss-colorizer-cmp.nvim", config = true }
+    }
   }, -- treesitter enables an AST-like understanding of files
   {
     "nvim-treesitter/nvim-treesitter",

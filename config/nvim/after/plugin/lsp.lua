@@ -33,7 +33,7 @@ null_ls.setup({
 })
 
 mason_lspconfig.setup({
-  ensure_installed = { "eslint", "tsserver", "lua_ls", "denols", "vimls", "astro" },
+  ensure_installed = { "eslint", "tsserver", "lua_ls", "denols", "vimls", "astro", "tailwindcss" },
   automatic_installation = true,
   ui = { check_outdated_servers_on_open = true }
 })
@@ -162,6 +162,8 @@ local function make_config(callback)
 end
 
 lspconfig.rust_analyzer.setup(make_config(function(config) return config end))
+
+lspconfig.tailwindcss.setup(make_config(function(config) return config end))
 
 lspconfig.eslint.setup(make_config(function(config)
   config.filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" }
