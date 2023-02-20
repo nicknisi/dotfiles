@@ -163,7 +163,10 @@ end
 
 lspconfig.rust_analyzer.setup(make_config(function(config) return config end))
 
-lspconfig.tailwindcss.setup(make_config(function(config) return config end))
+lspconfig.tailwindcss.setup(make_config(function(config)
+  config.root_dir = lspconfig.util.root_pattern("tailwind.config.js", "tailwind.config.cjs")
+  return config
+end))
 
 lspconfig.eslint.setup(make_config(function(config)
   config.filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" }
