@@ -2,8 +2,8 @@
 
 Welcome to my world! Here you'll find a collection of configuration files for various tools and programs that I use on a daily basis. These dotfiles have been carefully curated and customized to streamline **my** workflow and improve **my** productivity. Your results may vary, but feel free to give it a try! Whether you're a fellow developer looking to optimize your setup or just curious about how I organize my digital life, I hope you find something useful in these dotfiles. So take a look around and feel free to borrow, modify, or fork to your heart's content. Happy coding!
 
->**Note**
-Did you arrive here through my YouTube talk, [vim + tmux](https://www.youtube.com/watch?v=5r6yzFEXajQ)? My dotfiles have changed tremendously since then, but feel free to peruse the state of this repo [at the time the video was recorded](https://github.com/nicknisi/dotfiles/tree/aa72bed5c4ecec540a31192581294818b69b93e2).
+> **Note**
+> Did you arrive here through my YouTube talk, [vim + tmux](https://www.youtube.com/watch?v=5r6yzFEXajQ)? My dotfiles have changed tremendously since then, but feel free to peruse the state of this repo [at the time the video was recorded](https://github.com/nicknisi/dotfiles/tree/aa72bed5c4ecec540a31192581294818b69b93e2).
 
 ![capture-20221204193335](https://user-images.githubusercontent.com/293805/205530265-1d0b1a7f-ae2f-4c22-942c-2a1efa0f83a6.png)
 
@@ -11,8 +11,8 @@ Did you arrive here through my YouTube talk, [vim + tmux](https://www.youtube.c
 
 The first thing you need to do is to clone this repo into a location of your choosing. For example, if you have a `~/Developer` directory where you clone all of your git repos, that's a good choice for this one, too. This repo is setup to not rely on the location of the dotfiles, so you can place it anywhere.
 
->**Note**
->If you're on macOS, you'll also need to install the XCode CLI tools before continuing.
+> **Note**
+> If you're on macOS, you'll also need to install the XCode CLI tools before continuing.
 
 ```bash
 xcode-select --install
@@ -22,9 +22,8 @@ xcode-select --install
 git clone git@github.com:nicknisi/dotfiles.git
 ```
 
->**Note**
->This dotfiles configuration is set up in such a way that it _shouldn't_ matter where the repo exists on your system.
-
+> **Note**
+> This dotfiles configuration is set up in such a way that it _shouldn't_ matter where the repo exists on your system.
 
 The script, `install.sh` is the one-stop for all things setup, backup, and installation.
 
@@ -140,6 +139,7 @@ zfetch nicknisi/work-scripts
 ```
 
 ### Prompt
+
 Aloxaf/fzf-tab
 The prompt is meant to be simple while still providing a lot of information to the user, particularly about the status of the git project, if the PWD is a git project. This prompt sets `precmd`, `PROMPT` and `RPROMPT`. The `precmd` shows the current working directory in it and the `RPROMPT` shows the git and suspended jobs info. The main symbol used on the actual prompt line is `❯`.
 
@@ -151,17 +151,17 @@ It does this by writing the actual text that will be displayed int he prompt to 
 
 The git info shown on the `RPROMPT` displays the current branch name, along with the following symbols.
 
--  `+` - New files were added
--  `!` - Existing files were modified
--  `?` - Untracked files exist that are not ignored
--  `»` - Current changes include file renaming
--  `✘` - An existing tracked file has been deleted
--  `$` - There are currently stashed files
--  `=` - There are unmerged files
--  `⇡` - Branch is ahead of the remote (indicating a push is needed)
--  `⇣` - Branch is behind the remote (indicating a pull is needed)
--  `⇕` - The branches have diverged (indicating history has changed and maybe a force-push is needed)
--  `✔` - The current working directory is clean
+- `+` - New files were added
+- `!` - Existing files were modified
+- `?` - Untracked files exist that are not ignored
+- `»` - Current changes include file renaming
+- `✘` - An existing tracked file has been deleted
+- `$` - There are currently stashed files
+- `=` - There are unmerged files
+- `⇡` - Branch is ahead of the remote (indicating a push is needed)
+- `⇣` - Branch is behind the remote (indicating a pull is needed)
+- `⇕` - The branches have diverged (indicating history has changed and maybe a force-push is needed)
+- `✔` - The current working directory is clean
 
 #### Jobs Prompt
 
@@ -173,8 +173,8 @@ If a `package.json` file or a `node_modules` directory exists in the current wor
 
 ## Neovim setup
 
->**Note**
->This is no longer a vim setup. The configuration has been moved to be Neovim-specific and (mostly) written in [Lua](https://www.lua.org/). `vim` is also set up as an alias to `nvim` to help with muscle memory.
+> **Note**
+> This is no longer a vim setup. The configuration has been moved to be Neovim-specific and (mostly) written in [Lua](https://www.lua.org/). `vim` is also set up as an alias to `nvim` to help with muscle memory.
 
 The simplest way to install Neovim is to install it from homebrew.
 
@@ -186,8 +186,8 @@ However, it was likely installed already if you ran the `./install.sh brew` comm
 
 All of the configuration for Neovim starts at `config/nvim/init.lua`, which is symlinked into the `~/.config/nvim` directory.
 
->**Warning**
->The first time you run `nvim` with this configuration, it will likely have a lot of errors. This is because it is dependent on a number of plugins being installed.
+> **Warning**
+> The first time you run `nvim` with this configuration, it will likely have a lot of errors. This is because it is dependent on a number of plugins being installed.
 
 ### Installing plugins
 
@@ -196,8 +196,8 @@ On the first run, all required plugins should automaticaly by installed by
 
 All plugins are listed in [plugins.lua](./config/nvim/lua/plugins.lua). When a plugin is added, it will automatically be installed by lazy.nvim. To interface with lazy.nvim, simply run `:Lazy` from within vim.
 
->**Note**
->Plugins can be synced in a headless way from the command line using the `vimu` alias.
+> **Note**
+> Plugins can be synced in a headless way from the command line using the `vimu` alias.
 
 ## tmux configuration
 
@@ -209,7 +209,7 @@ This repo ships with a `tm` command which provides a list of active session, or 
 > tm
 Available sessions
 ------------------
- 
+
 1) New Session
 Please choose your session: 1
 Enter new session name: open-source
@@ -217,25 +217,35 @@ Enter new session name: open-source
 
 This configuration provides a bit of style to the tmux bar, along with some additional data such as the currently playing song (from Apple Music or Spotify), the system name, the session name, and the current time.
 
->**Note**
->It also changes the prefix from `⌃-b` to `⌃-a` (⌃ is the _control_ key). This is because I tend to remap the Caps Lock button to Control, and then having the prefix makes more sense.
+> **Note**
+> It also changes the prefix from `⌃-b` to `⌃-a` (⌃ is the _control_ key). This is because I tend to remap the Caps Lock button to Control, and then having the prefix makes more sense.
 
 ### tmux key commands
 
 Pressing the Prefix followed by the following will have the following actions in tmux.
 
-| Command        | Description                     |
-| -------------- | ------------------------------ |
-| `h`            | Select the pane to the left    |
-| `j`            | Select the pane to the bottom  |
-| `k`            | Select the pane to the top     |
-| `l`            | Select the pane to the right   |
-| `⇧-H`          | Enlarge the pane to the left   |
-| `⇧-J`          | Enlarge the pane to the bottom |
-| `⇧-K`          | Enlarge the pane to the top    |
-| `⇧-L`          | Enlarge the pane to the right  |
-| `-` (dash)     | Create a vertical split        |
-| `\|` (pipe)    | Create a horizontal split      |
+| Command     | Description                    |
+| ----------- | ------------------------------ |
+| `h`         | Select the pane to the left    |
+| `j`         | Select the pane to the bottom  |
+| `k`         | Select the pane to the top     |
+| `l`         | Select the pane to the right   |
+| `⇧-H`       | Enlarge the pane to the left   |
+| `⇧-J`       | Enlarge the pane to the bottom |
+| `⇧-K`       | Enlarge the pane to the top    |
+| `⇧-L`       | Enlarge the pane to the right  |
+| `-` (dash)  | Create a vertical split        |
+| `\|` (pipe) | Create a horizontal split      |
+
+### Minimal tmux UI
+
+Setting a `$TMUX_MINIMAL` environment variable will do some extra work to hide the tmux status bar when there is only a
+single tmux window open. This is not the default in this repo because it can be confusing, but it is my preferred way to
+work. To set this, you can use the `~/.localrc` file to set it in the following way.
+
+```shell
+export TMUX_MINIMAL=1
+```
 
 ## Docker Setup
 
@@ -262,4 +272,4 @@ reccomendations are also available, cross-platform.
 
 ## Questions
 
-If you have questions, notice issues,  or would like to see improvements, please open a new [discussion](https://github.com/nicknisi/dotfiles/discussions/new) and I'm happy to help you out!
+If you have questions, notice issues, or would like to see improvements, please open a new [discussion](https://github.com/nicknisi/dotfiles/discussions/new) and I'm happy to help you out!
