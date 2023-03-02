@@ -35,7 +35,7 @@ require("neo-tree").setup({
       with_expanders = nil, -- if nil and file nesting is enabled, will enable expanders
       expander_collapsed = icons.arrow_closed,
       expander_expanded = icons.arrow_open,
-      expander_highlight = "NeoTreeExpander"
+      expander_highlight = "NeoTreeExpander",
     },
     icon = {
       folder_closed = icons.default,
@@ -44,7 +44,7 @@ require("neo-tree").setup({
       -- The next two settings are only a fallback, if you use nvim-web-devicons and configure default icons there
       -- then these will never be used.
       default = "*",
-      highlight = "NeoTreeFileIcon"
+      highlight = "NeoTreeFileIcon",
     },
     modified = { symbol = "[+]", highlight = "NeoTreeModified" },
     name = { trailing_slash = false, use_git_status_colors = true, highlight = "NeoTreeFileName" },
@@ -60,9 +60,9 @@ require("neo-tree").setup({
         ignored = icons.ignored,
         unstaged = icons.unstaged,
         staged = icons.staged,
-        conflict = icons.conflict
-      }
-    }
+        conflict = icons.conflict,
+      },
+    },
   },
   window = {
     position = "left",
@@ -71,7 +71,7 @@ require("neo-tree").setup({
     mappings = {
       ["<space>"] = {
         "toggle_node",
-        nowait = false -- disable `nowait` if you have existing combos starting with this char that you want to use
+        nowait = false, -- disable `nowait` if you have existing combos starting with this char that you want to use
       },
       ["<2-LeftMouse>"] = "open",
       ["<cr>"] = "open",
@@ -95,8 +95,8 @@ require("neo-tree").setup({
         -- this command supports BASH style brace expansion ("x{a,b,c}" -> xa,xb,xc). see `:h neo-tree-file-actions` for details
         -- some commands may take optional config options, see `:h neo-tree-mappings` for details
         config = {
-          show_path = "none" -- "none", "relative", "absolute"
-        }
+          show_path = "none", -- "none", "relative", "absolute"
+        },
       },
       ["A"] = "add_directory", -- also accepts the optional config.show_path option like "add". this also supports BASH style brace expansion.
       ["d"] = "delete",
@@ -116,14 +116,14 @@ require("neo-tree").setup({
       ["R"] = "refresh",
       ["?"] = "show_help",
       ["<"] = "prev_source",
-      [">"] = "next_source"
-    }
+      [">"] = "next_source",
+    },
   },
   nesting_rules = {
     ["ts"] = { "spec.ts", "spec.tsx", "stories.tsx", "stories.mdx" },
     ["tsx"] = { "spec.ts", "spec.tsx", "stories.tsx", "stories.mdx" },
     ["js"] = { "d.ts" },
-    ["jsx"] = { "d.ts" }
+    ["jsx"] = { "d.ts" },
   },
   filesystem = {
     filtered_items = {
@@ -147,7 +147,7 @@ require("neo-tree").setup({
       },
       never_show_by_pattern = { -- uses glob style patterns
         -- ".null-ls_*",
-      }
+      },
     },
     bind_to_cwd = true,
     cwd_target = { sidebar = "tab", current = "window" },
@@ -171,9 +171,9 @@ require("neo-tree").setup({
         ["f"] = "filter_on_submit",
         ["<c-x>"] = "clear_filter",
         ["[g"] = "prev_git_modified",
-        ["]g"] = "next_git_modified"
-      }
-    }
+        ["]g"] = "next_git_modified",
+      },
+    },
   },
   buffers = {
     follow_current_file = true, -- This will find and focus the file in the active buffer every
@@ -183,10 +183,10 @@ require("neo-tree").setup({
     window = {
       mappings = {
         ["bd"] = "buffer_delete",
-        ["<bs>"] = "navigate_up"
+        ["<bs>"] = "navigate_up",
         -- ["<c-.>"] = "set_root",
-      }
-    }
+      },
+    },
   },
   git_status = {
     window = {
@@ -198,10 +198,10 @@ require("neo-tree").setup({
         ["gr"] = "git_revert_file",
         ["gc"] = "git_commit",
         ["gp"] = "git_push",
-        ["gg"] = "git_commit_and_push"
-      }
-    }
-  }
+        ["gg"] = "git_commit_and_push",
+      },
+    },
+  },
 })
 
-vim.keymap.set('n', '<leader>k', ':Neotree toggle reveal<cr>');
+vim.keymap.set("n", "<leader>k", ":Neotree toggle reveal<cr>")

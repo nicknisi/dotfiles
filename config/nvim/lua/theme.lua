@@ -21,7 +21,7 @@ local colors = {
   violet = "#a9a1e1",
   white = "#eff0f1",
   yellow = "#f09f17",
-  black = "#202328"
+  black = "#202328",
 }
 
 local icons = {
@@ -69,18 +69,18 @@ local icons = {
   -- misc
   devil = " ",
   bsd = " ",
-  ghost = " "
+  ghost = " ",
 }
 
 local border = {
   { "🭽", "FloatBorder" },
-  { "▔", "FloatBorder" },
+  { "▔",  "FloatBorder" },
   { "🭾", "FloatBorder" },
-  { "▕", "FloatBorder" },
+  { "▕",  "FloatBorder" },
   { "🭿", "FloatBorder" },
-  { "▁", "FloatBorder" },
+  { "▁",  "FloatBorder" },
   { "🭼", "FloatBorder" },
-  { "▏", "FloatBorder" }
+  { "▏",  "FloatBorder" },
 }
 
 return { colors = colors, icons = icons, border = border }

@@ -7,4 +7,6 @@ function globals._create(f)
   return #globals._store
 end
 
-function globals._execute(id, args) globals._store[id](args) end
+function globals._execute(id, args)
+  globals._store[id](args)
+end

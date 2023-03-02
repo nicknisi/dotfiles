@@ -19,7 +19,7 @@ local headers = {
     [[                        ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██                        ]],
     [[                        ██▒▒██▒▒▒▒▒▒██▒▒▒▒▒▒▒▒██▒▒▒▒██                        ]],
     [[                        ████  ██▒▒██  ██▒▒▒▒██  ██▒▒██                        ]],
-    [[                        ██      ██      ████      ████                        ]]
+    [[                        ██      ██      ████      ████                        ]],
   },
   invader = {
     [[       ____                                         ]],
@@ -31,7 +31,7 @@ local headers = {
     [[ /_/\\   __   __  \ \_/_/\                          ]],
     [[ \_\/_\__\/\__\/\__\/_\_\/                          ]],
     [[    \_\/_/\       /_\_\/                            ]],
-    [[       \_\/       \_\/                              ]]
+    [[       \_\/       \_\/                              ]],
   },
   hydra = {
     [[                                   ]],
@@ -48,7 +48,7 @@ local headers = {
     [[ ⠙⠃   ⣼⣿⡟  ⠈⠻⣿⣿⣦⣌⡇⠻⣿⣿⣷⣿⣿⣿ ⣿⣿⡇ ⠛⠻⢷⣄ ]],
     [[      ⢻⣿⣿⣄   ⠈⠻⣿⣿⣿⣷⣿⣿⣿⣿⣿⡟ ⠫⢿⣿⡆     ]],
     [[       ⠻⣿⣿⣿⣿⣶⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⡟⢀⣀⣤⣾⡿⠃     ]],
-    [[                                   ]]
+    [[                                   ]],
   },
   neovim = {
     [[                                                     ]],
@@ -58,8 +58,8 @@ local headers = {
     [[  ██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║ ]],
     [[  ██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║ ]],
     [[  ██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║ ]],
-    [[  ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝ ]]
-  }
+    [[  ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝ ]],
+  },
 }
 
 -- if in a git directory, open git files, otherwise open all files when pressing the "Find File" shortcut
@@ -72,7 +72,7 @@ startup.setup({
     fold_section = false,
     title = "Header",
     content = headers.ghost,
-    highlight = "Statement"
+    highlight = "Statement",
   },
   body = {
     type = "mapping",
@@ -88,9 +88,9 @@ startup.setup({
       { " Recent Files",     "Telescope oldfiles",    "<leader>fo" },
       { " Open File Drawer", "Neotree reveal toggle", "<leader>k" },
       { " Open Git Index",   ":Ge:",                  ":Ge:" },
-      { " New File",         ":enew",                 "e" }
+      { " New File",         ":enew",                 "e" },
     },
-    highlight = "String"
+    highlight = "String",
   },
   footer = {
     type = "text",
@@ -100,7 +100,7 @@ startup.setup({
     margin = 5,
     content = { "https://github.com/nicknisi/dotfiles" },
     highlight = "Number",
-    default_color = ""
+    default_color = "",
   },
   colors = { background = "#1f2227", folded_section = "#56b6c2" },
   mappings = {
@@ -109,10 +109,15 @@ startup.setup({
     open_file_split = "<c-o>",
     open_section = "<TAB>",
     open_help = "?",
-    quit = "q"
+    quit = "q",
   },
-  options = { disable_statuslines = true, after = function() require("startup.utils").oldfiles_mappings() end },
-  parts = { "header", "body", "footer" }
+  options = {
+    disable_statuslines = true,
+    after = function()
+      require("startup.utils").oldfiles_mappings()
+    end,
+  },
+  parts = { "header", "body", "footer" },
 })
 
 local group = vim.api.nvim_create_augroup("Startup", { clear = true })
