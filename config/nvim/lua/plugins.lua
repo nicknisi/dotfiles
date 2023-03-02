@@ -190,6 +190,7 @@ require("lazy").setup({
   }, -- Startup screen for Neovim
   { "startup-nvim/startup.nvim" }, -- fzf
   { "junegunn/fzf.vim", dependencies = { { dir = vim.env.HOMEBREW_PREFIX .. "/opt/fzf" } } },
+  "folke/neodev.nvim",
   {
     "folke/trouble.nvim",
     config = true,

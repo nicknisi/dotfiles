@@ -10,13 +10,39 @@ local group = vim.api.nvim_create_augroup("LspConfig", { clear = true })
 local format_group = vim.api.nvim_create_augroup("LspFormatting", { clear = true })
 local null_ls = require("null-ls")
 
+require("neodev").setup()
+
 require("mason").setup({ ui = { border = border } })
 
 mason_null_ls.setup_handlers({
-  function(source_name, methods) require('mason-null-ls.automatic_setup')(source_name, methods) end
+  function(source_name, methods)
+    require("mason-null-ls.automatic_setup")(source_name, methods)
+  end,
+  prettier = function()
+    null_ls.register(null_ls.builtins.formatting.prettier.with({
+      filetypes = {
+        "astro",
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        "css",
+        "scss",
+        "json",
+        "graphql",
+        "markdown",
+        "yaml",
+        "html",
+        "vue",
+        "svelte",
+        "lua",
+      },
+      args = { "--stdin-filepath", vim.api.nvim_buf_get_name(0) },
+    }))
+  end,
 })
 
-mason_null_ls.setup({ automatic_setup = true, ensure_installed = { "luaformatter", "prettierd" } })
+mason_null_ls.setup({ automatic_setup = true, ensure_installed = { "stylua", "prettier" } })
 
 null_ls.setup({
   border = border,
@@ -26,25 +52,31 @@ null_ls.setup({
       vim.api.nvim_create_autocmd("BufWritePre", {
         group = vim.api.nvim_create_augroup("LspFormatting", {}),
         buffer = bufnr,
-        callback = function() vim.lsp.buf.format({ bufnr = bufnr }) end
+        callback = function()
+          vim.lsp.buf.format({ bufnr = bufnr })
+        end,
       })
     end
-  end
+  end,
 })
 
 mason_lspconfig.setup({
   ensure_installed = { "eslint", "tsserver", "lua_ls", "denols", "vimls", "astro", "tailwindcss" },
   automatic_installation = true,
-  ui = { check_outdated_servers_on_open = true }
+  ui = { check_outdated_servers_on_open = true },
 })
 
 local format_async = function(err, _, result, _, bufnr)
-  if err ~= nil or result == nil then return end
+  if err ~= nil or result == nil then
+    return
+  end
   if not vim.api.nvim_buf_get_option(bufnr, "modified") then
     local view = vim.fn.winsaveview()
-    vim.lsp.util.apply_text_edits(result, bufnr)
+    vim.lsp.util.apply_text_edits(result, bufnr, "utf-8")
     vim.fn.winrestview(view)
-    if bufnr == vim.api.nvim_get_current_buf() then vim.api.nvim_command("noautocmd :update") end
+    if bufnr == vim.api.nvim_get_current_buf() then
+      vim.api.nvim_command("noautocmd :update")
+    end
   end
 end
 
@@ -58,16 +90,18 @@ end
 _G.lsp_organize_imports = lsp_organize_imports
 
 -- show diagnostic line with custom border and styling
-local lsp_show_diagnostics = function() vim.diagnostic.open_float({ border = border }) end
+local lsp_show_diagnostics = function()
+  vim.diagnostic.open_float({ border = border })
+end
 
 local on_attach = function(client, bufnr)
-  vim.cmd [[command! OR lua lsp_organize_imports()]]
+  vim.cmd([[command! OR lua lsp_organize_imports()]])
   vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border })
   vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border })
 
   local opts = { noremap = true, silent = true }
   vim.keymap.set("n", "<leader>aa", lsp_show_diagnostics, opts)
-  vim.keymap.set('n', 'gl', lsp_show_diagnostics, opts)
+  vim.keymap.set("n", "gl", lsp_show_diagnostics, opts)
   vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
   vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
   vim.keymap.set("n", "<leader>aq", vim.diagnostic.setloclist, opts)
@@ -89,21 +123,30 @@ local on_attach = function(client, bufnr)
   if client.server_capabilities.document_highlight then
     vim.api.nvim_create_autocmd("CursorHold", {
       pattern = "*",
-      callback = function() vim.lsp.buf.document_highlight() end,
-      group = group
+      callback = function()
+        vim.lsp.buf.document_highlight()
+      end,
+      group = group,
     })
     vim.api.nvim_create_autocmd("CursorMoved", {
       pattern = "*",
-      callback = function() vim.lsp.buf.clear_references() end,
-      group = group
+      callback = function()
+        vim.lsp.buf.clear_references()
+      end,
+      group = group,
     })
   end
 
   client.server_capabilities.document_formatting = false
 
   if client.server_capabilities.document_formatting then
-    vim.api.nvim_create_autocmd("BufEnter",
-      { pattern = "*", callback = function() vim.lsp.buf.formatting() end, group = group })
+    vim.api.nvim_create_autocmd("BufEnter", {
+      pattern = "*",
+      callback = function()
+        vim.lsp.buf.formatting()
+      end,
+      group = group,
+    })
   end
 end
 
@@ -121,39 +164,42 @@ local diagnosticls_settings = {
         formatLines = 1,
         formatPattern = {
           "^[^:]+:(\\d+):(\\d+):\\s+([^:]+):\\s+(.*)$",
-          { line = 1, column = 2, message = 4, security = 3 }
+          { line = 1, column = 2, message = 4, security = 3 },
         },
-        securities = { error = "error", warning = "warning", note = "info" }
-      }
+        securities = { error = "error", warning = "warning", note = "info" },
+      },
     },
-    filetypes = { sh = "shellcheck" }
-  }
+    filetypes = { sh = "shellcheck" },
+  },
 }
 
 local lua_settings = {
   Lua = {
+    completion = { callSnippet = "Replace" },
     runtime = {
       -- LuaJIT in the case of Neovim
       version = "LuaJIT",
-      path = vim.split(package.path, ";")
+      path = vim.split(package.path, ";"),
     },
     diagnostics = {
       -- Get the language server to recognize the `vim` global
-      globals = { "vim" }
+      globals = { "vim" },
     },
     workspace = {
       -- Make the server aware of Neovim runtime files
-      library = { [vim.fn.expand("$VIMRUNTIME/lua")] = true,[vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true }
-    }
-  }
+      library = { [vim.fn.expand("$VIMRUNTIME/lua")] = true,[vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true },
+    },
+  },
 }
 
 local function make_config(callback)
-  callback = callback or function(config) return config end
+  callback = callback or function(config)
+        return config
+      end
   local capabilities = vim.lsp.protocol.make_client_capabilities()
   capabilities.textDocument.completion.completionItem.snippetSupport = true
   capabilities.textDocument.completion.completionItem.resolveSupport = {
-    properties = { "documentation", "detail", "additionalTextEdits" }
+    properties = { "documentation", "detail", "additionalTextEdits" },
   }
   capabilities.textDocument.colorProvider = { dynamicRegistration = false }
   capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
@@ -161,7 +207,9 @@ local function make_config(callback)
   return callback({ capabilities = capabilities, on_attach = on_attach })
 end
 
-lspconfig.rust_analyzer.setup(make_config(function(config) return config end))
+lspconfig.rust_analyzer.setup(make_config(function(config)
+  return config
+end))
 
 lspconfig.tailwindcss.setup(make_config(function(config)
   config.root_dir = lspconfig.util.root_pattern("tailwind.config.js", "tailwind.config.cjs")
@@ -173,16 +221,20 @@ lspconfig.eslint.setup(make_config(function(config)
   return config
 end))
 
-lspconfig.astro.setup(make_config(function(config) return config end))
+lspconfig.astro.setup(make_config(function(config)
+  return config
+end))
 
 lspconfig.tsserver.setup(make_config(function(config)
   config.root_dir = lspconfig.util.root_pattern("tsconfig.json")
   config.handlers = {
     ["textDocument/definition"] = function(err, result, ctx, conf)
       -- if there is more than one result, just use the first one
-      if #result > 1 then result = { result[1] } end
+      if #result > 1 then
+        result = { result[1] }
+      end
       vim.lsp.handlers["textDocument/definition"](err, result, ctx, conf)
-    end
+    end,
   }
   return config
 end))
