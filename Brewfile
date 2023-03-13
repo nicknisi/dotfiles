@@ -4,6 +4,7 @@ if OS.mac?
     # taps
     tap "homebrew/cask"
     tap "homebrew/cask-fonts"
+    tap "koekeishiya/formulae"
 
     brew "noti" # utility to display notifications from scripts
     brew "trash" # rm, but put in the trash rather than completely delete
@@ -11,7 +12,11 @@ if OS.mac?
     # Applications
     cask "kitty" # a better terminal emulator
     cask "imageoptim" # a tool to optimize images
-	cask "1password/tap/1password-cli"
+    cask "1password/tap/1password-cli"
+
+    # yabai
+    brew "yabai"
+    brew "skhd"
 
     # Fonts
     cask "font-fira-code"
