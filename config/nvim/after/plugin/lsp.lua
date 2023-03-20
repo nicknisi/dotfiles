@@ -187,15 +187,15 @@ local lua_settings = {
     },
     workspace = {
       -- Make the server aware of Neovim runtime files
-      library = { [vim.fn.expand("$VIMRUNTIME/lua")] = true,[vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true },
+      library = { [vim.fn.expand("$VIMRUNTIME/lua")] = true, [vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true },
     },
   },
 }
 
 local function make_config(callback)
   callback = callback or function(config)
-        return config
-      end
+    return config
+  end
   local capabilities = vim.lsp.protocol.make_client_capabilities()
   capabilities.textDocument.completion.completionItem.snippetSupport = true
   capabilities.textDocument.completion.completionItem.resolveSupport = {
@@ -273,7 +273,7 @@ end))
 
 -- set up custom symbols for LSP errors
 local signs =
-{ Error = icons.error, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
+  { Error = icons.error, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
 for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
