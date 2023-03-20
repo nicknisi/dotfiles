@@ -24,7 +24,7 @@ require("lazy").setup({
   "tpope/vim-repeat",
   -- single/multi line code handler: gS - split one line into multiple, gJ - combine multiple lines into one
   "AndrewRadev/splitjoin.vim",
-  { "junegunn/goyo.vim",   keys = { { "<leader>w", "<cmd>Goyo<cr>" } } },
+  { "junegunn/goyo.vim", keys = { { "<leader>w", "<cmd>Goyo<cr>" } } },
   -- detect indent style (tabs vs. spaces)
   "tpope/vim-sleuth", -- setup editorconfig
   "editorconfig/editorconfig-vim", -- fugitive
@@ -32,14 +32,14 @@ require("lazy").setup({
     "tpope/vim-fugitive",
     lazy = false,
     keys = {
-      { "<leader>gr", "<cmd>Gread<cr>",   desc = "read file from git" },
+      { "<leader>gr", "<cmd>Gread<cr>", desc = "read file from git" },
       { "<leader>gb", "<cmd>G blame<cr>", desc = "read file from git" },
     },
     dependencies = { "tpope/vim-rhubarb" },
   }, -- general plugins
   -- match tags in html, similar to paren support
   { "gregsexton/MatchTag", ft = "html" }, -- html5 support
-  { "othree/html5.vim",    ft = "html" }, -- pug / jade support
+  { "othree/html5.vim", ft = "html" }, -- pug / jade support
   { "digitaltoad/vim-pug", ft = { "jade", "pug" } }, -- nunjucks support
   {
     "wuelnerdotexe/vim-astro",
@@ -49,11 +49,11 @@ require("lazy").setup({
   },
   -- Plug "niftylettuce/vim-jinja"
   { "Glench/Vim-Jinja2-Syntax", ft = { "jinja", "nunjucks" } }, -- edit quickfix list
-  { "itchyny/vim-qfedit",       event = "VeryLazy" }, -- liquid support
+  { "itchyny/vim-qfedit", event = "VeryLazy" }, -- liquid support
   "tpope/vim-liquid",
   { "othree/yajs.vim", ft = { "javascript", "javascript.jsx", "html", "typescript", "typescriptreact" } },
   -- Plug 'pangloss/vim-javascript', { 'for': ['javascript', 'javascript.jsx', 'html'] }
-  { "moll/vim-node",   ft = { "javascript", "typescript" } },
+  { "moll/vim-node", ft = { "javascript", "typescript" } },
   {
     "MaxMEllon/vim-jsx-pretty",
     config = function()
@@ -61,13 +61,13 @@ require("lazy").setup({
     end,
   },
   { "leafgarland/typescript-vim", ft = { "typescript", "typescript.tsx" } },
-  { "wavded/vim-stylus",          ft = { "stylus", "markdown" } },
-  { "jxnblk/vim-mdx-js",          ft = "mdx" },
-  { "groenewege/vim-less",        ft = "less" },
-  { "hail2u/vim-css3-syntax",     ft = "css" },
-  { "cakebaker/scss-syntax.vim",  ft = "scss" },
-  { "stephenway/postcss.vim",     ft = "css" },
-  { "udalov/kotlin-vim",          ft = "kotlin" },
+  { "wavded/vim-stylus", ft = { "stylus", "markdown" } },
+  { "jxnblk/vim-mdx-js", ft = "mdx" },
+  { "groenewege/vim-less", ft = "less" },
+  { "hail2u/vim-css3-syntax", ft = "css" },
+  { "cakebaker/scss-syntax.vim", ft = "scss" },
+  { "stephenway/postcss.vim", ft = "css" },
+  { "udalov/kotlin-vim", ft = "kotlin" },
   {
     "elzr/vim-json",
     ft = "json",
@@ -77,7 +77,7 @@ require("lazy").setup({
   },
   { "ekalinin/Dockerfile.vim", ft = "Dockerfile" },
   "jparise/vim-graphql",
-  { "preservim/vim-markdown",  ft = "markdown",  dependencies = { "godlygeek/tabular" } },
+  { "preservim/vim-markdown", ft = "markdown", dependencies = { "godlygeek/tabular" } },
   {
     "hrsh7th/vim-vsnip",
     config = function()
@@ -147,7 +147,7 @@ require("lazy").setup({
     dependencies = {
       "williamboman/mason-lspconfig.nvim",
       "jose-elias-alvarez/null-ls.nvim",
-      "jayp0521/mason-null-ls.nvim",
+      "jay-babu/mason-null-ls.nvim",
     },
   },
   {
@@ -182,7 +182,7 @@ require("lazy").setup({
   }, -- show nerd font icons for LSP types in completion menu
   "onsails/lspkind-nvim", -- status line plugin
   "feline-nvim/feline.nvim", -- automatically complete brackets/parens/quotes
-  { "windwp/nvim-autopairs",       config = true },
+  { "windwp/nvim-autopairs", config = true },
   -- Style the tabline without taking over how tabs and buffers work in Neovim
   { "alvarosevilla95/luatab.nvim", config = true }, -- enable copilot support for Neovim
   {
@@ -199,7 +199,7 @@ require("lazy").setup({
       end
     end,
   }, -- improve the default neovim interfaces, such as refactoring
-  { "stevearc/dressing.nvim",   event = "VeryLazy" }, -- Navigate a code base with a really slick UI
+  { "stevearc/dressing.nvim", event = "VeryLazy" }, -- Navigate a code base with a really slick UI
   {
     "nvim-telescope/telescope.nvim",
     dependencies = {
@@ -210,8 +210,8 @@ require("lazy").setup({
     },
   }, -- Startup screen for Neovim
   { "startup-nvim/startup.nvim" }, -- fzf
-  { "junegunn/fzf.vim",         dependencies = { { dir = vim.env.HOMEBREW_PREFIX .. "/opt/fzf" } } },
-  "folke/neodev.nvim",
+  { "junegunn/fzf.vim", dependencies = { { dir = vim.env.HOMEBREW_PREFIX .. "/opt/fzf" } } },
+  { "folke/neodev.nvim", config = true },
   {
     "folke/trouble.nvim",
     config = true,
@@ -223,6 +223,11 @@ require("lazy").setup({
       { "<leader>xl", "<cmd>TroubleToggle loclist<cr>" },
     },
   },
-  { "catppuccin/nvim",  name = "catppuccin",                                                             lazy = false, priority = 1000 },
+  {
+    "catppuccin/nvim",
+    name = "catppuccin",
+    lazy = false,
+    priority = 1000,
+  },
   { "b0o/incline.nvim", config = { hide = { cursorline = false, focused_win = false, only_win = true } } },
 }, { ui = { border = theme.border } })
