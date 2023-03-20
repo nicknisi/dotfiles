@@ -39,7 +39,7 @@ local icons = {
   hint = " ",
   -- lsp = " ",
   lsp = " ",
-  line = "☰ ",
+  line = "󰍜 ",
   -- git icons
   git = "",
   conflict = "",
@@ -47,7 +47,7 @@ local icons = {
   staged = "✓ ",
   unmerged = " ",
   renamed = "➜ ",
-  untracked = "★ ",
+  untracked = " ",
   -- deleted = " ",
   ignored = "◌ ",
   modified = "● ",
@@ -74,13 +74,13 @@ local icons = {
 
 local border = {
   { "🭽", "FloatBorder" },
-  { "▔",  "FloatBorder" },
+  { "▔", "FloatBorder" },
   { "🭾", "FloatBorder" },
-  { "▕",  "FloatBorder" },
+  { "▕", "FloatBorder" },
   { "🭿", "FloatBorder" },
-  { "▁",  "FloatBorder" },
+  { "▁", "FloatBorder" },
   { "🭼", "FloatBorder" },
-  { "▏",  "FloatBorder" },
+  { "▏", "FloatBorder" },
 }
 
 return { colors = colors, icons = icons, border = border }

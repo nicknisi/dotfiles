@@ -78,18 +78,18 @@ git_status() {
 
     local INDEX git_status=""
 
-    GIT_SYMBOL="\ue725"
-    GIT_STATUS_ADDED=$(write '002' '+')
-    GIT_STATUS_MODIFIED=$(write '003' '!')
-    GIT_STATUS_UNTRACKED=$(write '009' '?')
-    GIT_STATUS_RENAMED=$(write '208' '»')
-    GIT_STATUS_DELETED=$(write '161' '✘')
-    GIT_STATUS_STASHED=$(write '003' '$')
-    GIT_STATUS_UNMERGED=$(write '016' '=')
-    GIT_STATUS_AHEAD=$(write '012' '⇡')
-    GIT_STATUS_BEHIND=$(write '011' '⇣')
-    GIT_STATUS_DIVERGED=$(write '012' '⇕')
-    GIT_STATUS_CLEAN=$(write '002' '✔')
+    GIT_SYMBOL=" "
+    GIT_STATUS_ADDED=$(write '002' ' ')
+    GIT_STATUS_MODIFIED=$(write '003' ' ')
+    GIT_STATUS_UNTRACKED=$(write '009' ' ')
+    GIT_STATUS_RENAMED=$(write '208' ' ')
+    GIT_STATUS_DELETED=$(write '161' '󰮉 ')
+    GIT_STATUS_STASHED=$(write '003' ' ')
+    GIT_STATUS_UNMERGED=$(write '016' '󰧁 ')
+    GIT_STATUS_AHEAD=$(write '012' ' ')
+    GIT_STATUS_BEHIND=$(write '011' ' ')
+    GIT_STATUS_DIVERGED=$(write '012' '󰧈 ')
+    GIT_STATUS_CLEAN=$(write '002' ' ')
 
     INDEX=$(command git status --porcelain -b 2>/dev/null)
 
