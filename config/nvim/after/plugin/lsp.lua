@@ -2,6 +2,7 @@ local lspconfig = require("lspconfig")
 local mason_lspconfig = require("mason-lspconfig")
 local mason_null_ls = require("mason-null-ls")
 local theme = require("theme")
+local mason = require("mason")
 local colors = theme.colors
 local icons = theme.icons
 local border = theme.border
@@ -10,39 +11,15 @@ local group = vim.api.nvim_create_augroup("LspConfig", { clear = true })
 local format_group = vim.api.nvim_create_augroup("LspFormatting", { clear = true })
 local null_ls = require("null-ls")
 
-require("neodev").setup()
+mason.setup({ ui = { border = border } })
 
-require("mason").setup({ ui = { border = border } })
+mason_null_ls.setup({ automatic_setup = true, ensure_installed = { "stylua", "prettier" } })
 
 mason_null_ls.setup_handlers({
   function(source_name, methods)
     require("mason-null-ls.automatic_setup")(source_name, methods)
   end,
-  prettier = function()
-    null_ls.register(null_ls.builtins.formatting.prettier.with({
-      filetypes = {
-        "astro",
-        "javascript",
-        "javascriptreact",
-        "typescript",
-        "typescriptreact",
-        "css",
-        "scss",
-        "json",
-        "graphql",
-        "markdown",
-        "yaml",
-        "html",
-        "vue",
-        "svelte",
-        "lua",
-      },
-      args = { "--stdin-filepath", vim.api.nvim_buf_get_name(0) },
-    }))
-  end,
 })
-
-mason_null_ls.setup({ automatic_setup = true, ensure_installed = { "stylua", "prettier" } })
 
 null_ls.setup({
   border = border,
@@ -50,10 +27,16 @@ null_ls.setup({
     if client.supports_method("textDocument/formatting") then
       vim.api.nvim_clear_autocmds({ group = format_group, buffer = bufnr })
       vim.api.nvim_create_autocmd("BufWritePre", {
-        group = vim.api.nvim_create_augroup("LspFormatting", {}),
+        group = format_group,
         buffer = bufnr,
         callback = function()
-          vim.lsp.buf.format({ bufnr = bufnr })
+          vim.lsp.buf.format({
+            ---@diagnostic disable-next-line: redefined-local
+            filter = function(client)
+              return client.name == "null-ls"
+            end,
+            bufnr = bufnr,
+          })
         end,
       })
     end
