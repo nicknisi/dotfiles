@@ -24,6 +24,8 @@ yabai -m rule --add app="Microsoft Teams$" manage=off
 yabai -m rule --add app="^CleanShot X$" manage=off
 yabai -m rule --add app="^CleanMyMac X$" manage=off
 yabai -m rule --add app="^1Password$" manage=off
+yabai -m rule --add app="^Raycast$" manage=off
+yabai -m rule --add app="^Ivory$" manage=off
 
 # mouse support
 yabai -m config mouse_modifier fn
