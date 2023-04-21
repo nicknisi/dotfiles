@@ -170,6 +170,12 @@ require("lazy").setup({
     },
   }, -- treesitter enables an AST-like understanding of files
   {
+    "axkirillov/hbac.nvim",
+    config = function()
+      require("hbac").setup()
+    end,
+  },
+  {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     dependencies = {
