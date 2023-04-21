@@ -22,7 +22,7 @@ config.window_background_gradient = {
   -- with the gradient going from left-to-right.
   -- Linear and Radial gradients are also supported; see the other
   -- examples below
-  orientation = "Vertical",
+  orientation = "Horizontal",
 
   -- Specifies the set of colors that are interpolated in the gradient.
   -- Accepts CSS style color specs, from named colors, through rgb
@@ -54,7 +54,7 @@ config.window_background_gradient = {
   -- Smaller values, or 0, will make bands more prominent.
   -- The default value is 64 which gives decent looking results
   -- on a retina macbook pro display.
-  -- noise = 64,
+  noise = 0,
 
   -- By default, the gradient smoothly transitions between the colors.
   -- You can adjust the sharpness by specifying the segment_size and
