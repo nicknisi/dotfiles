@@ -20,7 +20,7 @@ mason_null_ls.setup({
     function(source_name, methods)
       require("mason-null-ls.automatic_setup")(source_name, methods)
     end,
-  }
+  },
 })
 
 null_ls.setup({
@@ -171,8 +171,8 @@ local lua_settings = {
       globals = { "vim" },
     },
     workspace = {
-      -- Make the server aware of Neovim runtime files
-      library = { [vim.fn.expand("$VIMRUNTIME/lua")] = true, [vim.fn.expand("$VIMRUNTIME/lua/vim/lsp")] = true },
+      library = vim.api.nvim_get_runtime_file("", true),
+      checkThirdParty = false,
     },
   },
 }
