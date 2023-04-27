@@ -192,69 +192,75 @@ local function make_config(callback)
   return callback({ capabilities = capabilities, on_attach = on_attach })
 end
 
-lspconfig.rust_analyzer.setup(make_config(function(config)
-  return config
-end))
-
-lspconfig.tailwindcss.setup(make_config(function(config)
-  config.root_dir = lspconfig.util.root_pattern("tailwind.config.js", "tailwind.config.cjs")
-  return config
-end))
-
-lspconfig.eslint.setup(make_config(function(config)
-  config.filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" }
-  return config
-end))
-
-lspconfig.astro.setup(make_config(function(config)
-  return config
-end))
-
-lspconfig.tsserver.setup(make_config(function(config)
-  config.root_dir = lspconfig.util.root_pattern("tsconfig.json")
-  config.handlers = {
-    ["textDocument/definition"] = function(err, result, ctx, conf)
-      -- if there is more than one result, just use the first one
-      if #result > 1 then
-        result = { result[1] }
+mason_lspconfig.setup_handlers({
+  function(server_name)
+    lspconfig[server_name].setup(make_config())
+  end,
+  ["tailwindcss"] = function()
+    lspconfig.tailwindcss.setup(make_config(function(config)
+      config.root_dir = lspconfig.util.root_pattern("tailwind.config.js", "tailwind.config.cjs", "tailwind.config.ts")
+      return config
+    end))
+  end,
+  ["eslint"] = function()
+    lspconfig.eslint.setup(make_config(function(config)
+      config.filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" }
+      return config
+    end))
+  end,
+  ["tsserver"] = function()
+    lspconfig.tsserver.setup(make_config(function(config)
+      config.root_dir = lspconfig.util.root_pattern("tsconfig.json")
+      config.handlers = {
+        ["textDocument/definition"] = function(err, result, ctx, conf)
+          -- if there is more than one result, just use the first one
+          if #result > 1 then
+            result = { result[1] }
+          end
+          vim.lsp.handlers["textDocument/definition"](err, result, ctx, conf)
+        end,
+      }
+      return config
+    end))
+  end,
+  ["denols"] = function()
+    lspconfig.denols.setup(make_config(function(config)
+      config.single_file_support = false
+      config.root_dir = lspconfig.util.root_pattern("deno.json", "deno.jsonc")
+      config.init_options = { lint = true }
+      return config
+    end))
+  end,
+  ["lua_ls"] = function()
+    lspconfig.lua_ls.setup(make_config(function(config)
+      config.settings = lua_settings
+      config.root_dir = function(fname)
+        local util = require("lspconfig/util")
+        return util.find_git_ancestor(fname) or util.path.dirname(fname)
       end
-      vim.lsp.handlers["textDocument/definition"](err, result, ctx, conf)
-    end,
-  }
-  return config
-end))
-
-lspconfig.denols.setup(make_config(function(config)
-  config.single_file_support = false
-  config.root_dir = lspconfig.util.root_pattern("deno.json", "deno.jsonc")
-  config.init_options = { lint = true }
-  return config
-end))
-
-lspconfig.lua_ls.setup(make_config(function(config)
-  config.settings = lua_settings
-  config.root_dir = function(fname)
-    local util = require("lspconfig/util")
-    return util.find_git_ancestor(fname) or util.path.dirname(fname)
-  end
-  config.root_dir = lspconfig.util.root_pattern("lua.json")
-  return config
-end))
-
-lspconfig.vimls.setup(make_config(function(config)
-  config.init_options = { isNeovim = true }
-  return config
-end))
-
-lspconfig.diagnosticls.setup(make_config(function(config)
-  config.settings = diagnosticls_settings
-  return config
-end))
-
-lspconfig.jsonls.setup(make_config(function(config)
-  config.filetypes = { "json", "jsonc" }
-  return config
-end))
+      config.root_dir = lspconfig.util.root_pattern("lua.json")
+      return config
+    end))
+  end,
+  ["vimls"] = function()
+    lspconfig.vimls.setup(make_config(function(config)
+      config.init_options = { isNeovim = true }
+      return config
+    end))
+  end,
+  ["diagnosticls"] = function()
+    lspconfig.diagnosticls.setup(make_config(function(config)
+      config.settings = diagnosticls_settings
+      return config
+    end))
+  end,
+  ["jsonls"] = function()
+    lspconfig.jsonls.setup(make_config(function(config)
+      config.filetypes = { "json", "jsonc" }
+      return config
+    end))
+  end,
+})
 
 -- set up custom symbols for LSP errors
 local signs =
