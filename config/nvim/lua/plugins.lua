@@ -60,6 +60,7 @@ require("lazy").setup({
       vim.g.vim_jsx_pretty_highlight_close_tag = 1
     end,
   },
+  { "dmmulroy/tsc.nvim", config = true },
   { "leafgarland/typescript-vim", ft = { "typescript", "typescript.tsx" } },
   { "wavded/vim-stylus", ft = { "stylus", "markdown" } },
   { "jxnblk/vim-mdx-js", ft = "mdx" },
