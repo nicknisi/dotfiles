@@ -236,5 +236,5 @@ require("lazy").setup({
     lazy = false,
     priority = 1000,
   },
-  { "b0o/incline.nvim", config = { hide = { cursorline = false, focused_win = false, only_win = true } } },
+  { "b0o/incline.nvim", opts = { hide = { cursorline = false, focused_win = false, only_win = true } } },
 }, { ui = { border = theme.border } })
