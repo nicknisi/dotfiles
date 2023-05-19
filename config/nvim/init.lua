@@ -85,6 +85,7 @@ opt.timeoutlen = 500
 ---------------------------------------------------------
 o.termguicolors = true
 opt.number = true -- show line numbers
+opt.relativenumber = true
 opt.wrap = true -- turn on line wrapping
 opt.wrapmargin = 8 -- wrap lines when coming within n characters from side
 opt.linebreak = true -- set soft wrapping
