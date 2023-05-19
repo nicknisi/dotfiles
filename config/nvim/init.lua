@@ -24,7 +24,7 @@ local vnoremap = utils.vnoremap
 _G.completion_nvim = {}
 
 function _G.completion_nvim.smart_pumvisible(vis_seq, not_vis_seq)
-  if (fn.pumvisible() == 1) then
+  if fn.pumvisible() == 1 then
     return termcodes(vis_seq)
   else
     return termcodes(not_vis_seq)
@@ -33,13 +33,13 @@ end
 
 -- General
 ----------------------------------------------------------------
-cmd [[abbr funciton function]]
-cmd [[abbr teh the]]
-cmd [[abbr tempalte template]]
-cmd [[abbr fitler filter]]
-cmd [[abbr cosnt const]]
-cmd [[abbr attribtue attribute]]
-cmd [[abbr attribuet attribute]]
+cmd([[abbr funciton function]])
+cmd([[abbr teh the]])
+cmd([[abbr tempalte template]])
+cmd([[abbr fitler filter]])
+cmd([[abbr cosnt const]])
+cmd([[abbr attribtue attribute]])
+cmd([[abbr attribuet attribute]])
 
 opt.backup = false -- don't use backup files
 opt.writebackup = false -- don't backup the file while editing
@@ -73,7 +73,7 @@ if fn.executable("rg") then
   opt.grepprg = "rg --vimgrep --no-heading"
   opt.grepformat = "%f:%l:%c:%m,%f:%l:%m"
   -- create autocmd to automatically open quickfix window when grepping
-  cmd [[autocmd QuickFixCmdPost [^l]* nested cwindow]]
+  cmd([[autocmd QuickFixCmdPost [^l]* nested cwindow]])
 end
 
 -- error bells
@@ -230,11 +230,11 @@ nmap("gTT", ":tab sb<cr>")
 
 require("plugins")
 
-cmd [[syntax on]]
-cmd [[filetype plugin indent on]]
+cmd([[syntax on]])
+cmd([[filetype plugin indent on]])
 
 -- make comments and HTML attributes italic
-cmd [[highlight Comment cterm=italic term=italic gui=italic]]
-cmd [[highlight htmlArg cterm=italic term=italic gui=italic]]
-cmd [[highlight xmlAttrib cterm=italic term=italic gui=italic]]
-cmd [[highlight Normal ctermbg=none]]
+cmd([[highlight Comment cterm=italic term=italic gui=italic]])
+cmd([[highlight htmlArg cterm=italic term=italic gui=italic]])
+cmd([[highlight xmlAttrib cterm=italic term=italic gui=italic]])
+cmd([[highlight Normal ctermbg=none]])
