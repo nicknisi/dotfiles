@@ -188,7 +188,7 @@ require("lazy").setup({
     },
   }, -- show nerd font icons for LSP types in completion menu
   "onsails/lspkind-nvim", -- status line plugin
-  "freddiehaddad/feline.nvim",
+  "nvim-lualine/lualine.nvim",
   { "windwp/nvim-autopairs", config = true },
   -- Style the tabline without taking over how tabs and buffers work in Neovim
   { "alvarosevilla95/luatab.nvim", config = true }, -- enable copilot support for Neovim

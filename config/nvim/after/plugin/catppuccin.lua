@@ -1,6 +1,4 @@
 local catppuccin = require("catppuccin")
-local ctp_feline = require("catppuccin.groups.integrations.feline")
-local feline = require("feline")
 
 -- this is the catppuccin theme to use
 local flavour = vim.env.THEME_FLAVOUR
@@ -50,18 +48,6 @@ catppuccin.setup({
     markdown = true,
     ts_rainbow = true,
   },
-})
-
-ctp_feline.setup({})
-feline.setup({ components = ctp_feline.get() })
-
-vim.api.nvim_create_autocmd("ColorScheme", {
-  pattern = "*",
-  callback = function()
-    package.loaded["feline"] = nil
-    package.loaded["catppuccin.groups.integrations.feline"] = nil
-    require("feline").setup({ components = require("catppuccin.groups.integrations.feline").get() })
-  end,
 })
 
 vim.g.catppuccin_flavour = flavour
