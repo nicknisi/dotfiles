@@ -167,9 +167,40 @@ require("lazy").setup({
       "hrsh7th/cmp-nvim-lua",
       "hrsh7th/cmp-buffer",
       "hrsh7th/cmp-path",
+      "zbirenbaum/copilot-cmp",
       { "roobert/tailwindcss-colorizer-cmp.nvim", config = true },
     },
-  }, -- treesitter enables an AST-like understanding of files
+  },
+  {
+    "zbirenbaum/copilot.lua",
+    cmd = "Copilot",
+    build = ":Copilot auth",
+    event = "InsertEnter",
+    opts = {
+      suggestion = {
+        enabled = true,
+        auto_trigger = true,
+        keymap = {
+          accept = "<Tab>",
+          close = "<Esc>",
+          next = "<C-J>",
+          prev = "<C-K>",
+          select = "<CR>",
+          dismiss = "<C-X>",
+        },
+      },
+      panel = {
+        enabled = false,
+      },
+    },
+  },
+  {
+    "zbirenbaum/copilot-cmp",
+    config = function()
+      require("copilot_cmp").setup()
+    end,
+  },
+  -- treesitter enables an AST-like understanding of files
   {
     "axkirillov/hbac.nvim",
     config = function()
@@ -219,20 +250,7 @@ require("lazy").setup({
       vim.notify = require("notify")
     end,
   },
-  {
-    "github/copilot.vim",
-    -- uncomment to test the lua rewrite
-    -- dir = "~/Developer/copilot.vim/lua-rewrite",
-    config = function()
-      -- if a copilot-aliased version of node exists from fnm, use that
-      local copilot_node_command = vim.env.FNM_DIR .. "/aliases/copilot/bin/node"
-      if utils.file_exists(copilot_node_command) then
-        -- vim.g.copilot_node_command = copilot_node_path
-        -- for some reason, this works but the above line does not
-        vim.cmd('let g:copilot_node_command = "' .. copilot_node_command .. '"')
-      end
-    end,
-  }, -- improve the default neovim interfaces, such as refactoring
+  -- improve the default neovim interfaces, such as refactoring
   { "stevearc/dressing.nvim", event = "VeryLazy" }, -- Navigate a code base with a really slick UI
   {
     "nvim-telescope/telescope.nvim",
