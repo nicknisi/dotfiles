@@ -1,4 +1,3 @@
-local utils = require("utils")
 local theme = require("theme")
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -112,7 +111,8 @@ require("lazy").setup({
         },
       })
     end,
-  }, -- use devicons for filetypes
+  },
+  -- use devicons for filetypes
   {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v2.x",
@@ -159,7 +159,8 @@ require("lazy").setup({
       "mason.nvim",
       "williamboman/mason-lspconfig.nvim",
     },
-  }, -- neovim completion
+  },
+  -- neovim completion
   {
     "hrsh7th/nvim-cmp",
     dependencies = {
@@ -217,7 +218,8 @@ require("lazy").setup({
       "p00f/nvim-ts-rainbow",
       "JoosepAlviste/nvim-ts-context-commentstring",
     },
-  }, -- show nerd font icons for LSP types in completion menu
+  },
+  -- show nerd font icons for LSP types in completion menu
   "onsails/lspkind-nvim", -- status line plugin
   "nvim-lualine/lualine.nvim",
   { "windwp/nvim-autopairs", config = true },
@@ -260,7 +262,8 @@ require("lazy").setup({
       "nvim-telescope/telescope-rg.nvim",
       "nvim-telescope/telescope-node-modules.nvim",
     },
-  }, -- Startup screen for Neovim
+  },
+  -- Startup screen for Neovim
   { "startup-nvim/startup.nvim" }, -- fzf
   { "junegunn/fzf.vim", dependencies = { { dir = vim.env.HOMEBREW_PREFIX .. "/opt/fzf" } } },
   { "folke/neodev.nvim", config = true },
