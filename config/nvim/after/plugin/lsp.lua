@@ -10,6 +10,7 @@ local cmp_nvim_lsp = require("cmp_nvim_lsp")
 local group = vim.api.nvim_create_augroup("LspConfig", { clear = true })
 local format_group = vim.api.nvim_create_augroup("LspFormatting", { clear = true })
 local null_ls = require("null-ls")
+local util = lspconfig.util
 
 mason.setup({ ui = { border = border } })
 
@@ -77,6 +78,17 @@ _G.lsp_organize_imports = lsp_organize_imports
 -- show diagnostic line with custom border and styling
 local lsp_show_diagnostics = function()
   vim.diagnostic.open_float({ border = border })
+end
+
+local function denoless_root_pattern(...)
+  local args = { ... }
+  return function(fname)
+    local directory = util.path.dirname(fname)
+    if util.root_pattern("deno.json", "deno.jsonc")(directory) ~= nil then
+      return nil
+    end
+    return util.root_pattern(table.unpack(args))(fname)
+  end
 end
 
 local on_attach = function(client, bufnr)
@@ -204,13 +216,16 @@ mason_lspconfig.setup_handlers({
   end,
   ["eslint"] = function()
     lspconfig.eslint.setup(make_config(function(config)
+      config.root_dir =
+        denoless_root_pattern(".eslintrc.js", ".eslintrc.cjs", ".eslintrc.yaml", ".eslintrc.yml", ".eslintrc.json")
       config.filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" }
       return config
     end))
   end,
   ["tsserver"] = function()
     lspconfig.tsserver.setup(make_config(function(config)
-      config.root_dir = lspconfig.util.root_pattern("tsconfig.json")
+      config.root_dir = denoless_root_pattern("tsconfig.json")
+      config.single_file_support = false
       config.handlers = {
         ["textDocument/definition"] = function(err, result, ctx, conf)
           -- if there is more than one result, just use the first one
