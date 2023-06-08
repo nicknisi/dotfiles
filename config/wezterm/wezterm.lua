@@ -5,7 +5,7 @@ local config = {
   window_background_opacity = 0.85,
   enable_tab_bar = false,
   window_decorations = "RESIZE",
-  font = wezterm.font("MonoLisa", { weight = "Medium" }),
+  font = wezterm.font("Rec Mono Duotone", { weight = "Medium" }),
   native_macos_fullscreen_mode = true,
   keys = {
     {
