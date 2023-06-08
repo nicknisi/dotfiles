@@ -13,7 +13,11 @@ if OS.mac?
     cask "kitty" # a better terminal emulator
     cask "imageoptim" # a tool to optimize images
     cask "1password/tap/1password-cli"
-    cask "wezterm" # a better terminal emulator
+    cask "wezterm" # a better terminal emulator 
+    cask "slack" # slack for communication
+    cask "docker" # docker engine and desktop
+    cask "jetbrains-toolbox" # toolbox to install jet brains ide from	
+    cask "postman" # for api requests / grpc
 
     # yabai
     brew "yabai"
@@ -63,3 +67,6 @@ brew "wget" # internet file retriever
 brew "z" # switch between most used directories
 brew "zoxide" # switch between most used directories
 brew "zsh" # zsh (latest)
+brew "go" # golang language
+brew "golangci-lint" # golang linter
+brew "buf" # grpc toolchain
