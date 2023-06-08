@@ -5,6 +5,7 @@ if OS.mac?
     tap "homebrew/cask"
     tap "homebrew/cask-fonts"
     tap "koekeishiya/formulae"
+    tap "common-fate/granted"
 
     brew "noti" # utility to display notifications from scripts
     brew "trash" # rm, but put in the trash rather than completely delete
@@ -19,6 +20,12 @@ if OS.mac?
     cask "jetbrains-toolbox" # toolbox to install jet brains ide from	
     cask "postman" # for api requests / grpc
     cask "brave-browser" # brave for default browser
+    cask "firefox" # firefox browser
+    cask "warp" # a better terminal emulator with AI but sign up
+
+    # aws
+    brew "granted" # used for handling aws credentials
+    brew "awscli" # official aws cli
 
     # yabai
     brew "yabai"
