@@ -71,3 +71,4 @@ brew "zsh" # zsh (latest)
 brew "go" # golang language
 brew "golangci-lint" # golang linter
 brew "buf" # grpc toolchain
+brew "go-task" # minimalistic make alternative
