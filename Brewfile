@@ -18,6 +18,7 @@ if OS.mac?
     cask "docker" # docker engine and desktop
     cask "jetbrains-toolbox" # toolbox to install jet brains ide from	
     cask "postman" # for api requests / grpc
+    cask "brave-browser" # brave for default browser
 
     # yabai
     brew "yabai"
