@@ -22,6 +22,8 @@ if OS.mac?
     cask "brave-browser" # brave for default browser
     cask "firefox" # firefox browser
     cask "warp" # a better terminal emulator with AI but sign up
+    cask "alacritty" # a better terminal emulator
+    cask "dynobase" # dynamo db access tool
 
     # aws
     brew "granted" # used for handling aws credentials
