@@ -1,7 +1,12 @@
 local catppuccin = require("catppuccin")
+local utils = require("utils")
 
--- this is the catppuccin theme to use
-local flavour = vim.env.THEME_FLAVOUR
+local flavour
+flavour = utils.is_dark_mode() and "mocha" or "latte"
+
+if not utils.is_dark_mode() then
+  vim.opt.list = false
+end
 
 catppuccin.setup({
   flavour = flavour,

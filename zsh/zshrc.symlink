@@ -28,7 +28,6 @@ fi
 # display how long all tasks over 10 seconds take
 export REPORTTIME=10
 export KEYTIMEOUT=1              # 10ms delay for key sequences
-export THEME_FLAVOUR=mocha
 
 setopt NO_BG_NICE
 setopt NO_HUP                    # don't kill background jobs when the shell exits
