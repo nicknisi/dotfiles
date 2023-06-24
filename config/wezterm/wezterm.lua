@@ -22,7 +22,7 @@ local config = {
 local appearance = wezterm.gui.get_appearance()
 
 if appearance:find("Dark") then
-  config.color_scheme = "Catppuccino Dark"
+  config.color_scheme = "Catppuccin Mocha"
   config.background = {
     {
       source = {
