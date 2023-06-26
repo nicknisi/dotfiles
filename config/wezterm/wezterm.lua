@@ -42,28 +42,13 @@ if appearance:find("Dark") then
       height = "100%",
       opacity = 0.85,
     },
-    -- {
-    --   source = {
-    --     File = { path = wezdir .. "/dvd.gif" },
-    --   },
-    --   repeat_y = "Mirror",
-    --   width = "100%",
-    --   opacity = 0.42,
-    --   hsb = {
-    --     -- hue = 0.6,
-    --     -- saturation = 0.9,
-    --     brightness = 0.2,
-    --   },
-    --   horizontal_align = "Right",
-    --   attachment = { Parallax = 0.2 },
-    -- },
     {
       source = {
         File = { path = wezdir .. "/4.gif", speed = 0.4 },
       },
       repeat_y = "Mirror",
       width = "100%",
-      opacity = 0.15,
+      opacity = 0.10,
       hsb = {
         hue = 0.6,
         saturation = 0.9,
@@ -81,17 +66,6 @@ if appearance:find("Dark") then
         hue = 0.6,
         saturation = 0.9,
         brightness = 0.1,
-      },
-    },
-    {
-      source = {
-        File = { path = wezdir .. "/cage.jpg" },
-      },
-      repeat_y = "Mirror",
-      width = "100%",
-      opacity = 0.18,
-      hsb = {
-        brightness = 0.2,
       },
     },
   }
