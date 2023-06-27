@@ -71,7 +71,7 @@ brew "jq" # work with JSON files in shell scripts
 brew "lazygit" # a better git UI
 brew "neofetch" # pretty system info
 brew "neovim" # A better vim
-brew "python" # python (latst)
+brew "python" # python (latest)
 brew "ripgrep" # very fast file searcher
 brew "shellcheck" # diagnostics for shell sripts
 brew "tmux" # terminal multiplexer

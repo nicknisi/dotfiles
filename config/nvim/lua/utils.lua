@@ -54,8 +54,8 @@ end
 
 function utils.has_module(name)
   if pcall(function()
-        require(name)
-      end) then
+    require(name)
+  end) then
     return true
   else
     return false
@@ -78,6 +78,16 @@ function utils.has_active_lsp_client(servername)
     end
   end
   return false
+end
+
+function utils.is_dark_mode()
+  local handle = io.popen("defaults read -g AppleInterfaceStyle 2>/dev/null")
+  if handle == nil then
+    return true
+  end
+  local result = handle:read("*a")
+  handle:close()
+  return result:match("^%s*Dark%s*$") ~= nil
 end
 
 return utils
