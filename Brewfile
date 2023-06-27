@@ -24,10 +24,15 @@ if OS.mac?
     cask "warp" # a better terminal emulator with AI but sign up
     cask "alacritty" # a better terminal emulator
     cask "dynobase" # dynamo db access tool
+    brew "flyctl" # commandline tool for fly.io
+
+    # IaC
+    brew "pulumi" # pulumi cli IaC
 
     # aws
     brew "granted" # used for handling aws credentials
     brew "awscli" # official aws cli
+    brew "pipx" # used for installing aws sso utils
 
     # yabai
     brew "yabai"
