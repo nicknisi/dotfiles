@@ -25,9 +25,11 @@ if OS.mac?
     cask "alacritty" # a better terminal emulator
     cask "dynobase" # dynamo db access tool
     brew "flyctl" # commandline tool for fly.io
+    brew "spotify" # music duh
 
     # IaC
     brew "pulumi" # pulumi cli IaC
+    brew "terraform" # terraform cli
 
     # aws
     brew "granted" # used for handling aws credentials
