@@ -213,9 +213,8 @@ require("lazy").setup({
     build = ":TSUpdate",
     dependencies = {
       -- show treesitter nodes
-      "nvim-treesitter/playground", -- enable more advanced treesitter-aware text objects
-      "nvim-treesitter/nvim-treesitter-textobjects", -- add rainbow highlighting to parens and brackets
-      "p00f/nvim-ts-rainbow",
+      "nvim-treesitter/playground",
+      "nvim-treesitter/nvim-treesitter-textobjects", -- enable more advanced treesitter-aware text objects
       "JoosepAlviste/nvim-ts-context-commentstring",
     },
   },
