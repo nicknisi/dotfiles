@@ -17,6 +17,12 @@ local config = {
       action = wezterm.action.ToggleFullScreen,
     },
   },
+  window_padding = {
+    left = 0,
+    right = 0,
+    top = 0,
+    bottom = 0,
+  },
   send_composed_key_when_left_alt_is_pressed = true,
   send_composed_key_when_right_alt_is_pressed = false,
 }
@@ -42,20 +48,7 @@ if appearance:find("Dark") then
       },
       width = "100%",
       height = "100%",
-      opacity = 0.85,
-    },
-    {
-      source = {
-        File = { path = wezdir .. "/4.gif", speed = 0.4 },
-      },
-      repeat_y = "Mirror",
-      width = "100%",
-      opacity = 0.10,
-      hsb = {
-        hue = 0.6,
-        saturation = 0.9,
-        brightness = 0.1,
-      },
+      opacity = 0.75,
     },
     {
       source = {
@@ -64,6 +57,19 @@ if appearance:find("Dark") then
       repeat_y = "Mirror",
       width = "100%",
       opacity = 0.05,
+      hsb = {
+        hue = 0.6,
+        saturation = 0.9,
+        brightness = 0.1,
+      },
+    },
+    {
+      source = {
+        File = { path = wezdir .. "/4.gif", speed = 0.3 },
+      },
+      repeat_y = "Mirror",
+      width = "100%",
+      opacity = 0.20,
       hsb = {
         hue = 0.6,
         saturation = 0.9,
