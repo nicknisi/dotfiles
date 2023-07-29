@@ -26,6 +26,7 @@
 
     # rebase commands
     cont = rebase --continue
+    continue = "!GIT_EDITOR=true git rebase --continue"
     conf = "!git s | grep ^U"
 
     l = log --graph --pretty=format:'%Cred%h%Creset %C(bold blue)%an%C(reset) - %s - %Creset %C(yellow)%d%Creset %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
