@@ -18,6 +18,7 @@ local omap = utils.omap
 local nnoremap = utils.nnoremap
 local inoremap = utils.inoremap
 local vnoremap = utils.vnoremap
+local icons = require("theme").icons
 
 -- create a completion_nvim table on _G which is visible via
 -- v:lua from vimscript
@@ -228,10 +229,42 @@ nmap("<leader>6", "<Plug>HiInterestingWord6")
 -- open current buffer in a new tab
 nmap("gTT", ":tab sb<cr>")
 
-require("plugins")
+local theme = require("theme")
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable",
+    lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
+
+require("lazy").setup({
+  { import = "plugins" },
+  { import = "plugins.extras.copilot" },
+  { import = "plugins.extras.astro" },
+}, { ui = { border = theme.border } })
 
 cmd([[syntax on]])
 cmd([[filetype plugin indent on]])
+
+vim.g.catppuccin_flavour = require("utils").is_dark_mode() and "mocha" or "latte"
+-- vim.command.colorscheme "catppuccin"
+vim.cmd([[ colorscheme catppuccin ]])
+
+-- set up custom symbols for LSP errors
+local signs =
+  { Error = icons.error, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
+for type, icon in pairs(signs) do
+  local hl = "DiagnosticSign" .. type
+  vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
+end
+
+vim.diagnostic.config({ virtual_text = true, signs = true, update_in_insert = true, severity_sort = true })
 
 -- make comments and HTML attributes italic
 cmd([[highlight Comment cterm=italic term=italic gui=italic]])
