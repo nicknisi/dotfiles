@@ -135,7 +135,13 @@ opt.foldlevel = 1
 
 -- toggle invisible characters
 opt.list = true
-opt.listchars = { tab = "→ ", eol = "¬", trail = "⋅", extends = "❯", precedes = "❮" }
+opt.listchars = {
+  tab = "→ ",
+  -- eol = "¬",
+  trail = "⋅",
+  extends = "❯",
+  precedes = "❮",
+}
 
 -- hide the ~ character on empty lines at the end of the buffer
 opt.fcs = "eob: "
