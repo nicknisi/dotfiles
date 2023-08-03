@@ -148,6 +148,41 @@ function M.setup()
           "tailwind.config.ts",
           "tailwind.config.cjs"
         ),
+        settings = {
+          tailwindCSS = {
+            lint = {
+              cssConflict = "warning",
+              invalidApply = "error",
+              invalidConfigPath = "error",
+              invalidScreen = "error",
+              invalidTailwindDirective = "error",
+              recommendedVariantOrder = "warning",
+              unusedClass = "warning",
+            },
+            experimental = {
+              classRegex = {
+                "tw`([^`]*)",
+                'tw="([^"]*)',
+                'tw={"([^"}]*)',
+                "tw\\.\\w+`([^`]*)",
+                "tw\\(.*?\\)`([^`]*)",
+
+                "cn`([^`]*)",
+                'cn="([^"]*)',
+                'cn={"([^"}]*)',
+                "cn\\.\\w+`([^`]*)",
+                "cn\\(.*?\\)`([^`]*)",
+
+                { "clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+                { "classnames\\(([^)]*)\\)", "'([^']*)'" },
+                { "cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+                "cva\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+                "'([^']*)'",
+              },
+            },
+            validate = true,
+          },
+        },
       }))
     end,
 
