@@ -196,7 +196,6 @@ function M.setup()
       lspconfig.tsserver.setup(make_conf({
         handlers = {
           ["textDocument/definition"] = function(err, result, ctx, ...)
-            vim.notify("Using new definition handler")
             if #result > 1 then
               result = { result[1] }
             end
