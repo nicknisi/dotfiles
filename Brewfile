@@ -30,6 +30,7 @@ if OS.mac?
     # IaC
     brew "pulumi" # pulumi cli IaC
     brew "terraform" # terraform cli
+    brew "terragrunt" # terrgrunt wrapper
 
     # aws
     brew "granted" # used for handling aws credentials
