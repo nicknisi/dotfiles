@@ -44,4 +44,17 @@ return {
 
   -- tools for helping with neovim development
   { "folke/neodev.nvim", config = true },
+  {
+    "nvim-pack/nvim-spectre",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+    },
+    config = true,
+    keys = {
+      { "<leader>sr", "<cmd>lua require('spectre').open()<cr>", desc = "open spectre" },
+      { "<leader>sw", "<cmd>lua require('spectre').open_visual({select_word=true})<cr>", desc = "open spectre" },
+      { "<leader>sp", "<cmd>lua require('spectre').open_file_search()<cr>", desc = "open spectre" },
+      { "<leader>ss", "<cmd>lua require('spectre').open()<cr>", desc = "open spectre" },
+    },
+  },
 }
