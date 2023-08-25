@@ -25,7 +25,7 @@ if OS.mac?
     cask "alacritty" # a better terminal emulator
     cask "dynobase" # dynamo db access tool
     brew "flyctl" # commandline tool for fly.io
-    brew "spotify" # music duh
+    cask "spotify" # music duh
 
     # IaC
     brew "pulumi" # pulumi cli IaC
@@ -37,9 +37,8 @@ if OS.mac?
     brew "awscli" # official aws cli
     brew "pipx" # used for installing aws sso utils
 
-    # yabai
-    brew "yabai"
-    brew "skhd"
+    # tiling manager
+    cask "amethyst"
 
     # Fonts
     cask "font-fira-code"
