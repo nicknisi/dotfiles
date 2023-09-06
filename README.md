@@ -56,7 +56,7 @@ The `link` command will create [symbolic links](https://en.wikipedia.org/wiki/Sy
 ### `homebrew`
 
 ```bash
-./install homebrew
+./install.sh homebrew
 ```
 
 The `homebrew` command sets up [homebrew](https://brew.sh/) by downloading and running the homebrew installers script. Homebrew is a macOS package manager, but it also work on linux via Linuxbrew. If the script detects that you're installing the dotfiles on linux, it will use that instead. For consistency between operating systems, linuxbrew is set up but you may want to consider an alternate package manager for your particular system.
