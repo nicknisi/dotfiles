@@ -36,6 +36,7 @@ return {
         "typescript",
         "vim",
         "yaml",
+        "tsx",
       },
       incremental_selection = {
         enable = true,
