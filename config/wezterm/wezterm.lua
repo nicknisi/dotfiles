@@ -50,7 +50,7 @@ if appearance:find("Dark") then
       },
       width = "100%",
       height = "100%",
-      opacity = 0.55,
+      opacity = 0.75,
     },
     {
       source = {
@@ -59,7 +59,7 @@ if appearance:find("Dark") then
       repeat_x = "Mirror",
       -- width = "100%",
       height = "100%",
-      opacity = 0.05,
+      opacity = 0.10,
       hsb = {
         hue = 0.9,
         saturation = 0.9,
