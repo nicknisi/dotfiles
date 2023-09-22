@@ -9,6 +9,12 @@ return {
   "tpope/vim-sleuth",
   "editorconfig/editorconfig-vim", -- TODO is this still required?
   {
+    "andymass/vim-matchup",
+    config = function()
+      vim.g.matchup_matchparen_offscreen = { method = "popup" }
+    end,
+  },
+  {
     "tpope/vim-fugitive",
     lazy = false,
     keys = {
