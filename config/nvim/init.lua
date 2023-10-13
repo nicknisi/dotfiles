@@ -19,6 +19,7 @@ local nnoremap = utils.nnoremap
 local inoremap = utils.inoremap
 local vnoremap = utils.vnoremap
 local icons = require("theme").icons
+local current_theme = require("theme").get_current_theme()
 
 -- create a completion_nvim table on _G which is visible via
 -- v:lua from vimscript
@@ -258,9 +259,16 @@ require("lazy").setup({
 cmd([[syntax on]])
 cmd([[filetype plugin indent on]])
 
-vim.g.catppuccin_flavour = require("utils").is_dark_mode() and "mocha" or "latte"
+if require("utils").is_dark_mode() then
+  vim.g.catppuccin_flavour = "mocha"
+  vim.o.background = "dark"
+else
+  vim.g.catppuccin_flavour = "latte"
+  vim.o.background = "light"
+end
+
 -- vim.command.colorscheme "catppuccin"
-vim.cmd([[ colorscheme catppuccin ]])
+vim.cmd("colorscheme " .. current_theme)
 
 -- set up custom symbols for LSP errors
 local signs =

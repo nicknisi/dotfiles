@@ -83,4 +83,19 @@ local border = {
   { "▏", "FloatBorder" },
 }
 
-return { colors = colors, icons = icons, border = border }
+local function get_current_theme()
+  local file = io.open(os.getenv("HOME") .. "/.theme", "r")
+
+  if not file then
+    return "catppuccin"
+  end
+
+  local content = file:read("*a")
+  file:close()
+
+  content = content:gsub("%s+", "")
+
+  return content
+end
+
+return { colors = colors, icons = icons, border = border, get_current_theme = get_current_theme }
