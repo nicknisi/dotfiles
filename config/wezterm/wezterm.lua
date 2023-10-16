@@ -142,15 +142,18 @@ elseif theme == "tokyonight" then
       {
         source = {
           Gradient = {
-            orientation = "Horizontal",
+            orientation = { Linear = { angle = -45.0 } },
             colors = {
-              "#2f394e",
-              -- "#5864fc",
-              -- "#daa520",
-              "#2f393c",
+              "#000000",
+              "#000000",
+              "#0d3b66",
+              "#000000",
+              "#0d3b66",
+              -- "#843b62",
+              "#000000",
             },
-            interpolation = "CatmullRom",
-            blend = "Rgb",
+            interpolation = "Basis",
+            blend = "LinearRgb",
             noise = 0,
           },
         },
