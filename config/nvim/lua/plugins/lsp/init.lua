@@ -6,7 +6,7 @@ return {
       -- Helpers to install LSPs and maintain them
       "williamboman/mason.nvim",
       "williamboman/mason-lspconfig.nvim",
-      "jose-elias-alvarez/null-ls.nvim",
+      "nvimtools/none-ls.nvim",
       "jay-babu/mason-null-ls.nvim",
     },
     config = function()
