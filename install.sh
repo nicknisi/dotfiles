@@ -261,7 +261,7 @@ case "$1" in
         ;;
     all)
         setup_symlinks
-        setup_terminfo
+        # setup_terminfo
         setup_homebrew
         setup_shell
         setup_git

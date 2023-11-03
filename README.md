@@ -19,7 +19,7 @@ xcode-select --install
 ```
 
 ```bash
-git clone git@github.com:nicknisi/dotfiles.git
+git clone https://github.com/qq123538/dotfiles.git
 ```
 
 > **Note**

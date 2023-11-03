@@ -1,152 +1,122 @@
-export ZSH=$DOTFILES/zsh
-
-if [[ -d $DOTFILES/zsh/functions ]]; then
-    for func in $DOTFILES/zsh/functions/*(:t); autoload -U $func
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-########################################################
-# Configuration
-########################################################
+# If you come from bash you might have to change your $PATH.
 
-# initialize autocomplete
-autoload -U compinit add-zsh-hook
-compinit
+# Path to your oh-my-zsh installation.
+export ZSH="$DOTFILES/zsh/.oh-my-zsh"
 
-prepend_path /usr/local/opt/grep/libexec/gnubin
-prepend_path /usr/local/sbin
-prepend_path $DOTFILES/bin
-prepend_path $HOME/bin
+# Set name of the theme to load --- if set to "random", it will
+# load a random theme each time oh-my-zsh is loaded, in which case,
+# to know which specific one was loaded, run: echo $RANDOM_THEME
+# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+ZSH_THEME="powerlevel10k/powerlevel10k"
 
-# define the code directory
-# This is where my code exists and where I want the `c` autocomplete to work from exclusively
-if [[ -d ~/code ]]; then
-    export CODE_DIR=~/code
-elif [[ -d ~/Developer ]]; then
-    export CODE_DIR=~/Developer
-fi
+# Set list of themes to pick from when loading at random
+# Setting this variable when ZSH_THEME=random will cause zsh to load
+# a theme from this variable instead of looking in $ZSH/themes/
+# If set to an empty array, this variable will have no effect.
+# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
 
-# display how long all tasks over 10 seconds take
-export REPORTTIME=10
-export KEYTIMEOUT=1              # 10ms delay for key sequences
+# Uncomment the following line to use case-sensitive completion.
+# CASE_SENSITIVE="true"
 
-setopt NO_BG_NICE
-setopt NO_HUP                    # don't kill background jobs when the shell exits
-setopt NO_LIST_BEEP
-setopt LOCAL_OPTIONS
-setopt LOCAL_TRAPS
-setopt PROMPT_SUBST
+# Uncomment the following line to use hyphen-insensitive completion.
+# Case-sensitive completion must be off. _ and - will be interchangeable.
+# HYPHEN_INSENSITIVE="true"
 
-# history
-HISTFILE=~/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
-setopt EXTENDED_HISTORY          # write the history file in the ":start:elapsed;command" format.
-setopt HIST_REDUCE_BLANKS        # remove superfluous blanks before recording entry.
-setopt SHARE_HISTORY             # share history between all sessions.
-setopt HIST_IGNORE_ALL_DUPS      # delete old recorded entry if new entry is a duplicate.
+# Uncomment one of the following lines to change the auto-update behavior
+# zstyle ':omz:update' mode disabled  # disable automatic updates
+# zstyle ':omz:update' mode auto      # update automatically without asking
+# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
 
-setopt COMPLETE_ALIASES
+# Uncomment the following line to change how often to auto-update (in days).
+# zstyle ':omz:update' frequency 13
 
-# make terminal command navigation sane again
-bindkey "^[[1;5C" forward-word                      # [Ctrl-right] - forward one word
-bindkey "^[[1;5D" backward-word                     # [Ctrl-left] - backward one word
-bindkey '^[^[[C' forward-word                       # [Ctrl-right] - forward one word
-bindkey '^[^[[D' backward-word                      # [Ctrl-left] - backward one word
-bindkey '^[[1;3D' beginning-of-line                 # [Alt-left] - beginning of line
-bindkey '^[[1;3C' end-of-line                       # [Alt-right] - end of line
-bindkey '^[[5D' beginning-of-line                   # [Alt-left] - beginning of line
-bindkey '^[[5C' end-of-line                         # [Alt-right] - end of line
-bindkey '^?' backward-delete-char                   # [Backspace] - delete backward
-if [[ "${terminfo[kdch1]}" != "" ]]; then
-    bindkey "${terminfo[kdch1]}" delete-char        # [Delete] - delete forward
-else
-    bindkey "^[[3~" delete-char                     # [Delete] - delete forward
-    bindkey "^[3;5~" delete-char
-    bindkey "\e[3~" delete-char
-fi
-bindkey "^A" vi-beginning-of-line
-bindkey -M viins "^F" vi-forward-word               # [Ctrl-f] - move to next word
-bindkey -M viins "^E" vi-add-eol                    # [Ctrl-e] - move to end of line
-bindkey "^J" history-beginning-search-forward
-bindkey "^K" history-beginning-search-backward
+# Uncomment the following line if pasting URLs and other text is messed up.
+# DISABLE_MAGIC_FUNCTIONS="true"
 
-# matches case insensitive for lowercase
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+# Uncomment the following line to disable colors in ls.
+# DISABLE_LS_COLORS="true"
 
-# pasting with tabs doesn't perform completion
-zstyle ':completion:*' insert-tab pending
+# Uncomment the following line to disable auto-setting terminal title.
+# DISABLE_AUTO_TITLE="true"
 
-# default to file completion
-zstyle ':completion:*' completer _expand _complete _files _correct _approximate
+# Uncomment the following line to enable command auto-correction.
+# ENABLE_CORRECTION="true"
 
-zstyle ':completion:*' verbose yes
-zstyle ':completion:*:descriptions' format '%B%d%b'
-zstyle ':completion:*:messages' format '%d'
-zstyle ':completion:*:warnings' format 'No matches for: %d'
-zstyle ':completion:*' group-name ''
+# Uncomment the following line to display red dots whilst waiting for completion.
+# You can also set it to another string to have that shown instead of the default red dots.
+# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
+# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
+# COMPLETION_WAITING_DOTS="true"
 
+# Uncomment the following line if you want to disable marking untracked files
+# under VCS as dirty. This makes repository status check for large repositories
+# much, much faster.
+# DISABLE_UNTRACKED_FILES_DIRTY="true"
 
-########################################################
-# Plugin setup
-########################################################
+# Uncomment the following line if you want to change the command execution time
+# stamp shown in the history command output.
+# You can set one of the optional three formats:
+# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
+# or set a custom format using the strftime function format specifications,
+# see 'man strftime' for details.
+# HIST_STAMPS="mm/dd/yyyy"
 
-export ZPLUGDIR="$CACHEDIR/zsh/plugins"
-[[ -d "$ZPLUGDIR" ]] || mkdir -p "$ZPLUGDIR"
-# array containing plugin information (managed by zfetch)
-typeset -A plugins
+# Would you like to use another custom folder than $ZSH/custom?
+# ZSH_CUSTOM=/path/to/new-custom-folder
 
-zfetch mafredri/zsh-async async.plugin.zsh
-zfetch zsh-users/zsh-syntax-highlighting
-zfetch zsh-users/zsh-autosuggestions
-zfetch grigorii-zander/zsh-npm-scripts-autocomplete
-zfetch Aloxaf/fzf-tab
+# Which plugins would you like to load?
+# Standard plugins can be found in $ZSH/plugins/
+# Custom plugins may be added to $ZSH_CUSTOM/plugins/
+# Example format: plugins=(rails git textmate ruby lighthouse)
+# Add wisely, as too many plugins slow down shell startup.
+pplugins=(
+  git
+  bundler
+  dotenv
+  macos
+  rake
+  rbenv
+  ruby
+)lugins=(git)
 
-if [[ -x "$(command -v fnm)" ]]; then
-    eval "$(fnm env --use-on-cd)"
-fi
+source $ZSH/oh-my-zsh.sh
 
-[[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
+# User configuration
 
-########################################################
-# Setup
-########################################################
+# export MANPATH="/usr/local/man:$MANPATH"
 
-if [ -f $HOME/.fzf.zsh ]; then
-  source $HOME/.fzf.zsh
-  export FZF_DEFAULT_COMMAND='fd --type f'
-  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-  export FZF_DEFAULT_OPTS="--color bg:-1,bg+:-1,fg:-1,fg+:#feffff,hl:#993f84,hl+:#d256b5,info:#676767,prompt:#676767,pointer:#676767"
-fi
+# You may need to manually set your language environment
+# export LANG=en_US.UTF-8
 
-# add color to man pages
-export MANROFFOPT='-c'
-export LESS_TERMCAP_mb=$(tput bold; tput setaf 2)
-export LESS_TERMCAP_md=$(tput bold; tput setaf 6)
-export LESS_TERMCAP_me=$(tput sgr0)
-export LESS_TERMCAP_so=$(tput bold; tput setaf 3; tput setab 4)
-export LESS_TERMCAP_se=$(tput rmso; tput sgr0)
-export LESS_TERMCAP_us=$(tput smul; tput bold; tput setaf 7)
-export LESS_TERMCAP_ue=$(tput rmul; tput sgr0)
-export LESS_TERMCAP_mr=$(tput rev)
-export LESS_TERMCAP_mh=$(tput dim)
+# Preferred editor for local and remote sessions
+# if [[ -n $SSH_CONNECTION ]]; then
+#   export EDITOR='vim'
+# else
+#   export EDITOR='mvim'
+# fi
 
-# prefer zoxide over z.sh
-if [[ -x "$(command -v zoxide)" ]]; then
-    eval "$(zoxide init zsh --hook pwd)"
-else
-  # source z.sh if it exists
-  zpath="$(brew --prefix)/etc/profile.d/z.sh"
-  if [ -f "$zpath" ]; then
-      source "$zpath"
-  fi
-fi
+# Compilation flags
+# export ARCHFLAGS="-arch x86_64"
 
-# Detect which `ls` flavor is in use
-if ls --color > /dev/null 2>&1; then # GNU `ls`
-    colorflag="--color"
-else # macOS `ls`
-    colorflag="-G"
-fi
+# Set personal aliases, overriding those provided by oh-my-zsh libs,
+# plugins, and themes. Aliases can be placed here, though oh-my-zsh
+# users are encouraged to define aliases within the ZSH_CUSTOM folder.
+# For a full list of active aliases, run `alias`.
+#
+# Example aliases
+# alias zshconfig="mate ~/.zshrc"
+# alias ohmyzsh="mate ~/.oh-my-zsh"
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source $DOTFILES/zsh/.p10k.zsh
+
 
 # look for all .zsh files and source them
 config_files=($DOTFILES/**/*.zsh)

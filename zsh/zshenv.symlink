@@ -5,6 +5,7 @@
 export DOTFILES="$(dirname "$(dirname "$(readlink "${(%):-%N}")")")"
 export CACHEDIR="$HOME/.local/share"
 export VIM_TMP="$HOME/.vim-tmp"
+export PATH=$HOME/bin:/usr/local/bin:$HOME/.local/bin:$PATH
 # add a config file for ripgrep
 export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
 
