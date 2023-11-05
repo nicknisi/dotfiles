@@ -244,7 +244,7 @@ setup_ohmyzsh() {
         info  "ohmyzsh have already installed"
     fi
 
-    if ! [[-d "$ZSH_CUSTOM/themes/powerlevel10k"]]; then
+    if ! [[ -d "$ZSH_CUSTOM/themes/powerlevel10k" ]]; then
         git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
     else
         info "p10k have already installed"
