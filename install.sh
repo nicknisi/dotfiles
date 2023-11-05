@@ -234,6 +234,22 @@ setup_macos() {
     fi
 }
 
+setup_ohmyzsh() {
+    title "Configuring ohmyzsh"
+    if ! [[ -d "$ZSH" ]]; then
+         ZSH="$DOTFILES/zsh/.oh-my-zsh"
+         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    else
+        info  "ohmyzsh have already installed"
+    fi
+
+    if ! [[-d "$ZSH_CUSTOM/themes/powerlevel10k"]]; then
+        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+    else
+        info "p10k have already installed"
+    fi
+}
+
 case "$1" in
     backup)
         backup
@@ -264,6 +280,7 @@ case "$1" in
         # setup_terminfo
         setup_homebrew
         setup_shell
+        setup_ohmyzsh
         setup_git
         setup_macos
         ;;
