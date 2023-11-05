@@ -238,6 +238,7 @@ setup_ohmyzsh() {
     title "Configuring ohmyzsh"
     if ! [[ -d "$ZSH" ]]; then
          ZSH="$DOTFILES/zsh/.oh-my-zsh"
+         KEEP_ZSHRC="yes"
          sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     else
         info  "ohmyzsh have already installed"
