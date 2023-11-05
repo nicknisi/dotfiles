@@ -264,6 +264,9 @@ case "$1" in
     homebrew)
         setup_homebrew
         ;;
+    ohmyzsh)
+        setup_ohmyzsh
+        ;;
     shell)
         setup_shell
         ;;
@@ -280,8 +283,8 @@ case "$1" in
         setup_symlinks
         # setup_terminfo
         setup_homebrew
-        setup_shell
         setup_ohmyzsh
+        setup_shell
         setup_git
         setup_macos
         ;;
