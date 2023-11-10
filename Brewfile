@@ -25,6 +25,7 @@ if OS.mac?
     cask "font-cascadia-mono"
     cask "font-symbols-only-nerd-font"
     cask "font-recursive-code"
+    cask "font-monaspace"
 elsif OS.linux?
     brew "xclip" # access to clipboard (similar to pbcopy/pbpaste)
 end
