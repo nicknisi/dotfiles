@@ -165,6 +165,9 @@ setup_shell() {
         chsh -s "$zsh_path"
         info "default shell changed to $zsh_path"
     fi
+
+    info "reload the configuration of tmux"
+    exec tmux source ~/.config/tmux/tmux.conf
 }
 
 function setup_terminfo() {

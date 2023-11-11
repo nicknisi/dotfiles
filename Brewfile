@@ -44,7 +44,9 @@ brew "neovim" # A better vim
 brew "python" # python (latest)
 brew "ripgrep" # very fast file searcher
 brew "tmux" # terminal multiplexer
+brew "tpm" # the plugins manager of tmux
 brew "tree" # pretty-print directory contents
 brew "vim" # Vim (latest)
 brew "wget" # internet file retriever
 brew "zsh" # zsh (latest)
+brew "tldr" # simplified man pages
