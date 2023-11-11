@@ -174,3 +174,5 @@
 [rebase]
     instructionFormat = "[%an - %ar] %s"
     autoStash = true
+[fetch]
+    prune = true
