@@ -50,3 +50,5 @@ brew "vim" # Vim (latest)
 brew "wget" # internet file retriever
 brew "zsh" # zsh (latest)
 brew "tldr" # simplified man pages
+brew "unzip"
+brew "cmake"

@@ -1,0 +1,20 @@
+{
+    "file header": {
+        "prefix": "fih",
+        "body": [
+            "/**",
+            " * @file $1",
+            " * @author steven li (steven.li3@nio.com)",
+            " * @brief $2",
+            " * @version 0.1",
+            " * @date ${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE}",
+            " *",
+            " * @copyright Copyright (c) NIO ${CURRENT_YEAR}",
+            " *",
+            " */",
+            "$0"
+
+        ],
+        "description": "describe the file information"
+    }
+}
