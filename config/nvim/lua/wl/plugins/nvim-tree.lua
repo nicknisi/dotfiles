@@ -107,12 +107,6 @@ return {
             },
             view = {
                 width = 30,
-                mappings = {
-                    list = {
-                        { key = "u", action = "dir_up" },
-                        { key = "v", action = "vsplit" },
-                    },
-                },
             },
             git = {
                 enable = true,

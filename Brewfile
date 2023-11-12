@@ -52,3 +52,7 @@ brew "zsh" # zsh (latest)
 brew "tldr" # simplified man pages
 brew "unzip"
 brew "cmake"
+brew "tree-sitter"
+brew "node"
+brew "make"
+brew "gcc"
