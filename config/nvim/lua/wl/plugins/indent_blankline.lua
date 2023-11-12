@@ -31,4 +31,15 @@ return {
             hooks.register(hooks.type.SCOPE_HIGHLIGHT, hooks.builtin.scope_highlight_from_extmark)
         end,
     },
+    -- {
+    --     -- used in old version of nvim
+    --     "lukas-reineke/indent-blankline.nvim",
+    --     config = function()
+    --         require("indent_blankline").setup {
+    --             -- for example, context is off by default, use this to turn it on
+    --             show_current_context = true,
+    --             show_current_context_start = true,
+    --         }
+    --     end
+    -- }
 }
