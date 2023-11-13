@@ -100,6 +100,7 @@ function M.setup()
 
   null_ls.setup({
     border = border,
+    root_dir = require("lspconfig/util").root_pattern("package.json", ".git"),
     on_attach = function(client, bufnr)
       if client.supports_method("textDocument/formatting") then
         vim.api.nvim_clear_autocmds({ group = format_group, buffer = bufnr })
@@ -188,7 +189,7 @@ function M.setup()
 
     eslint = function()
       lspconfig.eslint.setup(make_conf({
-        filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact" },
+        filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "json", "jsonc" },
       }))
     end,
 
