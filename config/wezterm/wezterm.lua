@@ -23,6 +23,7 @@ local config = {
   enable_tab_bar = false,
   window_decorations = "RESIZE",
   font = wezterm.font("Monaspace Neon", { weight = "Regular" }),
+  window_close_confirmation = "NeverPrompt",
   -- font = wezterm.font("Rec Mono Duotone", { weight = "Regular" }),
   -- font = wezterm.font("MonoLisa", { weight = "Regular" }),
   font_size = 16,
