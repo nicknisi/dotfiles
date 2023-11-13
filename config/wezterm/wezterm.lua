@@ -22,11 +22,19 @@ local config = {
   macos_window_background_blur = 30,
   enable_tab_bar = false,
   window_decorations = "RESIZE",
-  font = wezterm.font("Monaspace Neon", { weight = "Regular" }),
   window_close_confirmation = "NeverPrompt",
+  font = wezterm.font("Monaspace Argon", { weight = "Regular" }),
+  font_rules = {
+    {
+      italic = true,
+      font = wezterm.font("Monaspace Radon", { weight = "Medium" }),
+    },
+  },
+  harfbuzz_features = { "calt", "dlig", "clig=1", "ss01", "ss02", "ss03", "ss04", "ss05", "ss06", "ss07", "ss08" },
   -- font = wezterm.font("Rec Mono Duotone", { weight = "Regular" }),
   -- font = wezterm.font("MonoLisa", { weight = "Regular" }),
   font_size = 16,
+  line_height = 1.0,
   adjust_window_size_when_changing_font_size = true,
   native_macos_fullscreen_mode = true,
   keys = {
