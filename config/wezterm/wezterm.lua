@@ -105,7 +105,7 @@ if theme == "catppuccin" then
 elseif theme == "everforest" then
   if is_dark then
     config.color_scheme = "Everforest Dark (Gogh)"
-    config.window_background_opacity = 0.85
+    config.window_background_opacity = 1
     config.background = {
       {
         source = {
@@ -124,7 +124,7 @@ elseif theme == "everforest" then
         },
         width = "100%",
         height = "100%",
-        opacity = 0.85,
+        opacity = 1,
       },
       {
         source = {
