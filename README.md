@@ -5,7 +5,7 @@ Welcome to my world! Here you'll find a collection of configuration files for va
 > **Note**
 > Did you arrive here through my YouTube talk, [vim + tmux](https://www.youtube.com/watch?v=5r6yzFEXajQ)? My dotfiles have changed tremendously since then, but feel free to peruse the state of this repo [at the time the video was recorded](https://github.com/nicknisi/dotfiles/tree/aa72bed5c4ecec540a31192581294818b69b93e2).
 
-![capture-20221204193335](https://user-images.githubusercontent.com/293805/205530265-1d0b1a7f-ae2f-4c22-942c-2a1efa0f83a6.png)
+<img width="1600" alt="capture-20231114134612" src="https://github.com/nicknisi/dotfiles/assets/293805/43dff50a-8fad-44e5-b979-d72ebd0366f8">
 
 ## Initial setup
 
