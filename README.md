@@ -23,7 +23,8 @@ xcode-select --install
 git clone git@github.com:nicknisi/dotfiles.git
 ```
 
-> **Note**
+> [!Note]
+> 
 > This dotfiles configuration is set up in such a way that it _shouldn't_ matter where the repo exists on your system.
 
 The script, `install.sh` is the one-stop for all things setup, backup, and installation.
@@ -174,7 +175,8 @@ If a `package.json` file or a `node_modules` directory exists in the current wor
 
 ## Neovim setup
 
-> **Note**
+> [!Note]
+> 
 > This is no longer a vim setup. The configuration has been moved to be Neovim-specific and (mostly) written in [Lua](https://www.lua.org/). `vim` is also set up as an alias to `nvim` to help with muscle memory.
 
 The simplest way to install Neovim is to install it from homebrew.
@@ -187,7 +189,8 @@ However, it was likely installed already if you ran the `./install.sh brew` comm
 
 All of the configuration for Neovim starts at `config/nvim/init.lua`, which is symlinked into the `~/.config/nvim` directory.
 
-> **Warning**
+> [!Warning]
+> 
 > The first time you run `nvim` with this configuration, it will likely have a lot of errors. This is because it is dependent on a number of plugins being installed.
 
 ### Installing plugins
@@ -197,7 +200,8 @@ On the first run, all required plugins should automaticaly by installed by
 
 All plugins are listed in [plugins.lua](./config/nvim/lua/plugins.lua). When a plugin is added, it will automatically be installed by lazy.nvim. To interface with lazy.nvim, simply run `:Lazy` from within vim.
 
-> **Note**
+> [!Note]
+> 
 > Plugins can be synced in a headless way from the command line using the `vimu` alias.
 
 ## tmux configuration
@@ -218,7 +222,8 @@ Enter new session name: open-source
 
 This configuration provides a bit of style to the tmux bar, along with some additional data such as the currently playing song (from Apple Music or Spotify), the system name, the session name, and the current time.
 
-> **Note**
+> [!Note]
+> 
 > It also changes the prefix from `⌃-b` to `⌃-a` (⌃ is the _control_ key). This is because I tend to remap the Caps Lock button to Control, and then having the prefix makes more sense.
 
 ### tmux key commands
