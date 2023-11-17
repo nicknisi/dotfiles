@@ -53,6 +53,9 @@
     # current branch
     cbr = rev-parse --abbrev-ref HEAD
 
+    # show the current branch's upstream
+    upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
+
     # submodule shortcuts
     si = submodule init
     su = submodule update
