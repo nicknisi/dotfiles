@@ -1,11 +1,8 @@
 local lspconfig = require("lspconfig")
 local mason_lspconfig = require("mason-lspconfig")
-local mason_null_ls = require("mason-null-ls")
 local theme = require("theme")
 local mason = require("mason")
 local border = theme.border
-local format_group = vim.api.nvim_create_augroup("LspFormatting", { clear = true })
-local null_ls = require("null-ls")
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
 local M = {}
@@ -97,39 +94,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
 function M.setup()
   mason.setup({ ui = { border = border } })
-
-  null_ls.setup({
-    border = border,
-    root_dir = require("lspconfig/util").root_pattern("package.json", ".git"),
-    on_attach = function(client, bufnr)
-      if client.supports_method("textDocument/formatting") then
-        vim.api.nvim_clear_autocmds({ group = format_group, buffer = bufnr })
-        vim.api.nvim_create_autocmd("BufWritePre", {
-          group = format_group,
-          buffer = bufnr,
-          callback = function()
-            vim.lsp.buf.format({
-              ---@diagnostic disable-next-line: redefined-local
-              filter = function(client)
-                return client.name == "null-ls"
-              end,
-              bufnr = bufnr,
-            })
-          end,
-        })
-      end
-    end,
-  })
-
-  mason_null_ls.setup({
-    automatic_installation = true,
-    ensure_installed = { "stylua", "prettier" },
-    handlers = {
-      function(source_name, methods)
-        require("mason-null-ls.automatic_setup")(source_name, methods)
-      end,
-    },
-  })
 
   mason_lspconfig.setup({
     ensure_installed = { "eslint", "tsserver", "lua_ls", "denols", "vimls", "astro", "tailwindcss" },
