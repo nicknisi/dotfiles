@@ -14,6 +14,29 @@ return {
     end,
   },
   {
+    "stevearc/conform.nvim",
+    opts = {
+      format_on_save = {
+        timeout_ms = 500,
+        lsp_fallback = false,
+      },
+      formatters_by_ft = {
+        lua = { "stylua" },
+        javascript = { "prettier", "prettierd" },
+        javascriptreact = { "prettier", "prettierd" },
+        typecript = { "prettier", "prettierd" },
+        typecriptreact = { "prettier", "prettierd" },
+        css = { "prettier", "prettierd" },
+        html = { "prettier", "prettierd" },
+        json = { "prettier", "prettierd" },
+        jsonc = { "prettier", "prettierd" },
+        yaml = { "prettier", "prettierd" },
+        markdown = { "prettier", "prettierd" },
+        graphql = { "prettier", "prettierd" },
+      },
+    },
+  },
+  {
     "folke/trouble.nvim",
     config = true,
     keys = {
