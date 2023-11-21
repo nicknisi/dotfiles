@@ -7,22 +7,6 @@ local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
 local M = {}
 
-local function format_async(err, _, result, _, bufnr)
-  if err ~= nil or result == nil then
-    return
-  end
-  if not vim.api.nvim_buf_get_option(bufnr, "modified") then
-    local view = vim.fn.winsaveview()
-    vim.lsp.util.apply_text_edits(result, bufnr, "utf-8")
-    if view ~= nil then
-      vim.fn.winrestview(view)
-    end
-    if bufnr == vim.api.nvim_get_current_buf() then
-      vim.api.nvim_command("noautocmd :update")
-    end
-  end
-end
-
 local function lsp_organize_imports()
   local params = { command = "_typescript.organizeImports", arguments = { vim.api.nvim_buf_get_name(0) }, title = "" }
   vim.lsp.buf.execute_command(params)
@@ -52,7 +36,6 @@ local function make_conf(...)
     handlers = {
       ["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border }),
       ["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = border }),
-      ["textDocument/formatting"] = format_async,
       ["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
         virtual_text = true,
       }),
@@ -153,7 +136,7 @@ function M.setup()
 
     eslint = function()
       lspconfig.eslint.setup(make_conf({
-        filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "json", "jsonc" },
+        filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "json", "jsonc", "typescript.tsx", "tsx" },
       }))
     end,
 
