@@ -55,7 +55,6 @@ return {
         },
       },
       highlight = { enable = true, use_languagetree = true },
-      context_commentstring = { enable = true },
       indent = { enable = true },
       rainbow = { enable = true, extended_mode = true, max_file_lines = 1000 },
       textobjects = {
