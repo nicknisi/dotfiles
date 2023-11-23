@@ -1,5 +1,4 @@
 local api = vim.api
-local fn = vim.fn
 local M = {}
 
 -- thanks to
@@ -49,7 +48,7 @@ M.cnoremap = make_keymap_fn("c", noremap_opts)
 
 function M.has_map(map, mode)
   mode = mode or "n"
-  return fn.maparg(map, mode) ~= ""
+  return vim.fn.maparg(map, mode) ~= ""
 end
 
 function M.has_module(name)
@@ -88,6 +87,17 @@ function M.is_dark_mode()
   local result = handle:read("*a")
   handle:close()
   return result:match("^%s*Dark%s*$") ~= nil
+end
+
+function M.debounce(ms, fn)
+  local timer = vim.loop.new_timer()
+  return function(...)
+    local argv = { ... }
+    timer:start(ms, 0, function()
+      timer:stop()
+      vim.schedule_wrap(fn)(unpack(argv))
+    end)
+  end
 end
 
 return M
