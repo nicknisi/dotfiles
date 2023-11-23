@@ -134,12 +134,6 @@ function M.setup()
       }))
     end,
 
-    eslint = function()
-      lspconfig.eslint.setup(make_conf({
-        filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "json", "jsonc", "typescript.tsx", "tsx" },
-      }))
-    end,
-
     tsserver = function()
       lspconfig.tsserver.setup(make_conf({
         handlers = {
