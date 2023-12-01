@@ -9,6 +9,7 @@ local formatters = {
   yaml = { "prettier" },
   css = { "stylelint", "prettier" },
   sh = { "shellcheck", "shfmt" },
+  lua = { "stylua" },
 }
 
 return {
