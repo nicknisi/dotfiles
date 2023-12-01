@@ -89,6 +89,17 @@ function M.setup()
       lspconfig[server_name].setup(make_conf({}))
     end,
 
+    eslint = function()
+      lspconfig.eslint.setup({
+        root_dir = require("lspconfig").util.root_pattern(
+          "eslint.config.js",
+          ".eslintrc.js",
+          ".eslintrc.json",
+          ".eslintrc"
+        ),
+      })
+    end,
+
     tailwindcss = function()
       lspconfig.tailwindcss.setup(make_conf({
         root_dir = require("lspconfig/util").root_pattern(
