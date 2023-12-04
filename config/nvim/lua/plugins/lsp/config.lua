@@ -72,6 +72,13 @@ vim.api.nvim_create_autocmd("LspAttach", {
     -- FIXME the following keymaps are not working when using a autocmd to set up
     -- vim.keymap.set("x", "gA", vim.lsp.buf.range_code_action, bufopts)
     -- vim.keymap.set("n", "<C-x><C-x>", vim.lsp.buf.signature_help, bufopts)
+
+    -- set up mousemenu options for lsp
+    vim.cmd([[:amenu 10.100 mousemenu.Goto\ Definition <cmd>Telescope lsp_definitions<cr>]])
+    vim.cmd([[:amenu 10.110 mousemenu.References <cmd>Telescope lsp_references<cr>]])
+    vim.cmd([[:amenu 10.120 mousemenu.Implementation <cmd>Telescope lsp_implementations<cr>]])
+
+    vim.keymap.set("n", "<RightMouse>", "<cmd>:popup mousemenu<cr>")
   end,
 })
 
