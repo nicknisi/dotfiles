@@ -40,12 +40,6 @@ local config = {
 local is_dark = wezterm.gui.get_appearance():find("Dark")
 local theme = utils.get_current_theme()
 
-if theme == "catppuccin" then
-  utils.table_extend(true, config, require("catppuccin")(is_dark, assets))
-elseif theme == "everforest" then
-  utils.table_extend(true, config, require("everforest")(is_dark, assets))
-elseif theme == "tokyonight" then
-  utils.table_extend(true, config, require("tokyonight")(is_dark, assets))
-end
+utils.table_extend(true, config, require(theme)(is_dark, assets))
 
 return config
