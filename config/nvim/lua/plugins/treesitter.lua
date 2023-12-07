@@ -38,6 +38,7 @@ return {
         "markdown_inline",
         "pug",
         "python",
+        "regex",
         "ruby",
         "rust",
         "tsx",
