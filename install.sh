@@ -165,9 +165,6 @@ setup_shell() {
         chsh -s "$zsh_path"
         info "default shell changed to $zsh_path"
     fi
-
-    info "reload the configuration of tmux"
-    exec tmux source ~/.config/tmux/tmux.conf
 }
 
 function setup_terminfo() {
@@ -254,8 +251,6 @@ setup_ohmyzsh() {
     else
         info "p10k have already installed"
     fi
-
-    exec zsh -l
 }
 
 case "$1" in
@@ -288,12 +283,10 @@ case "$1" in
         ;;
     all)
         setup_symlinks
-        # setup_terminfo
         setup_homebrew
+        setup_git
         setup_ohmyzsh
         setup_shell
-        setup_git
-        setup_macos
         ;;
     *)
         echo -e $"\nUsage: $(basename "$0") {backup|link|git|homebrew|shell|terminfo|macos|all}\n"
