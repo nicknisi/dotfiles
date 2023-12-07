@@ -1,6 +1,16 @@
+package.path = package.path
+  .. ";"
+  .. os.getenv("HOME")
+  .. "/.config/lua/?.lua;"
+  .. os.getenv("HOME")
+  .. "/.config/lua/?/?.lua;"
+  .. os.getenv("HOME")
+  .. "/.config/lua/?/init.lua"
+
 local wezterm = require("wezterm")
-local utils = require("utils")
+local util = require("base.util")
 local assets = wezterm.config_dir .. "/assets"
+local custom_config = require("base.config")
 
 local config = {
   -- window_background_opacity = 0.15,
@@ -8,11 +18,11 @@ local config = {
   enable_tab_bar = false,
   window_decorations = "RESIZE",
   window_close_confirmation = "NeverPrompt",
-  font = wezterm.font("Monaspace Argon", { weight = "Regular" }),
+  font = wezterm.font(custom_config.font, { weight = "Regular" }),
   font_rules = {
     {
       italic = true,
-      font = wezterm.font("Monaspace Radon", { weight = "Medium" }),
+      font = wezterm.font(custom_config.italic_font, { weight = "Medium" }),
     },
   },
   harfbuzz_features = { "calt", "dlig", "clig=1", "ss01", "ss02", "ss03", "ss04", "ss05", "ss06", "ss07", "ss08" },
@@ -38,8 +48,7 @@ local config = {
 }
 
 local is_dark = wezterm.gui.get_appearance():find("Dark")
-local theme = utils.get_current_theme()
 
-utils.table_extend(true, config, require(theme)(is_dark, assets))
+util.table_extend(true, config, require(custom_config.theme)(is_dark, assets))
 
 return config

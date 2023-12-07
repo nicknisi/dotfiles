@@ -51,23 +51,8 @@ function M.has_map(map, mode)
   return vim.fn.maparg(map, mode) ~= ""
 end
 
-function M.has_module(name)
-  if pcall(function()
-    require(name)
-  end) then
-    return true
-  else
-    return false
-  end
-end
-
 function M.termcodes(str)
   return api.nvim_replace_termcodes(str, true, true, true)
-end
-
-function M.file_exists(name)
-  local f = io.open(name, "r")
-  return f ~= nil and io.close(f)
 end
 
 function M.has_active_lsp_client(servername)
@@ -77,27 +62,6 @@ function M.has_active_lsp_client(servername)
     end
   end
   return false
-end
-
-function M.is_dark_mode()
-  local handle = io.popen("defaults read -g AppleInterfaceStyle 2>/dev/null")
-  if handle == nil then
-    return true
-  end
-  local result = handle:read("*a")
-  handle:close()
-  return result:match("^%s*Dark%s*$") ~= nil
-end
-
-function M.debounce(ms, fn)
-  local timer = vim.loop.new_timer()
-  return function(...)
-    local argv = { ... }
-    timer:start(ms, 0, function()
-      timer:stop()
-      vim.schedule_wrap(fn)(unpack(argv))
-    end)
-  end
 end
 
 return M

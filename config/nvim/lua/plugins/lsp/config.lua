@@ -1,9 +1,17 @@
 local lspconfig = require("lspconfig")
 local mason_lspconfig = require("mason-lspconfig")
-local theme = require("theme")
 local mason = require("mason")
-local border = theme.border
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
+local border = {
+  { "🭽", "FloatBorder" },
+  { "▔", "FloatBorder" },
+  { "🭾", "FloatBorder" },
+  { "▕", "FloatBorder" },
+  { "🭿", "FloatBorder" },
+  { "▁", "FloatBorder" },
+  { "🭼", "FloatBorder" },
+  { "▏", "FloatBorder" },
+}
 
 local M = {}
 

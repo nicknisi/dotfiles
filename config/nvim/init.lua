@@ -1,6 +1,9 @@
 -- init.lua
 -- Neovim-specific configuration
---
+
+-- add
+package.path = package.path .. ";" .. os.getenv("HOME") .. "/.config/lua/?.lua"
+
 require("globals")
 local opt = vim.opt
 local cmd = vim.cmd
@@ -18,8 +21,8 @@ local omap = utils.omap
 local nnoremap = utils.nnoremap
 local inoremap = utils.inoremap
 local vnoremap = utils.vnoremap
-local icons = require("theme").icons
-local current_theme = require("theme").get_current_theme()
+local config = require("base.config")
+local icons = config.icons
 
 -- create a completion_nvim table on _G which is visible via
 -- v:lua from vimscript
@@ -236,7 +239,6 @@ nmap("<leader>6", "<Plug>HiInterestingWord6")
 -- open current buffer in a new tab
 nmap("gTT", ":tab sb<cr>")
 
-local theme = require("theme")
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -254,12 +256,12 @@ require("lazy").setup({
   { import = "plugins" },
   { import = "plugins.extras.copilot" },
   { import = "plugins.extras.astro" },
-}, { ui = { border = theme.border } })
+})
 
 cmd([[syntax on]])
 cmd([[filetype plugin indent on]])
 
-if require("utils").is_dark_mode() then
+if require("base.util").is_dark_mode() then
   vim.g.catppuccin_flavour = "mocha"
   vim.o.background = "dark"
 else
@@ -268,7 +270,7 @@ else
 end
 
 -- vim.command.colorscheme "catppuccin"
-vim.cmd("colorscheme " .. current_theme)
+vim.cmd("colorscheme " .. config.theme)
 
 -- set up custom symbols for LSP errors
 local signs =

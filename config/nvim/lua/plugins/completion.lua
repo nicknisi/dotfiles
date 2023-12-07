@@ -1,4 +1,4 @@
-local colors = require("theme").colors
+local colors = require("base.theme").colors
 
 -- Set colors for completion items
 vim.cmd("highlight! CmpItemAbbrMatch guibg=NONE guifg=" .. colors.lightblue)

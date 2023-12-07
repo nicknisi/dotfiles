@@ -1,4 +1,6 @@
-local colors = {
+local M = {}
+
+M.colors = {
   bg = "#202328",
   fg = "#bbc2cf",
   aqua = "#3affdb",
@@ -24,7 +26,7 @@ local colors = {
   black = "#202328",
 }
 
-local icons = {
+M.icons = {
   -- system icons
   linux = " ",
   macos = " ",
@@ -72,30 +74,4 @@ local icons = {
   ghost = " ",
 }
 
-local border = {
-  { "🭽", "FloatBorder" },
-  { "▔", "FloatBorder" },
-  { "🭾", "FloatBorder" },
-  { "▕", "FloatBorder" },
-  { "🭿", "FloatBorder" },
-  { "▁", "FloatBorder" },
-  { "🭼", "FloatBorder" },
-  { "▏", "FloatBorder" },
-}
-
-local function get_current_theme()
-  local file = io.open(os.getenv("HOME") .. "/.theme", "r")
-
-  if not file then
-    return "catppuccin"
-  end
-
-  local content = file:read("*a")
-  file:close()
-
-  content = content:gsub("%s+", "")
-
-  return content
-end
-
-return { colors = colors, icons = icons, border = border, get_current_theme = get_current_theme }
+return M

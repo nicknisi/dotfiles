@@ -1,7 +1,7 @@
-local theme = require("theme")
+local theme = require("base.theme")
 local icons = theme.icons
 
-local is_dark = require("utils").is_dark_mode()
+local is_dark = require("base.util").is_dark_mode()
 
 return {
   -- fast colorizer for showing hex colors
@@ -430,7 +430,7 @@ return {
     lazy = false,
     priority = 1000,
     opts = {
-      flavour = require("utils").is_dark_mode() and "mocha" or "latte",
+      flavour = is_dark and "mocha" or "latte",
       dim_inactive = { enabled = false, shade = "dark", percentage = 0.15 },
       transparent_background = true,
       term_colors = true,
