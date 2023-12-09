@@ -21,7 +21,7 @@ return {
             vim.keymap.set(
                 "n",
                 "<leader>fa",
-                "<cmd> Telescope find_files follow=true no_ignore=true hidden=true <CR>",
+                "<cmd>Telescope find_files follow=true no_ignore=true hidden=true <CR>",
                 {}
             )
             vim.keymap.set("n", "<leader>fg", builtin.live_grep, {})
@@ -32,7 +32,7 @@ return {
             vim.keymap.set("n", "<leader>fi", builtin.lsp_workspace_symbols, {})
             vim.keymap.set("n", "<leader>fr", builtin.registers, {})
             vim.keymap.set("n", "<leader>fgs", builtin.git_status, {})
-            vim.keymap.set("n", "<leader>fo", builtin.oldfiles, {})
+            vim.keymap.set("n", "<leader>fo", "<cmd>Telescope oldfiles only_cwd=true<cr>", {})
 
             telescope.setup {
                 defaults = {
