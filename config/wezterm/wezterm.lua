@@ -51,4 +51,4 @@ local is_dark = wezterm.gui.get_appearance():find("Dark")
 
 util.table_extend(true, config, require(custom_config.theme)(is_dark, assets))
 
-return config
+return util.table_extend(true, config, custom_config.wezterm_overrides or {})
