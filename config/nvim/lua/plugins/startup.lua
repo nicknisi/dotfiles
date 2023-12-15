@@ -1,3 +1,5 @@
+local custom_config = require("base.config")
+
 local headers = {
   ghost = {
     [[                                                                              ]],
@@ -119,7 +121,7 @@ return {
         align = "center",
         fold_section = false,
         title = "Header",
-        content = headers.meatboy,
+        content = headers[custom_config.startup_art] or headers.meatboy,
         highlight = "Constant",
       },
       body = {
