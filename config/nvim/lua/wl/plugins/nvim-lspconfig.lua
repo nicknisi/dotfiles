@@ -94,6 +94,7 @@ return {
                 cmd = {
                     "clangd",
                     "--limit-references=0", --[[ "--log=verbose" ]]
+                    "--limit-results=0",
                 },
             }
 
