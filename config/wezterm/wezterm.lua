@@ -1,11 +1,6 @@
-package.path = package.path
-  .. ";"
-  .. os.getenv("HOME")
-  .. "/.config/lua/?.lua;"
-  .. os.getenv("HOME")
-  .. "/.config/lua/?/?.lua;"
-  .. os.getenv("HOME")
-  .. "/.config/lua/?/init.lua"
+-- configure wezterm to use the ~/.config/dotfiles directory for shared lua modules
+local dotfiles = os.getenv("HOME") .. "/.config/dotfiles"
+package.path = package.path .. ";" .. dotfiles .. "/?.lua;" .. dotfiles .. "/?/?.lua;" .. dotfiles .. "/?/init.lua"
 
 local wezterm = require("wezterm")
 local util = require("base.util")

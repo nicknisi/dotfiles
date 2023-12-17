@@ -2,7 +2,9 @@
 -- Neovim-specific configuration
 
 -- add
-package.path = package.path .. ";" .. os.getenv("HOME") .. "/.config/lua/?.lua"
+-- configure wezterm to use the ~/.config/dotfiles directory for shared lua modules
+local dotfiles = os.getenv("HOME") .. "/.config/dotfiles"
+package.path = package.path .. ";" .. dotfiles .. "/?.lua;" .. dotfiles .. "/?/?.lua;" .. dotfiles .. "/?/init.lua"
 
 require("globals")
 local opt = vim.opt
