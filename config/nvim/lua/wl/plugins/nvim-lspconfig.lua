@@ -52,6 +52,8 @@ return {
                 }
             end
 
+            vim.keymap.set("n", "<leader>ca", "<cmd>Lspsaga code_action<CR>")
+
             -- Use an on_attach function to only map the following keys
             -- after the language server attaches to the current buffer
             local on_attach = function(client, bufnr)
@@ -63,7 +65,6 @@ return {
                 vim.keymap.set("n", "gh", "<cmd>Lspsaga finder<CR>")
                 vim.keymap.set("n", "gd", "<cmd>Lspsaga goto_definition<CR>")
                 vim.keymap.set("n", "gD", "<cmd>Lspsaga peek_definition<CR>")
-                vim.keymap.set("n", "gc", "<cmd>Lspsaga code_action<CR>")
                 vim.keymap.set("n", "sw", "<cmd>Lspsaga show_buf_diagnostics<CR>")
                 vim.keymap.set("n", "gr", "<cmd>Lspsaga rename<CR>")
                 vim.keymap.set("n", "gR", "<cmd>Lspsaga rename ++project<CR>")
