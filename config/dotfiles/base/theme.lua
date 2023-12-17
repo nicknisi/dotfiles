@@ -32,15 +32,15 @@ M.icons = {
   macos = " ",
   windows = " ",
   -- diagnostic icons
-  -- error = "",
+  bug = "",
   -- error = "",
   error = " ",
   warning = " ",
   info = " ",
   -- hint = "",
   hint = "󰌶 ",
-  -- lsp = " ",
-  lsp = " ",
+  lsp = " ",
+  -- lsp = " ",
   line = "󰍜 ",
   -- git icons
   git = "",

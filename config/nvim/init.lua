@@ -91,8 +91,8 @@ opt.timeoutlen = 500
 -- Appearance
 ---------------------------------------------------------
 o.termguicolors = true
-opt.number = true -- show line numbers
-opt.relativenumber = true
+opt.number = false -- show line numbers
+opt.relativenumber = false
 opt.wrap = true -- turn on line wrapping
 opt.wrapmargin = 8 -- wrap lines when coming within n characters from side
 opt.linebreak = true -- set soft wrapping
@@ -275,8 +275,7 @@ end
 vim.cmd("colorscheme " .. config.theme)
 
 -- set up custom symbols for LSP errors
-local signs =
-  { Error = icons.error, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
+local signs = { Error = icons.bug, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
 for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
