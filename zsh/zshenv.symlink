@@ -24,3 +24,4 @@ typeset -aU path
 
 export EDITOR='nvim'
 export GIT_EDITOR='nvim'
+export HOMEBREW_NO_AUTO_UPDATE=1

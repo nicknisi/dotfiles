@@ -94,8 +94,11 @@ return {
                 capabilities = capabilities,
                 cmd = {
                     "clangd",
-                    "--limit-references=0", --[[ "--log=verbose" ]]
+                    "--query-driver=/home/linuxbrew/.linuxbrew/bin/gcc-13,/usr/bin/gcc",
+                    "--limit-references=0",
                     "--limit-results=0",
+                    "--pch-storage=memory",
+                    -- "--log=verbose",
                 },
             }
 
