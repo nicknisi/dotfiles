@@ -5,7 +5,7 @@ return {
     },
     {
         "nvim-telescope/telescope.nvim",
-        version = "0.1.3",
+        version = "0.1.5",
         dependencies = {
             { "nvim-lua/plenary.nvim" },
             { "nvim-treesitter/nvim-treesitter" },
@@ -29,7 +29,7 @@ return {
             vim.keymap.set("n", "<leader>fh", builtin.help_tags, {})
             vim.keymap.set("n", "<leader>fd", builtin.diagnostics, {})
             vim.keymap.set("n", "<leader>fu", builtin.lsp_document_symbols, {})
-            vim.keymap.set("n", "<leader>fi", builtin.lsp_workspace_symbols, {})
+            vim.keymap.set("n", "<leader>fi", "<cmd>Telescope lsp_dynamic_workspace_symbols path_display=\"hidden\"<cr>", {})
             vim.keymap.set("n", "<leader>fr", builtin.registers, {})
             vim.keymap.set("n", "<leader>fgs", builtin.git_status, {})
             vim.keymap.set("n", "<leader>fo", "<cmd>Telescope oldfiles only_cwd=true<cr>", {})

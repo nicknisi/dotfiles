@@ -96,7 +96,7 @@ return {
                     "clangd",
                     "--query-driver=/home/linuxbrew/.linuxbrew/bin/gcc-13,/usr/bin/gcc",
                     "--limit-references=0",
-                    "--limit-results=0",
+                    "--limit-results=1000",
                     "--pch-storage=memory",
                     -- "--log=verbose",
                 },
