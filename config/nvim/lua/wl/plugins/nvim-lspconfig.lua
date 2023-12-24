@@ -18,7 +18,7 @@ return {
             --keep order
             require("mason").setup()
             require("mason-lspconfig").setup {
-                ensure_installed = { "clangd", "cmake", "lua_ls" },
+                ensure_installed = { "clangd", "cmake", "lua_ls", "pyright" },
             }
 
             local opts = { noremap = true, silent = true }
@@ -53,6 +53,9 @@ return {
             end
 
             vim.keymap.set("n", "<leader>ca", "<cmd>Lspsaga code_action<CR>")
+            vim.keymap.set({ "n", "v" }, "<space>fm", function()
+                lsp_formatting()
+            end, {noremap = true, silent = true})
 
             -- Use an on_attach function to only map the following keys
             -- after the language server attaches to the current buffer
@@ -75,12 +78,9 @@ return {
                 vim.keymap.set("n", "<space>wl", function()
                     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
                 end, bufopts)
-                vim.keymap.set({ "n", "v" }, "<space>fm", function()
-                    lsp_formatting(bufnr)
-                end, bufopts)
             end
 
-            local signs = { Error = " ", Warn = " ", Hint = "󰴓", Info = " " }
+            local signs = { Error = "󰅚 ", Warn = "󰀪 ", Hint = "󰌶 ", Info = "󰋽 " }
             for type, icon in pairs(signs) do
                 local hl = "DiagnosticSign" .. type
                 vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
@@ -132,6 +132,10 @@ return {
             }
 
             require("lspconfig").cmake.setup {
+                on_attach = on_attach,
+                capabilities = capabilities,
+            }
+            require("lspconfig").pyright.setup {
                 on_attach = on_attach,
                 capabilities = capabilities,
             }

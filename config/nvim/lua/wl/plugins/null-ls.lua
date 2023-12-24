@@ -20,7 +20,8 @@ return {
             null_ls.builtins.formatting.cmake_format.with {
                 extra_args = { "--enable-markup", "FALSE" }, --disable formatting on comments
             },
-            -- null_ls.builtins.diagnostics.cmake_lint,
+            null_ls.builtins.formatting.black,
+            null_ls.builtins.formatting.prettier, --[[ todo:https://prettier.io/docs/en/configuration.html ]]
         }
         null_ls.setup {
             -- debug = true,
@@ -47,7 +48,7 @@ return {
         }
 
         require("mason-null-ls").setup {
-            ensure_installed = { "clang-format", "stylua", "cmake_format", "cmake_link" },
+            ensure_installed = { "clang-format", "stylua", "cmake_format", "black", "prettier" },
         }
     end,
 }
