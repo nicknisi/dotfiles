@@ -1,4 +1,17 @@
 # Dotfiles
+This project is forked from [nicknisi](https://github.com/nicknisi/dotfiles). I add my custom configuration.
+## Initial setup
+First, clone it from github to local machine.
+```bash
+git clone https://github.com/qq123538/dotfiles.git
+```
+Secondly, install all.
+```bash
+./install all
+```
+Finnally, run tmux, and configure tmux by `ALT+S I`
+
+# (original README)Dotfiles
 
 Welcome to my world! Here you'll find a collection of configuration files for various tools and programs that I use on a daily basis. These dotfiles have been carefully curated and customized to streamline **my** workflow and improve **my** productivity. Your results may vary, but feel free to give it a try! Whether you're a fellow developer looking to optimize your setup or just curious about how I organize my digital life, I hope you find something useful in these dotfiles. So take a look around and feel free to borrow, modify, or fork to your heart's content. Happy coding!
 
