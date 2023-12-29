@@ -94,7 +94,7 @@ function M.setup()
   mason.setup({ ui = { border = border } })
 
   mason_lspconfig.setup({
-    ensure_installed = { "eslint", "tsserver", "lua_ls", "denols", "vimls", "astro", "tailwindcss" },
+    ensure_installed = { "eslint", "tsserver", "lua_ls", "denols", "vimls", "astro", "tailwindcss", "jsonls" },
     automatic_installation = true,
     ui = { check_outdated_servers_on_open = true },
   })
@@ -134,25 +134,25 @@ function M.setup()
               unusedClass = "warning",
             },
             experimental = {
-              classRegex = {
-                "tw`([^`]*)",
-                'tw="([^"]*)',
-                'tw={"([^"}]*)',
-                "tw\\.\\w+`([^`]*)",
-                "tw\\(.*?\\)`([^`]*)",
+              -- classRegex = {
+              --   "tw`([^`]*)",
+              --   'tw="([^"]*)',
+              --   'tw={"([^"}]*)',
+              --   "tw\\.\\w+`([^`]*)",
+              --   "tw\\(.*?\\)`([^`]*)",
 
-                "cn`([^`]*)",
-                'cn="([^"]*)',
-                'cn={"([^"}]*)',
-                "cn\\.\\w+`([^`]*)",
-                "cn\\(.*?\\)`([^`]*)",
+              --   "cn`([^`]*)",
+              --   'cn="([^"]*)',
+              --   'cn={"([^"}]*)',
+              --   "cn\\.\\w+`([^`]*)",
+              --   "cn\\(.*?\\)`([^`]*)",
 
-                { "clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)" },
-                { "classnames\\(([^)]*)\\)", "'([^']*)'" },
-                { "cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
-                "cva\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
-                "'([^']*)'",
-              },
+              --   { "clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+              --   { "classnames\\(([^)]*)\\)", "'([^']*)'" },
+              --   { "cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+              --   "cva\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+              --   "'([^']*)'",
+              -- },
             },
             validate = true,
           },
@@ -243,12 +243,6 @@ function M.setup()
             filetypes = { sh = "shellcheck" },
           },
         },
-      }))
-    end,
-
-    jsonls = function()
-      lspconfig.jsonls.setup(make_conf({
-        filetypes = { "json", "jsonc" },
       }))
     end,
   })
