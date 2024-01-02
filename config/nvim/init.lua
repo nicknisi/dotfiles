@@ -122,9 +122,9 @@ opt.shortmess = "atToOFc" -- prompt message options
 
 -- Tab control
 opt.smarttab = true -- tab respects 'tabstop', 'shiftwidth', and 'softtabstop'
-opt.tabstop = 4 -- the visible width of tabs
-opt.softtabstop = 4 -- edit as if the tabs are 4 characters wide
-opt.shiftwidth = 4 -- number of spaces to use for indent and unindent
+opt.tabstop = 2 -- the visible width of tabs
+opt.softtabstop = 2 -- edit as if the tabs are 4 characters wide
+opt.shiftwidth = 2 -- number of spaces to use for indent and unindent
 opt.shiftround = true -- round indent to a multiple of 'shiftwidth'
 
 -- code folding settings
@@ -140,9 +140,9 @@ opt.foldlevel = 1
 -- vim.api.nvim_create_autocmd({ "BufEnter" }, { pattern = { "*" }, command = "normal zx" })
 
 -- toggle invisible characters
-opt.list = true
+-- opt.list = true
 opt.listchars = {
-  tab = "→ ",
+  -- tab = "→ ",
   -- eol = "¬",
   trail = "⋅",
   extends = "❯",
