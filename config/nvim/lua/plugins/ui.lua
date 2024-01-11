@@ -241,7 +241,7 @@ return {
         -- "open_current",  -- netrw disabled, opening a directory opens within the
         -- window like netrw would, regardless of window.position
         -- "disabled",    -- netrw left alone, neo-tree does not handle opening dirs
-        use_libuv_file_watcher = false, -- This will use the OS level file watchers to detect changes
+        use_libuv_file_watcher = true, -- This will use the OS level file watchers to detect changes
         -- instead of relying on nvim autocmd events.
         window = {
           mappings = {
@@ -430,7 +430,7 @@ return {
     lazy = false,
     priority = 1000,
     opts = {
-      flavour = require("utils").is_dark_mode() and "mocha" or "latte",
+      flavour = require("utils").is_dark_mode() and "macchiato" or "latte",
       dim_inactive = { enabled = false, shade = "dark", percentage = 0.15 },
       transparent_background = true,
       term_colors = true,

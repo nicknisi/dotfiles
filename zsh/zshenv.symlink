@@ -23,3 +23,10 @@ typeset -aU path
 
 export EDITOR='nvim'
 export GIT_EDITOR='nvim'
+
+# export EDITOR='code -w'
+# export GIT_EDITOR='code -w'
+
+export AWS_PROFILE=sales-studio
+
+export KUBECONFIG=~/.kube/config

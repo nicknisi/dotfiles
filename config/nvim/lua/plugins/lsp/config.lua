@@ -54,7 +54,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
     vim.keymap.set("n", "<leader>aa", lsp_show_diagnostics, opts)
     vim.keymap.set("n", "gl", lsp_show_diagnostics, opts)
     vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
-    vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
+   vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
     vim.keymap.set("n", "<leader>aq", vim.diagnostic.setloclist, opts)
 
     local bufopts = { noremap = true, silent = true, buffer = ev.buf }
@@ -86,7 +86,7 @@ function M.setup()
   mason.setup({ ui = { border = border } })
 
   mason_lspconfig.setup({
-    ensure_installed = { "eslint", "tsserver", "lua_ls", "denols", "vimls", "astro", "tailwindcss" },
+    ensure_installed = { "eslint", "tsserver", "lua_ls", "vimls", "tailwindcss", "prismals" },
     automatic_installation = true,
     ui = { check_outdated_servers_on_open = true },
   })
@@ -125,27 +125,27 @@ function M.setup()
               recommendedVariantOrder = "warning",
               unusedClass = "warning",
             },
-            experimental = {
-              classRegex = {
-                "tw`([^`]*)",
-                'tw="([^"]*)',
-                'tw={"([^"}]*)',
-                "tw\\.\\w+`([^`]*)",
-                "tw\\(.*?\\)`([^`]*)",
+            -- experimental = {
+            --   classRegex = {
+            --     "tw`([^`]*)",
+            --     'tw="([^"]*)',
+            --     'tw={"([^"}]*)',
+            --     "tw\\.\\w+`([^`]*)",
+            --     "tw\\(.*?\\)`([^`]*)",
 
-                "cn`([^`]*)",
-                'cn="([^"]*)',
-                'cn={"([^"}]*)',
-                "cn\\.\\w+`([^`]*)",
-                "cn\\(.*?\\)`([^`]*)",
+            --     "cn`([^`]*)",
+            --     'cn="([^"]*)',
+            --     'cn={"([^"}]*)',
+            --     "cn\\.\\w+`([^`]*)",
+            --     "cn\\(.*?\\)`([^`]*)",
 
-                { "clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)" },
-                { "classnames\\(([^)]*)\\)", "'([^']*)'" },
-                { "cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
-                "cva\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
-                "'([^']*)'",
-              },
-            },
+            --     { "clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+            --     { "classnames\\(([^)]*)\\)", "'([^']*)'" },
+            --     { "cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+            --     "cva\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+            --     "'([^']*)'",
+            --   },
+            -- },
             validate = true,
           },
         },

@@ -38,3 +38,27 @@ fi
 alias la="ls -AF ${colorflag}"
 alias lld="ls -l | grep ^d"
 alias rmf="rm -rf"
+
+# Fyma aliases
+export FYMA_PATH="~/code/fyma"
+
+alias fca="cd $FYMA_PATH/core-api-v2"
+alias fba="cd $FYMA_PATH/browser-app-v2"
+alias fk8s="cd $FYMA_PATH/k8s"
+alias fk="cd $FYMA_PATH/k8s"
+
+alias fgauth="gcloud auth login --no-browser"
+alias fgcred="gcloud container clusters get-credentials cluster --zone europe-west3-b --project fyma-platform"
+
+alias get
+
+# SS aliases
+export SS_PATH="~/code/ss"
+
+alias ss="cd $SS_PATH"
+alias sa="cd $SS_PATH/app"
+
+# Git aliases
+
+alias gst="git status"
+alias gco="git checkout"

@@ -260,7 +260,7 @@ cmd([[syntax on]])
 cmd([[filetype plugin indent on]])
 
 if require("utils").is_dark_mode() then
-  vim.g.catppuccin_flavour = "mocha"
+  vim.g.catppuccin_flavour = "macchiato"
   vim.o.background = "dark"
 else
   vim.g.catppuccin_flavour = "latte"

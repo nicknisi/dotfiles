@@ -7,9 +7,9 @@ return {
     opts = {
       suggestion = {
         enabled = true,
-        auto_trigger = true,
+        auto_trigger = false,
         keymap = {
-          accept = "<Tab>",
+          -- accept = "<Tab>",
           close = "<Esc>",
           next = "<C-J>",
           prev = "<C-K>",
