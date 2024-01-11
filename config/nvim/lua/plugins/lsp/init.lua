@@ -48,4 +48,8 @@ return {
       { "<leader>xl", "<cmd>TroubleToggle loclist<cr>" },
     },
   },
+  {
+    "vuki656/package-info.nvim",
+    config = true
+  }
 }
