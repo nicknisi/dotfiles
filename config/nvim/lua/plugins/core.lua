@@ -7,6 +7,7 @@ return {
   "tpope/vim-repeat",
   "AndrewRadev/splitjoin.vim",
   "tpope/vim-sleuth",
+  "windwp/nvim-ts-autotag",
   "editorconfig/editorconfig-vim", -- TODO is this still required?
   {
     "andymass/vim-matchup",

@@ -69,7 +69,7 @@ setup_symlinks() {
     for file in $(get_linkables) ; do
         target="$HOME/.$(basename "$file" '.symlink')"
         if [ -e "$target" ]; then
-            info "~${target#$HOME} already exists... Skipping."
+            info "~${target#"$HOME"} already exists... Skipping."
         else
             info "Creating symlink for $file"
             ln -s "$file" "$target"
@@ -87,7 +87,7 @@ setup_symlinks() {
     for config in $config_files; do
         target="$HOME/.config/$(basename "$config")"
         if [ -e "$target" ]; then
-            info "~${target#$HOME} already exists... Skipping."
+            info "~${target#"$HOME"} already exists... Skipping."
         else
             info "Creating symlink for $config"
             ln -s "$config" "$target"
@@ -144,6 +144,17 @@ setup_homebrew() {
     echo -e
     info "Installing fzf"
     "$(brew --prefix)"/opt/fzf/install --key-bindings --completion --no-update-rc --no-bash --no-fish
+}
+
+setup_node() {
+  title "Setting up Node"
+
+  if test ! "$(command -v npm)"; then
+    info "npm not installed." 
+    exit 1
+  fi
+
+  npm install -g pnpm neovim prettier
 }
 
 fetch_catppuccin_theme() {
@@ -247,6 +258,9 @@ case "$1" in
     homebrew)
         setup_homebrew
         ;;
+    node)
+        setup_node
+        ;;
     shell)
         setup_shell
         ;;
@@ -263,6 +277,7 @@ case "$1" in
         setup_symlinks
         setup_terminfo
         setup_homebrew
+        setup_node
         setup_shell
         setup_git
         setup_macos

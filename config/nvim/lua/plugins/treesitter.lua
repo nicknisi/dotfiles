@@ -45,7 +45,10 @@ return {
         "typescript",
         "vim",
         "yaml",
+        "prisma",
+        "http",
       },
+      autotag = { enable = true },
       incremental_selection = {
         enable = true,
         keymaps = {

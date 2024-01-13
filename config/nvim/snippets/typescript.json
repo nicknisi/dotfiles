@@ -1,9 +1,9 @@
 {
-    "log": {
+    "clg": {
         "prefix": "log",
         "body": "console.log($0);"
     },
-    "logc": {
+    "clgc": {
         "description": "console log with colors",
         "prefix": "logc",
         "body": "console.log('%c$1', 'font-weight:bold;color:${2:green}');"
@@ -34,5 +34,16 @@
             "* $0",
             "*/"
         ]
+    },
+    "rfc": {
+      "prefix": "rfc",
+      "description": "React functional component",
+      "body": [
+          "const $1 = () => {",
+          "  return (",
+          "    $0",
+          "  );",
+          "}"
+      ]
     }
 }

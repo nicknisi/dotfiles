@@ -119,7 +119,7 @@ opt.shortmess = "atToOFc" -- prompt message options
 opt.smarttab = true -- tab respects 'tabstop', 'shiftwidth', and 'softtabstop'
 opt.tabstop = 4 -- the visible width of tabs
 opt.softtabstop = 4 -- edit as if the tabs are 4 characters wide
-opt.shiftwidth = 4 -- number of spaces to use for indent and unindent
+opt.shiftwidth = 2 -- number of spaces to use for indent and unindent
 opt.shiftround = true -- round indent to a multiple of 'shiftwidth'
 
 -- code folding settings
@@ -234,7 +234,9 @@ nmap("<leader>5", "<Plug>HiInterestingWord5")
 nmap("<leader>6", "<Plug>HiInterestingWord6")
 
 -- open current buffer in a new tab
-nmap("gTT", ":tab sb<cr>")
+-- nmap("gTT", ":tab sb<cr>")
+
+nmap("gv", "<Plug>RestNvim")
 
 local theme = require("theme")
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -279,6 +281,9 @@ for type, icon in pairs(signs) do
 end
 
 vim.diagnostic.config({ virtual_text = true, signs = true, update_in_insert = true, severity_sort = true })
+
+-- Concealing characters (Obsidian)
+vim.opt.conceallevel = 2
 
 -- make comments and HTML attributes italic
 cmd([[highlight Comment cterm=italic term=italic gui=italic]])

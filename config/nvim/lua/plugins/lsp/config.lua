@@ -1,4 +1,5 @@
 local lspconfig = require("lspconfig")
+local util = require("lspconfig/util")
 local mason_lspconfig = require("mason-lspconfig")
 local theme = require("theme")
 local mason = require("mason")
@@ -241,6 +242,14 @@ function M.setup()
     jsonls = function()
       lspconfig.jsonls.setup(make_conf({
         filetypes = { "json", "jsonc" },
+      }))
+    end,
+
+    prismals = function()
+      lspconfig.prismals.setup(make_conf({
+        cmd = { "prisma-language-server", "--stdio" },
+        filetypes = { "prisma" },
+        root_dir = util.root_pattern('git', 'package.json')
       }))
     end,
   })
