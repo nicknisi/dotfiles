@@ -37,5 +37,9 @@ pkg:package.json
 # ignore case
 --smart-case
 
+# Markdown (and MDX)
+--type-add
+md:*.{md,mdx}
+
 # follow symlinks
 --follow

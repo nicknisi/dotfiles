@@ -24,7 +24,7 @@ return {
     dependencies = { "tpope/vim-rhubarb" },
   },
   { "itchyny/vim-qfedit", event = "VeryLazy" },
-  -- { "dmmulroy/tsc.nvim", config = true },
+  { "dmmulroy/tsc.nvim", config = true },
   {
     "hrsh7th/vim-vsnip",
     dependencies = {

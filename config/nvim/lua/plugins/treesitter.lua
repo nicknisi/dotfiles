@@ -2,20 +2,27 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
+    version = false,
     dependencies = {
-      -- show treesitter nodes
       "nvim-treesitter/playground",
-      "nvim-treesitter/nvim-treesitter-textobjects", -- enable more advanced treesitter-aware text objects
+      "nvim-treesitter/nvim-treesitter-textobjects",
       "JoosepAlviste/nvim-ts-context-commentstring",
     },
+    init = function(plugin)
+      require("lazy.core.loader").add_to_rtp(plugin)
+      require("nvim-treesitter.query_predicates")
+    end,
+    config = function(_, opts)
+      require("nvim-treesitter.configs").setup(opts)
+    end,
     opts = {
       ensure_installed = {
         "bash",
         "c",
+        "comment",
         "cpp",
         "css",
         "diff",
-        "comment",
         "git_rebase",
         "gitcommit",
         "gitignore",
@@ -31,12 +38,13 @@ return {
         "markdown_inline",
         "pug",
         "python",
+        "regex",
         "ruby",
         "rust",
+        "tsx",
         "typescript",
         "vim",
         "yaml",
-        "tsx",
       },
       incremental_selection = {
         enable = true,
@@ -48,7 +56,6 @@ return {
         },
       },
       highlight = { enable = true, use_languagetree = true },
-      context_commentstring = { enable = true },
       indent = { enable = true },
       rainbow = { enable = true, extended_mode = true, max_file_lines = 1000 },
       textobjects = {

@@ -285,3 +285,32 @@ cmd([[highlight Comment cterm=italic term=italic gui=italic]])
 cmd([[highlight htmlArg cterm=italic term=italic gui=italic]])
 cmd([[highlight xmlAttrib cterm=italic term=italic gui=italic]])
 cmd([[highlight Normal ctermbg=none]])
+
+vim.cmd([[
+  command! Lint lua Lint()
+]])
+
+function _G.Lint()
+  local command = vim.fn.input("Enter command: ")
+  local current_efm = vim.o.errorformat
+
+  vim.o.errorformat = "%f:%l:%c:%m"
+
+  local output = vim.fn.system(command) or ""
+
+  local lines = vim.split(output, "\n")
+  local qf_list = {}
+  for _, line in ipairs(lines) do
+    local file, line_no, column, msg = string.match(line, "(.+):(%d+):(%d+):(.+)")
+    if file then
+      table.insert(qf_list, { filename = file, lnum = line_no, col = column, text = msg })
+    end
+  end
+
+  if #qf_list > 0 then
+    vim.fn.setqflist(qf_list)
+    vim.cmd("cwindow")
+  end
+
+  vim.o.errorformat = current_efm
+end
