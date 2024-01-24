@@ -4,6 +4,7 @@ if OS.mac?
     # taps
     tap "homebrew/cask-fonts"
     tap "koekeishiya/formulae"
+    tap "pkgxdev/made"
 
     brew "noti" # utility to display notifications from scripts
     brew "trash" # rm, but put in the trash rather than completely delete
