@@ -51,7 +51,7 @@ parse_params() {
   size=24
   theme='Moria'
   format='rtf'
-  language='typescript'
+  language='tsx'
 
   while :; do
     case "${1-}" in
