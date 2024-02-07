@@ -175,7 +175,7 @@ maintained separately via the `zfetch` command. `zfetch` is a custom plugin
 manager available [here](./zsh/functions/zfetch). The plugins that are used are
 listed in the `.zshrc` and include
 
-- [zsh-async](https://github.com/mafredri/zsh-async async.plugin.zsh)
+- [zsh-async](https://github.com/mafredri/zsh-async)
 - [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
 - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions)
 - [zsh-npm-scripts-autocomplete](https://github.com/grigorii-zander/zsh-npm-scripts-autocomplete)
