@@ -272,7 +272,7 @@ else
 end
 
 -- vim.command.colorscheme "catppuccin"
-vim.cmd("colorscheme " .. config.theme)
+vim.cmd("colorscheme catppuccin")
 
 -- set up custom symbols for LSP errors
 local signs = { Error = icons.bug, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }

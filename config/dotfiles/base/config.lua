@@ -14,14 +14,12 @@ end
 -- overwritten by creating a ~/dotfiles.lua file and returning a configuration table with any/all of these overwritten
 -- values.
 local default_config = {
-  -- current values: catppuccin, everforest, tokyonight
-  theme = "catppuccin",
-
   -- these can be any
   font = "Monaspace Neon",
   italic_font = "Monaspace Radon",
   icons = theme.icons,
   colors = theme.colors,
+  wallpaper_dir = home .. "/Documents/wallpaper",
 }
 
 return util.table_extend(true, default_config, config)
