@@ -19,7 +19,7 @@ local default_config = {
   italic_font = "Monaspace Radon",
   icons = theme.icons,
   colors = theme.colors,
-  wallpaper_dir = home .. "/Documents/wallpaper",
+  -- wallpaper_dir = home .. "/Documents/wallpaper",
 }
 
 return util.table_extend(true, default_config, config)

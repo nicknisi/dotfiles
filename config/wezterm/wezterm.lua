@@ -47,10 +47,14 @@ if h.is_dark then
     THEME_FLAVOUR = "mocha",
   }
   config.background = {
-    b.get_random_wallpaper(custom_config.wallpaper_dir .. "/*.{png,jpg,jpeg}"),
+    -- custom_config.wallpaper_dir and b.get_random_wallpaper(custom_config.wallpaper_dir .. "/*.{png,jpg,jpeg}") or {},
     -- b.get_random_animation(assets .. "/*.gif"),
     b.get_background(),
   }
+
+  if custom_config["wallpaper_dir"] ~= nil then
+    table.insert(config.background, 1, b.get_random_wallpaper(custom_config.wallpaper_dir .. "/*.{png,jpg,jpeg}"))
+  end
 else
   config.color_scheme = "Catppuccin Latte"
   config.window_background_opacity = 1
