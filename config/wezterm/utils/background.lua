@@ -7,8 +7,8 @@ M.get_default_theme = function()
 end
 
 M.get_background = function(dark, light)
-  dark = dark or 0.8
-  light = light or 0.8
+  dark = dark or 0.85
+  light = light or 0.9
 
   return {
     source = {
