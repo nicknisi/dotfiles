@@ -2,9 +2,9 @@
 
 if OS.mac?
     # taps
-    tap "homebrew/cask"
     tap "homebrew/cask-fonts"
     tap "koekeishiya/formulae"
+    tap "pkgxdev/made"
 
     brew "noti" # utility to display notifications from scripts
     brew "trash" # rm, but put in the trash rather than completely delete
@@ -27,12 +27,13 @@ if OS.mac?
     cask "font-recursive-code"
     cask "font-monaspace"
     case "nowplaygin-cli"
+
+    cask  "minisim" # A simple way to launch mobile simulators
 elsif OS.linux?
     brew "xclip" # access to clipboard (similar to pbcopy/pbpaste)
 end
 
 tap "homebrew/bundle"
-tap "homebrew/core"
 
 # packages
 brew "bat" # better cat
@@ -57,6 +58,7 @@ brew "neovim" # A better vim
 brew "python" # python (latest)
 brew "ripgrep" # very fast file searcher
 brew "shellcheck" # diagnostics for shell sripts
+brew "stylua" # lua code formatter
 brew "tmux" # terminal multiplexer
 brew "tree" # pretty-print directory contents
 brew "vim" # Vim (latest)
@@ -69,3 +71,4 @@ brew "pngpaste" # paste images into files (obsidian)
 brew "miller" # csv processor
 brew "helmfile" # helmfile
 brew "vercel-cli" # vercel cli
+brew "pkgxdev/made/pkgx" # npx, but for anything

@@ -1,6 +1,11 @@
 -- init.lua
 -- Neovim-specific configuration
---
+
+-- add
+-- configure wezterm to use the ~/.config/dotfiles directory for shared lua modules
+local dotfiles = os.getenv("HOME") .. "/.config/dotfiles"
+package.path = package.path .. ";" .. dotfiles .. "/?.lua;" .. dotfiles .. "/?/?.lua;" .. dotfiles .. "/?/init.lua"
+
 require("globals")
 local opt = vim.opt
 local cmd = vim.cmd
@@ -18,8 +23,8 @@ local omap = utils.omap
 local nnoremap = utils.nnoremap
 local inoremap = utils.inoremap
 local vnoremap = utils.vnoremap
-local icons = require("theme").icons
-local current_theme = require("theme").get_current_theme()
+local config = require("base.config")
+local icons = config.icons
 
 -- create a completion_nvim table on _G which is visible via
 -- v:lua from vimscript
@@ -86,8 +91,8 @@ opt.timeoutlen = 500
 -- Appearance
 ---------------------------------------------------------
 o.termguicolors = true
-opt.number = true -- show line numbers
-opt.relativenumber = true
+opt.number = false -- show line numbers
+opt.relativenumber = false
 opt.wrap = true -- turn on line wrapping
 opt.wrapmargin = 8 -- wrap lines when coming within n characters from side
 opt.linebreak = true -- set soft wrapping
@@ -117,8 +122,8 @@ opt.shortmess = "atToOFc" -- prompt message options
 
 -- Tab control
 opt.smarttab = true -- tab respects 'tabstop', 'shiftwidth', and 'softtabstop'
-opt.tabstop = 4 -- the visible width of tabs
-opt.softtabstop = 4 -- edit as if the tabs are 4 characters wide
+opt.tabstop = 2 -- the visible width of tabs
+opt.softtabstop = 2 -- edit as if the tabs are 4 characters wide
 opt.shiftwidth = 2 -- number of spaces to use for indent and unindent
 opt.shiftround = true -- round indent to a multiple of 'shiftwidth'
 
@@ -135,9 +140,9 @@ opt.foldlevel = 1
 -- vim.api.nvim_create_autocmd({ "BufEnter" }, { pattern = { "*" }, command = "normal zx" })
 
 -- toggle invisible characters
-opt.list = true
+-- opt.list = true
 opt.listchars = {
-  tab = "→ ",
+  -- tab = "→ ",
   -- eol = "¬",
   trail = "⋅",
   extends = "❯",
@@ -244,7 +249,6 @@ nmap("<leader>6", "<Plug>HiInterestingWord6")
 
 nmap("gv", "<Plug>RestNvim")
 
-local theme = require("theme")
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
@@ -262,13 +266,13 @@ require("lazy").setup({
   { import = "plugins" },
   { import = "plugins.extras.copilot" },
   { import = "plugins.extras.astro" },
-}, { ui = { border = theme.border } })
+})
 
 cmd([[syntax on]])
 cmd([[filetype plugin indent on]])
 
-if require("utils").is_dark_mode() then
-  vim.g.catppuccin_flavour = "macchiato"
+if require("base.util").is_dark_mode() then
+  vim.g.catppuccin_flavour = "mocha"
   vim.o.background = "dark"
 else
   vim.g.catppuccin_flavour = "latte"
@@ -276,11 +280,10 @@ else
 end
 
 -- vim.command.colorscheme "catppuccin"
-vim.cmd("colorscheme " .. current_theme)
+vim.cmd("colorscheme catppuccin")
 
 -- set up custom symbols for LSP errors
-local signs =
-  { Error = icons.error, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
+local signs = { Error = icons.bug, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
 for type, icon in pairs(signs) do
   local hl = "DiagnosticSign" .. type
   vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })

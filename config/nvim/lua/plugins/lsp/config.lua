@@ -1,10 +1,18 @@
 local lspconfig = require("lspconfig")
 local util = require("lspconfig/util")
 local mason_lspconfig = require("mason-lspconfig")
-local theme = require("theme")
 local mason = require("mason")
-local border = theme.border
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
+local border = {
+  { "🭽", "FloatBorder" },
+  { "▔", "FloatBorder" },
+  { "🭾", "FloatBorder" },
+  { "▕", "FloatBorder" },
+  { "🭿", "FloatBorder" },
+  { "▁", "FloatBorder" },
+  { "🭼", "FloatBorder" },
+  { "▏", "FloatBorder" },
+}
 
 local M = {}
 
@@ -87,7 +95,7 @@ function M.setup()
   mason.setup({ ui = { border = border } })
 
   mason_lspconfig.setup({
-    ensure_installed = { "eslint", "tsserver", "lua_ls", "vimls", "tailwindcss", "prismals" },
+    ensure_installed = { "eslint", "tsserver", "lua_ls", "denols", "vimls", "astro", "tailwindcss", "jsonls" },
     automatic_installation = true,
     ui = { check_outdated_servers_on_open = true },
   })
@@ -127,27 +135,27 @@ function M.setup()
               recommendedVariantOrder = "warning",
               unusedClass = "warning",
             },
-            -- experimental = {
-            --   classRegex = {
-            --     "tw`([^`]*)",
-            --     'tw="([^"]*)',
-            --     'tw={"([^"}]*)',
-            --     "tw\\.\\w+`([^`]*)",
-            --     "tw\\(.*?\\)`([^`]*)",
+            experimental = {
+              -- classRegex = {
+              --   "tw`([^`]*)",
+              --   'tw="([^"]*)',
+              --   'tw={"([^"}]*)',
+              --   "tw\\.\\w+`([^`]*)",
+              --   "tw\\(.*?\\)`([^`]*)",
 
-            --     "cn`([^`]*)",
-            --     'cn="([^"]*)',
-            --     'cn={"([^"}]*)',
-            --     "cn\\.\\w+`([^`]*)",
-            --     "cn\\(.*?\\)`([^`]*)",
+              --   "cn`([^`]*)",
+              --   'cn="([^"]*)',
+              --   'cn={"([^"}]*)',
+              --   "cn\\.\\w+`([^`]*)",
+              --   "cn\\(.*?\\)`([^`]*)",
 
-            --     { "clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)" },
-            --     { "classnames\\(([^)]*)\\)", "'([^']*)'" },
-            --     { "cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
-            --     "cva\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
-            --     "'([^']*)'",
-            --   },
-            -- },
+              --   { "clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+              --   { "classnames\\(([^)]*)\\)", "'([^']*)'" },
+              --   { "cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+              --   "cva\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+              --   "'([^']*)'",
+              -- },
+            },
             validate = true,
           },
         },

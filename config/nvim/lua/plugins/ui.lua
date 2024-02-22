@@ -1,10 +1,76 @@
-local theme = require("theme")
+local theme = require("base.theme")
 local icons = theme.icons
 
-local is_dark = require("utils").is_dark_mode()
+local is_dark = require("base.util").is_dark_mode()
 
 return {
   -- fast colorizer for showing hex colors
+  {
+    "nvim-lualine/lualine.nvim",
+    enabled = true,
+    event = "VeryLazy",
+    opts = function(plugin)
+      if plugin.override then
+        require("lazyvim.util").deprecate("lualine.override", "lualine.opts")
+      end
+
+      local diagnostics = {
+        "diagnostics",
+        sources = { "nvim_diagnostic" },
+        sections = { "error", "warn", "info", "hint" },
+        symbols = {
+          error = icons.bug .. " ",
+          hint = icons.hint,
+          info = icons.info,
+          warn = icons.warning,
+        },
+        icon = icons.lsp,
+        colored = true,
+        update_in_insert = false,
+        always_visible = false,
+      }
+
+      local diff = {
+        "diff",
+        symbols = {
+          added = icons.added,
+          untracked = icons.added,
+          modified = icons.modified,
+          removed = icons.deleted,
+        },
+        icon = icons.git,
+        colored = true,
+        always_visible = false,
+        source = function()
+          local gitsigns = vim.b.gitsigns_status_dict
+          if gitsigns then
+            return {
+              added = gitsigns.added,
+              modified = gitsigns.changed,
+              removed = gitsigns.removed,
+            }
+          end
+        end,
+      }
+
+      return {
+        options = {
+          theme = "auto",
+          globalstatus = true,
+          component_separators = { left = "", right = "" },
+          disabled_filetypes = { statusline = { "dashboard", "lazy", "alpha" } },
+        },
+        sections = {
+          lualine_a = {},
+          lualine_b = {},
+          lualine_c = { diff, diagnostics },
+          lualine_x = {},
+          lualine_y = {},
+          lualine_z = {},
+        },
+      }
+    end,
+  },
   {
     "NvChad/nvim-colorizer.lua",
     opts = {
@@ -23,44 +89,6 @@ return {
       },
     },
   },
-  {
-    "folke/noice.nvim",
-    event = "VeryLazy",
-    opts = {
-      -- add any options here
-      lsp = {
-        -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
-        override = {
-          ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
-          ["vim.lsp.util.stylize_markdown"] = true,
-          ["cmp.entry.get_documentation"] = true,
-        },
-      },
-      -- you can enable a preset for easier configuration
-      presets = {
-        bottom_search = true, -- use a classic bottom cmdline for search
-        command_palette = true, -- position the cmdline and popupmenu together
-        long_message_to_split = true, -- long messages will be sent to a split
-        inc_rename = false, -- enables an input dialog for inc-rename.nvim
-        lsp_doc_border = true, -- add a border to hover docs and signature help
-      },
-      routes = {
-        {
-          filter = { find = "No information available" },
-          opts = { stop = true },
-        },
-      },
-    },
-    dependencies = {
-      -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
-      "MunifTanjim/nui.nvim",
-      -- OPTIONAL:
-      --   `nvim-notify` is only needed, if you want to use the notification view.
-      --   If not available, we use `mini` as the fallback
-      "rcarriga/nvim-notify",
-    },
-  },
-
   -- file drawer plugin
   {
     "nvim-neo-tree/neo-tree.nvim",
@@ -233,7 +261,7 @@ return {
         },
         bind_to_cwd = true,
         cwd_target = { sidebar = "tab", current = "window" },
-        follow_current_file = true, -- This will find and focus the file in the active buffer every
+        follow_current_file = { enabled = true }, -- This will find and focus the file in the active buffer every
         -- time the current file is changed while the tree is open.
         group_empty_dirs = false, -- when true, empty folders will be grouped together
         hijack_netrw_behavior = "open_default", -- netrw disabled, opening a directory opens neo-tree
@@ -258,7 +286,7 @@ return {
         },
       },
       buffers = {
-        follow_current_file = true, -- This will find and focus the file in the active buffer every
+        follow_current_file = { enabled = true }, -- This will find and focus the file in the active buffer every
         -- time the current file is changed while the tree is open.
         group_empty_dirs = true, -- when true, empty folders will be grouped together
         show_unloaded = true,
@@ -286,55 +314,6 @@ return {
       },
     },
   },
-
-  -- Status line
-  {
-    "nvim-lualine/lualine.nvim",
-    opts = {
-      options = {
-        icons_enabled = true,
-        theme = "auto",
-        section_separators = { right = "", left = "" },
-        component_separators = "", --{ right = "", left = "" },
-      },
-      sections = {
-        lualine_a = {
-          { "mode" },
-          {
-            "macro-recording",
-            fmt = function()
-              local recording_register = vim.fn.reg_recording()
-              if recording_register == "" then
-                return ""
-              else
-                return "Recording @" .. recording_register
-              end
-            end,
-          },
-        },
-        lualine_b = {
-          "branch",
-          { "diff", symbols = { added = " ", modified = " ", removed = "󰮉 " } },
-          "diagnostics",
-        },
-        lualine_c = { "filename", "searchcount" },
-        lualine_x = { "fileformat", "filetype" },
-        lualine_y = { "progress" },
-        lualine_z = { "location" },
-      },
-    },
-    config = function(_, opts)
-      local lualine = require("lualine")
-      lualine.setup(opts)
-      vim.api.nvim_create_autocmd("RecordingEnter", {
-        callback = function()
-          -- refresh lualine when entering record mode
-          lualine.refresh({ place = { "lualine_a" } })
-        end,
-      })
-    end,
-  },
-
   -- Floating statuslines. This is used to shwo buffer names in splits
   { "b0o/incline.nvim", opts = { hide = { cursorline = false, focused_win = false, only_win = true } } },
 
@@ -378,37 +357,6 @@ return {
       diff_opts = { internal = true },
     },
   },
-
-  {
-    "folke/tokyonight.nvim",
-    lazy = false,
-    priority = 1000,
-    opts = {
-      -- your configuration comes here
-      -- or leave it empty to use the default settings
-      style = is_dark and "storm" or "day", -- The theme comes in three styles, `storm`, `moon`, a darker variant `night` and `day`
-      light_style = "day", -- The theme is used when the background is set to light
-      transparent = true, -- Enable this to disable setting the background color
-      terminal_colors = true, -- Configure the colors used when opening a `:terminal` in [Neovim](https://github.com/neovim/neovim)
-      styles = {
-        -- Style to be applied to different syntax groups
-        -- Value is any valid attr-list value for `:help nvim_set_hl`
-        comments = { italic = true },
-        keywords = { italic = true },
-        functions = {},
-        variables = {},
-        -- Background styles. Can be "dark", "transparent" or "normal"
-        sidebars = "dark", -- style for sidebars, see below
-        floats = "dark", -- style for floating windows
-      },
-      sidebars = { "qf", "help" }, -- Set a darker background on sidebar-like windows. For example: `["qf", "vista_kind", "terminal", "packer"]`
-      day_brightness = 0.3, -- Adjusts the brightness of the colors of the **Day** style. Number between 0 and 1, from dull to vibrant colors
-      hide_inactive_statusline = false, -- Enabling this option, will hide inactive statuslines and replace them with a thin border instead. Should work with the standard **StatusLine** and **LuaLine**.
-      dim_inactive = false, -- dims inactive windows
-      lualine_bold = false, -- When `true`, section headers in the lualine theme will be bold
-    },
-  },
-
   -- everforest theme
   {
     "neanias/everforest-nvim",
@@ -430,7 +378,7 @@ return {
     lazy = false,
     priority = 1000,
     opts = {
-      flavour = require("utils").is_dark_mode() and "macchiato" or "latte",
+      flavour = is_dark and "mocha" or "latte",
       dim_inactive = { enabled = false, shade = "dark", percentage = 0.15 },
       transparent_background = true,
       term_colors = true,
