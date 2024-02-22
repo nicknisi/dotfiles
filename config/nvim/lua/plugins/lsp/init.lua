@@ -33,6 +33,12 @@ return {
         lsp_fallback = false,
       },
       formatters_by_ft = formatters,
+      formatters = {
+        prettier = {
+          inherit = true,
+          prepend_args = {"--print-width", "120"},
+        }
+      }
     },
   },
 

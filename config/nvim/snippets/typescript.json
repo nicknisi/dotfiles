@@ -39,7 +39,7 @@
       "prefix": "rfc",
       "description": "React functional component",
       "body": [
-          "const $1 = () => {",
+          "export default function $1() {",
           "  return (",
           "    $0",
           "  );",

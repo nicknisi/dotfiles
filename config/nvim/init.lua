@@ -216,6 +216,12 @@ nnoremap("k", 'v:count == 0 ? "gk" : "k"', { expr = true })
 nnoremap("^", 'v:count == 0 ? "g^" :  "^"', { expr = true })
 nnoremap("$", 'v:count == 0 ? "g$" : "$"', { expr = true })
 
+-- jump up and down and center the cursor
+nnoremap("<C-d>", "<C-d>zz")
+nnoremap("<C-u>", "<C-u>zz")
+-- nnoremap("n", "nzzzv")
+-- nnoremap("N", "Nzzzv")
+
 -- custom text objects
 -- inner-line
 xmap("il", ":<c-u>normal! g_v^<cr>")

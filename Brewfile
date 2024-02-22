@@ -26,6 +26,7 @@ if OS.mac?
     cask "font-symbols-only-nerd-font"
     cask "font-recursive-code"
     cask "font-monaspace"
+    case "nowplaygin-cli"
 elsif OS.linux?
     brew "xclip" # access to clipboard (similar to pbcopy/pbpaste)
 end
@@ -66,3 +67,5 @@ brew "zoxide" # switch between most used directories
 brew "zsh" # zsh (latest)
 brew "pngpaste" # paste images into files (obsidian)
 brew "miller" # csv processor
+brew "helmfile" # helmfile
+brew "vercel-cli" # vercel cli

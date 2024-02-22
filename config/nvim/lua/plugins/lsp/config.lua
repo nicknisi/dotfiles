@@ -103,7 +103,8 @@ function M.setup()
           "eslint.config.js",
           ".eslintrc.js",
           ".eslintrc.json",
-          ".eslintrc"
+          ".eslintrc",
+          ".eslintrc.cjs"
         ),
       })
     end,
