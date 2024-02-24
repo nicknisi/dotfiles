@@ -19,6 +19,27 @@ fork to your heart's content. Happy coding!
 
 <img width="1600" alt="capture-20231114134612" src="https://github.com/nicknisi/dotfiles/assets/293805/43dff50a-8fad-44e5-b979-d72ebd0366f8">
 
+## Customization
+
+I have taken some steps to allow for customization without needing to directly modify the dotfiles. This makes it easier
+for anyone to keep up with the latest version of this repository while adding their own customization on top, and it
+allows for me to make tinkering, tiny changes without having to push updates to the repo constantly.
+
+The customization layer allows for a custom Lua file that can be used to tie customizations into both WezTerm and
+Neovim.
+
+### The `~/dotfiles.lua` file
+
+To make custommizations, create a `~/dotfiles.lua` file with the following content:
+
+```lua
+local config = {
+  -- contents goes here...
+}
+
+return config
+```
+
 ## Initial setup
 
 The first thing you need to do is to clone this repo into a location of your
