@@ -121,7 +121,7 @@ return {
         align = "center",
         fold_section = false,
         title = "Header",
-        content = headers[custom_config.startup_art] or headers.meatboy,
+        content = headers[custom_config.art] or headers.meatboy,
         highlight = "Constant",
       },
       body = {

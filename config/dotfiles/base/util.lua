@@ -1,4 +1,5 @@
 local M = {}
+local json = require("base.json")
 
 function M.get_current_theme()
   local file = io.open(os.getenv("HOME") .. "/.theme", "r")
@@ -69,6 +70,19 @@ function M.has_module(name)
   else
     return false
   end
+end
+
+function M.load_json(path)
+  local my_table = {}
+  local file = io.open(path, "r")
+
+  if file then
+    local contents = file:read("*a")
+    my_table = json.decode(contents)
+    io.close(file)
+    return my_table
+  end
+  return nil
 end
 
 return M

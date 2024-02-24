@@ -24,11 +24,11 @@ local config = {
   },
 
   -- font config
-  font = wezterm.font(custom_config.font, { weight = "Regular" }),
+  font = wezterm.font(custom_config.font.regular, { weight = "Regular" }),
   font_rules = {
     {
       italic = true,
-      font = wezterm.font(custom_config.italic_font, { weight = "Medium" }),
+      font = wezterm.font(custom_config.font.italic, { weight = "Medium" }),
     },
   },
   harfbuzz_features = { "calt", "dlig", "clig=1", "ss01", "ss02", "ss03", "ss04", "ss05", "ss06", "ss07", "ss08" },
@@ -52,8 +52,8 @@ if h.is_dark then
     b.get_background(),
   }
 
-  if custom_config["wallpaper_dir"] ~= nil then
-    table.insert(config.background, 1, b.get_random_wallpaper(custom_config.wallpaper_dir .. "/*.{png,jpg,jpeg}"))
+  if custom_config["wallpaper"] ~= nil then
+    table.insert(config.background, 1, b.get_random_wallpaper(custom_config.wallpaper .. "/*.{png,jpg,jpeg}"))
   end
 else
   config.color_scheme = "Catppuccin Latte"
