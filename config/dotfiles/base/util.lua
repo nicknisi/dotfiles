@@ -72,6 +72,19 @@ function M.has_module(name)
   end
 end
 
+function M.has_key(table, key)
+  return table[key] ~= nil
+end
+
+function M.exists_in_table(table, value)
+  for _, v in ipairs(table) do
+    if v == value then
+      return true
+    end
+  end
+  return false
+end
+
 function M.load_json(path)
   local my_table = {}
   local file = io.open(path, "r")

@@ -2,6 +2,8 @@ local lspconfig = require("lspconfig")
 local mason_lspconfig = require("mason-lspconfig")
 local mason = require("mason")
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
+local config = require("base.config")
+local util = require("base.util")
 local border = {
   { "🭽", "FloatBorder" },
   { "▔", "FloatBorder" },
@@ -12,6 +14,8 @@ local border = {
   { "🭼", "FloatBorder" },
   { "▏", "FloatBorder" },
 }
+
+local servers = config.lsp.servers or {}
 
 local M = {}
 
@@ -94,17 +98,19 @@ function M.setup()
   mason.setup({ ui = { border = border } })
 
   mason_lspconfig.setup({
-    ensure_installed = { "eslint", "tsserver", "lua_ls", "denols", "vimls", "astro", "tailwindcss", "jsonls" },
+    ensure_installed = servers,
     automatic_installation = true,
     ui = { check_outdated_servers_on_open = true },
   })
 
-  mason_lspconfig.setup_handlers({
+  local handlers = {
     function(server_name)
       lspconfig[server_name].setup(make_conf({}))
     end,
+  }
 
-    eslint = function()
+  if util.exists_in_table(servers, "eslint") then
+    handlers["eslint"] = function()
       lspconfig.eslint.setup({
         root_dir = require("lspconfig").util.root_pattern(
           "eslint.config.js",
@@ -113,9 +119,11 @@ function M.setup()
           ".eslintrc"
         ),
       })
-    end,
+    end
+  end
 
-    tailwindcss = function()
+  if util.exists_in_table(servers, "tailwindcss") then
+    handlers["tailwindcss"] = function()
       lspconfig.tailwindcss.setup(make_conf({
         root_dir = require("lspconfig/util").root_pattern(
           "tailwind.config.js",
@@ -158,9 +166,11 @@ function M.setup()
           },
         },
       }))
-    end,
+    end
+  end
 
-    tsserver = function()
+  if util.exists_in_table(servers, "tsserver") then
+    handlers["tsserver"] = function()
       lspconfig.tsserver.setup(make_conf({
         handlers = {
           ["textDocument/definition"] = function(err, result, ctx, ...)
@@ -172,9 +182,11 @@ function M.setup()
         },
         root_dir = require("lspconfig/util").root_pattern("tsconfig.json"),
       }))
-    end,
+    end
+  end
 
-    denols = function()
+  if util.exists_in_table(servers, "denols") then
+    handlers["denols"] = function()
       lspconfig.denols.setup(make_conf({
         handlers = {
           ["textDocument/definition"] = function(err, result, ctx, ...)
@@ -188,9 +200,11 @@ function M.setup()
         root_dir = require("lspconfig/util").root_pattern("deno.json", "deno.jsonc"),
         init_options = { lint = true },
       }))
-    end,
+    end
+  end
 
-    lua_ls = function()
+  if util.exists_in_table(servers, "lua_ls") then
+    handlers["lua_ls"] = function()
       lspconfig.lua_ls.setup(make_conf({
         settings = {
           Lua = {
@@ -211,15 +225,19 @@ function M.setup()
           },
         },
       }))
-    end,
+    end
+  end
 
-    vimls = function()
+  if util.exists_in_table(servers, "vimls") then
+    handlers["vimls"] = function()
       lspconfig.vimls.setup(make_conf({
         init_options = { isNeovim = true },
       }))
-    end,
+    end
+  end
 
-    diagnosticls = function()
+  if util.exists_in_table(servers, "diagnosticls") then
+    handlers["diagnosticls"] = function()
       lspconfig.diagnosticls.setup(make_conf({
         settings = {
           filetypes = { "sh" },
@@ -244,8 +262,14 @@ function M.setup()
           },
         },
       }))
-    end,
-  })
+    end
+  end
+
+  print(vim.inspect(servers))
+  print(vim.inspect(handlers))
+  -- util.print_table(handlers)
+
+  mason_lspconfig.setup_handlers(handlers)
 end
 
 return M

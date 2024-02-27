@@ -22,6 +22,18 @@ local default_config = {
   copilot = false,
   astro = false,
   zen = false,
+  lsp = {
+    servers = {
+      "eslint",
+      "tsserver",
+      "lua_ls",
+      "denols",
+      "astro",
+      "tailwindcss",
+      "jsonls",
+      "vimls",
+    },
+  },
 }
 
 return util.table_extend(true, default_config, config)
