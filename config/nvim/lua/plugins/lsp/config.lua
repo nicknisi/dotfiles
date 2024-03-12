@@ -265,10 +265,6 @@ function M.setup()
     end
   end
 
-  print(vim.inspect(servers))
-  print(vim.inspect(handlers))
-  -- util.print_table(handlers)
-
   mason_lspconfig.setup_handlers(handlers)
 end
 
