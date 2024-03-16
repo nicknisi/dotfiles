@@ -8,37 +8,10 @@ fi
 # Configuration
 ########################################################
 
-COLOR_BLACK="\e[0;30m"
-COLOR_BLUE="\e[0;34m"
-COLOR_GREEN="\e[0;32m"
-COLOR_CYAN="\e[0;36m"
-COLOR_PINK="\e[0;35m"
-COLOR_RED="\e[0;31m"
-COLOR_PURPLE="\e[0;35m"
-COLOR_BROWN="\e[0;33m"
-COLOR_LIGHTGRAY="\e[0;37m"
-COLOR_DARKGRAY="\e[1;30m"
-COLOR_LIGHTBLUE="\e[1;34m"
-COLOR_LIGHTGREEN="\e[1;32m"
-COLOR_LIGHTCYAN="\e[1;36m"
-COLOR_LIGHTRED="\e[1;31m"
-COLOR_LIGHTPURPLE="\e[1;35m"
-COLOR_YELLOW="\e[1;33m"
-COLOR_WHITE="\e[1;37m"
-COLOR_NONE="\e[0m"
-
-if [ -z "$TMUX" ]; then
-    export TERM=xterm-256color-italic
-else
-    export TERM=tmux-256color
-fi
-
-
 # initialize autocomplete
 autoload -U compinit add-zsh-hook
 compinit
 
-# prepend_path $HOME/npmbin/node_modules/.bin
 prepend_path /usr/local/opt/grep/libexec/gnubin
 prepend_path /usr/local/sbin
 prepend_path $DOTFILES/bin
@@ -48,6 +21,8 @@ prepend_path $HOME/bin
 # This is where my code exists and where I want the `c` autocomplete to work from exclusively
 if [[ -d ~/code ]]; then
     export CODE_DIR=~/code
+elif [[ -d ~/Developer ]]; then
+    export CODE_DIR=~/Developer
 fi
 
 # display how long all tasks over 10 seconds take
@@ -106,6 +81,12 @@ zstyle ':completion:*' insert-tab pending
 # default to file completion
 zstyle ':completion:*' completer _expand _complete _files _correct _approximate
 
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*:descriptions' format '%B%d%b'
+zstyle ':completion:*:messages' format '%d'
+zstyle ':completion:*:warnings' format 'No matches for: %d'
+zstyle ':completion:*' group-name ''
+
 
 ########################################################
 # Plugin setup
@@ -122,8 +103,8 @@ zfetch zsh-users/zsh-completions
 zfetch zsh-users/zsh-autosuggestions
 zfetch grigorii-zander/zsh-npm-scripts-autocomplete
 zfetch zsh-users/zsh-history-substring-search
-# zfetch chriskempson/base16-shell
 zfetch Aloxaf/fzf-tab
+# TODO: review git aliases and remove these git plugins
 zfetch robbyrussell/oh-my-zsh lib/git.zsh
 zfetch robbyrussell/oh-my-zsh plugins/git/git.plugin.zsh
 zfetch robbyrussell/oh-my-zsh plugins/ssh-agent
@@ -140,12 +121,12 @@ fi
 # Setup
 ########################################################
 
-# add a config file for ripgrep
-export RIPGREP_CONFIG_PATH="$HOME/.rgrc"
-
-[ -f $HOME/.fzf.zsh ] && source $HOME/.fzf.zsh
-export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow -g "!{.git,node_modules}/*" 2> /dev/null'
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+if [ -f $HOME/.fzf.zsh ]; then
+  source $HOME/.fzf.zsh
+  export FZF_DEFAULT_COMMAND='fd --type f'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_DEFAULT_OPTS="--color bg:-1,bg+:-1,fg:-1,fg+:#feffff,hl:#993f84,hl+:#d256b5,info:#676767,prompt:#676767,pointer:#676767"
+fi
 
 # add color to man pages
 export MANROFFOPT='-c'
@@ -159,18 +140,16 @@ export LESS_TERMCAP_ue=$(tput rmul; tput sgr0)
 export LESS_TERMCAP_mr=$(tput rev)
 export LESS_TERMCAP_mh=$(tput dim)
 
-# source z.sh if it exists
-zpath="$(brew --prefix)/etc/profile.d/z.sh"
-if [ -f "$zpath" ]; then
-    source "$zpath"
+# prefer zoxide over z.sh
+if [[ -x "$(command -v zoxide)" ]]; then
+    eval "$(zoxide init zsh --hook pwd)"
+else
+  # source z.sh if it exists
+  zpath="$(brew --prefix)/etc/profile.d/z.sh"
+  if [ -f "$zpath" ]; then
+      source "$zpath"
+  fi
 fi
-
-########################################################
-# Aliases
-########################################################
-
-# reload zsh config
-alias reload!='RELOAD=1 source ~/.zshrc'
 
 # Detect which `ls` flavor is in use
 if ls --color > /dev/null 2>&1; then # GNU `ls`
@@ -179,66 +158,13 @@ else # macOS `ls`
     colorflag="-G"
 fi
 
-# use nvim, but don't make me think about it
-if [[ -n "$(command -v nvim)" ]]; then
-    alias vim="nvim"
-    alias vimu="nvim +PlugUpdate +PlugUpgrade"
-    alias vimg="nvim +Ge:"
-fi
+# look for all .zsh files and source them
+config_files=($DOTFILES/**/*.zsh)
+for file in $config_files[@]; do
+  source "$file"
+done
 
-# Filesystem aliases
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....="cd ../../.."
-alias .....="cd ../../../.."
-
-alias l="ls -lah ${colorflag}"
-alias la="ls -AF ${colorflag}"
-alias ll="ls -lFh ${colorflag}"
-alias lld="ls -l | grep ^d"
-alias rmf="rm -rf"
-
-# Helpers
-alias grep='grep --color=auto'
-alias df='df -h' # disk free, in Gigabytes, not bytes
-alias du='du -h -c' # calculate disk usage for a folder
-
-# Applications
-alias ios='open -a /Applications/Xcode.app/Contents/Developer/Applications/Simulator.app'
-
-# Hide/show all desktop icons (useful when presenting)
-alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder"
-alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && killall Finder"
-
-# Recursively delete `.DS_Store` files
-alias cleanup="find . -name '*.DS_Store' -type f -ls -delete"
-# remove broken symlinks
-alias clsym="find -L . -name . -o -type d -prune -o -type l -exec rm {} +"
-
-# git aliases
-alias gs='git s'
-alias glog="git l"
-
-# tmux aliases
-alias ta='tmux attach'
-alias tls='tmux ls'
-alias tat='tmux attach -t'
-alias tns='tmux new-session -s'
-
-alias lpath='echo $PATH | tr ":" "\n"' # list the PATH separated by new lines
-
-alias nr="npm run"
-
-# docker alias
-alias dcu='docker compose up -d'
-alias dcd='docker compose down'
-
-source "$DOTFILES/zsh/utils.zsh"
-source "$DOTFILES/zsh/prompt.zsh"
-
-# If a local zshrc exists, source it
+# If a ~/.zshrc.local exists, source it
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
-
-if [[ -a ~/.localrc ]]; then
-    source ~/.localrc
-fi
+# If a ~/.localrc zshrc exists, source it
+[[ -a ~/.localrc ]] && source ~/.localrc

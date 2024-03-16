@@ -1,0 +1,23 @@
+.DS_Store
+Thumbs.db
+*~
+*.swp
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# project-specific vim configurations
+.vimrc.local
+.vim/coc-settings.json
+
+# typescript command garbage
+tscommand*.txt
+
+# npm things
+npm-debug.log

@@ -5,6 +5,30 @@ setopt prompt_subst
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:git*' formats ' %b'
 
+exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+bold() {
+    echo -n "%B$1%b"
+}
+
+write() {
+    local color content bold
+    [[ -n "$1" ]] && color="%F{$1}" || color="%f"
+    [[ -n "$2" ]] && content="$2" || content=""
+
+    [[ -z "$2" ]] && content="$1"
+
+    echo -n "$color"
+    echo -n "$content"
+    echo -n "%{%b%f%}"
+}
+
+is_git() {
+    [[ $(command git rev-parse --is-inside-work-tree 2>/dev/null) == true ]]
+}
+
 PROMPT_SYMBOL='▷'
 
 # indicate a job (for example, vim) has been backgrounded
@@ -25,13 +49,13 @@ node_prompt() {
     local version=''
     local node_icon='\ue718'
 
-    if dotfiles::exists node; then
+    if exists node; then
         version=$(node -v 2>/dev/null)
     fi
 
     [[ -n version ]] || return
 
-    dotfiles::print '029' "$node_icon $version"
+    write '029' "$node_icon $version"
 }
 
 git_status_done() {
@@ -42,7 +66,7 @@ git_status_done() {
 
 git_status() {
     cd -q "$1"
-    dotfiles::is_git || return
+    is_git || return
 
     vcs_info
 
@@ -54,18 +78,18 @@ git_status() {
 
     local INDEX git_status=""
 
-    GIT_SYMBOL="\ue725"
-    GIT_STATUS_ADDED=$(dotfiles::print '002' '+')
-    GIT_STATUS_MODIFIED=$(dotfiles::print '003' '!')
-    GIT_STATUS_UNTRACKED=$(dotfiles::print '009' '?')
-    GIT_STATUS_RENAMED=$(dotfiles::print '208' '»')
-    GIT_STATUS_DELETED=$(dotfiles::print '161' '✘')
-    GIT_STATUS_STASHED=$(dotfiles::print '003' '$')
-    GIT_STATUS_UNMERGED=$(dotfiles::print '016' '=')
-    GIT_STATUS_AHEAD=$(dotfiles::print '012' '⇡')
-    GIT_STATUS_BEHIND=$(dotfiles::print '011' '⇣')
-    GIT_STATUS_DIVERGED=$(dotfiles::print '012' '⇕')
-    GIT_STATUS_CLEAN=$(dotfiles::print '002' '✔')
+    GIT_SYMBOL=" "
+    GIT_STATUS_ADDED=$(write '002' ' ')
+    GIT_STATUS_MODIFIED=$(write '003' ' ')
+    GIT_STATUS_UNTRACKED=$(write '009' ' ')
+    GIT_STATUS_RENAMED=$(write '208' ' ')
+    GIT_STATUS_DELETED=$(write '161' '󰮉 ')
+    GIT_STATUS_STASHED=$(write '003' ' ')
+    GIT_STATUS_UNMERGED=$(write '016' '󰧁 ')
+    GIT_STATUS_AHEAD=$(write '012' ' ')
+    GIT_STATUS_BEHIND=$(write '011' ' ')
+    GIT_STATUS_DIVERGED=$(write '012' '󰧈 ')
+    GIT_STATUS_CLEAN=$(write '002' ' ')
 
     INDEX=$(command git status --porcelain -b 2>/dev/null)
 
@@ -138,8 +162,8 @@ git_status() {
 
     [[ -n "$git_status" ]] || git_status="$GIT_STATUS_CLEAN"
 
-    dotfiles::bold "$git_status"
-    dotfiles::print '241' "$git_branch"
+    bold "$git_status"
+    write '241' "$git_branch"
 }
 
 async_init

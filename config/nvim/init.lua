@@ -1,6 +1,11 @@
 -- init.lua
 -- Neovim-specific configuration
 
+-- add
+-- configure wezterm to use the ~/.config/dotfiles directory for shared lua modules
+local dotfiles = os.getenv("HOME") .. "/.config/dotfiles"
+package.path = package.path .. ";" .. dotfiles .. "/?.lua;" .. dotfiles .. "/?/?.lua;" .. dotfiles .. "/?/init.lua"
+
 require("globals")
 local opt = vim.opt
 local cmd = vim.cmd
@@ -18,14 +23,15 @@ local omap = utils.omap
 local nnoremap = utils.nnoremap
 local inoremap = utils.inoremap
 local vnoremap = utils.vnoremap
-local colors = require("theme").colors
+local config = require("base.config")
+local icons = config.icons
 
 -- create a completion_nvim table on _G which is visible via
 -- v:lua from vimscript
 _G.completion_nvim = {}
 
 function _G.completion_nvim.smart_pumvisible(vis_seq, not_vis_seq)
-  if (fn.pumvisible() == 1) then
+  if fn.pumvisible() == 1 then
     return termcodes(vis_seq)
   else
     return termcodes(not_vis_seq)
@@ -34,43 +40,31 @@ end
 
 -- General
 ----------------------------------------------------------------
-cmd [[abbr funciton function]]
-cmd [[abbr teh the]]
-cmd [[abbr tempalte template]]
-cmd [[abbr fitler filter]]
-cmd [[abbr cosnt const]]
-cmd [[abbr attribtue attribute]]
-cmd [[abbr attribuet attribute]]
+cmd([[abbr funciton function]])
+cmd([[abbr teh the]])
+cmd([[abbr tempalte template]])
+cmd([[abbr fitler filter]])
+cmd([[abbr cosnt const]])
+cmd([[abbr attribtue attribute]])
+cmd([[abbr attribuet attribute]])
 
 opt.backup = false -- don't use backup files
 opt.writebackup = false -- don't backup the file while editing
 opt.swapfile = false -- don't create swap files for new buffers
 opt.updatecount = 0 -- don't write swap files after some number of updates
 
-opt.backupdir = {
-  "~/.vim-tmp",
-  "~/.tmp",
-  "~/tmp",
-  "/var/tmp",
-  "/tmp"
-}
+opt.backupdir = { "~/.vim-tmp", "~/.tmp", "~/tmp", "/var/tmp", "/tmp" }
 
-opt.directory = {
-  "~/.vim-tmp",
-  "~/.tmp",
-  "~/tmp",
-  "/var/tmp",
-  "/tmp"
-}
+opt.directory = { "~/.vim-tmp", "~/.tmp", "~/tmp", "/var/tmp", "/tmp" }
 
 opt.history = 1000 -- store the last 1000 commands entered
 opt.textwidth = 120 -- after configured number of characters, wrap line
 
-opt.inccommand = "nosplit" -- show the results of substition as they're happening
--- but don't open a split
+-- show the results of substition as they're happening but don't open a split
+opt.inccommand = "nosplit"
 
-opt.backspace = {"indent", "eol,start"} -- make backspace behave in a sane manner
-opt.clipboard = {"unnamed", "unnamedplus"} -- use the system clipboard
+opt.backspace = { "indent", "eol,start" } -- make backspace behave in a sane manner
+opt.clipboard = { "unnamed", "unnamedplus" } -- use the system clipboard
 opt.mouse = "a" -- set mouse mode to all modes
 
 -- searching
@@ -85,6 +79,8 @@ if fn.executable("rg") then
   -- if ripgrep installed, use that as a grepper
   opt.grepprg = "rg --vimgrep --no-heading"
   opt.grepformat = "%f:%l:%c:%m,%f:%l:%m"
+  -- create autocmd to automatically open quickfix window when grepping
+  cmd([[autocmd QuickFixCmdPost [^l]* nested cwindow]])
 end
 
 -- error bells
@@ -95,7 +91,8 @@ opt.timeoutlen = 500
 -- Appearance
 ---------------------------------------------------------
 o.termguicolors = true
-opt.number = true -- show line numbers
+opt.number = false -- show line numbers
+opt.relativenumber = false
 opt.wrap = true -- turn on line wrapping
 opt.wrapmargin = 8 -- wrap lines when coming within n characters from side
 opt.linebreak = true -- set soft wrapping
@@ -113,7 +110,7 @@ opt.wildmenu = true -- enhanced command line completion
 opt.hidden = true -- current buffer can be put into background
 opt.showcmd = true -- show incomplete commands
 opt.showmode = true -- don't show which mode disabled for PowerLine
-opt.wildmode = {"list", "longest"} -- complete files like a shell
+opt.wildmode = { "list", "longest" } -- complete files like a shell
 opt.shell = env.SHELL
 opt.cmdheight = 0 -- hide command bar when not used
 opt.title = true -- set terminal title
@@ -125,9 +122,9 @@ opt.shortmess = "atToOFc" -- prompt message options
 
 -- Tab control
 opt.smarttab = true -- tab respects 'tabstop', 'shiftwidth', and 'softtabstop'
-opt.tabstop = 4 -- the visible width of tabs
-opt.softtabstop = 4 -- edit as if the tabs are 4 characters wide
-opt.shiftwidth = 4 -- number of spaces to use for indent and unindent
+opt.tabstop = 2 -- the visible width of tabs
+opt.softtabstop = 2 -- edit as if the tabs are 4 characters wide
+opt.shiftwidth = 2 -- number of spaces to use for indent and unindent
 opt.shiftround = true -- round indent to a multiple of 'shiftwidth'
 
 -- code folding settings
@@ -137,15 +134,19 @@ opt.foldlevelstart = 99
 opt.foldnestmax = 10 -- deepest fold is 10 levels
 opt.foldenable = false -- don't fold by default
 opt.foldlevel = 1
+-- fix code folding. Without this autocmd, the message "E490: No fold found" is displayed
+-- anytime a fold is triggered, until the file is reloaded (for example, with `:e<cr>`)
+-- https://github.com/nvim-telescope/telescope.nvim/issues/699#issuecomment-1159637962
+-- vim.api.nvim_create_autocmd({ "BufEnter" }, { pattern = { "*" }, command = "normal zx" })
 
 -- toggle invisible characters
-opt.list = true
+-- opt.list = true
 opt.listchars = {
-  tab = "→ ",
-  eol = "¬",
+  -- tab = "→ ",
+  -- eol = "¬",
   trail = "⋅",
   extends = "❯",
-  precedes = "❮"
+  precedes = "❮",
 }
 
 -- hide the ~ character on empty lines at the end of the buffer
@@ -157,15 +158,15 @@ opt.pastetoggle = "<leader>v"
 
 nnoremap("Q", "<nop>")
 imap("jk", "<Esc>")
-nmap("<leader>,", ":w<cr>")
-nmap("<space>", ":set hlsearch! hlsearch?<cr>")
+nmap("<leader>,", ":silent w<cr>")
+nmap("<space>", ":silent set hlsearch! hlsearch?<cr>")
 
 nmap("<leader><space>", [[:%s/\s\+$<cr>]])
 nmap("<leader><space><space>", [[:%s/\n\{2,}/\r\r/g<cr>]])
 
 nmap("<leader>l", ":set list!<cr>")
-inoremap("<C-j>", [[v:lua.completion_nvim.smart_pumvisible('<C-n>', '<C-j>')]], {expr = true})
-inoremap("<C-k>", [[v:lua.completion_nvim.smart_pumvisible('<C-p>', '<C-k>')]], {expr = true})
+inoremap("<C-j>", [[v:lua.completion_nvim.smart_pumvisible('<C-n>', '<C-j>')]], { expr = true })
+inoremap("<C-k>", [[v:lua.completion_nvim.smart_pumvisible('<C-p>', '<C-k>')]], { expr = true })
 vmap("<", "<gv")
 vmap(">", ">gv")
 nmap("<leader>.", "<c-^>")
@@ -198,26 +199,27 @@ inoremap(opt_k, "<Esc>:m .-2<cr>==gi")
 vnoremap(opt_j, ":m '>+1<cr>gv=gv")
 vnoremap(opt_k, ":m '<-2<cr>gv=gv")
 
--- TODO: what exactly does this do?
-vnoremap("$(", "<esc>`>a)<esc>`<i(<esc>")
-vnoremap("$[", "<esc>`>a]<esc>`<i[<esc>")
-vnoremap("${", "<esc>`>a}<esc>`<i{<esc>")
-vnoremap([[$']], [[<esc>`>a"<esc>`<i"<esc>]])
-vnoremap("$'", "<esc>`>a'<esc>`<i'<esc>")
+-- wrap visual selection in provided wrapper
+vnoremap("$(", "<esc>`>a)<esc>`<i(<esc>") -- wrap in parentheses
+vnoremap("$[", "<esc>`>a]<esc>`<i[<esc>") -- wrap in brackets
+vnoremap("${", "<esc>`>a}<esc>`<i{<esc>") -- wrap in braces
+vnoremap([[$']], [[<esc>`>a"<esc>`<i"<esc>]]) -- wrap in quotes
+vnoremap("$'", "<esc>`>a'<esc>`<i'<esc>") -- wrap in single quotes
 vnoremap([[$\]], "<esc>`>o*/<esc>`<O/*<esc>")
 vnoremap([[$<]], "<esc>`>a><esc>`<i<<esc>")
 
-nmap("<leader>i", ":set cursorline!")
+-- toggle cursorline
+nmap("<leader>i", ":set cursorline!<cr>")
 
 -- scroll the viewport faster
 nnoremap("<C-e>", "3<c-e>")
 nnoremap("<C-y>", "3<c-y>")
 
 -- moving up and down work as you would expect
-nnoremap("j", 'v:count == 0 ? "gj" : "j"', {expr = true})
-nnoremap("k", 'v:count == 0 ? "gk" : "k"', {expr = true})
-nnoremap("^", 'v:count == 0 ? "g^" :  "^"', {expr = true})
-nnoremap("$", 'v:count == 0 ? "g$" : "$"', {expr = true})
+nnoremap("j", 'v:count == 0 ? "gj" : "j"', { expr = true })
+nnoremap("k", 'v:count == 0 ? "gk" : "k"', { expr = true })
+nnoremap("^", 'v:count == 0 ? "g^" :  "^"', { expr = true })
+nnoremap("$", 'v:count == 0 ? "g$" : "$"', { expr = true })
 
 -- custom text objects
 -- inner-line
@@ -239,25 +241,79 @@ nmap("<leader>6", "<Plug>HiInterestingWord6")
 -- open current buffer in a new tab
 nmap("gTT", ":tab sb<cr>")
 
-require("plugins")
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git",
+    "clone",
+    "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable",
+    lazypath,
+  })
+end
+vim.opt.rtp:prepend(lazypath)
 
--- if utils.file_exists(fn.expand("~/.vimrc_background")) then
---   g.base16colorspace = 256
---   cmd [[source ~/.vimrc_background]]
--- end
+require("lazy").setup({
+  { import = "plugins" },
+  { import = "plugins.extras.copilot" },
+  { import = "plugins.extras.astro" },
+})
 
-cmd [[syntax on]]
-vim.g.catppuccin_flavour = "mocha"
-cmd [[colorscheme catppuccin]]
-cmd [[filetype plugin indent on]]
--- make the highlighting of tabs and other non-text less annoying
-cmd [[highlight SpecialKey ctermfg=19 guifg=#333333]]
-cmd [[highlight NonText ctermfg=19 guifg=#333333]]
+cmd([[syntax on]])
+cmd([[filetype plugin indent on]])
+
+if require("base.util").is_dark_mode() then
+  vim.g.catppuccin_flavour = "mocha"
+  vim.o.background = "dark"
+else
+  vim.g.catppuccin_flavour = "latte"
+  vim.o.background = "light"
+end
+
+-- vim.command.colorscheme "catppuccin"
+vim.cmd("colorscheme catppuccin")
+
+-- set up custom symbols for LSP errors
+local signs = { Error = icons.bug, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
+for type, icon in pairs(signs) do
+  local hl = "DiagnosticSign" .. type
+  vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
+end
+
+vim.diagnostic.config({ virtual_text = true, signs = true, update_in_insert = true, severity_sort = true })
 
 -- make comments and HTML attributes italic
-cmd [[highlight Comment cterm=italic term=italic gui=italic]]
-cmd [[highlight htmlArg cterm=italic term=italic gui=italic]]
-cmd [[highlight xmlAttrib cterm=italic term=italic gui=italic]]
--- highlight Type cterm=italic term=italic gui=italic
-cmd [[highlight Normal ctermbg=none]]
--- make the StatusLine background match the GalaxyLine styles
+cmd([[highlight Comment cterm=italic term=italic gui=italic]])
+cmd([[highlight htmlArg cterm=italic term=italic gui=italic]])
+cmd([[highlight xmlAttrib cterm=italic term=italic gui=italic]])
+cmd([[highlight Normal ctermbg=none]])
+
+vim.cmd([[
+  command! Lint lua Lint()
+]])
+
+function _G.Lint()
+  local command = vim.fn.input("Enter command: ")
+  local current_efm = vim.o.errorformat
+
+  vim.o.errorformat = "%f:%l:%c:%m"
+
+  local output = vim.fn.system(command) or ""
+
+  local lines = vim.split(output, "\n")
+  local qf_list = {}
+  for _, line in ipairs(lines) do
+    local file, line_no, column, msg = string.match(line, "(.+):(%d+):(%d+):(.+)")
+    if file then
+      table.insert(qf_list, { filename = file, lnum = line_no, col = column, text = msg })
+    end
+  end
+
+  if #qf_list > 0 then
+    vim.fn.setqflist(qf_list)
+    vim.cmd("cwindow")
+  end
+
+  vim.o.errorformat = current_efm
+end

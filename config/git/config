@@ -1,0 +1,182 @@
+# vim:ft=gitconfig
+[init]
+    defaultBranch = main
+[include]
+    # A local gitconfig, outside of version control.
+    # If the file doesn't exist it is silently ignored
+    path = ~/.gitconfig-local
+[alias]
+    # list all aliases
+    la = "!git config -l | grep alias | cut -c 7-"
+    delete-merged-branches = "!f() { git checkout --quiet master && git branch --merged | grep --invert-match '\\*' | xargs -n 1 git branch --delete; git checkout --quiet @{-1}; }; f"
+    # diff = diff --ignore-space-at-eol -b -w --ignore-blank-lines
+    d = "!git diff --ignore-space-at-eol -b -w --ignore-blank-lines -- ':!**/package-lock.json' ':!**/yarn.lock'"
+
+    # push new branch - push a branch to origin and set upstream
+    pnb = "!git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)"
+
+    co = checkout
+    s = status --short --branch
+    br = branch -v
+    addnw = "!sh -c 'git diff -U0 -w --no-color \"$@\" | git apply --cached --ignore-whitespace --unidiff-zero -'"
+    cane = commit --amend --no-edit
+
+    # gh commands
+    browse = "!gh repo view --web"
+
+    # rebase commands
+    cont = rebase --continue
+    continue = "!GIT_EDITOR=true git rebase --continue"
+    conf = "!git s | grep ^U"
+
+    l = log --graph --pretty=format:'%Cred%h%Creset %C(bold blue)%an%C(reset) - %s - %Creset %C(yellow)%d%Creset %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+
+    # show what I did today
+    day = "!sh -c 'git log --reverse --no-merges --branches=* --date=local --after=\"yesterday 11:59PM\" --author=\"`git config --get user.name`\"'"
+
+    # show the committers in the last 100 commits, sorted by who has commited the most
+    review = "!git log --no-merges --pretty=%an | head -n 100 | sort | uniq -c | sort -nr"
+
+    # order files by number of commits, ascending
+    # Written by Corey Haines
+    # Scriptified by Gary Bernhardt
+    # Show churn for a time range:
+    #   $ git churn --since='1 month ago'
+    churn = "!f() { git log --all -M -C --name-only --format='format:' \"$@\" | sort | grep -v '^$' | uniq -c | sort | awk 'BEGIN {print \"count\tfile\"} {print $1 \"\t\" $2}' | sort -g; }; f"
+
+    # show all deleted files in the repo
+    deleted = "!git log --diff-filter=D --summary | grep delete"
+
+    # create an empty commit
+    empty = commit --allow-empty
+
+    # current branch
+    cbr = rev-parse --abbrev-ref HEAD
+
+    # show the current branch's upstream
+    upstream = rev-parse --abbrev-ref --symbolic-full-name @{u}
+
+    # submodule shortcuts
+    si = submodule init
+    su = submodule update
+    sub = "!git submodule sync && git submodule update"
+
+    # show number of commits per contributer, sorted
+    count = shortlog -sn
+
+    undo = reset --soft HEAD~1
+    amend = commit -a --amend
+
+    cleanup = "!git remote prune origin && git gc && git clean -df && git stash clear"
+
+    # rebase the current branch with changes from upstream remote
+    update = !git fetch upstream && git rebase upstream/`git rev-parse --abbrev-ref HEAD`
+
+    # tag aliases
+    # show the last tag
+    lt = describe --tags --abbrev=0
+
+    # assume aliases
+    assume = update-index --assume-unchanged
+    unassume = update-index --no-assume-unchanged
+    assumed = "!git ls-files -v | grep ^h | cut -c 3-"
+    unassumeall = "!git assumed | xargs git update-index --no-assume-unchanged"
+
+    # clean up all 
+    forget = "!git fetch -p origin && git branch -vv | awk '/: gone]/{print $1}' | xargs git branch -D"
+
+    latest = "!git for-each-ref --sort='-committerdate' --format='%(color:red)%(refname)%(color:reset)%09%(committerdate)' refs/remotes | sed -e 's-refs/remotes/origin/--' | less -XFR"
+
+    # grep commands
+
+    # 'diff grep'
+    dg = "!sh -c 'git ls-files -m | grep $1 | xargs git diff' -"
+    # diff grep changes between two commits
+    dgc = "!sh -c 'git ls-files | grep $1 | xargs git diff $2 $3 -- ' -"
+    # 'checkout grep'
+    cg = "!sh -c 'git ls-files -m | grep $1 | xargs git checkout ' -"
+    # add grep
+    ag = "!sh -c 'git ls-files -m -o --exclude-standard | grep $1 | xargs git add --all' -"
+    # add all
+    aa = !git ls-files -d | xargs git rm && git ls-files -m -o --exclude-standard | xargs git add
+    # remove grep - Remove found files that are NOT under version control
+    rg = "!sh -c 'git ls-files --others --exclude-standard | grep $1 | xargs rm' -"
+
+    remotes = remote -v
+[color]
+    diff = auto
+    status = auto
+    branch = auto
+    interactive = auto
+    ui = auto
+[color "branch"]
+    current = green bold
+    local = green
+    remote = red bold
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold
+    old = red bold
+    new = green bold
+[color "status"]
+    added = green bold
+    changed = yellow bold
+    untracked = red
+[color "sh"]
+    branch = yellow
+[push]
+    # push will only do the current branch, not all branches
+    default = current
+[branch]
+    # set up 'git pull' to rebase instead of merge
+    autosetuprebase = always
+[pull]
+    rebase = true
+[diff]
+    renames = copies
+    mnemonicprefix = true
+    compactionHeuristic = true
+[difftool]
+    prompt = false
+[apply]
+    # do not warn about missing whitespace at EOF
+    whitespace = nowarn
+[core]
+    pager = delta
+    editor = vim
+    whitespace = cr-at-eol
+[delta]
+    features = unobtrusive-line-numbers decorations
+    whitespace-error-style = 22 reverse
+    syntax-theme = base16-256
+[delta "unobtrusive-line-numbers"]
+    line-numbers = true
+    # line-numbers-minus-style = "#444444"
+    # line-numbers-zero-style = "#444444"
+    # line-numbers-plus-style = "#444444"
+    line-numbers-left-format = "{nm:>4}┊"
+    line-numbers-right-format = "{np:>4}│"
+    line-numbers-left-style = blue
+    line-numbers-right-style = blue
+[delta "decorations"]
+    commit-decoration-style = bold yellow box ul
+    file-style = bold yellow ul
+    file-decoration-style = none
+    hunk-header-decoration-style = yellow box
+[interactive]
+    diffFilter = delta --color-only
+[rerere]
+    enabled = true
+[grep]
+    extendRegexp = true
+    lineNumber = true
+[credential]
+	helper = osxkeychain
+[rebase]
+    instructionFormat = "[%an - %ar] %s"
+    autoStash = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

@@ -1,0 +1,45 @@
+## Type additions
+
+# add new types to search by
+--type-add
+style:*.{css,sass,less,stylus}
+
+--type-add
+pug:*.{pug,jade}
+
+--type-add
+tmpl:*.{html,hbs,pug}
+
+--type-add
+dts:*.d.ts
+
+--type-add
+spec:*.{spec,test}.{ts,tsx,js,jsx}
+
+--type-add
+test:*.{spec,test}.{ts,tsx,js,jsx}
+
+--type-add
+tsx:*.tsx
+
+--type-add
+stories:**/*.stories.{ts,tsx,js,jsx,mdx}
+
+--type-add
+jsx:*.jsx
+
+--type-add
+gql:*.{graphql,gql}
+
+--type-add
+pkg:package.json
+
+# ignore case
+--smart-case
+
+# Markdown (and MDX)
+--type-add
+md:*.{md,mdx}
+
+# follow symlinks
+--follow

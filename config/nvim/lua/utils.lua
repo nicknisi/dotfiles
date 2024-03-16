@@ -1,6 +1,5 @@
 local api = vim.api
-local fn = vim.fn
-local utils = {}
+local M = {}
 
 -- thanks to
 -- https://github.com/akinsho/dotfiles/blob/main/.config/nvim/lua/as/globals.lua
@@ -28,54 +27,35 @@ local function make_keymap_fn(mode, o)
   end
 end
 
-local map_opts = {noremap = false, silent = true}
-utils.nmap = make_keymap_fn("n", map_opts)
-utils.xmap = make_keymap_fn("x", map_opts)
-utils.imap = make_keymap_fn("i", map_opts)
-utils.vmap = make_keymap_fn("v", map_opts)
-utils.omap = make_keymap_fn("o", map_opts)
-utils.tmap = make_keymap_fn("t", map_opts)
-utils.smap = make_keymap_fn("s", map_opts)
-utils.cmap = make_keymap_fn("c", map_opts)
+local map_opts = { noremap = false, silent = true }
+M.nmap = make_keymap_fn("n", map_opts)
+M.xmap = make_keymap_fn("x", map_opts)
+M.imap = make_keymap_fn("i", map_opts)
+M.vmap = make_keymap_fn("v", map_opts)
+M.omap = make_keymap_fn("o", map_opts)
+M.tmap = make_keymap_fn("t", map_opts)
+M.smap = make_keymap_fn("s", map_opts)
+M.cmap = make_keymap_fn("c", map_opts)
 
-local noremap_opts = {noremap = true, silent = true}
-utils.nnoremap = make_keymap_fn("n", noremap_opts)
-utils.xnoremap = make_keymap_fn("x", noremap_opts)
-utils.vnoremap = make_keymap_fn("v", noremap_opts)
-utils.inoremap = make_keymap_fn("i", noremap_opts)
-utils.onoremap = make_keymap_fn("o", noremap_opts)
-utils.tnoremap = make_keymap_fn("t", noremap_opts)
-utils.cnoremap = make_keymap_fn("c", noremap_opts)
+local noremap_opts = { noremap = true, silent = true }
+M.nnoremap = make_keymap_fn("n", noremap_opts)
+M.xnoremap = make_keymap_fn("x", noremap_opts)
+M.vnoremap = make_keymap_fn("v", noremap_opts)
+M.inoremap = make_keymap_fn("i", noremap_opts)
+M.onoremap = make_keymap_fn("o", noremap_opts)
+M.tnoremap = make_keymap_fn("t", noremap_opts)
+M.cnoremap = make_keymap_fn("c", noremap_opts)
 
-function utils.has_map(map, mode)
+function M.has_map(map, mode)
   mode = mode or "n"
-  return fn.maparg(map, mode) ~= ""
+  return vim.fn.maparg(map, mode) ~= ""
 end
 
-function utils.has_module(name)
-  if
-    pcall(
-      function()
-        require(name)
-      end
-    )
-   then
-    return true
-  else
-    return false
-  end
-end
-
-function utils.termcodes(str)
+function M.termcodes(str)
   return api.nvim_replace_termcodes(str, true, true, true)
 end
 
-function utils.file_exists(name)
-  local f = io.open(name, "r")
-  return f ~= nil and io.close(f)
-end
-
-function utils.has_active_lsp_client(servername)
+function M.has_active_lsp_client(servername)
   for _, client in pairs(vim.lsp.get_active_clients()) do
     if client.name == servername then
       return true
@@ -84,4 +64,4 @@ function utils.has_active_lsp_client(servername)
   return false
 end
 
-return utils
+return M
