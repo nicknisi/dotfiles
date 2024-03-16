@@ -1,0 +1,100 @@
+" https://github.com/JetBrains/ideavim#executing-ide-action
+" Find IDE actions by name pattern:
+"	:actionlist [pattern]
+
+" set a map leader for more key combo
+let mapleader = ','
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" General
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+set ideajoin
+set number
+
+set visualbell
+" set noerrorbells
+
+# vim plugins
+set easymotion
+set NERDTree
+set surround
+set multiple-cursors
+set argtextob
+set exchange
+set textobj-entire
+set highlightedyank
+set commentary
+" Commentary is bugged: https://youtrack.jetbrains.com/issue/RIDER-38359
+nmap gcc :action CommentByLineComment<CR>
+vmap gc :action CommentByLineComment<CR>
+
+" Searching
+set ignorecase " case insensitive searching
+set smartcase " case-sensitive if expresson contains a capital letter
+set hlsearch " highlight search result
+set incsearch " set incremental search, like modern browser
+" set magic " Set magic on, for regex
+
+set clipboard=unnamed
+
+set scrolloff=5
+
+set showmode
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Mapping
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" delete without yanking
+nnoremap <leader>d "_d
+vnoremap <leader>d "_d
+
+" replace currently selected text with default register
+" without yanking it
+vnoremap p "_dP
+
+" remap ESC
+inoremap jk <Esc>
+vnoremap jk <Esc>
+
+" shortcut to save
+nmap ;; :w<cr>
+
+nnoremap <leader>al :actionlist<CR>
+
+" Reload .ideavimrc
+nnoremap <space>vs :source ~/.ideavimrc<CR>
+
+" Editor
+nmap <leader>l :action EditorToggleShowWhitespaces<CR>
+
+" clear highlighted search
+noremap <space> :set hlsearch! hlsearch?<CR>
+
+" enable . command in visual mode
+vnoremap . :normal .<CR>
+
+nnoremap <leader><space> :%s/\s\+$//e<CR>
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Code & Navigation
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+nnoremap <leader>k :NERDTreeFocus<CR>
+nnoremap <leader>f :action ReformatCode<CR>
+
+nnoremap <leader>r :action RenameElement<CR>
+nnoremap <leader>R :action Refactorings.QuickListPopupAction<CR>
+" nnoremap <leader>r :action RefactoringMenu<CR>
+
+map <leader>wc :wq<CR>
+
+nnoremap <leader>t :action GotoFile<CR>
+nnoremap g/t :action GotoSymbol<CR>
+nnoremap gr :action ShowUsages<CR>
+nnoremap gD :action GotoDeclaration<CR>
+nnoremap gI :action GotoImplementation<CR>
+
+" nnoremap K :action Edit.QuickInfo<cr>
+nnoremap gk :action QuickImplementations<cr>

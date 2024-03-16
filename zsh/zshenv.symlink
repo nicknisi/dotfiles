@@ -23,3 +23,9 @@ typeset -aU path
 
 export EDITOR='nvim'
 export GIT_EDITOR='nvim'
+
+export GOPATH="$HOME/go"
+export GOBIN="$HOME/go/bin"
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+
+path=($GOBIN $path)

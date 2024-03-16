@@ -26,6 +26,9 @@ alias cleanup="find . -name '*.DS_Store' -type f -ls -delete"
 # remove broken symlinks
 alias clsym="find -L . -name . -o -type d -prune -o -type l -exec rm {} +"
 
+# docker alias
+alias dcu='docker compose up -d'
+alias dcd='docker compose down'
 
 # use exa if available
 if [[ -x "$(command -v exa)" ]]; then

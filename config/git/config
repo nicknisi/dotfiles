@@ -171,7 +171,12 @@
     extendRegexp = true
     lineNumber = true
 [credential]
-    helper = osxkeychain
+	helper = osxkeychain
 [rebase]
     instructionFormat = "[%an - %ar] %s"
     autoStash = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

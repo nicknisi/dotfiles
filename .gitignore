@@ -7,3 +7,5 @@ vim/vim.symlink/plugged/
 Brewfile.lock.json
 lazy-lock.json
 config/kitty/kitty-overrides.conf
+
+.idea/
