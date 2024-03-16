@@ -94,6 +94,8 @@ bindkey -M viins "^F" vi-forward-word               # [Ctrl-f] - move to next wo
 bindkey -M viins "^E" vi-add-eol                    # [Ctrl-e] - move to end of line
 bindkey "^J" history-beginning-search-forward
 bindkey "^K" history-beginning-search-backward
+bindkey "^[[A" history-beginning-search-backward
+bindkey "^[[B" history-beginning-search-forward
 
 # matches case insensitive for lowercase
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
@@ -125,6 +127,7 @@ zfetch Aloxaf/fzf-tab
 zfetch robbyrussell/oh-my-zsh lib/git.zsh
 zfetch robbyrussell/oh-my-zsh plugins/git/git.plugin.zsh
 zfetch robbyrussell/oh-my-zsh plugins/ssh-agent
+zfetch robbyrussell/oh-my-zsh plugins/pyenv
 zfetch b4b4r07/cli-finder
 
 if [[ -x "$(command -v fnm)" ]]; then
@@ -225,6 +228,10 @@ alias tns='tmux new-session -s'
 alias lpath='echo $PATH | tr ":" "\n"' # list the PATH separated by new lines
 
 alias nr="npm run"
+
+# docker alias
+alias dcu='docker compose up -d'
+alias dcd='docker compose down'
 
 source "$DOTFILES/zsh/utils.zsh"
 source "$DOTFILES/zsh/prompt.zsh"
