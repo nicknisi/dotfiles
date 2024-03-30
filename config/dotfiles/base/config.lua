@@ -12,7 +12,7 @@ local config = util.load_json(home .. "/dotfiles.json") or {}
 local default_config = {
   -- these can be any
   font = {
-    regalar = "Monaspace Neon",
+    regular = "Monaspace Neon",
     italic = "Monaspace Radon",
   },
   art = nil,
