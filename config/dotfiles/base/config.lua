@@ -21,7 +21,7 @@ local default_config = {
   wallpaper = nil,
   copilot = false,
   astro = false,
-  zen = false,
+  zen = true,
   lsp = {
     servers = {
       "eslint",

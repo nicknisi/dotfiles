@@ -91,8 +91,8 @@ opt.timeoutlen = 500
 -- Appearance
 ---------------------------------------------------------
 o.termguicolors = true
-opt.number = config.zen and false or true -- show line numbers
-opt.relativenumber = config.zen and false or true -- show relatve line numbers
+opt.number = not config.zen
+opt.relativenumber = not config.zen
 opt.wrap = true -- turn on line wrapping
 opt.wrapmargin = 8 -- wrap lines when coming within n characters from side
 opt.linebreak = true -- set soft wrapping
