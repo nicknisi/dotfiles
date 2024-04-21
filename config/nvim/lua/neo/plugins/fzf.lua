@@ -4,7 +4,7 @@ return {
     "junegunn/fzf.vim",
     dependencies = { { dir = vim.env.HOMEBREW_PREFIX .. "/opt/fzf" } },
     config = function()
-      local utils = require("utils")
+      local utils = require("neo.utils")
       local imap = utils.imap
 
       -- Insert mode completion

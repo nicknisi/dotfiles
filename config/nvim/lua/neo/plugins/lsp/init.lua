@@ -23,7 +23,7 @@ return {
       "williamboman/mason-lspconfig.nvim",
     },
     config = function()
-      require("plugins.lsp.config").setup()
+      require("neo.plugins.lsp.config").setup()
     end,
   },
   {
@@ -50,6 +50,6 @@ return {
   },
   {
     "vuki656/package-info.nvim",
-    config = true
-  }
+    config = true,
+  },
 }

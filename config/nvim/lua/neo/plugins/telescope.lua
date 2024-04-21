@@ -69,22 +69,27 @@ return {
         },
       })
 
-      local nnoremap = require("utils").nnoremap
-      nnoremap("<leader>ff", "<cmd>Telescope find_files<cr>")
-      nnoremap("<leader>fs", "<cmd>Telescope git_files<cr>")
-      nnoremap("<leader>fo", "<cmd>Telescope oldfiles<cr>")
-      nnoremap("<leader>fn", "<cmd>Telescope node_modules list<cr>")
-      nnoremap("<leader>fg", "<cmd>Telescope live_grep<cr>")
-      nnoremap("<leader>fr", "<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args()<cr>")
-      nnoremap("<leader>fb", "<cmd>Telescope buffers<cr>")
-      nnoremap("<leader>r", "<cmd>Telescope buffers<cr>")
-      nnoremap("<leader>fh", "<cmd>Telescope help_tags<cr>")
-      if vim.fn.isdirectory(".git") then
-        nnoremap("<leader>t", "<cmd>Telescope git_files<cr>")
-        nnoremap("<D-p>", "<cmd>Telescope git_files<cr>")
+      local nnoremap = require("neo.utils").nnoremap
+      nnoremap("<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "Find Files" })
+      nnoremap("<leader>fo", "<cmd>Telescope oldfiles<cr>", { desc = "Find MRU files" })
+      nnoremap("<leader>fn", "<cmd>Telescope node_modules list<cr>", { desc = "List node_modules" })
+      nnoremap("<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Find using live grep" })
+      nnoremap(
+        "<leader>fr",
+        "<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args()<cr>",
+        { desc = "Find sing live raw grep" }
+      )
+      nnoremap("<leader>fb", "<cmd>Telescope buffers<cr>", { desc = "Find in buffers" })
+      nnoremap("<leader>r", "<cmd>Telescope buffers<cr>", { desc = "Find in buffers" })
+      nnoremap("<leader>fh", "<cmd>Telescope help_tags<cr>", { desc = "Find in help" })
+
+      if require("neo.utils").is_in_git_repo() then
+        nnoremap("<leader>fs", "<cmd>Telescope git_files<cr>", { desc = "Find Git files" })
+        nnoremap("<leader>t", "<cmd>Telescope git_files<cr>", { desc = "Find in Git files" })
+        nnoremap("<D-p>", "<cmd>Telescope git_files<cr>", { desc = "Find in Git files" })
       else
-        nnoremap("<leader>t", "<cmd>Telescope find_files<cr>")
-        nnoremap("<D-p>", "<cmd>Telescope find_files<cr>")
+        nnoremap("<leader>t", "<cmd>Telescope find_files<cr>", { desc = "Find in files" })
+        nnoremap("<D-p>", "<cmd>Telescope find_files<cr>", { desc = "Find in files" })
       end
     end,
   },

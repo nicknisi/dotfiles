@@ -1,6 +1,5 @@
-local theme = require("base.theme")
-local icons = theme.icons
-local config = require("base.config")
+local config = require("neo.config")
+local icons = config.icons
 
 return {
   {

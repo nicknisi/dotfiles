@@ -2,7 +2,7 @@ local lspconfig = require("lspconfig")
 local mason_lspconfig = require("mason-lspconfig")
 local mason = require("mason")
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
-local config = require("base.config")
+local config = require("neo.config")
 local util = require("base.util")
 local border = {
   { "🭽", "FloatBorder" },

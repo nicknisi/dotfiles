@@ -55,6 +55,33 @@ function M.termcodes(str)
   return api.nvim_replace_termcodes(str, true, true, true)
 end
 
+function M.is_in_git_repo()
+  local dir = vim.fn.getcwd()
+
+  while dir ~= "/" do
+    if vim.fn.isdirectory(dir .. "/.git") == 1 then
+      return true
+    end
+    dir = vim.fn.fnamemodify(dir, ":h")
+  end
+
+  return false
+end
+
+function M.load_lazy(path)
+  if not vim.loop.fs_stat(path) then
+    vim.fn.system({
+      "git",
+      "clone",
+      "--filter=blob:none",
+      "https://github.com/folke/lazy.nvim.git",
+      "--branch=stable",
+      path,
+    })
+  end
+  vim.opt.rtp:prepend(path)
+end
+
 function M.has_active_lsp_client(servername)
   for _, client in pairs(vim.lsp.get_active_clients()) do
     if client.name == servername then

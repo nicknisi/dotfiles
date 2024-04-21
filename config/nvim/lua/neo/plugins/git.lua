@@ -1,5 +1,14 @@
 return {
   {
+    "tpope/vim-fugitive",
+    lazy = false,
+    keys = {
+      { "<leader>gr", "<cmd>Gread<cr>", desc = "Read file from git" },
+      { "<leader>gb", "<cmd>G blame<cr>", desc = "Read file from git" },
+    },
+    dependencies = { "tpope/vim-rhubarb" },
+  },
+  {
     "lewis6991/gitsigns.nvim",
     opts = {
       signs = {
