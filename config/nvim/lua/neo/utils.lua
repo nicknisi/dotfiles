@@ -91,4 +91,10 @@ function M.has_active_lsp_client(servername)
   return false
 end
 
+function M.table_append(t, items)
+  for _, v in ipairs(items) do
+    table.insert(t, v)
+  end
+end
+
 return M

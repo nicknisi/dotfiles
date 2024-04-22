@@ -8,19 +8,57 @@ return {
       "nvim-telescope/telescope-rg.nvim",
       "nvim-telescope/telescope-node-modules.nvim",
     },
-    config = function()
-      require("telescope").setup({
+    keys = function()
+      local keys = {
+        { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find Files" },
+        { "<leader>fo", "<cmd>Telescope oldfiles<cr>", desc = "Find MRU files" },
+        { "<leader>fn", "<cmd>Telescope node_modules list<cr>", desc = "List node_modules" },
+        { "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Find using live grep" },
+        {
+          "<leader>fr",
+          "<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args()<cr>",
+          desc = "Find sing live raw grep",
+        },
+        { "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Find in buffers" },
+        { "<leader>r", "<cmd>Telescope buffers<cr>", desc = "Find in buffers" },
+        { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Find in help" },
+      }
+      local utils = require("neo.utils")
+
+      if utils.is_in_git_repo() then
+        utils.table_append(keys, {
+          { "<leader>fs", "<cmd>Telescope git_files<cr>", desc = "Find Git files" },
+          { "<leader>t", "<cmd>Telescope git_files<cr>", desc = "Find in Git files" },
+          { "<D-p>", "<cmd>Telescope git_files<cr>", desc = "Find in Git files" },
+          { "<leader>gc", "<cmd>Telescope git_commits<cr>", desc = "Commits" },
+          { "<leader>gs", "<cmd>Telescope git_status<cr>", desc = "Status" },
+        })
+      else
+        utils.table_append(keys, {
+          { "<leader>t", "<cmd>Telescope find_files<cr>", desc = "Find in files" },
+          { "<D-p>", "<cmd>Telescope find_files<cr>", desc = "Find in files" },
+        })
+      end
+
+      return keys
+    end,
+    opts = function()
+      local actions = require("telescope.actions")
+      local sorters = require("telescope.sorters")
+      local previewers = require("telescope.previewers")
+
+      return {
         defaults = {
           mappings = {
             i = {
-              ["<Esc>"] = require("telescope.actions").close, -- don't go into normal mode, just close
-              ["<C-j>"] = require("telescope.actions").move_selection_next, -- scroll the list with <c-j>
-              ["<C-k>"] = require("telescope.actions").move_selection_previous, -- scroll the list with <c-k>
+              ["<Esc>"] = actions.close, -- don't go into normal mode, just close
+              ["<C-j>"] = actions.move_selection_next, -- scroll the list with <c-j>
+              ["<C-k>"] = actions.move_selection_previous, -- scroll the list with <c-k>
               -- ["<C-\\->"] = actions.select_horizontal, -- open selection in new horizantal split
               -- ["<C-\\|>"] = actions.select_vertical, -- open selection in new vertical split
-              ["<C-t>"] = require("telescope.actions").select_tab, -- open selection in new tab
-              ["<C-y>"] = require("telescope.actions").preview_scrolling_up,
-              ["<C-e>"] = require("telescope.actions").preview_scrolling_down,
+              ["<C-t>"] = actions.select_tab, -- open selection in new tab
+              ["<C-y>"] = actions.preview_scrolling_up,
+              ["<C-e>"] = actions.preview_scrolling_down,
             },
           },
           vimgrep_arguments = {
@@ -47,9 +85,9 @@ return {
             height = 0.80,
             preview_cutoff = 120,
           },
-          file_sorter = require("telescope.sorters").get_fuzzy_file,
+          file_sorter = sorters.get_fuzzy_file,
           file_ignore_patterns = { "node_modules" },
-          generic_sorter = require("telescope.sorters").get_generic_fuzzy_sorter,
+          generic_sorter = sorters.get_generic_fuzzy_sorter,
           path_display = { "truncate" },
           winblend = 0,
           border = {},
@@ -57,40 +95,17 @@ return {
           color_devicons = true,
           use_less = true,
           set_env = { ["COLORTERM"] = "truecolor" }, -- default = nil,
-          file_previewer = require("telescope.previewers").vim_buffer_cat.new,
-          grep_previewer = require("telescope.previewers").vim_buffer_vimgrep.new,
-          qflist_previewer = require("telescope.previewers").vim_buffer_qflist.new,
+          file_previewer = previewers.vim_buffer_cat.new,
+          grep_previewer = previewers.vim_buffer_vimgrep.new,
+          qflist_previewer = previewers.vim_buffer_qflist.new,
           -- Developer configurations: Not meant for general override
-          buffer_previewer_maker = require("telescope.previewers").buffer_previewer_maker,
+          buffer_previewer_maker = previewers.buffer_previewer_maker,
         },
         pickers = { find_files = { find_command = { "fd", "--type", "f", "--hidden", "--strip-cwd-prefix" } } },
         extensions = {
           fzf = { fuzzy = true, override_generic_sorter = true, override_file_sorter = true, case_mode = "smart_case" },
         },
-      })
-
-      local nnoremap = require("neo.utils").nnoremap
-      nnoremap("<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "Find Files" })
-      nnoremap("<leader>fo", "<cmd>Telescope oldfiles<cr>", { desc = "Find MRU files" })
-      nnoremap("<leader>fn", "<cmd>Telescope node_modules list<cr>", { desc = "List node_modules" })
-      nnoremap("<leader>fg", "<cmd>Telescope live_grep<cr>", { desc = "Find using live grep" })
-      nnoremap(
-        "<leader>fr",
-        "<cmd>lua require('telescope').extensions.live_grep_args.live_grep_args()<cr>",
-        { desc = "Find sing live raw grep" }
-      )
-      nnoremap("<leader>fb", "<cmd>Telescope buffers<cr>", { desc = "Find in buffers" })
-      nnoremap("<leader>r", "<cmd>Telescope buffers<cr>", { desc = "Find in buffers" })
-      nnoremap("<leader>fh", "<cmd>Telescope help_tags<cr>", { desc = "Find in help" })
-
-      if require("neo.utils").is_in_git_repo() then
-        nnoremap("<leader>fs", "<cmd>Telescope git_files<cr>", { desc = "Find Git files" })
-        nnoremap("<leader>t", "<cmd>Telescope git_files<cr>", { desc = "Find in Git files" })
-        nnoremap("<D-p>", "<cmd>Telescope git_files<cr>", { desc = "Find in Git files" })
-      else
-        nnoremap("<leader>t", "<cmd>Telescope find_files<cr>", { desc = "Find in files" })
-        nnoremap("<D-p>", "<cmd>Telescope find_files<cr>", { desc = "Find in files" })
-      end
+      }
     end,
   },
 }
