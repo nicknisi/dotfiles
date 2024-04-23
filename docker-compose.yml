@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  dev_environment:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/home/user/code/dotfiles
+    stdin_open: true
+    tty: true

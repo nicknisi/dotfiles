@@ -2,7 +2,7 @@ FROM ubuntu
 
 # Install dependencies
 RUN apt-get update
-RUN apt-get install -y build-essential file zsh git sudo ruby curl vim language-pack-en
+RUN apt-get install -y build-essential file zsh git sudo ruby curl vim neovim language-pack-en
 
 # take an SSH key as a build argument
 ARG PRIVATE_KEY
