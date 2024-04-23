@@ -16,4 +16,8 @@ if config.astro then
   table.insert(plugins, { import = "neo.plugins.extras.astro" })
 end
 
+if config.fzf then
+  table.insert(plugins, { import = "neo.plugins.extras.fzf" })
+end
+
 require("lazy").setup(plugins)

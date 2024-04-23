@@ -57,4 +57,24 @@ command! -bang -nargs=? -complete=dir GitFiles call fzf#vim#gitfiles(<q-args>, f
       vim.g.fzf_layout = { window = "call v:lua.FloatingFZF()" }
     end,
   },
+  -- configure fzf to use telescope
+  {
+    "nvim-telescope/telescope.nvim",
+    dependencies = {
+      {
+        "nvim-telescope/telescope-fzf-native.nvim",
+        build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
+      },
+    },
+    opts = {
+      extensions = {
+        fzf = {
+          fuzzy = true,
+          override_generic_sorter = true,
+          override_file_sorter = true,
+          case_mode = "smart_case",
+        },
+      },
+    },
+  },
 }

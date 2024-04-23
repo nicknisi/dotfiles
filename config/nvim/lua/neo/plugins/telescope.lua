@@ -4,7 +4,6 @@ return {
     lazy = false,
     dependencies = {
       "nvim-lua/plenary.nvim", -- Power telescope with FZF
-      { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
       "nvim-telescope/telescope-rg.nvim",
       "nvim-telescope/telescope-node-modules.nvim",
     },
@@ -102,9 +101,6 @@ return {
           buffer_previewer_maker = previewers.buffer_previewer_maker,
         },
         pickers = { find_files = { find_command = { "fd", "--type", "f", "--hidden", "--strip-cwd-prefix" } } },
-        extensions = {
-          fzf = { fuzzy = true, override_generic_sorter = true, override_file_sorter = true, case_mode = "smart_case" },
-        },
       }
     end,
   },
