@@ -68,18 +68,10 @@ function M.is_in_git_repo()
   return false
 end
 
-function M.load_lazy(path)
-  if not vim.loop.fs_stat(path) then
-    vim.fn.system({
-      "git",
-      "clone",
-      "--filter=blob:none",
-      "https://github.com/folke/lazy.nvim.git",
-      "--branch=stable",
-      path,
-    })
-  end
-  vim.opt.rtp:prepend(path)
+-- add to the path.
+-- This allows for requiring lua modules from that path
+function M.add_path(path)
+  package.path = package.path .. ";" .. path
 end
 
 function M.has_active_lsp_client(servername)

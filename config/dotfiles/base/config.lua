@@ -25,12 +25,12 @@ local default_config = {
   zen = false,
   lsp = {
     servers = {
-      "eslint",
-      "tsserver",
+      -- "eslint",
+      -- "tsserver",
       "lua_ls",
-      "denols",
-      "astro",
-      "tailwindcss",
+      -- "denols",
+      -- "astro",
+      -- "tailwindcss",
       "jsonls",
       "vimls",
     },

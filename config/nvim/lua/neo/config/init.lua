@@ -3,9 +3,8 @@ package.path = package.path .. ";" .. dotfiles .. "/?.lua;" .. dotfiles .. "/?/?
 
 local base_config = require("base.config")
 local theme = require("base.theme")
-local util = require("base.util")
 
-local M = {
+local config = {
   -- the path to load lazy.nvim from
   -- It's useful to override this on systems where
   -- you want to keep the configuration consolidated
@@ -14,6 +13,11 @@ local M = {
   colors = theme.colors,
 }
 
-util.table_extend(true, M, base_config)
+-- mix in the base config
+config = vim.tbl_deep_extend("force", config, base_config)
 
-return M
+config["__merge"] = function(user_config)
+  config = vim.tbl_deep_extend("force", config, user_config)
+end
+
+return config

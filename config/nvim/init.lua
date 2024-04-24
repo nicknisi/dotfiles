@@ -1,21 +1,18 @@
 -- init.lua
 -- Neovim-specific configuration
 
--- add
--- configure wezterm to use the ~/.config/dotfiles directory for shared lua modules
-local dotfiles = os.getenv("HOME") .. "/.config/dotfiles"
-package.path = package.path .. ";" .. dotfiles .. "/?.lua;" .. dotfiles .. "/?/?.lua;" .. dotfiles .. "/?/init.lua"
--- start using the neo (temp name) config
-require("neo.config.options")
-require("neo.config.keymaps")
-require("neo.config.lazy")
-
 require("globals")
+
+-- start using the neo (temp name) config
+local neo = require("neo")
+neo.setup({})
+local config = require("neo.config")
+neo.init_plugins()
+
 local cmd = vim.cmd
 local fn = vim.fn
 local utils = require("neo.utils")
 local termcodes = utils.termcodes
-local config = require("base.config")
 local icons = config.icons
 
 -- create a completion_nvim table on _G which is visible via
