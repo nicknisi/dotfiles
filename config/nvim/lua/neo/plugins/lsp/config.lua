@@ -114,6 +114,7 @@ function M.setup()
       lspconfig.eslint.setup({
         root_dir = require("lspconfig").util.root_pattern(
           "eslint.config.js",
+          "eslint.config.mjs",
           ".eslintrc.js",
           ".eslintrc.json",
           ".eslintrc"
