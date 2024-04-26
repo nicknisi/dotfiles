@@ -2,7 +2,6 @@ local lspconfig = require("lspconfig")
 local mason_lspconfig = require("mason-lspconfig")
 local mason = require("mason")
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
-local config = require("neo.config")
 local util = require("base.util")
 local border = {
   { "🭽", "FloatBorder" },
@@ -15,7 +14,16 @@ local border = {
   { "▏", "FloatBorder" },
 }
 
-local servers = config.lsp.servers or {}
+local servers = {
+  "eslint",
+  "tsserver",
+  "lua_ls",
+  "denols",
+  "astro",
+  "tailwindcss",
+  "jsonls",
+  "vimls",
+}
 
 local M = {}
 

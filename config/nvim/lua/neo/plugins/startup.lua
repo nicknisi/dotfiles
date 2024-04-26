@@ -1,5 +1,6 @@
 local custom_config = require("base.config")
 
+---@enum (key) StartupHeader
 local headers = {
   ghost = {
     [[                                                                              ]],

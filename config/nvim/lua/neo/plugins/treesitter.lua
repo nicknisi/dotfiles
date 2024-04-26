@@ -17,6 +17,7 @@ return {
     end,
     opts = {
       ensure_installed = {
+        "astro",
         "bash",
         "c",
         "comment",

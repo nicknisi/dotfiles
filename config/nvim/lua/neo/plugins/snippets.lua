@@ -1,4 +1,4 @@
-local config = require("neo.config")
+local config = require("neo").config
 
 return {
   {

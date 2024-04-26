@@ -1,6 +1,6 @@
 local fn = vim.fn
 local env = vim.env
-local config = require("neo.config")
+local config = require("neo").config
 
 -- General
 ----------------------------------------------------------------
@@ -135,6 +135,7 @@ opt.undofile = true
 opt.list = true
 opt.listchars = {
   -- tab = "→ ",
+  tab = "  ",
   -- eol = "¬",
   trail = "⋅",
   extends = "❯",

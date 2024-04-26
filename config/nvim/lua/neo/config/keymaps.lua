@@ -10,7 +10,19 @@ local omap = utils.omap
 local nnoremap = utils.nnoremap
 local inoremap = utils.inoremap
 local vnoremap = utils.vnoremap
-local smap = utils.smap
+local termcodes = utils.termcodes
+
+-- create a completion_nvim table on _G which is visible via
+-- v:lua from vimscript
+_G.completion_nvim = {}
+
+function _G.completion_nvim.smart_pumvisible(vis_seq, not_vis_seq)
+  if fn.pumvisible() == 1 then
+    return termcodes(vis_seq)
+  else
+    return termcodes(not_vis_seq)
+  end
+end
 
 nnoremap("Q", "<nop>") -- don't accidentally go into Ex mode
 imap("jk", "<Esc>", { desc = "Exit insert mode" })
