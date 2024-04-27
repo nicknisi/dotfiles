@@ -1,4 +1,4 @@
-local utils = require("neo.utils")
+local utils = require("stalwart.utils")
 return {
   -- Catppuccin theme
   {

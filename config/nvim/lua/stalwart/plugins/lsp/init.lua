@@ -23,7 +23,7 @@ return {
       "williamboman/mason-lspconfig.nvim",
     },
     config = function()
-      require("neo.plugins.lsp.config").setup()
+      require("stalwart.plugins.lsp.config").setup()
     end,
   },
   {

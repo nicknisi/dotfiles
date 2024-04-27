@@ -22,7 +22,7 @@ return {
         { "<leader>r", "<cmd>Telescope buffers<cr>", desc = "Find in buffers" },
         { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Find in help" },
       }
-      local utils = require("neo.utils")
+      local utils = require("stalwart.utils")
 
       if utils.is_in_git_repo() then
         utils.table_append(keys, {

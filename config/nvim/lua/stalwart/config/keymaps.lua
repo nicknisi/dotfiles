@@ -1,6 +1,6 @@
 vim.g.mapleader = ","
 vim.opt.pastetoggle = "<leader>v"
-local utils = require("neo.utils")
+local utils = require("stalwart.utils")
 
 local nmap = utils.nmap
 local vmap = utils.vmap

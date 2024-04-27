@@ -1,4 +1,4 @@
-local icons = require("neo.icons")
+local icons = require("stalwart.icons")
 
 local is_dark = require("base.util").is_dark_mode()
 

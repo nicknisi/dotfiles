@@ -1,6 +1,6 @@
-local custom_config = require("base.config")
+local config = require("stalwart").config
 
----@enum (key) StartupHeader
+---@enum (key) StalwartStartupArt
 local headers = {
   ghost = {
     [[                                                                              ]],
@@ -122,7 +122,7 @@ return {
         align = "center",
         fold_section = false,
         title = "Header",
-        content = headers[custom_config.art] or headers.meatboy,
+        content = headers[config.art] or headers.meatboy,
         highlight = "Constant",
       },
       body = {

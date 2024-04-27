@@ -1,5 +1,5 @@
-local utils = require("neo.utils")
-local icons = require("neo.icons")
+local utils = require("stalwart.utils")
+local icons = require("stalwart.icons")
 
 local M = {}
 local lazy_loaded = false
@@ -11,9 +11,9 @@ local paths = {
   dotfiles .. "/?/init.lua",
 }
 
----@class NisiConfigOptions
+---@class StalwartConfigOptions
 ---@field lazypath string|nil The path to load lazy.nvim from
----@field art StartupHeader|nil The startup art to show when loading the app
+---@field art StalwartStartupArt|nil The startup art to show when loading the app
 ---@field zen boolean|nil Whether to show a minimal UI (hide statusline, line numbers, etc.)
 ---@field copilot boolean|nil Whether copilot is enabled
 ---@field fzf boolean|nil Whether too configure fzf for tooling like telescope
@@ -27,7 +27,7 @@ local default_options = {
   git = true,
 }
 
----@type NisiConfigOptions
+---@type StalwartConfigOptions
 local config = {}
 
 for _, path in ipairs(paths) do
@@ -58,19 +58,19 @@ local function init_plugins()
   load_lazy(lazypath)
 
   local plugins = {
-    { import = "neo.plugins" },
+    { import = "stalwart.plugins" },
   }
 
   if config.copilot then
-    table.insert(plugins, { import = "neo.plugins.extras.copilot" })
+    table.insert(plugins, { import = "stalwart.plugins.extras.copilot" })
   end
 
   -- if config.astro then
-  --   table.insert(plugins, { import = "neo.plugins.extras.astro" })
+  --   table.insert(plugins, { import = "stalwart.plugins.extras.astro" })
   -- end
 
   if config.fzf then
-    table.insert(plugins, { import = "neo.plugins.extras.fzf" })
+    table.insert(plugins, { import = "stalwart.plugins.extras.fzf" })
   end
   require("lazy").setup(plugins)
 
@@ -106,8 +106,7 @@ local function patch_syntax()
   vim.cmd([[highlight Normal ctermbg=none]])
 end
 
----Configure Neovim based on nicknisi/dotfiles
----@param user_config? NisiConfigOptions
+---@param user_config? StalwartConfigOptions
 function M.setup(user_config)
   if setup_called then
     -- only call setup once
@@ -115,8 +114,8 @@ function M.setup(user_config)
   end
 
   vim.tbl_deep_extend("force", config, default_options, user_config)
-  require("neo.config.options")
-  require("neo.config.keymaps")
+  require("stalwart.config.options")
+  require("stalwart.config.keymaps")
   init_plugins()
   vim.cmd.syntax("on")
   vim.cmd("filetype plugin indent on")

@@ -4,8 +4,8 @@
 require("globals")
 
 -- start using the neo (temp name) config
-local neo = require("neo")
-neo.setup({
+local stalwart = require("stalwart")
+stalwart.setup({
   copilot = false,
 })
 

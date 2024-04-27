@@ -1,4 +1,4 @@
-local config = require("neo").config
+local config = require("stalwart").config
 
 return {
   {

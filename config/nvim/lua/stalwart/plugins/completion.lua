@@ -1,4 +1,4 @@
-local colors = require("neo.colors")
+local colors = require("stalwart.colors")
 
 -- Set colors for completion items
 vim.cmd("highlight! CmpItemAbbrMatch guibg=NONE guifg=" .. colors.lightblue)
