@@ -1,7 +1,8 @@
 require("stalwart.globals")
-local utils = require("stalwart.utils")
 local icons = require("stalwart.icons")
+local utils = require("stalwart.utils")
 
+---@class StalwartConfig
 local M = {}
 local lazy_loaded = false
 local setup_called = false
@@ -19,6 +20,7 @@ local paths = {
 ---@field copilot boolean|nil Whether copilot is enabled
 ---@field fzf boolean|nil Whether too configure fzf for tooling like telescope
 ---@field git boolean|nil Whether or not to configure the dotfiles for git
+---@field colorscheme string|fun()|nil What to set the colorscheme to and/or how
 local default_options = {
   lazypath = vim.fn.stdpath("data") .. "lazy/lazy.nvim",
   art = "meatboy",
@@ -26,9 +28,20 @@ local default_options = {
   copilot = true,
   fzf = true,
   git = true,
+  colorscheme = function()
+    if utils.is_dark_mode() then
+      vim.o.catppuccin_flavour = "mocha"
+      vim.o.background = "dark"
+    else
+      vim.o.catppuccin_flavour = "latte"
+      vim.o.background = "light"
+    end
+
+    vim.cmd("colorscheme catppuccin")
+  end,
 }
 
----@type StalwartConfigOptions
+---@StalwartConfig: StalwartConfigOptions
 local config = {}
 
 for _, path in ipairs(paths) do
@@ -107,6 +120,16 @@ local function patch_syntax()
   vim.cmd([[highlight Normal ctermbg=none]])
 end
 
+---Apply the colorscheme setting
+---@param colorscheme string|fun() The colorscheme to apply
+local function apply_colorscheme(colorscheme)
+  if type(colorscheme) == "function" then
+    colorscheme()
+  else
+    vim.cmd("colorscheme " .. colorscheme)
+  end
+end
+
 ---@param user_config? StalwartConfigOptions
 function M.setup(user_config)
   if setup_called then
@@ -114,10 +137,13 @@ function M.setup(user_config)
     return
   end
 
-  vim.tbl_deep_extend("force", config, default_options, user_config)
+  config = vim.tbl_deep_extend("force", config, default_options, user_config)
   require("stalwart.config.options")
   require("stalwart.config.keymaps")
   init_plugins()
+
+  -- do these sctions after initializing the plugins
+  apply_colorscheme(config.colorscheme)
   vim.cmd.syntax("on")
   vim.cmd("filetype plugin indent on")
   patch_syntax()
