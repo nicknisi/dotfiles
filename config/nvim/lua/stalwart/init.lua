@@ -1,3 +1,4 @@
+require("stalwart.globals")
 local utils = require("stalwart.utils")
 local icons = require("stalwart.icons")
 

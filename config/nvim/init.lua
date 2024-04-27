@@ -1,8 +1,6 @@
 -- init.lua
 -- Neovim-specific configuration
 
-require("globals")
-
 -- start using the neo (temp name) config
 local stalwart = require("stalwart")
 stalwart.setup({
