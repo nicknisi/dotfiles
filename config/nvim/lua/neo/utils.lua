@@ -1,4 +1,5 @@
 local api = vim.api
+---@class NeoUtils
 local M = {}
 
 -- thanks to
@@ -67,6 +68,28 @@ function M.is_in_git_repo()
   end
 
   return false
+end
+
+---@return boolean is_macos Returns true if the operating system is macos
+function M.is_macos()
+  return vim.loop.os_uname().sysname == "Darwin"
+end
+
+---Determine whether dark mode is enabled by the system
+---@return boolean is_dark Whether the system is in dark mode
+function M.is_dark_mode()
+  if M.is_macos() then
+    local handle = io.popen("defaults read -g AppleInterfaceStyle 2>/dev/null")
+    if handle == nil then
+      return true
+    end
+    local result = handle:read("*a")
+    handle:close()
+    return result:match("^%s*Dark%s*$") ~= nil
+  else
+    -- If not on macos, then assume we're on a server and should default to dark
+    return true
+  end
 end
 
 -- add to the path.
