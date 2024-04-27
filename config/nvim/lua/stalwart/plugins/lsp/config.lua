@@ -1,7 +1,7 @@
-local lspconfig = require("lspconfig")
-local mason_lspconfig = require("mason-lspconfig")
-local mason = require("mason")
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
+local lspconfig = require("lspconfig")
+local mason = require("mason")
+local mason_lspconfig = require("mason-lspconfig")
 local util = require("base.util")
 local border = {
   { "🭽", "FloatBorder" },
@@ -217,19 +217,17 @@ function M.setup()
       lspconfig.lua_ls.setup(make_conf({
         settings = {
           Lua = {
-            completion = { callSnippet = "Replace" },
-            runtime = {
-              -- LuaJIT in the case of Neovim
-              version = "LuaJIT",
-              path = vim.split(package.path, ";"),
+            workspace = {
+              checkThirdParty = false,
+            },
+            codeLens = {
+              enable = true,
             },
             diagnostics = {
-              -- Get the language server to recognize the `vim` global
               globals = { "vim" },
             },
-            workspace = {
-              library = vim.api.nvim_get_runtime_file("", true),
-              checkThirdParty = false,
+            completion = {
+              callSnippet = "Replace",
             },
           },
         },
