@@ -55,6 +55,7 @@ function M.termcodes(str)
   return api.nvim_replace_termcodes(str, true, true, true)
 end
 
+---@return boolean is_git Whether the project is a git project
 function M.is_in_git_repo()
   local dir = vim.fn.getcwd()
 
@@ -70,10 +71,13 @@ end
 
 -- add to the path.
 -- This allows for requiring lua modules from that path
+---@param path string The path to add
 function M.add_path(path)
   package.path = package.path .. ";" .. path
 end
 
+---@param servername string The LSP client to check
+---@return boolean has_active_lsp_client Whether the provided LSP is enabled
 function M.has_active_lsp_client(servername)
   for _, client in pairs(vim.lsp.get_active_clients()) do
     if client.name == servername then
@@ -83,6 +87,8 @@ function M.has_active_lsp_client(servername)
   return false
 end
 
+---@param t table The table to append to
+---@param items table The items to append
 function M.table_append(t, items)
   for _, v in ipairs(items) do
     table.insert(t, v)
