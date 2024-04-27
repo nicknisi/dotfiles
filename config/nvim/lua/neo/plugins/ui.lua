@@ -1,5 +1,4 @@
-local config = require("neo.config")
-local icons = config.icons
+local icons = require("neo.icons")
 
 local is_dark = require("base.util").is_dark_mode()
 

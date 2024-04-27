@@ -1,5 +1,5 @@
 local config = require("neo").config
-local icons = require("neo.config").icons
+local icons = require("neo.icons")
 
 return {
   {

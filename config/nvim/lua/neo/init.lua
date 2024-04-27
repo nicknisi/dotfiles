@@ -1,4 +1,5 @@
 local utils = require("neo.utils")
+local icons = require("neo.icons")
 
 local M = {}
 local lazy_loaded = false
@@ -32,9 +33,6 @@ local config = {}
 for _, path in ipairs(paths) do
   utils.add_path(path)
 end
-
--- this must be loaded after the above path additions
-local icons = require("neo.config").icons
 
 local function load_lazy(path)
   if not vim.loop.fs_stat(path) then
@@ -82,14 +80,24 @@ end
 ---Apply syntax and LSP customizations
 local function patch_syntax()
   -- set up custom symbols for LSP errors
-  local signs =
-    { Error = icons.bug, Warning = icons.warning, Warn = icons.warning, Hint = icons.hint, Info = icons.hint }
+  local signs = {
+    Error = icons.error,
+    Warning = icons.warning,
+    Warn = icons.warning,
+    Hint = icons.hint,
+    Info = icons.hint,
+  }
   for type, icon in pairs(signs) do
     local hl = "DiagnosticSign" .. type
     vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
   end
 
-  vim.diagnostic.config({ virtual_text = true, signs = true, update_in_insert = true, severity_sort = true })
+  vim.diagnostic.config({
+    virtual_text = true,
+    signs = true,
+    update_in_insert = true,
+    severity_sort = true,
+  })
 
   -- make comments and HTML attributes italic
   vim.cmd([[highlight Comment cterm=italic term=italic gui=italic]])
