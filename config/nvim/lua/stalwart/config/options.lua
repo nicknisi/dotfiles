@@ -72,8 +72,22 @@ opt.timeoutlen = 500
 -- Appearance
 ---------------------------------------------------------
 opt.termguicolors = true
-opt.number = not config.zen and true or false
-opt.relativenumber = not config.zen and true or false
+
+if not config.zen then
+  -- show absolute numbers in insert mode, relative in normal mode
+  opt.relativenumber = true
+  opt.number = true
+  vim.cmd([[
+  augroup numbertoggle
+    autocmd!
+    autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
+    autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
+  augroup END
+]])
+end
+
+opt.hidden = true -- allow background buffers
+opt.joinspaces = false -- join lines without two spaces
 opt.wrap = true -- turn on line wrapping
 opt.wrapmargin = 8 -- wrap lines when coming within n characters from side
 opt.linebreak = true -- set soft wrapping
