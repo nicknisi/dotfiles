@@ -105,4 +105,8 @@ return {
       close_fold_kinds_for_ft = { "imports" },
     },
   },
+  {
+    "RRethy/vim-illuminate",
+    config = true,
+  },
 }
