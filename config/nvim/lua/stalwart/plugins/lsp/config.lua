@@ -1,4 +1,5 @@
-local cmp_nvim_lsp = require("cmp_nvim_lsp")
+local lsp_utils = require("stalwart.plugins.lsp.utils")
+local make_conf = lsp_utils.make_conf
 local lspconfig = require("lspconfig")
 local mason = require("mason")
 local mason_lspconfig = require("mason-lspconfig")
@@ -27,42 +28,8 @@ local servers = {
 
 local M = {}
 
-local function lsp_organize_imports()
-  local params = { command = "_typescript.organizeImports", arguments = { vim.api.nvim_buf_get_name(0) }, title = "" }
-  vim.lsp.buf.execute_command(params)
-end
-
-local function lsp_show_diagnostics()
-  vim.diagnostic.open_float({ border = border })
-end
-
 -- _G makes this function available to vimscript lua calls
 _G.lsp_organize_imports = lsp_organize_imports
-
-local function make_conf(...)
-  local capabilities = vim.lsp.protocol.make_client_capabilities()
-  capabilities.textDocument.foldingRange = {
-    dynamicRegistration = false,
-    lineFoldingOnly = true,
-  }
-  capabilities.textDocument.completion.completionItem.snippetSupport = true
-  capabilities.textDocument.completion.completionItem.resolveSupport = {
-    properties = { "documentation", "detail", "additionalTextEdits", "documentHighlight" },
-  }
-  capabilities.textDocument.colorProvider = { dynamicRegistration = false }
-  capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
-
-  return vim.tbl_deep_extend("force", {
-    handlers = {
-      ["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border }),
-      ["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = border }),
-      ["textDocument/publishDiagnostics"] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
-        virtual_text = true,
-      }),
-    },
-    capabilities = capabilities,
-  }, ...)
-end
 
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("UserLspConfig", {}),
@@ -71,14 +38,14 @@ vim.api.nvim_create_autocmd("LspAttach", {
     vim.cmd([[command! OR lua lsp_organize_imports()]])
 
     local opts = { noremap = true, silent = true }
-    vim.keymap.set("n", "<leader>aa", lsp_show_diagnostics, opts)
-    vim.keymap.set("n", "gl", lsp_show_diagnostics, opts)
+    vim.keymap.set("n", "<leader>aa", lsp_utils.lsp_show_diagnostics, opts)
+    vim.keymap.set("n", "gl", lsp_utils.lsp_show_diagnostics, opts)
     vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
     vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
     vim.keymap.set("n", "<leader>aq", vim.diagnostic.setloclist, opts)
 
     local bufopts = { noremap = true, silent = true, buffer = ev.buf }
-    vim.keymap.set("n", "gO", lsp_organize_imports, bufopts)
+    vim.keymap.set("n", "gO", lsp_utils.lsp_organize_imports, bufopts)
     vim.keymap.set("n", "gd", vim.lsp.buf.definition, bufopts)
     vim.keymap.set("n", "gD", vim.lsp.buf.declaration, bufopts)
     vim.keymap.set("n", "go", vim.lsp.buf.type_definition, bufopts)
@@ -120,7 +87,7 @@ function M.setup()
   if util.exists_in_table(servers, "eslint") then
     handlers["eslint"] = function()
       lspconfig.eslint.setup({
-        root_dir = require("lspconfig").util.root_pattern(
+        root_dir = require("lspconfig/util").root_pattern(
           "eslint.config.js",
           "eslint.config.mjs",
           ".eslintrc.js",

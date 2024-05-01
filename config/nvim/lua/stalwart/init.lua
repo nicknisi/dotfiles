@@ -62,6 +62,16 @@ local function load_lazy(path)
   vim.opt.rtp:prepend(path)
 end
 
+local plugins = {
+  { import = "stalwart.plugins" },
+}
+
+-- FIXME: fix the tyeps
+---@param plugin fun()|string|table
+function M.add_plugin(plugin)
+  table.insert(plugins, plugin)
+end
+
 ---Load and configure neovim plugins using lazy.nvim
 local function init_plugins()
   if lazy_loaded then
@@ -71,12 +81,8 @@ local function init_plugins()
   local lazypath = config.lazypath or vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
   load_lazy(lazypath)
 
-  local plugins = {
-    { import = "stalwart.plugins" },
-  }
-
   if config.copilot then
-    table.insert(plugins, { import = "stalwart.plugins.extras.copilot" })
+    M.add_plugin({ import = "stalwart.plugins.extras.copilot" })
   end
 
   -- if config.astro then
@@ -84,7 +90,7 @@ local function init_plugins()
   -- end
 
   if config.fzf then
-    table.insert(plugins, { import = "stalwart.plugins.extras.fzf" })
+    M.add_plugin({ import = "stalwart.plugins.extras.fzf" })
   end
   require("lazy").setup(plugins)
 

@@ -118,4 +118,11 @@ function M.table_append(t, items)
   end
 end
 
+---Check if a directory exists at the provided path
+---@param path string The path to check
+function M.is_dir(path)
+  local stat = vim.loop.fs_stat(path)
+  return (stat and stat.type) == "directory"
+end
+
 return M
