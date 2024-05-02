@@ -143,7 +143,7 @@ function M.setup(user_config)
     return
   end
 
-  config = vim.tbl_deep_extend("force", config, default_options, user_config)
+  config = vim.tbl_deep_extend("force", config, default_options, user_config or {})
   require("stalwart.config.options")
   require("stalwart.config.keymaps")
   init_plugins()

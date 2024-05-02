@@ -4,6 +4,4 @@
 -- Use the stalwart config
 
 local stalwart = require("stalwart")
-stalwart.setup({
-  copilot = true,
-})
+stalwart.setup()
