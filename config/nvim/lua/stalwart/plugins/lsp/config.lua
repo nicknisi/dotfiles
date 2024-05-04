@@ -29,7 +29,7 @@ local servers = {
 local M = {}
 
 -- _G makes this function available to vimscript lua calls
-_G.lsp_organize_imports = lsp_organize_imports
+_G.lsp_organize_imports = lsp_utils.lsp_organize_imports
 
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("UserLspConfig", {}),
