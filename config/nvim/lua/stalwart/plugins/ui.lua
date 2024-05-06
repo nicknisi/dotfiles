@@ -1,7 +1,5 @@
 local icons = require("stalwart.icons")
 
-local is_dark = require("base.util").is_dark_mode()
-
 return {
   -- fast colorizer for showing hex colors
   {
