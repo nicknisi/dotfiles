@@ -30,10 +30,8 @@ local default_options = {
   git = true,
   colorscheme = function()
     if utils.is_dark_mode() then
-      vim.o.catppuccin_flavour = "mocha"
       vim.o.background = "dark"
     else
-      vim.o.catppuccin_flavour = "latte"
       vim.o.background = "light"
     end
 

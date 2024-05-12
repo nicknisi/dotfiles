@@ -1,7 +1,4 @@
-vim.g.mapleader = ","
-vim.opt.pastetoggle = "<leader>v"
 local utils = require("stalwart.utils")
-
 local nmap = utils.nmap
 local vmap = utils.vmap
 local imap = utils.imap
@@ -12,12 +9,20 @@ local inoremap = utils.inoremap
 local vnoremap = utils.vnoremap
 local termcodes = utils.termcodes
 
+vim.g.mapleader = ","
+
+local version = vim.version()
+if version.major == 0 and version.minor < 10 then
+  -- this is no longer needed in nightly (0.10)
+  vim.opt.pastetoggle = "<leader>v"
+end
+
 -- create a completion_nvim table on _G which is visible via
 -- v:lua from vimscript
 _G.completion_nvim = {}
 
 function _G.completion_nvim.smart_pumvisible(vis_seq, not_vis_seq)
-  if fn.pumvisible() == 1 then
+  if vim.fn.pumvisible() == 1 then
     return termcodes(vis_seq)
   else
     return termcodes(not_vis_seq)
