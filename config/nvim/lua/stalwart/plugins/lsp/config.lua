@@ -56,6 +56,12 @@ vim.api.nvim_create_autocmd("LspAttach", {
     vim.keymap.set("n", "S", vim.lsp.buf.signature_help, bufopts)
     vim.keymap.set("n", "ga", vim.lsp.buf.code_action, bufopts)
 
+    if vim.lsp.inlay_hint then
+      vim.keymap.set("n", "<Leader>hh", function()
+        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+      end, { desc = "toggle inlay [h]ints" })
+    end
+
     -- FIXME the following keymaps are not working when using a autocmd to set up
     -- vim.keymap.set("x", "gA", vim.lsp.buf.range_code_action, bufopts)
     -- vim.keymap.set("n", "<C-x><C-x>", vim.lsp.buf.signature_help, bufopts)
@@ -157,6 +163,32 @@ function M.setup()
           end,
         },
         root_dir = require("lspconfig/util").root_pattern("tsconfig.json"),
+        settings = {
+          typescript = {
+            inlayHints = {
+              includeInlayEnumMemberValueHints = true,
+              includeInlayFunctionLikeReturnTypeHints = true,
+              includeInlayFunctionParameterTypeHints = true,
+              includeInlayParameterNameHints = "all",
+              includeInlayParameterNameHintsWhenArgumentMatchesName = true, -- false
+              includeInlayPropertyDeclarationTypeHints = true,
+              includeInlayVariableTypeHints = true,
+              includeInlayVariableTypeHintsWhenTypeMatchesName = true, -- false
+            },
+          },
+          javascript = {
+            inlayHints = {
+              includeInlayEnumMemberValueHints = true,
+              includeInlayFunctionLikeReturnTypeHints = true,
+              includeInlayFunctionParameterTypeHints = true,
+              includeInlayParameterNameHints = "all",
+              includeInlayParameterNameHintsWhenArgumentMatchesName = true,
+              includeInlayPropertyDeclarationTypeHints = true,
+              includeInlayVariableTypeHints = true,
+              includeInlayVariableTypeHintsWhenTypeMatchesName = true,
+            },
+          },
+        },
       }))
     end
   end
@@ -184,6 +216,8 @@ function M.setup()
       lspconfig.lua_ls.setup(make_conf({
         settings = {
           Lua = {
+            telemetry = { enable = false },
+            hint = { enable = true },
             workspace = {
               checkThirdParty = false,
             },
