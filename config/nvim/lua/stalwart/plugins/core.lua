@@ -1,5 +1,4 @@
 return {
-  "tpope/vim-commentary",
   "tpope/vim-unimpaired",
   "tpope/vim-surround",
   "tpope/vim-ragtag",
