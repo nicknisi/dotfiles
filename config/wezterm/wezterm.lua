@@ -2,10 +2,10 @@
 local dotfiles = os.getenv("HOME") .. "/.config/dotfiles"
 package.path = package.path .. ";" .. dotfiles .. "/?.lua;" .. dotfiles .. "/?/?.lua;" .. dotfiles .. "/?/init.lua"
 
-local h = require("utils.helpers")
 local b = require("utils.background")
-local wezterm = require("wezterm")
 local custom_config = require("base.config")
+local h = require("utils.helpers")
+local wezterm = require("wezterm")
 
 local theme = custom_config.theme or b.get_default_theme()
 local assets = wezterm.config_dir .. "/assets"
@@ -32,7 +32,7 @@ local config = {
     },
   },
   harfbuzz_features = { "calt", "dlig", "clig=1", "ss01", "ss02", "ss03", "ss04", "ss05", "ss06", "ss07", "ss08" },
-  font_size = 20,
+  font_size = 16,
   line_height = 1.1,
   adjust_window_size_when_changing_font_size = false,
 
