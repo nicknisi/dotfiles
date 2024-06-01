@@ -21,10 +21,10 @@ local opt = vim.opt
 
 if not vim.env.SSH_TTY then
   -- don't set the clipboard when in SSH
-  opt.clipboard = { "unnamed", "unnamedplus" } -- use the system clipboard
+  opt.clipboard = "unnamedplus" -- use the system clipboard
 end
 
-opt.completeopt = "menu,menuone,noselect"
+opt.completeopt = { "menu", "menuone", "noselect" }
 opt.conceallevel = 2 -- concealeed text is hidden
 
 opt.confirm = true -- confirm changes before exiting a buffer

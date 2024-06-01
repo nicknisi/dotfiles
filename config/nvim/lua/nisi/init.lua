@@ -2,26 +2,16 @@ require("nisi.globals")
 local icons = require("nisi.assets").icons
 local utils = require("nisi.utils")
 
----@class nisiConfig
-local M = {}
-local lazy_loaded = false
-local setup_called = false
-local dotfiles = os.getenv("HOME") .. "/.config/dotfiles"
-local paths = {
-  dotfiles .. "/?.lua",
-  dotfiles .. "/?/?.lua",
-  dotfiles .. "/?/init.lua",
-}
-
----@class nisiConfigOptions
+---The config for the Nisi Neovim setup
+---@class NisiConfig
 ---@field lazypath string|nil The path to load lazy.nvim from
----@field art nisiStartupArt|nil The startup art to show when loading the app
+---@field art NisiAScii|nil The startup art to show when loading the app
 ---@field zen boolean|nil Whether to show a minimal UI (hide statusline, line numbers, etc.)
 ---@field copilot boolean|nil Whether copilot is enabled
 ---@field fzf boolean|nil Whether too configure fzf for tooling like telescope
 ---@field git boolean|nil Whether or not to configure the dotfiles for git
 ---@field colorscheme string|fun()|nil What to set the colorscheme to and/or how
-local default_options = {
+local config = {
   lazypath = vim.fn.stdpath("data") .. "lazy/lazy.nvim",
   art = "meatboy",
   zen = false,
@@ -39,8 +29,26 @@ local default_options = {
   end,
 }
 
----@nisiConfig: nisiConfigOptions
-local config = {}
+---Assign a user config to the config table
+---@param user_config? NisiConfig
+local function assign_config(user_config)
+  if user_config then
+    for k, v in pairs(user_config) do
+      config[k] = v
+    end
+  end
+end
+
+---@class nisiConfig
+local M = {}
+local lazy_loaded = false
+local setup_called = false
+local dotfiles = os.getenv("HOME") .. "/.config/dotfiles"
+local paths = {
+  dotfiles .. "/?.lua",
+  dotfiles .. "/?/?.lua",
+  dotfiles .. "/?/init.lua",
+}
 
 for _, path in ipairs(paths) do
   utils.add_path(path)
@@ -64,7 +72,7 @@ local plugins = {
   { import = "nisi.plugins" },
 }
 
--- FIXME: fix the tyeps
+-- FIXME: fix the types
 ---@param plugin fun()|string|table
 function M.add_plugin(plugin)
   table.insert(plugins, plugin)
@@ -134,14 +142,14 @@ local function apply_colorscheme(colorscheme)
   end
 end
 
----@param user_config? nisiConfigOptions
+---@param user_config? NisiConfig
 function M.setup(user_config)
   if setup_called then
     -- only call setup once
     return
   end
 
-  config = vim.tbl_deep_extend("force", config, default_options, user_config or {})
+  assign_config(user_config)
   require("nisi.config.options")
   require("nisi.config.keymaps")
   init_plugins()
