@@ -1,5 +1,5 @@
 require("nisi.globals")
-local icons = require("nisi.icons")
+local icons = require("nisi.assets").icons
 local utils = require("nisi.utils")
 
 ---@class nisiConfig

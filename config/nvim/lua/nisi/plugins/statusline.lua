@@ -1,5 +1,5 @@
 local config = require("nisi").config
-local icons = require("nisi.icons")
+local icons = require("nisi.assets").icons
 
 return {
   {
