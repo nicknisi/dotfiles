@@ -1,6 +1,6 @@
-local config = require("stalwart").config
+local config = require("nisi").config
 
----@enum (key) StalwartStartupArt
+---@enum (key) nisiStartupArt
 local headers = {
   ghost = {
     [[                                                                              ]],

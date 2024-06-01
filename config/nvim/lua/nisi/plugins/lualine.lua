@@ -1,5 +1,5 @@
-local config = require("stalwart").config
-local icons = require("stalwart.icons")
+local config = require("nisi").config
+local icons = require("nisi.icons")
 
 return {
   {

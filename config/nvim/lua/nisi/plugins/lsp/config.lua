@@ -1,4 +1,4 @@
-local lsp_utils = require("stalwart.plugins.lsp.utils")
+local lsp_utils = require("nisi.plugins.lsp.utils")
 local make_conf = lsp_utils.make_conf
 local lspconfig = require("lspconfig")
 local mason = require("mason")

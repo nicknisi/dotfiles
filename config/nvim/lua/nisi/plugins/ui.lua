@@ -1,4 +1,4 @@
-local icons = require("stalwart.icons")
+local icons = require("nisi.icons")
 
 return {
   -- fast colorizer for showing hex colors

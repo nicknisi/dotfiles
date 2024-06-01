@@ -1,8 +1,8 @@
-require("stalwart.globals")
-local icons = require("stalwart.icons")
-local utils = require("stalwart.utils")
+require("nisi.globals")
+local icons = require("nisi.icons")
+local utils = require("nisi.utils")
 
----@class StalwartConfig
+---@class nisiConfig
 local M = {}
 local lazy_loaded = false
 local setup_called = false
@@ -13,9 +13,9 @@ local paths = {
   dotfiles .. "/?/init.lua",
 }
 
----@class StalwartConfigOptions
+---@class nisiConfigOptions
 ---@field lazypath string|nil The path to load lazy.nvim from
----@field art StalwartStartupArt|nil The startup art to show when loading the app
+---@field art nisiStartupArt|nil The startup art to show when loading the app
 ---@field zen boolean|nil Whether to show a minimal UI (hide statusline, line numbers, etc.)
 ---@field copilot boolean|nil Whether copilot is enabled
 ---@field fzf boolean|nil Whether too configure fzf for tooling like telescope
@@ -39,7 +39,7 @@ local default_options = {
   end,
 }
 
----@StalwartConfig: StalwartConfigOptions
+---@nisiConfig: nisiConfigOptions
 local config = {}
 
 for _, path in ipairs(paths) do
@@ -61,7 +61,7 @@ local function load_lazy(path)
 end
 
 local plugins = {
-  { import = "stalwart.plugins" },
+  { import = "nisi.plugins" },
 }
 
 -- FIXME: fix the tyeps
@@ -80,15 +80,15 @@ local function init_plugins()
   load_lazy(lazypath)
 
   if config.copilot then
-    M.add_plugin({ import = "stalwart.plugins.extras.copilot" })
+    M.add_plugin({ import = "nisi.plugins.extras.copilot" })
   end
 
   -- if config.astro then
-  --   table.insert(plugins, { import = "stalwart.plugins.extras.astro" })
+  --   table.insert(plugins, { import = "nisi.plugins.extras.astro" })
   -- end
 
   if config.fzf then
-    M.add_plugin({ import = "stalwart.plugins.extras.fzf" })
+    M.add_plugin({ import = "nisi.plugins.extras.fzf" })
   end
   require("lazy").setup(plugins)
 
@@ -134,7 +134,7 @@ local function apply_colorscheme(colorscheme)
   end
 end
 
----@param user_config? StalwartConfigOptions
+---@param user_config? nisiConfigOptions
 function M.setup(user_config)
   if setup_called then
     -- only call setup once
@@ -142,8 +142,8 @@ function M.setup(user_config)
   end
 
   config = vim.tbl_deep_extend("force", config, default_options, user_config or {})
-  require("stalwart.config.options")
-  require("stalwart.config.keymaps")
+  require("nisi.config.options")
+  require("nisi.config.keymaps")
   init_plugins()
 
   -- do these sctions after initializing the plugins

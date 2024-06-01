@@ -1,6 +1,6 @@
 local fn = vim.fn
 local env = vim.env
-local config = require("stalwart").config
+local config = require("nisi").config
 
 -- General
 ----------------------------------------------------------------

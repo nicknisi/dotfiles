@@ -1,7 +1,7 @@
 -- init.lua
 -- Neovim-specific configuration
 
--- Use the stalwart config
+-- Use the nisi config
 
-local stalwart = require("stalwart")
-stalwart.setup()
+local nisi = require("nisi")
+nisi.setup()

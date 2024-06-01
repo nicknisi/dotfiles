@@ -1,4 +1,4 @@
-local config = require("stalwart").config
+local config = require("nisi").config
 
 return {
   {

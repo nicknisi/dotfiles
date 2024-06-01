@@ -1,4 +1,4 @@
-local utils = require("stalwart.utils")
+local utils = require("nisi.utils")
 local nmap = utils.nmap
 local vmap = utils.vmap
 local imap = utils.imap

@@ -31,7 +31,7 @@ return {
       "williamboman/mason-lspconfig.nvim",
     },
     config = function()
-      require("stalwart.plugins.lsp.config").setup()
+      require("nisi.plugins.lsp.config").setup()
     end,
   },
   {

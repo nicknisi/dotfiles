@@ -1,4 +1,4 @@
-local utils = require("stalwart.utils")
+local utils = require("nisi.utils")
 return {
   -- Catppuccin theme
   {
