@@ -1,11 +1,12 @@
 local config = require("nisi").config
 local ascii = require("nisi.assets").ascii
+local utils = require("nisi.utils")
 
 local group = vim.api.nvim_create_augroup("Startup", { clear = true })
 vim.api.nvim_create_autocmd("FileType", { group = group, pattern = "startup", command = "setlocal list&" })
 
 -- if in a git directory, open git files, otherwise open all files when pressing the "Find File" shortcut
-local find_command = vim.fn.isdirectory(".git") and "Telescope git_files" or "Telescope find_files"
+local find_command = utils.is_in_git_repo() and "Telescope git_files" or "Telescope find_files"
 
 return {
   {
