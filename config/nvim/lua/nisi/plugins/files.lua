@@ -2,7 +2,7 @@ local icons = require("nisi.icons")
 
 return {
   {
-    -- Edit the flesystem in a buffer
+    -- Edit the filesystem in a buffer
     "stevearc/oil.nvim",
     keys = {
       { "-", "<cmd>Oil<cr>", desc = "Open parent directory" },
@@ -12,6 +12,7 @@ return {
     dependencies = { "nvim-tree/nvim-web-devicons" },
   },
   {
+    -- File explorer plugin
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
     lazy = false,
@@ -39,13 +40,13 @@ return {
       },
     },
     keys = {
-      { "<leader>k", "<cmd>Neotree toggle reveal<cr>" },
+      { "<leader>k", "<cmd>Neotree toggle reveal<cr>", desc = "Toggle file drawer" },
     },
     opts = {
       -- don't reset the cursor position when opening a file
       disable_netrw = true,
       hijack_netrw = true,
-      close_if_last_window = false, -- Close Neo-tree if it is the last window left in the tab popup_border_style = "rounded",
+      close_if_last_window = false,
       enable_git_status = true,
       enable_diagnostics = true,
       sort_case_insensitive = false, -- used when sorting files and directories in the tree
