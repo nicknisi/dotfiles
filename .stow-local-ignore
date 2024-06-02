@@ -1,0 +1,13 @@
+applescripts/
+bin/
+resources/
+.editorconfig
+Brewfile
+Brewfile.lock.json
+Dockerfile
+LICENSE
+docker-compose.yml
+install.sh
+port.sh
+stylua.toml
+.DS_Store

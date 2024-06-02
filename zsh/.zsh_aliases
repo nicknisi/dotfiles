@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 # reload zsh config
 alias reload!='RELOAD=1 source ~/.zshrc'
 
@@ -38,3 +40,22 @@ fi
 alias la="ls -AF ${colorflag}"
 alias lld="ls -l | grep ^d"
 alias rmf="rm -rf"
+
+# git aliases
+alias gs='git s'
+alias glog="git l"
+
+# tmux aliases
+alias ta='tmux attach'
+alias tls='tmux ls'
+alias tat='tmux attach -t'
+alias tns='tmux new-session -s'
+
+# use nvim, but don't make me think about it
+if [[ -n "$(command -v nvim)" ]]; then
+    alias vim="nvim"
+    # shortcut to open vim and immediately update vim-plug and all installed plugins
+    alias vimu="nvim --headless \"+Lazy! sync\" +qa"
+    # immediately open to fugitive's status screen
+    alias vimg="nvim +Ge:"
+fi

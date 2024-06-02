@@ -1,0 +1,135 @@
+#!/usr/bin/env zsh
+#
+autoload -Uz compinit
+compinit
+
+c() {
+  cd $CODE_DIR/$1
+}
+
+_c() {
+  _files -W $CODE_DIR -/
+}
+compdef _c c
+
+h() {
+  cd $HOME/$1
+}
+
+_h() {
+  _files -W $HOME -/
+}
+compdef _h h
+
+g() {
+  if [[ $# > 0 ]]; then
+      # if there are arguments, send them to git
+      git $@
+  else
+      # otherwise, run git status
+      git s
+  fi
+}
+
+last_modified() {
+  ls -lt $1 | head -n 2 | tail -n 1 | awk '{print $6, $7, $8}'
+}
+
+md() {
+  mkdir -p $1
+  cd $1
+}
+
+prepend_path() {
+  [[ ! -d "$1" ]] && return
+
+  path=(
+      $1
+      $path
+  )
+}
+
+zfetch() {
+  # Terminal colors
+  TC='\e['
+  Rst="${TC}0m"
+  Blk="${TC}30m";
+  Red="${TC}31m";
+  Grn="${TC}32m";
+  Yel="${TC}33m";
+  Blu="${TC}34m";
+  Prp="${TC}35m";
+  Cyn="${TC}36m";
+  Wht="${TC}37m";
+
+  git_clone_error_msg() {
+      echo -e "  ${Red}[ERROR]${Rst} git clone errored: ${Red}${1}${Rst}. ${Yel}aborting...${Rst}"
+  }
+
+  # Simplest dependency fetcher known to mankind
+  if [[ $1 == "update" ]]; then
+      for name in ${(@k)plugins}; do
+          local cwd=$(pwd)
+          local dest=$plugins[$name]
+          cd $dest
+          echo -e "Updating ${Yel}${name}${Rst}..."
+          git pull --quiet --recurse-submodules
+          cd $cwd
+      done
+  elif [[ $1 == "ls" ]]; then
+      for name in ${(@k)plugins}; do
+          echo -e "${name}: ${Yel}$plugins[$name]${Rst}"
+      done
+  else
+
+    # the short name of the repo (org/repo)
+    local name="$1"
+
+    local plugin_name="${2:-"${name##*/}.plugin.zsh"}"
+
+    # where the repo is going
+    local dest="${3:-"$ZPLUGDIR"}"
+
+    # if the dest dir ends with /, append the name to it to get the real dest dir
+    if [[ $dest == */ ]]; then
+        dest=$dest$name
+    else
+        dest=$dest/$name
+    fi
+
+    local cwd=$(pwd)
+    plugins[$name]=$dest
+
+    if [[ ! -d $dest ]]; then
+        local url=git@github.com:$name
+        local ref=$3
+        echo -e "Missing plugin ${Yel}${name}${Rst}"
+        echo -e "  Cloning from ${Blu}${url}${Rst}..."
+        if [[ -n $ref ]]; then
+            git clone --quiet $url $dest
+            if [[ $? != 0 ]]; then
+                git_clone_error_msg $?
+                cd $cwd
+                return $?
+            fi
+
+            git checkout --quiet $ref
+            echo -e "  Checked out branch ${ref}"
+        else
+            git clone --quiet --depth 1 $url $dest
+            if [[ $? != 0 ]]; then
+                git_clone_error_msg $?
+                cd $cwd
+                return $?
+            fi
+            echo -e "  Checked out default branch"
+        fi
+    fi
+    plugin="$dest/$plugin_name"
+    if [ -f "$plugin" ]; then
+        source "$plugin"
+    fi
+    cd $cwd
+  fi
+}
+

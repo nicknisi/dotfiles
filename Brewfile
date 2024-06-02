@@ -35,6 +35,7 @@ end
 tap "homebrew/bundle"
 
 # packages
+brew "stow" # symlink farm manager
 brew "bat" # better cat
 brew "cloc" # lines of code counter
 brew "entr" # file watcher / command runner

@@ -1,8 +1,6 @@
 export ZSH=$DOTFILES/zsh
 
-if [[ -d $DOTFILES/zsh/functions ]]; then
-    for func in $DOTFILES/zsh/functions/*(:t); autoload -U $func
-fi
+source ~/.zsh_functions
 
 ########################################################
 # Configuration
@@ -148,13 +146,15 @@ else # macOS `ls`
     colorflag="-G"
 fi
 
-# look for all .zsh files and source them
-config_files=($DOTFILES/**/*.zsh)
-for file in $config_files[@]; do
-  source "$file"
-done
-
 # If a ~/.zshrc.local exists, source it
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 # If a ~/.localrc zshrc exists, source it
 [[ -a ~/.localrc ]] && source ~/.localrc
+
+# look for all .zsh files and source them
+for file in ~/.zsh_prompt ~/.zsh_aliases; do
+    if [ -f $file ]; then
+        source $file
+    fi
+done
+
