@@ -5,7 +5,8 @@ local utils = require("nisi.utils")
 ---The config for the Nisi Neovim setup
 ---@class NisiConfig
 ---@field lazypath string|nil The path to load lazy.nvim from
----@field art NisiAScii|nil The startup art to show when loading the app
+---@field startup_art NisiAscii|nil The startup art to show when loading the app
+---@field startup_color string|nil The color to use for the startup art
 ---@field zen boolean|nil Whether to show a minimal UI (hide statusline, line numbers, etc.)
 ---@field copilot boolean|nil Whether copilot is enabled
 ---@field fzf boolean|nil Whether too configure fzf for tooling like telescope
@@ -13,7 +14,8 @@ local utils = require("nisi.utils")
 ---@field colorscheme string|fun()|nil What to set the colorscheme to and/or how
 local config = {
   lazypath = vim.fn.stdpath("data") .. "lazy/lazy.nvim",
-  art = "meatboy",
+  startup_art = "nicknisi",
+  startup_color = "#653CAD",
   zen = false,
   copilot = true,
   fzf = true,

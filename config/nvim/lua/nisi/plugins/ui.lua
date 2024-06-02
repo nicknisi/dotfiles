@@ -17,8 +17,9 @@ return {
         align = "center",
         fold_section = false,
         title = "Header",
-        content = ascii[config.art] or ascii.meatboy,
-        highlight = "Constant",
+        content = ascii[config.startup_art],
+        highlight = "",
+        default_color = config.startup_color,
       },
       body = {
         type = "mapping",
@@ -48,7 +49,7 @@ return {
         highlight = "Number",
         default_color = "",
       },
-      colors = { background = "#1f2227", folded_section = "#56b6c2" },
+      colors = { background = "transparent", folded_section = "#56b6c2" },
       mappings = {
         execute_command = "<CR>",
         open_file = "o",
