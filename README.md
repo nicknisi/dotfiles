@@ -175,7 +175,7 @@ the exception of the `backup` script. You must run that one manually.
 
 ## ZSH Configuration
 
-The prompt for ZSH is configured in the `zshrc.symlink` file and performs the
+The prompt for ZSH is configured in the `zsh/zshrc` file and performs the
 following operations.
 
 - Sets `EDITOR` to `nvim`
