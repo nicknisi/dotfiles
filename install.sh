@@ -9,6 +9,15 @@ COLOR_PURPLE="\033[1;35m"
 COLOR_YELLOW="\033[1;33m"
 COLOR_NONE="\033[0m"
 
+linkables=(
+  "zsh/.zshrc"
+  "zsh/.zshenv"
+  "zsh/.zprofile"
+  "zsh/.zsh_aliases"
+  "zsh/.zsh_functions"
+  "zsh/.zsh_prompt"
+)
+
 # Configuration home
 config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
 data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
@@ -35,19 +44,14 @@ success() {
   echo -e "${COLOR_GREEN}$1${COLOR_NONE}"
 }
 
-get_linkables() {
-  # find -H "$DOTFILES" -maxdepth 3 -name '*.symlink'
-  echo "zsh/.zshrc zsh/.zshenv zsh/.zprofile zsh/.zsh_aliases zsh/.zsh_functions zsh/.zsh_prompt"
-}
-
 backup() {
   BACKUP_DIR=$HOME/dotfiles-backup
 
   echo "Creating backup directory at $BACKUP_DIR"
   mkdir -p "$BACKUP_DIR"
 
-  for file in $(get_linkables); do
-    filename=".$(basename "$file" '.symlink')"
+  for file in "${linkables[@]}"; do
+    filename="$(basename "$file")"
     target="$HOME/$filename"
     if [ -f "$target" ]; then
       echo "backing up $filename"
@@ -67,16 +71,47 @@ backup() {
   done
 }
 
+cleanup_symlinks() {
+  title "Cleaning up symlinks"
+  for file in "${linkables[@]}"; do
+    target="$HOME/$(basename "$file")"
+    if [ -L "$target" ]; then
+      info "Cleaning up \"$target\""
+      rm "$target"
+    elif [ -e "$target" ]; then
+      warning "Skipping \"$target\" because it is not a symlink"
+    else
+      warning "Skipping \"$target\" because it does not exist"
+    fi
+  done
+
+  echo -e
+  info "installing to $config_home"
+
+  config_files=$(find "$DOTFILES/config" -maxdepth 1 2>/dev/null)
+  for config in $config_files; do
+    target="$config_home/$(basename "$config")"
+    if [ -L "$target" ]; then
+      info "Cleaning up \"$target\""
+      rm "$target"
+    elif [ -e "$target" ]; then
+      warning "Skipping \"$target\" because it is not a symlink"
+    else
+      warning "Skipping \"$target\" because it does not exist"
+    fi
+  done
+}
+
 setup_symlinks() {
   title "Creating symlinks"
 
-  for file in $(get_linkables); do
-    target="$HOME/.$(basename "$file" '.symlink')"
+  for file in "${linkables[@]}"; do
+    target="$HOME/$(basename "$file")"
     if [ -e "$target" ]; then
       info "~${target#"$HOME"} already exists... Skipping."
     else
       info "Creating symlink for $file"
-      ln -s "$file" "$target"
+      ln -s "$DOTFILES/$file" "$target"
     fi
   done
 
@@ -264,6 +299,9 @@ setup_macos() {
 case "$1" in
 backup)
   backup
+  ;;
+clean)
+  cleanup_symlinks
   ;;
 link)
   setup_symlinks
