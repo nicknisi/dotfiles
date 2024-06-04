@@ -3,7 +3,7 @@ local make_conf = lsp_utils.make_conf
 local lspconfig = require("lspconfig")
 local mason = require("mason")
 local mason_lspconfig = require("mason-lspconfig")
-local util = require("base.util")
+local utils = require("nisi.utils")
 local border = {
   { "🭽", "FloatBorder" },
   { "▔", "FloatBorder" },
@@ -90,7 +90,7 @@ function M.setup()
     end,
   }
 
-  if util.exists_in_table(servers, "eslint") then
+  if utils.exists_in_table(servers, "eslint") then
     handlers["eslint"] = function()
       lspconfig.eslint.setup({
         root_dir = require("lspconfig/util").root_pattern(
@@ -104,7 +104,7 @@ function M.setup()
     end
   end
 
-  if util.exists_in_table(servers, "tailwindcss") then
+  if utils.exists_in_table(servers, "tailwindcss") then
     handlers["tailwindcss"] = function()
       lspconfig.tailwindcss.setup(make_conf({
         root_dir = require("lspconfig/util").root_pattern(
@@ -151,7 +151,7 @@ function M.setup()
     end
   end
 
-  if util.exists_in_table(servers, "tsserver") then
+  if utils.exists_in_table(servers, "tsserver") then
     handlers["tsserver"] = function()
       lspconfig.tsserver.setup(make_conf({
         handlers = {
@@ -193,7 +193,7 @@ function M.setup()
     end
   end
 
-  if util.exists_in_table(servers, "denols") then
+  if utils.exists_in_table(servers, "denols") then
     handlers["denols"] = function()
       lspconfig.denols.setup(make_conf({
         handlers = {
@@ -211,7 +211,7 @@ function M.setup()
     end
   end
 
-  if util.exists_in_table(servers, "lua_ls") then
+  if utils.exists_in_table(servers, "lua_ls") then
     handlers["lua_ls"] = function()
       lspconfig.lua_ls.setup(make_conf({
         settings = {
@@ -236,7 +236,7 @@ function M.setup()
     end
   end
 
-  if util.exists_in_table(servers, "vimls") then
+  if utils.exists_in_table(servers, "vimls") then
     handlers["vimls"] = function()
       lspconfig.vimls.setup(make_conf({
         init_options = { isNeovim = true },
@@ -244,7 +244,7 @@ function M.setup()
     end
   end
 
-  if util.exists_in_table(servers, "diagnosticls") then
+  if utils.exists_in_table(servers, "diagnosticls") then
     handlers["diagnosticls"] = function()
       lspconfig.diagnosticls.setup(make_conf({
         settings = {

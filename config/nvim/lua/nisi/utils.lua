@@ -125,4 +125,17 @@ function M.is_dir(path)
   return (stat and stat.type) == "directory"
 end
 
+---Check if a value exists in a table
+---@param table table The table to check
+---@param value any The value to check for
+---@return boolean is_in_table Whether the value exists in the table
+function M.exists_in_table(table, value)
+  for _, v in ipairs(table) do
+    if v == value then
+      return true
+    end
+  end
+  return false
+end
+
 return M
