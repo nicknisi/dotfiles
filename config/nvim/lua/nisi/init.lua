@@ -11,6 +11,7 @@ local utils = require("nisi.utils")
 ---@field copilot boolean|nil Whether copilot is enabled
 ---@field fzf boolean|nil Whether too configure fzf for tooling like telescope
 ---@field git boolean|nil Whether or not to configure the dotfiles for git
+---@field prefer_git boolean|nil Whether to prefer using git for dependencies over other options like curl
 ---@field colorscheme string|fun()|nil What to set the colorscheme to and/or how
 local config = {
   lazypath = vim.fn.stdpath("data") .. "lazy/lazy.nvim",
@@ -20,6 +21,7 @@ local config = {
   copilot = true,
   fzf = true,
   git = true,
+  prefer_git = false,
   colorscheme = function()
     if utils.is_dark_mode() then
       vim.o.background = "dark"

@@ -1,3 +1,4 @@
+local config = require("nisi").config
 return {
   {
     "nvim-treesitter/nvim-treesitter",
@@ -9,6 +10,9 @@ return {
       "JoosepAlviste/nvim-ts-context-commentstring",
     },
     init = function(plugin)
+      if config.prefer_git then
+        require("nvim-treesitter.install").prefer_git = true
+      end
       require("lazy.core.loader").add_to_rtp(plugin)
       require("nvim-treesitter.query_predicates")
     end,
