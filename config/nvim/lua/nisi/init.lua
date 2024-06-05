@@ -12,6 +12,7 @@ local utils = require("nisi.utils")
 ---@field fzf boolean|nil Whether too configure fzf for tooling like telescope
 ---@field git boolean|nil Whether or not to configure the dotfiles for git
 ---@field prefer_git boolean|nil Whether to prefer using git for dependencies over other options like curl
+---@field proxy string|nil A proxy URL to use for certain network functions
 ---@field colorscheme string|fun()|nil What to set the colorscheme to and/or how
 local config = {
   lazypath = vim.fn.stdpath("data") .. "lazy/lazy.nvim",
@@ -21,6 +22,7 @@ local config = {
   copilot = true,
   fzf = true,
   git = true,
+  proxy = nil,
   prefer_git = false,
   colorscheme = function()
     if utils.is_dark_mode() then
@@ -154,6 +156,12 @@ function M.setup(user_config)
   end
 
   assign_config(user_config)
+  if config.proxy then
+    -- Set proxy environment variables for Neovim
+    vim.env.http_proxy = config.proxy
+    vim.env.https_proxy = config.proxy
+  end
+
   require("nisi.config.options")
   require("nisi.config.keymaps")
   init_plugins()
