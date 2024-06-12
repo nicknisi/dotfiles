@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+# Notes:
+# - $XDG_DATA_HOME - Where user-specific data files should be stored.
+#   - Default: $HOME/.local/share
+# - $XDG_CONFIG_HOME - Where user-specific configuration files should be stored.
+#   - Default: $HOME/.config should be used.
+#
+# Idea:
+# - provide a `--path` flag which will be the root to install to
+# - $ bundle --path ~/.ondemand/homedir/nvim-setup
+# This will create the following:
+# - ~/.ondemand/homedir/nvim-setup/data
+# - ~/.ondemand/homedir/nvim-seutp/config/nvim
+
 set -Eeuo pipefail
 trap cleanup SIGINT SIGTERM ERR EXIT
 
@@ -47,16 +60,15 @@ die() {
 parse_params() {
   # default values of variables set from params
   flag=0
-  param=''
+  path=''
 
   while :; do
     case "${1-}" in
     -h | --help) usage ;;
     -v | --verbose) set -x ;;
     --no-color) NO_COLOR=1 ;;
-    -f | --flag) flag=1 ;; # example flag
-    -p | --param) # example named parameter
-      param="${2-}"
+    -p | --path) # example named parameter
+      path="${2-}"
       shift
       ;;
     -?*) die "Unknown option: $1" ;;
@@ -76,6 +88,11 @@ parse_params() {
 
 parse_params "$@"
 setup_colors
+
+sync_lazy() {
+  XDG_CONFIG_HOME
+  nvim --headless "+Lazy! sync" +qa
+}
 
 # script logic here
 
