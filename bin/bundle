@@ -80,7 +80,7 @@ parse_params() {
   args=("$@")
 
   # check required params and arguments
-  [[ -z "${param-}" ]] && die "Missing required parameter: param"
+  [[ -z "${path-}" ]] && die "Missing required parameter: path"
   [[ ${#args[@]} -eq 0 ]] && die "Missing script arguments"
 
   return 0
@@ -89,14 +89,26 @@ parse_params() {
 parse_params "$@"
 setup_colors
 
+setup_paths() {
+  mkdir -p "$config_home"
+  mkdir -p "$data_home"
+  cp -RL "$HOME/.config/nvim" "$config_home/nvim"
+}
+
 sync_lazy() {
-  XDG_CONFIG_HOME
-  nvim --headless "+Lazy! sync" +qa
+  XDG_CONFIG_HOME="$config_home" \
+    XDG_DATA_HOME="$data_home" \
+    nvim --headless +qa
 }
 
 # script logic here
+config_home="$path/config"
+data_home="$path/data"
 
 msg "${RED}Read parameters:${NOFORMAT}"
-msg "- flag: ${flag}"
-msg "- param: ${param}"
+msg "- path: ${path}"
 msg "- arguments: ${args[*]-}"
+
+setup_paths
+
+sync_lazy
