@@ -47,9 +47,8 @@ if h.is_dark then
     THEME_FLAVOUR = "mocha",
   }
   config.background = {
-    -- custom_config.wallpaper_dir and b.get_random_wallpaper(custom_config.wallpaper_dir .. "/*.{png,jpg,jpeg}") or {},
-    -- b.get_random_animation(assets .. "/*.gif"),
     b.get_background(),
+    b.get_animation(os.getenv("HOME") .. "/.config/wezterm/assets/blob_blue.gif"),
   }
 
   if custom_config["wallpaper"] ~= nil then
