@@ -18,6 +18,7 @@ return {
     end,
     config = function(_, opts)
       require("nvim-treesitter.configs").setup(opts)
+      vim.treesitter.language.register("markdown", { "md", "mdx" })
     end,
     opts = {
       ensure_installed = {

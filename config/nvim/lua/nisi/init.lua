@@ -162,6 +162,7 @@ function M.setup(user_config)
     vim.env.https_proxy = config.proxy
   end
 
+  require("nisi.config.filetype")
   require("nisi.config.options")
   require("nisi.config.keymaps")
   init_plugins()
