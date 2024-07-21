@@ -39,7 +39,7 @@ brew "stow" # symlink farm manager
 brew "bat" # better cat
 brew "cloc" # lines of code counter
 brew "entr" # file watcher / command runner
-brew "exa" # ls alternative
+brew "eza" # ls alternative
 brew "fd" # find alternative
 brew "fnm" # Fast Node version manager
 brew "fzf" # Fuzzy file searcher, used in scripts and in vim
