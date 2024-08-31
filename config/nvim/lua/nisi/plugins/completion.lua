@@ -20,6 +20,7 @@ return {
       "onsails/lspkind-nvim",
       { "roobert/tailwindcss-colorizer-cmp.nvim", config = true },
     },
+    cond = not vim.g.vscode,
     config = function()
       local lspkind = require("lspkind")
       local cmp = require("cmp")

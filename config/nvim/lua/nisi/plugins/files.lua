@@ -7,6 +7,7 @@ return {
     keys = {
       { "-", "<cmd>Oil<cr>", desc = "Open parent directory" },
     },
+    cond = not vim.g.vscode,
     opts = {},
     -- Optional dependencies
     dependencies = { "nvim-tree/nvim-web-devicons" },
@@ -16,6 +17,7 @@ return {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
     lazy = false,
+    cond = not vim.g.vscode,
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-tree/nvim-web-devicons",
@@ -239,6 +241,7 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     lazy = false,
+    cond = not vim.g.vscode,
     dependencies = {
       "nvim-lua/plenary.nvim", -- Power telescope with FZF
       "nvim-telescope/telescope-rg.nvim",

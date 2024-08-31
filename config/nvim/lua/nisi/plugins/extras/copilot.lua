@@ -2,6 +2,7 @@ return {
   {
     "zbirenbaum/copilot.lua",
     cmd = "Copilot",
+    cond = not vim.g.vscode,
     build = ":Copilot auth",
     event = "InsertEnter",
     opts = {
@@ -24,6 +25,7 @@ return {
   },
   {
     "zbirenbaum/copilot-cmp",
+    cond = not vim.g.vscode,
     dependencies = {
       "hrsh7th/nvim-cmp",
     },

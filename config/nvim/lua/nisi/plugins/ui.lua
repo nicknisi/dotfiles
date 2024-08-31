@@ -11,6 +11,7 @@ local find_command = utils.is_in_git_repo() and "Telescope git_files" or "Telesc
 return {
   {
     "startup-nvim/startup.nvim",
+    cond = not vim.g.vscode,
     opts = {
       header = {
         type = "text",
@@ -87,8 +88,12 @@ return {
     },
   },
   -- file drawer plugin
-  -- Floating statuslines. This is used to shwo buffer names in splits
-  { "b0o/incline.nvim", opts = { hide = { cursorline = false, focused_win = false, only_win = true } } },
+  -- Floating statuslines. This is used to show buffer names in splits
+  {
+    "b0o/incline.nvim",
+    cond = not vim.g.vscode,
+    opts = { hide = { cursorline = false, focused_win = false, only_win = true } },
+  },
 
   -- Prettier notifications
   {

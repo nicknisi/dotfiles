@@ -4,7 +4,7 @@ local icons = require("nisi.assets").icons
 return {
   {
     "nvim-lualine/lualine.nvim",
-    enabled = true,
+    cond = not vim.g.vscode,
     event = "VeryLazy",
     opts = function(plugin)
       if plugin.override then

@@ -18,6 +18,7 @@ return {
     "liuchengxu/vista.vim",
     lazy = true,
     cmd = "Vista",
+    cond = not vim.g.vscode,
     config = function()
       vim.g.vista_default_executive = "nvim_lsp"
     end,
@@ -25,6 +26,7 @@ return {
   {
     "neovim/nvim-lspconfig",
     lazy = false,
+    cond = not vim.g.vscode,
     dependencies = {
       -- Helpers to install LSPs and maintain them
       "williamboman/mason.nvim",
