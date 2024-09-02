@@ -2,7 +2,15 @@
 # It should contain commands to set the command search path, plus other important environment variables.
 # .zshenv' should not contain commands that produce output or assume the shell is attached to a tty.
 
-export DOTFILES="$(dirname "$(dirname "$(readlink "${(%):-%N}")")")"
+export XDG_CONFIG_HOME="$HOME/.config"
+
+export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000
+SAVEHIST=10000
+
+export DOTFILES="$(dirname "$(dirname "$(dirname "$(readlink "${(%):-%N}")")")")"
+
 export CACHEDIR="$HOME/.local/share"
 export VIM_TMP="$HOME/.vim-tmp"
 # add a config file for ripgrep
@@ -14,7 +22,7 @@ export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
 [[ -f ~/.zshenv.local ]] && source ~/.zshenv.local
 
 fpath=(
-    $DOTFILES/zsh/functions
+    $DOTFILES/config/zsh/functions
     /usr/local/share/zsh/site-functions
     $fpath
 )

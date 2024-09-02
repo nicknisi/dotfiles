@@ -10,12 +10,12 @@ COLOR_YELLOW="\033[1;33m"
 COLOR_NONE="\033[0m"
 
 linkables=(
-  "zsh/.zshrc"
-  "zsh/.zshenv"
-  "zsh/.zprofile"
-  "zsh/.zsh_aliases"
-  "zsh/.zsh_functions"
-  "zsh/.zsh_prompt"
+  # "zsh/.zshrc"
+  # "zsh/.zshenv"
+  # "zsh/.zprofile"
+  # "zsh/.zsh_aliases"
+  # "zsh/.zsh_functions"
+  # "zsh/.zsh_prompt"
 )
 
 # Configuration home
@@ -137,6 +137,14 @@ setup_symlinks() {
       ln -s "$config" "$target"
     fi
   done
+
+  # symlink .zshenv into home directory to properly setup ZSH
+  if [ ! -e "$HOME/.zshenv" ]; then
+    info "Creating symlink for .zshenv"
+    ln -s "$DOTFILES/config/zsh/.zshenv" "$HOME/.zshenv"
+  else
+    info "~/.zshenv already exists... Skipping."
+  fi
 }
 
 copy() {

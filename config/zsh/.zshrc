@@ -1,6 +1,6 @@
 export ZSH=$DOTFILES/zsh
 
-source ~/.zsh_functions
+source "$ZDOTDIR/.zsh_functions"
 
 ########################################################
 # Configuration
@@ -35,9 +35,6 @@ setopt LOCAL_TRAPS
 setopt PROMPT_SUBST
 
 # history
-HISTFILE=~/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
 setopt EXTENDED_HISTORY          # write the history file in the ":start:elapsed;command" format.
 setopt HIST_REDUCE_BLANKS        # remove superfluous blanks before recording entry.
 setopt SHARE_HISTORY             # share history between all sessions.
@@ -152,7 +149,7 @@ fi
 [[ -a ~/.localrc ]] && source ~/.localrc
 
 # look for all .zsh files and source them
-for file in ~/.zsh_prompt ~/.zsh_aliases; do
+for file in "$ZDOTDIR/.zsh_prompt" "$ZDOTDIR/.zsh_aliases"; do
     if [ -f $file ]; then
         source $file
     fi

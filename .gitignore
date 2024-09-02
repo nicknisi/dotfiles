@@ -7,3 +7,4 @@ vim/vim.symlink/plugged/
 Brewfile.lock.json
 lazy-lock.json
 config/kitty/kitty-overrides.conf
+config/zsh/.zsh_history
