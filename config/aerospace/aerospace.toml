@@ -194,6 +194,10 @@ if.app-id = 'com.apple.Safari'
 run = 'move-node-to-workspace B'
 
 [[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+run = 'move-node-to-workspace B'
+
+[[on-window-detected]]
 if.app-id = 'com.mozilla.firefox'
 run = 'move-node-to-workspace B'
 
@@ -201,6 +205,10 @@ run = 'move-node-to-workspace B'
 
 [[on-window-detected]]
 if.app-id = 'com.firstversionist.polypane'
+run = 'move-node-to-workspace D'
+
+[[on-window-detected]]
+if.app-id = 'com.facebook.fbvscode'
 run = 'move-node-to-workspace D'
 
 ## Floaters
