@@ -211,6 +211,10 @@ run = 'move-node-to-workspace D'
 if.app-id = 'com.facebook.fbvscode'
 run = 'move-node-to-workspace D'
 
+[[on-window-detected]]
+if.app-id = 'com.microsoft.VSCode'
+run = 'move-node-to-workspace D'
+
 ## Floaters
 
 [[on-window-detected]]
