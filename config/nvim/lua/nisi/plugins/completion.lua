@@ -26,7 +26,7 @@ return {
       local cmp = require("cmp")
       local tailwind_formatter = require("tailwindcss-colorizer-cmp").formatter
 
-      vim.o.completeopt = "menu,menuone,noselect"
+      vim.opt.completeopt = { "menu", "menuone", "noselect" }
 
       cmp.setup({
         ghost_text = { enabled = true },

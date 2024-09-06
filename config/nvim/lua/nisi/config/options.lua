@@ -24,7 +24,6 @@ if not vim.env.SSH_TTY then
   opt.clipboard = "unnamedplus" -- use the system clipboard
 end
 
-opt.completeopt = { "menu", "menuone", "noselect" }
 opt.conceallevel = 2 -- concealeed text is hidden
 
 opt.confirm = true -- confirm changes before exiting a buffer
