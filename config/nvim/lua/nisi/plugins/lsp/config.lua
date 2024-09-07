@@ -153,7 +153,7 @@ function M.setup()
 
   if utils.exists_in_table(servers, "tsserver") then
     handlers["tsserver"] = function()
-      lspconfig.tsserver.setup(make_conf({
+      lspconfig.ts_ls.setup(make_conf({
         handlers = {
           ["textDocument/definition"] = function(err, result, ctx, ...)
             if #result > 1 then
