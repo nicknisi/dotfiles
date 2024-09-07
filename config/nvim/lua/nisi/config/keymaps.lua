@@ -17,16 +17,22 @@ if version.major == 0 and version.minor < 10 then
   vim.opt.pastetoggle = "<leader>v"
 end
 
--- create a completion_nvim table on _G which is visible via
--- v:lua from vimscript
-_G.completion_nvim = {}
+if not vim.g.vscode then
+  -- create a completion_nvim table on _G which is visible via
+  -- v:lua from vimscript
+  _G.completion_nvim = {}
 
-function _G.completion_nvim.smart_pumvisible(vis_seq, not_vis_seq)
-  if vim.fn.pumvisible() == 1 then
-    return termcodes(vis_seq)
-  else
-    return termcodes(not_vis_seq)
+  function _G.completion_nvim.smart_pumvisible(vis_seq, not_vis_seq)
+    if vim.fn.pumvisible() == 1 then
+      return termcodes(vis_seq)
+    else
+      return termcodes(not_vis_seq)
+    end
   end
+
+  -- navigate menus with ctrl + j/k
+  inoremap("<C-j>", [[v:lua.completion_nvim.smart_pumvisible('<C-n>', '<C-j>')]], { expr = true })
+  inoremap("<C-k>", [[v:lua.completion_nvim.smart_pumvisible('<C-p>', '<C-k>')]], { expr = true })
 end
 
 nnoremap("Q", "<nop>") -- don't accidentally go into Ex mode
@@ -55,10 +61,6 @@ nmap("<leader>z", "<Plug>Zoom", { desc = "Toggle zoom" })
 -- helpers for dealing with other people's code
 nmap([[\t]], ":set ts=4 sts=4 sw=4 noet<cr>", { desc = "Set tabs" })
 nmap([[\s]], ":set ts=4 sts=4 sw=4 et<cr>", { desc = "Set spaces" })
-
--- navigate menus with ctrl + j/k
-inoremap("<C-j>", [[v:lua.completion_nvim.smart_pumvisible('<C-n>', '<C-j>')]], { expr = true })
-inoremap("<C-k>", [[v:lua.completion_nvim.smart_pumvisible('<C-p>', '<C-k>')]], { expr = true })
 
 -- indent outdent while in visual mode
 vmap("<", "<gv")
