@@ -1,4 +1,3 @@
-local utils = require("nisi.utils")
 return {
   -- Catppuccin theme
   {
@@ -6,8 +5,9 @@ return {
     name = "catppuccin",
     lazy = true,
     opts = {
+      flavour = "Mocha",
       dim_inactive = { enabled = false, shade = "dark", percentage = 0.15 },
-      transparent_background = true,
+      transparent_background = false,
       term_colors = true,
       compile = { enabled = true, path = vim.fn.stdpath("cache") .. "/catppuccin", suffix = "_compiled" },
       styles = {
