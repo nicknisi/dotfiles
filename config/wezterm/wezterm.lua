@@ -23,8 +23,19 @@ config.window_padding = {
 config.font = wezterm.font("Monaspace Neon", { weight = "Regular" })
 config.font_rules = {
   {
+    intensity = "Normal",
     italic = true,
-    font = wezterm.font("Monaspace Radon", { weight = "Medium" }),
+    font = wezterm.font("Monaspace Radon", { weight = "Regular" }),
+  },
+  {
+    intensity = "Bold",
+    italic = false,
+    font = wezterm.font("Monaspace Neon", { weight = "ExtraBold" }),
+  },
+  {
+    intensity = "Bold",
+    italic = true,
+    font = wezterm.font("Monaspace Radon", { weight = "ExtraBold" }),
   },
 }
 config.harfbuzz_features = { "calt", "dlig", "clig=1", "ss01", "ss02", "ss03", "ss04", "ss05", "ss06", "ss07", "ss08" }
@@ -37,9 +48,19 @@ config.send_composed_key_when_left_alt_is_pressed = true
 config.send_composed_key_when_right_alt_is_pressed = false
 
 if h.is_dark then
-  config.color_scheme = "Catppuccin Mocha"
+  local custom = wezterm.color.get_builtin_schemes()["Catppuccin Macchiato"]
+  -- set a custom, darker background color for Macchiato
+  custom.background = "#0b0b12"
+
+  -- override the Catppuccin Macchiato color scheme
+  config.color_schemes = {
+    ["Catppuccin Macchiato"] = custom,
+  }
+
+  -- and use the custom color scheme
+  config.color_scheme = "Catppuccin Macchiato"
   config.set_environment_variables = {
-    THEME_FLAVOUR = "mocha",
+    THEME_FLAVOUR = "macchiato",
   }
   if fancy then
     config.background = {

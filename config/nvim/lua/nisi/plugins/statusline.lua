@@ -54,8 +54,10 @@ return {
         options = {
           theme = "auto",
           icons_enabled = true,
-          section_separators = { right = "", left = "" },
-          -- component_separators = "", --{ right = "", left = "" },
+          -- section_separators = { right = "", left = "" },
+          -- -- component_separators = "", --{ right = "", left = "" },
+          section_separators = { left = "", right = "" },
+          -- component_separators = { left = "", right = "" },
           globalstatus = true,
           component_separators = { left = "", right = "" },
           disabled_filetypes = { statusline = { "dashboard", "lazy", "alpha" } },
