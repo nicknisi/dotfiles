@@ -17,7 +17,7 @@ local border = {
 
 local servers = {
   "eslint",
-  "tsserver",
+  "ts_ls",
   "lua_ls",
   "denols",
   "astro",
@@ -151,8 +151,8 @@ function M.setup()
     end
   end
 
-  if utils.exists_in_table(servers, "tsserver") then
-    handlers["tsserver"] = function()
+  if utils.exists_in_table(servers, "ts_ls") then
+    handlers["ts_ls"] = function()
       lspconfig.ts_ls.setup(make_conf({
         handlers = {
           ["textDocument/definition"] = function(err, result, ctx, ...)
