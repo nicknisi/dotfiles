@@ -9,6 +9,7 @@ return {
   "editorconfig/editorconfig-vim", -- TODO is this still required?
   {
     "andymass/vim-matchup",
+    cond = not vim.g.vscode,
     config = function()
       vim.g.matchup_matchparen_offscreen = { method = "popup" }
     end,
