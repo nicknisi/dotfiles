@@ -151,6 +151,12 @@ alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
 alt-shift-semicolon = 'mode service'
 
+[workspace-to-monitor-force-assignment]
+D = 'main'
+P = 'secondary'
+B = 'secondary'
+T = 'main'
+
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 [mode.service.binding]
