@@ -73,8 +73,8 @@ return {
         },
         icon = {
           folder_closed = icons.default,
-          folder_open = icons.default_open,
-          folder_empty = icons.empty_open,
+          folder_open = icons.open,
+          folder_empty = icons.empty,
           -- The next two settings are only a fallback, if you use nvim-web-devicons and configure default icons there
           -- then these will never be used.
           default = "*",
