@@ -233,6 +233,10 @@ run = 'layout floating'
 if.app-id = 'com.1password.1password'
 run = 'layout floating'
 
+[[on-window-detected]]
+if.app-id = 'com.apple.FaceTime'
+run = 'layout floating'
+
 ## Productivity
 
 [[on-window-detected]]
