@@ -237,6 +237,18 @@ run = 'layout floating'
 if.app-id = 'com.apple.FaceTime'
 run = 'layout floating'
 
+[[on-window-detected]]
+if.app-id = 'com.macpaw.CleanMyMac-setapp'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.ScreenContinuity'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.rogueamoeba.audiohijack'
+run = 'layout floating'
+
 ## Productivity
 
 [[on-window-detected]]
