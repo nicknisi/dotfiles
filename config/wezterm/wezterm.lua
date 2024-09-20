@@ -48,16 +48,17 @@ config.send_composed_key_when_left_alt_is_pressed = true
 config.send_composed_key_when_right_alt_is_pressed = false
 
 if h.is_dark then
-  local custom = wezterm.color.get_builtin_schemes()["Catppuccin Macchiato"]
-  -- set a custom, darker background color for Macchiato
-  custom.background = "#0b0b12"
+  -- local custom = wezterm.color.get_builtin_schemes()["Catppuccin Macchiato"]
+  -- -- set a custom, darker background color for Macchiato
+  -- custom.background = "#0b0b12"
 
   -- override the Catppuccin Macchiato color scheme
-  config.color_schemes = {
-    ["Catppuccin Macchiato"] = custom,
-  }
+  -- config.color_schemes = {
+  --   ["Catppuccin Macchiato"] = custom,
+  -- }
 
   -- and use the custom color scheme
+  -- config.color_scheme = "Catppuccin Macchiato"
   config.color_scheme = "Catppuccin Macchiato"
   config.set_environment_variables = {
     THEME_FLAVOUR = "macchiato",

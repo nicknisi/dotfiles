@@ -5,7 +5,7 @@ return {
     name = "catppuccin",
     lazy = true,
     opts = {
-      flavour = "macchiato", -- latte, frappe, macchiato, mocha
+      flavour = "mocha", -- latte, frappe, macchiato, mocha
       dim_inactive = { enabled = false, shade = "dark", percentage = 0.15 },
       transparent_background = false,
       term_colors = true,
