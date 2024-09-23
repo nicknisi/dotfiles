@@ -6,7 +6,7 @@ return {
     lazy = true,
     opts = {
       flavour = "mocha", -- latte, frappe, macchiato, mocha
-      dim_inactive = { enabled = false, shade = "dark", percentage = 0.15 },
+      dim_inactive = { enabled = true, shade = "dark", percentage = 0.6 },
       transparent_background = false,
       term_colors = true,
       compile = { enabled = true, path = vim.fn.stdpath("cache") .. "/catppuccin", suffix = "_compiled" },
