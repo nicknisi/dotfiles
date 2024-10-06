@@ -19,27 +19,6 @@ fork to your heart's content. Happy coding!
 
 <img width="1600" alt="capture-20231114134612" src="https://github.com/nicknisi/dotfiles/assets/293805/43dff50a-8fad-44e5-b979-d72ebd0366f8">
 
-## Customization
-
-I have taken some steps to allow for customization without needing to directly modify the dotfiles. This makes it easier
-for anyone to keep up with the latest version of this repository while adding their own customization on top, and it
-allows for me to make tinkering, tiny changes without having to push updates to the repo constantly.
-
-The customization layer allows for a custom Lua file that can be used to tie customizations into both WezTerm and
-Neovim.
-
-### The `~/dotfiles.lua` file
-
-To make custommizations, create a `~/dotfiles.lua` file with the following content:
-
-```lua
-local config = {
-  -- contents goes here...
-}
-
-return config
-```
-
 ## Initial setup
 
 The first thing you need to do is to clone this repo into a location of your
@@ -175,7 +154,7 @@ the exception of the `backup` script. You must run that one manually.
 
 ## ZSH Configuration
 
-The prompt for ZSH is configured in the `zsh/zshrc` file and performs the
+The prompt for ZSH is configured in the `cnofig/zsh/zshrc` file and performs the
 following operations.
 
 - Sets `EDITOR` to `nvim`
@@ -384,10 +363,12 @@ test the dotfiles installation process with linux.
 
 I almost exclusively work on macOS, so this list will be specific to that
 operating system, but several of these reccomendations are also available,
-cross-platform.
+cross-platform. For a full and up-to-date list of the software and gear that I use today, check out my
+[/uses](https://nicknisi.com/uses) page.
 
-- [WezTerm](https://wezfurlong.org/wezterm/index.html) - A GPU-based terminal
-  emulator
+- [WezTerm](https://wezfurlong.org/wezterm/index.html) - A GPU-based terminal emulator
+- [Aerospace](https://github.com/nikitabobko/AeroSpace) - An i3-like tiling window manager for macOS.
+- [Raycast](https://raycast.com)
 
 ## Questions
 
