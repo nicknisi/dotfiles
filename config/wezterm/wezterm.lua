@@ -80,4 +80,6 @@ else
   }
 end
 
+wezterm.plugin.require("https://gitlab.com/xarvex/presentation.wez").apply_to_config(config)
+
 return config
