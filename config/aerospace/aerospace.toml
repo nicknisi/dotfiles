@@ -196,20 +196,6 @@ run = 'move-node-to-workspace C'
 if.app-id = 'com.tinyspec.slackmacgap'
 run = 'move-node-to-workspace C'
 
-## Browsers
-
-[[on-window-detected]]
-if.app-id = 'com.apple.Safari'
-run = 'move-node-to-workspace B'
-
-[[on-window-detected]]
-if.app-id = 'com.google.Chrome'
-run = 'move-node-to-workspace B'
-
-[[on-window-detected]]
-if.app-id = 'com.mozilla.firefox'
-run = 'move-node-to-workspace B'
-
 ## Development
 
 [[on-window-detected]]
