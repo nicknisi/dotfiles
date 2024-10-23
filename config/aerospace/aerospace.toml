@@ -186,21 +186,17 @@ run = 'move-node-to-workspace T'
 
 [[on-window-detected]]
 if.app-id = 'com.apple.MobileSMS'
-run = 'move-node-to-workspace C'
+run = 'move-node-to-workspace P'
 
 [[on-window-detected]]
 if.app-id = 'com.hnc.Discord'
-run = 'move-node-to-workspace C'
+run = 'move-node-to-workspace P'
 
 [[on-window-detected]]
 if.app-id = 'com.tinyspec.slackmacgap'
-run = 'move-node-to-workspace C'
+run = 'move-node-to-workspace P'
 
 ## Development
-
-[[on-window-detected]]
-if.app-id = 'com.firstversionist.polypane'
-run = 'move-node-to-workspace D'
 
 [[on-window-detected]]
 if.app-id = 'com.facebook.fbvscode'
