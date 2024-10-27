@@ -53,10 +53,10 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 # Allow for more space on smaller screens
 inner.horizontal = [ { monitor."Built-in Retina Display" = 10 }, 15  ]
 inner.vertical =   [ { monitor."Built-in Retina Display" = 10 }, 15  ]
-outer.left =       [ { monitor."Built-in Retina Display" = 10 }, 25  ]
-outer.bottom =     [ { monitor."Built-in Retina Display" = 10 }, 25  ]
-outer.top =        [ { monitor."Built-in Retina Display" = 10 }, 25  ]
-outer.right =      [ { monitor."Built-in Retina Display" = 10 }, 25  ]
+outer.left =       [ { monitor."Built-in Retina Display" = 5 }, 25  ]
+outer.bottom =     [ { monitor."Built-in Retina Display" = 5 }, 25  ]
+outer.top =        [ { monitor."Built-in Retina Display" = 5 }, 25  ]
+outer.right =      [ { monitor."Built-in Retina Display" = 5 }, 25  ]
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
