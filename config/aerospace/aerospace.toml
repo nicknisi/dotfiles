@@ -121,9 +121,11 @@ alt-9 = 'workspace 9'
 alt-b = 'workspace B' # Browsers
 alt-c = 'workspace C' # Chat apps
 alt-d = 'workspace D' # Development
+alt-m = 'workspace M' # Mail
 alt-n = 'workspace N' # Notes
 alt-p = 'workspace P' # Productivity
 alt-t = 'workspace T' # Terminal
+alt-z = 'workspace Z' # Screen-sharing/Zoom
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
 alt-shift-1 = 'move-node-to-workspace 1'
@@ -138,9 +140,11 @@ alt-shift-9 = 'move-node-to-workspace 9'
 alt-shift-b = 'move-node-to-workspace B'
 alt-shift-c = 'move-node-to-workspace C'
 alt-shift-d = 'move-node-to-workspace D'
+alt-shift-m = 'move-node-to-workspace M'
 alt-shift-n = 'move-node-to-workspace N'
 alt-shift-p = 'move-node-to-workspace P'
 alt-shift-t = 'move-node-to-workspace T'
+alt-shift-z = 'move-node-to-workspace Z'
 
 alt-shift-f = 'fullscreen'
 
