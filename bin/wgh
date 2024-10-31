@@ -1,0 +1,11 @@
+#!/bin/bash
+# simple script which moves all ghost windows to a designated garbage workspace
+# see https://github.com/nikitabobko/AeroSpace/issues/445
+
+GARBAGE_WORKSPACE=BIN
+
+ghost_window_ids=$(aerospace list-windows --all  | grep -e '.*|.*| $' | awk '{print $3}')
+
+for id in $ghost_window_ids ; do
+    aerospace move-node-to-workspace --window-id "$id" $GARBAGE_WORKSPACE
+done
