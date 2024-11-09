@@ -8,6 +8,7 @@ return {
     },
     dependencies = { "tpope/vim-rhubarb" },
   },
+  { "akinsho/git-conflict.nvim", version = "*", config = true },
   {
     "mhinz/vim-signify",
     -- init = function(_)
