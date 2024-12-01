@@ -17,6 +17,7 @@ return {
             "markdown_inline",
             "regex",
             "bash",
+            "verilog",
         })
     end,
 }
