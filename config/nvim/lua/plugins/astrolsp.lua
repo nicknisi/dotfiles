@@ -4,10 +4,6 @@
 --       as this provides autocomplete and documentation while editing
 
 ---@type LazySpec
-local lspconfig = require "lspconfig"
-local python_root_files = {
-    "pyrightconfig.json",
-}
 
 return {
     "AstroNvim/astrolsp",
@@ -15,9 +11,8 @@ return {
     opts = {
         -- Configuration table of features provided by AstroLSP
         features = {
-            autoformat = false, -- enable or disable auto formatting on start
             codelens = true, -- enable/disable codelens refresh on start
-            inlay_hints = true, -- enable/disable inlay hints on start
+            inlay_hints = false, -- enable/disable inlay hints on start
             semantic_tokens = true, -- enable/disable semantic token highlighting
         },
         -- customize lsp formatting options
@@ -88,9 +83,6 @@ return {
                         -- },
                     },
                 },
-            },
-            pyright = {
-                root_dir = lspconfig.util.root_pattern(unpack(python_root_files)),
             },
             bashls = {},
             cmake = {},
