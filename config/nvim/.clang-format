@@ -136,7 +136,7 @@ ReflowComments:  true
 RemoveBracesLLVM: false
 SeparateDefinitionBlocks: Leave
 ShortNamespaceLines: 1
-SortIncludes:    false
+SortIncludes:    Never
 SortJavaStaticImport: Before
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
