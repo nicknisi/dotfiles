@@ -254,19 +254,19 @@ return {
                 "n",
                 "<Leader>tv",
                 function() term_toggle "vertical" end,
-                { noremap = true, silent = true, desc = "Split terminal vertically" }
+                { noremap = true, silent = true, desc = "Open vertical terminal" }
             )
             vim.keymap.set(
                 "n",
                 "<Leader>th",
                 function() term_toggle "horizontal" end,
-                { noremap = true, silent = true, desc = "Split terminal horizontallly" }
+                { noremap = true, silent = true, desc = "Open horizontal terminal" }
             )
             vim.keymap.set(
                 "n",
                 "<Leader>tf",
                 function() term_toggle "float" end,
-                { noremap = true, silent = true, desc = "Split terminal horizontallly" }
+                { noremap = true, silent = true, desc = "Open floating terminal" }
             )
             vim.keymap.set(
                 "n",
