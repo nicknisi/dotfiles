@@ -282,4 +282,19 @@ return {
             )
         end,
     },
+    {
+        "folke/which-key.nvim",
+        opts = {
+            delay = 800,
+        },
+    },
+    {
+        "JoosepAlviste/nvim-ts-context-commentstring",
+        opts = {
+            -- adujst default configuration: https://github.com/JoosepAlviste/nvim-ts-context-commentstring/blob/9c74db656c3d0b1c4392fc89a016b1910539e7c0/lua/ts_context_commentstring/config.lua#L66
+            languages = {
+                c = { __default = "// %s", __multiline = "/* %s */" },
+            },
+        },
+    },
 }
