@@ -27,7 +27,6 @@
                 },
                 "to": [{ "key_code": "left_control" }],
                 "to_if_alone": [{ "key_code": "escape" }],
-                "to_if_held_down": [{ "key_code": "caps_lock" }],
                 "to_after_key_up": [
                   { "set_variable": { "name": "caps_lock_state", "value": 0 } }
                 ]
