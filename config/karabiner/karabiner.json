@@ -32,10 +32,26 @@
                 ]
               }
             ]
+          },
+          {
+            "description": "Right Option to Hyper Key",
+            "manipulators": [
+              {
+                "type": "basic",
+                "from": {
+                  "key_code": "right_option"
+                },
+                "to": [
+                  {
+                    "key_code": "left_shift",
+                    "modifiers": ["left_command", "left_option", "left_control"]
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
     }
   ]
 }
-
