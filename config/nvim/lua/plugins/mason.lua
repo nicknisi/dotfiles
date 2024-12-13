@@ -12,6 +12,7 @@ return {
                 "cmake",
                 "lua_ls",
                 "bashls",
+                "verible",
             })
         end,
     },
@@ -30,7 +31,6 @@ return {
                 "prettier",
                 "shellcheck",
                 "shfmt",
-                "verible",
                 -- "checkmake",
             })
         end,

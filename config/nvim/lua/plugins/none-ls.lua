@@ -22,7 +22,7 @@ return {
             },
             null_ls.builtins.formatting.black,
             null_ls.builtins.formatting.prettier, --[[ todo:https://prettier.io/docs/en/configuration.html ]]
-            null_ls.builtins.diagnostics.verilator,
+            null_ls.builtins.formatting.verible_verilog_format,
             -- null_ls.builtins.diagnostics.checkmake,
         }
 

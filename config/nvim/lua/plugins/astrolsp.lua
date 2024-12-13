@@ -86,6 +86,9 @@ return {
             },
             bashls = {},
             cmake = {},
+            verible = {
+                cmd = { "verible-verilog-ls", "--rules=-no-tabs" },
+            },
         },
         -- customize how language servers are attached
         handlers = {
