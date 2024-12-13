@@ -55,6 +55,7 @@ return {
                 ["<Leader>r"] = { "<cmd>Neotree focus<cr>" },
                 ["<A-,>"] = { "<C-o>", desc = "go back" },
                 ["<A-.>"] = { "<C-i>", desc = "go forward" },
+                ["<A-\\>"] = { "<C-w>x", desc = "exchange windows" },
 
                 -- Comments
                 ["<Leader>/"] = false,
