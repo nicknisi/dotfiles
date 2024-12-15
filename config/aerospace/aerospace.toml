@@ -64,7 +64,7 @@ inner.horizontal = [ { monitor."Built-in Retina Display" = 10 }, 15  ]
 inner.vertical =   [ { monitor."Built-in Retina Display" = 10 }, 15  ]
 outer.left =       [ { monitor."Built-in Retina Display" = 5 }, 25  ]
 outer.bottom =     [ { monitor."Built-in Retina Display" = 5 }, 25  ]
-outer.top =        [ { monitor."Built-in Retina Display" = 60 }, 60  ] # leave room for sketchybar
+outer.top =        [ { monitor."Built-in Retina Display" = 70 }, 70  ] # leave room for sketchybar
 outer.right =      [ { monitor."Built-in Retina Display" = 5 }, 25  ]
 
 # 'main' binding mode declaration
