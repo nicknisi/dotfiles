@@ -3,8 +3,8 @@
 if OS.mac?
   # taps
   tap "homebrew/cask-fonts"
-  tap "koekeishiya/formulae"
   tap "pkgxdev/made"
+  tap "FelixKratz/formulae"
 
   brew "noti" # utility to display notifications from scripts
   brew "trash" # rm, but put in the trash rather than completely delete
@@ -26,6 +26,8 @@ if OS.mac?
   cask "font-symbols-only-nerd-font"
   cask "font-recursive-code"
   cask "font-monaspace"
+  cask "font-sf-pro"
+  cask "sf-symbols"
 
   cask  "minisim" # A simple way to launch mobile simulators
 elsif OS.linux?
@@ -35,6 +37,7 @@ end
 tap "homebrew/bundle"
 
 # packages
+brew "borders" # add colored borders
 brew "stow" # symlink farm manager
 brew "bat" # better cat
 brew "cloc" # lines of code counter

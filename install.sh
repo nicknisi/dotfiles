@@ -304,6 +304,17 @@ setup_macos() {
   fi
 }
 
+setup_sketchybar_app_font() {
+  title "Setting up Sketchybar"
+
+  if [[ "$(uname)" == "Darwin" ]]; then
+    curl -L https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/sketchybar-app-font.ttf -o "$HOME"/Library/Fonts/sketchybar-app-font.ttf
+    curl -L https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/icon_map_fn.sh -o ~/.config/sketchybar/plugins/icon_map_fn.sh
+  else
+    warning "Sketchybar is only available on macOS. Skipping."
+  fi
+}
+
 case "$1" in
 backup)
   backup
@@ -334,6 +345,9 @@ macos)
   ;;
 catppuccin)
   fetch_catppuccin_theme
+  ;;
+sketchybar_app_font)
+  setup_sketchybar_app_font
   ;;
 all)
   setup_symlinks

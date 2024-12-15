@@ -9,7 +9,16 @@ after-login-command = []
 # You can use it to add commands that run after AeroSpace startup.
 # 'after-startup-command' is run after 'after-login-command'
 # Available commands : https://nikitabobko.github.io/AeroSpace/commands
-after-startup-command = []
+after-startup-command = [
+  'exec-and-forget sketchybar',
+  'exec-and-forget /opt/homebrew/opt/borders/bin/borders active_color="glow(0xd94364ff)" inactive_color=0x20494d64 width=8.0'
+]
+
+exec-on-workspace-change = [
+    '/bin/bash',
+    '-c',
+    '/opt/homebrew/opt/sketchybar/bin/sketchybar --trigger aerospace_workspace_change AEROSPACE_FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE AEROSPACE_PREV_WORKSPACE=$AEROSPACE_PREV_WORKSPACE',
+]
 
 # Start AeroSpace at login
 start-at-login = true
@@ -55,7 +64,7 @@ inner.horizontal = [ { monitor."Built-in Retina Display" = 10 }, 15  ]
 inner.vertical =   [ { monitor."Built-in Retina Display" = 10 }, 15  ]
 outer.left =       [ { monitor."Built-in Retina Display" = 5 }, 25  ]
 outer.bottom =     [ { monitor."Built-in Retina Display" = 5 }, 25  ]
-outer.top =        [ { monitor."Built-in Retina Display" = 5 }, 25  ]
+outer.top =        [ { monitor."Built-in Retina Display" = 60 }, 60  ] # leave room for sketchybar
 outer.right =      [ { monitor."Built-in Retina Display" = 5 }, 25  ]
 
 # 'main' binding mode declaration

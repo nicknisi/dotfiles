@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+# Inspiration: https://www.josean.com/posts/sketchybar-setup
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+ITEM_DIR="$CONFIG_DIR/items"
+
+source "$CONFIG_DIR/colors.sh"
+source "$CONFIG_DIR/icons.sh"
+
+# aerospace setting
+AEROSPACE_FOCUSED_MONITOR_NO=$(aerospace list-workspaces --focused)
+AEROSPACE_LIST_OF_WINDOWS_IN_FOCUSED_MONITOR=$(aerospace list-windows --workspace "$AEROSPACE_FOCUSED_MONITOR_NO" | awk -F'|' '{gsub(/^ *| *$/, "", $2); print $2}')
+
+PADDINGS=3
+FONT="SF Pro"
+
+##### Bar Appearance #####
+# Configuring the general appearance of the bar.
+# These are only some of the options available. For all options see:
+# https://felixkratz.github.io/SketchyBar/config/bar
+# If you are looking for other colors, see the color picker:
+# https://felixkratz.github.io/SketchyBar/config/tricks#color-picker
+
+# Setting up the general bar appearance of the bar
+bar=(
+  height=45
+  color=$BAR_COLOR
+  border_width=2
+  border_color=$BAR_BORDER_COLOR
+  shadow=off
+  position=top
+  sticky=on
+  padding_right=10
+  padding_left=10
+  y_offset=-5
+  margin=-2
+  topmost=window
+  color=0x00000000
+  border_color=0x00000000
+)
+
+sketchybar --bar "${bar[@]}"
+
+##### Changing Defaults #####
+# We now change some default values, which are applied to all further items.
+# For a full list of all available item properties see:
+# https://felixkratz.github.io/SketchyBar/config/items
+
+defaults=(
+  updates=when_shown
+  icon.font="$FONT:Regular:14.0"
+  icon.color=$ICON_COLOR
+  icon.padding_left=$PADDINS
+  icon.padding_right=$PADDINGS
+  label.font="$FONT:Semibold:13.0"
+  label.color=$LABEL_COLOR
+  label.padding_left=$PADDINGS
+  label.padding_right=$PADDINGS
+  label.shadow.drawing=on
+  label.shadow.distance=2
+  label.shadow.color=0xff000000
+  padding_right=$PADDINGS
+  padding_left=$PADDINGS
+  background.height=26
+  background.corner_radius=9
+  background.border_width=2
+  popup.background.border_width=2
+  popup.background.corner_radius=9
+  popup.background.border_color=$POPUP_BORDER_COLOR
+  popup.background.color=$POPUP_BACKGROUND_COLOR
+  popup.blur_radius=20
+  popup.background.shadow.drawing=on
+  scroll_texts=on
+)
+
+sketchybar --default "${defaults[@]}"
+
+# Left
+source "$ITEM_DIR/apple.sh"
+source "$ITEM_DIR/spaces.sh"
+source "$ITEM_DIR/front_app.sh"
+
+# Right
+source "$ITEM_DIR/media.sh"
+source "$ITEM_DIR/calendar.sh"
+source "$ITEM_DIR/volume.sh"
+
+sketchybar --hotload on
+
+##### Force all scripts to run the first time (never do this in a script) #####
+sketchybar --update
