@@ -33,7 +33,8 @@ bar=(
   sticky=on
   padding_right=10
   padding_left=10
-  y_offset=-5
+  # y_offset=-5
+  y_offset=25
   margin=-2
   topmost=window
   color=0x00000000
@@ -77,13 +78,13 @@ defaults=(
 sketchybar --default "${defaults[@]}"
 
 # Left
-source "$ITEM_DIR/apple.sh"
+# source "$ITEM_DIR/apple.sh"
 source "$ITEM_DIR/spaces.sh"
 source "$ITEM_DIR/front_app.sh"
 
 # Right
 source "$ITEM_DIR/media.sh"
-source "$ITEM_DIR/calendar.sh"
+# source "$ITEM_DIR/calendar.sh"
 source "$ITEM_DIR/volume.sh"
 
 sketchybar --hotload on
