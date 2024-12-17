@@ -34,7 +34,7 @@ bar=(
   padding_right=10
   padding_left=10
   # y_offset=-5
-  y_offset=25
+  y_offset=35
   margin=-2
   topmost=window
   color=0x00000000
@@ -84,6 +84,7 @@ source "$ITEM_DIR/front_app.sh"
 
 # Right
 source "$ITEM_DIR/media.sh"
+source "$ITEM_DIR/svim.sh"
 # source "$ITEM_DIR/calendar.sh"
 source "$ITEM_DIR/volume.sh"
 
