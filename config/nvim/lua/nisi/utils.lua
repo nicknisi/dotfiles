@@ -138,4 +138,19 @@ function M.exists_in_table(table, value)
   return false
 end
 
+---Load a shared Lua package from a path
+---Example: load_shared_lua_package(os.getenv("HOME") .. "/.config/dotfiles")
+---@param package_path string
+function M.load_shared_lua_package(package_path)
+  local paths = {
+    package_path .. "/?.lua",
+    package_path .. "/?/?.lua",
+    package_path .. "/?/init.lua",
+  }
+
+  for _, path in ipairs(paths) do
+    M.add_path(path)
+  end
+end
+
 return M

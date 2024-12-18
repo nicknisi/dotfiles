@@ -51,16 +51,6 @@ end
 local M = {}
 local lazy_loaded = false
 local setup_called = false
-local dotfiles = os.getenv("HOME") .. "/.config/dotfiles"
-local paths = {
-  dotfiles .. "/?.lua",
-  dotfiles .. "/?/?.lua",
-  dotfiles .. "/?/init.lua",
-}
-
-for _, path in ipairs(paths) do
-  utils.add_path(path)
-end
 
 local function load_lazy(path)
   if not (vim.uv or vim.loop).fs_stat(path) then
