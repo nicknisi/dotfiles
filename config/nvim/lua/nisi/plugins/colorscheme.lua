@@ -6,8 +6,8 @@ return {
     lazy = true,
     opts = {
       flavour = "mocha", -- latte, frappe, macchiato, mocha
-      dim_inactive = { enabled = true, shade = "dark", percentage = 0.6 },
-      transparent_background = false,
+      -- dim_inactive = { enabled = true, shade = "dark", percentage = 0.6 },
+      transparent_background = true,
       term_colors = true,
       compile = { enabled = true, path = vim.fn.stdpath("cache") .. "/catppuccin", suffix = "_compiled" },
       styles = {
@@ -73,6 +73,29 @@ return {
         which_key = true,
         ts_rainbow = true,
       },
+      custom_highlights = function(colors)
+        return {
+          NormalFloat = { bg = colors.mantle },
+          FloatBorder = { bg = colors.mantle },
+          TelescopeNormal = { bg = colors.mantle },
+          TelescopeBorder = { bg = colors.mantle },
+          NoiceCmdlinePopup = { bg = colors.mantle },
+          NoicePopup = { bg = colors.mantle },
+          WhichKeyFloat = { bg = colors.mantle },
+          -- Add Telescope prompt specific highlights
+          TelescopePrompt = { bg = colors.crust },
+          TelescopePromptNormal = { bg = colors.crust },
+          TelescopePromptBorder = { bg = colors.crust },
+          TelescopePromptPrefix = { bg = colors.crust },
+          TelescopePromptTitle = { bg = colors.crust, fg = colors.blue },
+
+          -- Different colors for results and preview
+          TelescopeResults = { bg = colors.mantle },
+          TelescopePreview = { bg = colors.mantle },
+          TelescopeResultsTitle = { bg = colors.mantle, fg = colors.blue },
+          TelescopePreviewTitle = { bg = colors.mantle, fg = colors.blue },
+        }
+      end,
     },
   },
 }
