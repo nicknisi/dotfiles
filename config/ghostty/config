@@ -1,4 +1,4 @@
-theme = Abernathy
+theme = dark:catppuccin-mocha,light:catppuccin-latte
 macos-titlebar-style = hidden
 bold-is-bright = true
 
@@ -6,7 +6,7 @@ bold-is-bright = true
 font-family = Monaspace Neon
 font-size = 16
 cursor-color = #FFA500
-background-opacity = 0.85
+background-opacity = 0.90
 window-decoration = false
 window-theme = auto
 clipboard-read = allow
