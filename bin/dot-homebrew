@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# Description: Setup and configure Homebrew.
+
+set -Eeuo pipefail
+
+# source helpers
+source "$DOTFILES/bin/lib/common.sh"
+command_name=$(basename "${BASH_SOURCE[0]}")
+
+usage() {
+  cat <<EOF
+  $(fmt_key "Usage:") $(fmt_key "$command_name") $(fmt_value "[options] <command>")
+
+  Setup and configure Homebrew. This script automates the installation of Homebrew on
+  macOS and Linux. It also installs Homebrew packages from the Brewfile located in the
+  dotfiles repository.
+
+
+Options:
+    -h, --help       Show this help message
+    install          Install Homebrew on this machine
+    bundle           Install Homebrew packages
+EOF
+}
+
+homebrew_install() {
+  fmt_title_underline "Setting up Homebrew"
+
+  if test "$(command -v brew)"; then
+    log_info "Homebrew already installed."
+    exit 0
+  fi
+
+  # Run as a login shell (non-interactive) so that the script doesn't pause for user input
+  curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh | bash --login
+
+  log_success "Homebrew installed successfully."
+
+  if [ "$(uname)" == "Linux" ]; then
+    log_info "Setting up Linuxbrew-specific files."
+    test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
+    test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.bash_profile
+  fi
+
+  # install brew dependencies from Brewfile
+  brew bundle
+
+}
+
+homebrew_bundle() {
+  # Check if Homebrew is installed
+  if ! command -v brew &>/dev/null; then
+    log_error "Homebrew is not installed. Exiting."
+    exit 1
+  fi
+
+  fmt_title_underline "Installing Homebrew packages"
+
+  if ! brew bundle --file="$DOTFILES/Brewfile"; then
+    log_error "Failed to install Homebrew packages."
+    exit 1
+  fi
+
+  log_success "Homebrew packages installed successfully."
+
+  # install fzf
+  echo -e
+  log_info "Installing fzf"
+  "$(brew --prefix)"/opt/fzf/install --key-bindings --completion --no-update-rc --no-bash --no-fish
+}
+
+main() {
+  local subcmd=""
+
+  if [ $# -lt 1 ]; then
+    usage
+    exit 0
+  fi
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      subcmd="$1"
+      shift
+      ;;
+    esac
+  done
+
+  case "$subcmd" in
+  install)
+    homebrew_install
+    ;;
+  bundle)
+    homebrew_bundle
+    ;;
+  *)
+    log_error "Unknown legacy command: $subcmd"
+    echo -e
+    usage
+    exit 1
+    ;;
+  esac
+}
+
+main "$@"
