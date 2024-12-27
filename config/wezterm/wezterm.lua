@@ -7,6 +7,15 @@ local config = wezterm.config_builder()
 -- set this to true to enable fancy background
 local fancy = true
 
+config.max_fps = 120
+config.prefer_egl = true
+
+config.colors = {
+  cursor_bg = "#f5c06f",
+  cursor_border = "#f5c06f",
+  indexed = { [239] = "lightslategray" },
+}
+
 config.macos_window_background_blur = 30
 config.enable_tab_bar = false
 config.window_decorations = "RESIZE"
