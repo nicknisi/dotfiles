@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Description: Setup Git confgiuration personalized for you.
+
+set -Eeuo pipefail
+
+# source helpers
+source "$DOTFILES/bin/lib/common.sh"
+command_name=$(basename "${BASH_SOURCE[0]}")
+
+usage() {
+  cat <<EOF
+  $(fmt_key "Usage:") $(fmt_key "$command_name") $(fmt_value "[options] <command>")
+
+Setup Git configuration personalized for you. This script will prompt you for your
+name, email, and Github username to configure Git. The configuration will be saved
+to a local .gitconfig-local file in your home directory.
+
+Options:
+    -h, --help       Show this help message
+    setup            Setup git configuration
+EOF
+}
+
+setup_git() {
+  fmt_title_underline "Setting up Git configuration"
+
+  if ! command -v git &>/dev/null; then
+    log_error "Git is not installed. Exiting."
+    exit 1
+  fi
+
+  local_config="$HOME/.gitconfig-local"
+
+  defaultName=$(git config user.name)
+  defaultEmail=$(git config user.email)
+  defaultGithub=$(git config github.user)
+
+  read -rp "Name [$defaultName] " name
+  read -rp "Email [$defaultEmail] " email
+  read -rp "Github username [$defaultGithub] " github
+
+  git config -f "$local_config" user.name "${name:-$defaultName}"
+  git config -f "$local_config" user.email "${email:-$defaultEmail}"
+  git config -f "$local_config" github.user "${github:-$defaultGithub}"
+
+  if [[ "$(uname)" == "Darwin" ]]; then
+    git config -f "$local_config" credential.helper "osxkeychain"
+  else
+    read -rn 1 -p "Save user and password to an unencrypted file to avoid writing? [y/N] " save
+    if [[ $save =~ ^([Yy])$ ]]; then
+      git config -f "$local_config" credential.helper "store"
+    else
+      git config -f "$local_config" credential.helper "cache --timeout 3600"
+    fi
+  fi
+}
+
+main() {
+  local subcmd=""
+
+  if [ $# -lt 1 ]; then
+    usage
+    exit 0
+  fi
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      subcmd="$1"
+      shift
+      ;;
+    esac
+  done
+
+  case "$subcmd" in
+  setup)
+    setup_git
+    ;;
+  *)
+    log_error "Unknown legacy command: $subcmd"
+    echo -e
+    usage
+    exit 1
+    ;;
+  esac
+}
+
+main "$@"
