@@ -1,0 +1,282 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+trap cleanup SIGINT SIGTERM ERR EXIT
+
+cleanup() {
+  trap - SIGINT SIGTERM ERR EXIT
+  tput cnorm # enable cursor
+  # script cleanup here
+}
+
+command_name=$(basename "${BASH_SOURCE[0]}")
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+if [[ -f "$DOTFILES/bin/lib/common.sh" ]]; then
+  source "$DOTFILES/bin/lib/common.sh"
+else
+  echo "Error: Unable to source common.sh"
+  exit 1
+fi
+
+find_commands() {
+  IFS=: read -ra path_dirs <<<"$PATH"
+  for dir in "${path_dirs[@]}"; do
+    # skip if the directory doesn't exist or isn't readable
+    [[ ! -d "$dir" ]] && continue
+    for cmd in "$dir"/dot-*; do
+      [[ -f "$cmd" && -x "$cmd" ]] || continue
+      basename "$cmd" | sed 's/^dot-//'
+    done
+  done | sort -u
+}
+
+usage() {
+  cat <<EOF
+  $(fmt_key "Usage:") $(fmt_cmd "$command_name") $(fmt_value "<command> [subcommand] [options]")
+
+Dotfiles management script.
+
+$(fmt_key "Available Commands:")
+    help                          Show this help message
+    backup                        Backup dotfiles
+        -d, --directory <dir>   Backup directory (default: ~/dotfiles-backup)
+    link                          Link dotfiles packages to their respective locations
+        all                       Link all
+        <pkg>                     Link a specific package
+        -v, --verbose             Show detailed output
+    unlink                        Unlink dotfiles packages
+        all                       Unlink all
+        <pkg>                     Unlink a specific package
+        -v, --verbose             Show detailed output
+EOF
+
+  echo -e "\nExternal commands:"
+
+  find_commands | while read -r cmd; do
+    # Get the description from the script if available
+    description=$(grep "^# Description:" "$(which "dot-$cmd")" 2>/dev/null | cut -d: -f2- | sed 's/^[[:space:]]*//' || echo "No description available")
+    printf "    $(fmt_cmd "%-12s") %s\n" "$cmd" "$description"
+  done
+}
+
+cmd_backup() {
+  local backup_dir="$HOME/dotfiles-backup"
+  local verbose=false
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -d | --directory)
+      if [[ -n "${2:-}" ]]; then
+        backup_dir="$2"
+        shift 2
+      else
+        log_error "Missing backup directory"
+        exit 1
+      fi
+      ;;
+    -v | --verbose)
+      verbose=true
+      shift
+      ;;
+    *)
+      log_error "Unknown argument: $1"
+      exit 1
+      ;;
+    esac
+  done
+
+  # Expand ~ in backup_dir
+  backup_dir="${backup_dir/#\~/$HOME}"
+
+  local timestamp=$(date +%Y%m%d_%H%M%S)
+  local backup_path="${backup_dir}/dotfiles_backup_${timestamp}"
+
+  log_info "Creating backup in: $backup_path"
+
+  files_to_backup=(
+    ".zshrc"
+    ".zshenv"
+    ".zprofile"
+    ".zsh_aliases"
+    ".zsh_functions"
+    ".zsh_prompt"
+    ".config/aerospace"
+    ".config/git"
+    ".config/ghostty"
+    ".config/karabiner"
+    ".config/kitty"
+    ".config/lazygit"
+    ".config/nvim"
+    ".config/ripgrep"
+    ".config/tmux"
+    ".config/wezterm"
+    ".config/zsh"
+  )
+
+  tmpfile=$(mktemp)
+  trap 'rm -f "$tmpfile"' EXIT
+
+  for file in "${files_to_backup[@]}"; do
+    src_path="${HOME}/${file}"
+    if [[ -L "$src_path" ]]; then
+      [[ "$verbose" == true ]] && log_info "Skipping symlink: $file"
+      continue
+    elif [[ -e "$src_path" ]]; then
+      echo "$file" >>"$tmpfile"
+      [[ "$verbose" == true ]] && log_info "Found: $file"
+    else
+      log_warning "File not found: $src_path"
+    fi
+  done
+
+  if [[ -s "$tmpfile" ]]; then
+    tar -czf "${backup_path}.tar.gz" -C "$HOME" -T "$tmpfile" || {
+      log_error "Failed to create backup archive"
+      exit 1
+    }
+
+    if [[ "$verbose" == true ]]; then
+      log_info "Archive contents:"
+      tar -tvf "${backup_path}.tar.gz" | while read -r line; do
+        log_info "$line"
+      done
+    fi
+
+    log_success "Backup created successfully"
+  else
+    log_warning "No files to backup"
+  fi
+}
+
+cmd_link() {
+  local operation="$1"
+  local pkg="$2"
+  shift 2 || true
+
+  local verbose=false
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -v | --verbose)
+      verbose=true
+      shift
+      ;;
+    *)
+      log_error "Unknown argument: $1"
+      exit 1
+      ;;
+    esac
+  done
+
+  if [ "$pkg" = "all" ]; then
+    local title_text="$operation"ing" all packages"
+  else
+    local title_text="$operation"ing" package: $pkg"
+  fi
+
+  fmt_title_underline "$title_text"
+
+  if [ "$pkg" = "all" ]; then
+    # Handle all packages in config directory
+    for config in "$DOTFILES/config"/*; do
+      if [ -d "$config" ]; then
+        local target="$CONFIG_HOME/$(basename "$config")"
+        if [ "$operation" = "link" ]; then
+          if [ -e "$target" ]; then
+            log_warning "~${target#"$HOME"} already exists... Skipping."
+          else
+            [ "$verbose" = true ] && log_info "Linking $(basename "$config")"
+            ln -s "$config" "$target"
+          fi
+        else # unlink
+          if [ -L "$target" ]; then
+            [ "$verbose" = true ] && log_info "Unlinking $target"
+            rm "$target"
+          elif [ -e "$target" ]; then
+            log_warning "Skipping \"$target\" because it is not a symlink"
+          fi
+        fi
+      fi
+    done
+
+    # Handle .zshenv special case
+    if [ "$operation" = "link" ]; then
+      if [ ! -e "$HOME/.zshenv" ]; then
+        [ "$verbose" = true ] && log_info "Linking .zshenv"
+        ln -s "$DOTFILES/config/zsh/.zshenv" "$HOME/.zshenv"
+      else
+        [ "$verbose" = true ] && log_info "~/.zshenv already exists... Skipping."
+      fi
+    else # unlink
+      if [ -L "$HOME/.zshenv" ]; then
+        [ "$verbose" = true ] && log_info "Unlinking $HOME/.zshenv"
+        rm "$HOME/.zshenv"
+      fi
+    fi
+  else
+    # Handle specific package
+    local target="$CONFIG_HOME/$pkg"
+    if [ -d "$DOTFILES/config/$pkg" ]; then
+      if [ "$operation" = "link" ]; then
+        if [ -e "$target" ]; then
+          log_warning "~${target#"$HOME"} already exists... Skipping."
+        else
+          [ "$verbose" = true ] && log_info "Linking $pkg"
+          ln -s "$DOTFILES/config/$pkg" "$target"
+        fi
+      else # unlink
+        if [ -L "$target" ]; then
+          [ "$verbose" = true ] && log_info "Unlinking $target"
+          rm "$target"
+        elif [ -e "$target" ]; then
+          log_warning "Skipping \"$target\" because it is not a symlink"
+        fi
+      fi
+    else
+      log_error "Package $pkg not found in config directory"
+      return 1
+    fi
+  fi
+
+  echo -e
+  log_success "Done"
+}
+
+main() {
+  if [ $# -lt 1 ]; then
+    usage
+    exit 0
+  fi
+
+  cmd="$1"
+  shift || true
+  subcmd="${1:-all}"
+
+  case "$cmd" in
+  help)
+    usage
+    ;;
+  backup)
+    cmd_backup "$@"
+    ;;
+  link)
+    cmd_link "link" "$@"
+    ;;
+  unlink)
+    cmd_link "unlink" "$@"
+    ;;
+  *)
+    if command -v "dot-$cmd" >/dev/null 2>&1; then
+      "dot-$cmd" "$@"
+    else
+      log_error "Unknown command: $cmd"
+      usage
+      exit 1
+    fi
+    ;;
+  esac
+}
+
+main "$@"
