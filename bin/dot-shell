@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# Description: Setup shell configuration
+
+set -Eeuo pipefail
+
+# source helpers
+source "$DOTFILES/bin/lib/common.sh"
+command_name=$(basename "${BASH_SOURCE[0]}")
+
+usage() {
+  cat <<EOF
+  $(fmt_key "Usage:") $(fmt_key "$command_name") $(fmt_value "[options] <command>")
+
+  Setup shell configuration. This can be used to set the default shell, install terminfo, etc.
+
+  - default shell: The default shell in this configuration is zsh.
+  - terminfo: Terminfo files are installed for tmux and neovim. They help us to
+    have italic text and other features.
+
+
+Options:
+    -h, --help       Show this help message
+    change           change the shell to zsh
+    terminfo         Add terminfo files
+EOF
+}
+
+cmd_change() {
+  fmt_title_underline "Configuring shell"
+
+  [[ -n "$(command -v brew)" ]] && zsh_path="$(brew --prefix)/bin/zsh" || zsh_path="$(which zsh)"
+  if ! grep "$zsh_path" /etc/shells; then
+    log_info "adding $zsh_path to /etc/shells"
+    echo "$zsh_path" | sudo tee -a /etc/shells
+  fi
+
+  if [[ "$SHELL" != "$zsh_path" ]]; then
+    chsh -s "$zsh_path"
+    log_success "default shell changed to $zsh_path"
+  else
+    log_info "default shell is already $zsh_path"
+    exit 0
+  fi
+}
+
+cmd_terminfo() {
+  fmt_title_underline "Configuring terminfo"
+
+  log_info "adding tmux.terminfo"
+  tic -x "$DOTFILES/resources/tmux.terminfo"
+
+  log_info "adding xterm-256color-italic.terminfo"
+  tic -x "$DOTFILES/resources/xterm-256color-italic.terminfo"
+
+  log_success "terminfo files added."
+}
+
+main() {
+  local subcmd=""
+
+  if [ $# -lt 1 ]; then
+    usage
+    exit 0
+  fi
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      subcmd="$1"
+      shift
+      ;;
+    esac
+  done
+
+  case "$subcmd" in
+  change)
+    cmd_change
+    ;;
+  terminfo)
+    cmd_terminfo
+    ;;
+  *)
+    log_error "Unknown $command_name command: $subcmd"
+    echo -e
+    usage
+    exit 1
+    ;;
+  esac
+}
+
+main "$@"
