@@ -40,6 +40,7 @@ Dotfiles management script.
 
 $(fmt_key "Available Commands:")
     help                          Show this help message
+    clean                         Clean up broken symlinks
     backup                        Backup dotfiles
         -d, --directory <dir>   Backup directory (default: ~/dotfiles-backup)
     link                          Link dotfiles packages to their respective locations
@@ -59,6 +60,31 @@ EOF
     description=$(grep "^# Description:" "$(which "dot-$cmd")" 2>/dev/null | cut -d: -f2- | sed 's/^[[:space:]]*//' || echo "No description available")
     printf "    $(fmt_cmd "%-12s") %s\n" "$cmd" "$description"
   done
+}
+
+cmd_clean() {
+  links=(
+    ".zshrc" ".zshenv" ".zprofile" ".zsh_aliases"
+    ".zsh_functions" ".zsh_prompt" ".config/aerospace"
+    ".config/git" ".config/karabiner" ".config/kitty"
+    ".config/lazygit" ".config/nvim" ".config/ripgrep"
+    ".config/tmux" ".config/wezterm" ".config/zsh"
+  )
+
+  fmt_title_underline "Cleaning up broken legacy symlinks..."
+
+  for link in "${links[@]}"; do
+    path_link="$HOME/$link"
+    if [ -L "$path_link" ] && [ ! -e "$path_link" ]; then
+      log_success "Removing Broken symbolic link: $path_link"
+      rm "$path_link"
+    else
+      log_info "Link to $path_link not found or is not broken. Skipping..."
+    fi
+  done
+
+  echo -e
+  log_success "Done."
 }
 
 cmd_backup() {
@@ -257,6 +283,9 @@ main() {
   case "$cmd" in
   help)
     usage
+    ;;
+  clean)
+    cmd_clean "$@"
     ;;
   backup)
     cmd_backup "$@"
