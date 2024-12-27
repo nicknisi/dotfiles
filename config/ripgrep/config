@@ -43,3 +43,6 @@ md:*.{md,mdx}
 
 # follow symlinks
 --follow
+
+# include hidden files
+--hidden
