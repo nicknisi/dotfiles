@@ -5,7 +5,7 @@ local assets = wezterm.config_dir .. "/assets"
 local config = wezterm.config_builder()
 
 -- set this to true to enable fancy background
-local fancy = false
+local fancy = true
 
 config.macos_window_background_blur = 30
 config.enable_tab_bar = false
