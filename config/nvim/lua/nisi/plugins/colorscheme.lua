@@ -5,7 +5,7 @@ return {
     name = "catppuccin",
     lazy = true,
     opts = {
-      flavour = "mocha", -- latte, frappe, macchiato, mocha
+      flavour = "macchiato", -- latte, frappe, macchiato, mocha
       -- dim_inactive = { enabled = true, shade = "dark", percentage = 0.6 },
       transparent_background = true,
       term_colors = true,
@@ -26,18 +26,38 @@ return {
       },
       color_overrides = {
         macchiato = {
-          text = "#C1C9E6",
-          subtext1 = "#A3AAC2",
-          subtext0 = "#8E94AB",
-          overlay2 = "#7D8296",
-          overlay1 = "#676B80",
-          overlay0 = "#464957",
-          surface2 = "#3A3D4A",
-          surface1 = "#2F313D",
-          surface0 = "#1D1E29",
-          base = "#0b0b12",
-          mantle = "#11111a",
-          crust = "#191926",
+          -- True neutral dark base (no blue or brown tint)
+          base = "#0B1215", -- Clean dark background
+          mantle = "#1c1c1c", -- Darker
+          crust = "#161616", -- Darkest
+
+          -- Pure grayscale text colors
+          text = "#d4d4d4",
+          subtext1 = "#bbbbbb",
+          subtext0 = "#a6a6a6",
+          overlay2 = "#919191",
+          overlay1 = "#7c7c7c",
+          overlay0 = "#666666",
+          surface2 = "#484848",
+          surface1 = "#333333",
+          surface0 = "#292929",
+
+          -- Vibrant accent colors without blue dominance
+          red = "#f7768e", -- Bright pink-red
+          green = "#9ece6a", -- Fresh green
+          yellow = "#e5c07b", -- Warm yellow
+          blue = "#bb9af7", -- Replaced with purple
+          mauve = "#d38aea", -- Bright purple
+          teal = "#2dc7c4", -- True teal
+          flamingo = "#f26d99", -- Bright orange
+          lavender = "#d7a4f7", -- Light purple
+
+          -- Additional colors if needed
+          peach = "#ff8800",
+          maroon = "#ff6188",
+          sky = "#95e6cb", -- Mint instead of sky blue
+          sapphire = "#c07ab8", -- Purple-pink instead of sapphire
+          rosewater = "#ffa0a0",
         },
       },
       integrations = {
