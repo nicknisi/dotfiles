@@ -1,18 +1,27 @@
-theme = dark:catppuccin-mocha,light:catppuccin-latte
+# theme = dark:catppuccin-mocha,light:catppuccin-latte
+theme = dark:vesper,light:catppuccin-latte
+
+# Window style
 macos-titlebar-style = hidden
 bold-is-bright = true
-
-# UI
-font-family = Monaspace Neon
-font-size = 16
-cursor-color = #FFA500
 background-opacity = 0.90
 window-decoration = false
 window-theme = auto
+window-padding-color = background
+window-padding-x = 0
+window-padding-y = 0
+window-padding-balance = false
+
+# UI
+font-family = "Monaspace Neon Regular"
+font-size = 16
+cursor-color = #FFA500
+font-feature = +liga
+
+
 clipboard-read = allow
 clipboard-write = allow
 clipboard-trim-trailing-spaces = true
-
 
 # Quick Terminal
 keybind = ctrl+shift+x=toggle_quick_terminal
