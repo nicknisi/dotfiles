@@ -1,35 +1,20 @@
 # Dotfiles
 
-Welcome to my world! Here you'll find a collection of configuration files for
-various tools and programs that I use on a daily basis. These dotfiles have been
-carefully curated and customized to streamline **my** workflow and
-improve **my** productivity. Your results may vary, but feel free to give it a
-try! Whether you're a fellow developer looking to optimize your setup or just
-curious about how I organize my digital life, I hope you find something useful
-in these dotfiles. So take a look around and feel free to borrow, modify, or
-fork to your heart's content. Happy coding!
+Welcome to my world! Here you'll find a collection of configuration files for various tools and programs that I use on a daily basis. These dotfiles have been carefully curated and customized to streamline **my** workflow and improve **my** productivity. Your results may vary, but feel free to give it a try! Whether you're a fellow developer looking to optimize your setup or just curious about how I organize my digital life, I hope you find something useful in these dotfiles. So take a look around and feel free to borrow, modify, or fork to your heart's content. Happy coding!
 
 > [!Note]
 >
-> Did you arrive here through my YouTube
-> talk, [vim + tmux](https://www.youtube.com/watch?v=5r6yzFEXajQ)? My dotfiles
-> have changed tremendously since then, but feel free to peruse the state of
-> this
-> repo [at the time the video was recorded](https://github.com/nicknisi/dotfiles/tree/aa72bed5c4ecec540a31192581294818b69b93e2).
+> Did you arrive here through my YouTube talk, [vim + tmux](https://www.youtube.com/watch?v=5r6yzFEXajQ)? My dotfiles have changed tremendously since then, but feel free to peruse the state of this repo [at the time the video was recorded](https://github.com/nicknisi/dotfiles/tree/aa72bed5c4ecec540a31192581294818b69b93e2).
 
 <img width="1600" alt="capture-20231114134612" src="https://github.com/nicknisi/dotfiles/assets/293805/43dff50a-8fad-44e5-b979-d72ebd0366f8">
 
-## Initial setup
+## Initial Setup
 
-The first thing you need to do is to clone this repo into a location of your
-choosing. For example, if you have a `~/Developer` directory where you clone all
-of your git repos, that's a good choice for this one, too. This repo is setup to
-not rely on the location of the dotfiles, so you can place it anywhere.
+The first thing you need to do is to clone this repo into a location of your choosing. For example, if you have a `~/Developer` directory where you clone all of your git repos, that's a good choice for this one, too. This repo is setup to not rely on the location of the dotfiles, so you can place it anywhere.
 
 > [!Note]
 >
-> If you're on macOS, you'll also need to install the XCode CLI tools before
-> continuing.
+> If you're on macOS, you'll also need to install the XCode CLI tools before continuing.
 
 ```bash
 xcode-select --install
@@ -41,116 +26,124 @@ git clone git@github.com:nicknisi/dotfiles.git
 
 > [!Note]
 >
-> This dotfiles configuration is set up in such a way that it _shouldn't_ matter
-> where the repo exists on your system.
+> This dotfiles configuration is set up in such a way that it _shouldn't_ matter where the repo exists on your system.
 
-The script, `install.sh` is the one-stop for all things setup, backup, and
-installation.
+## The `dot` Command
 
-```bash
-> ./install.sh help
+This repository includes a powerful `dot` command for managing your dotfiles. It replaces the previous `install.sh` script with a more flexible and maintainable solution.
 
-Usage: install.sh {backup|link|homebrew|shell|terminfo|macos|all}
-```
+### Configuration
 
-### `backup`
+The tool respects these environment variables:
+- `DOTFILES`: Path to your dotfiles directory
+- `PATH`: For discovering external commands
 
-```bash
-./install.sh backup
-```
+By default, the following directories are ignored when linking:
+- bin
+- applescripts
+- resources
 
-Create a backup of the current dotfiles (if any) into `~/.dotfiles-backup/`.
-This will scan for the existence of every file that is to be symlinked and will
-move them over to the backup directory. It will also do the same for vim setups,
-moving some files in the
-[XDG base directory](http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html),
-(`~/.config`).
-
-- `~/.config/nvim/` - The home of [neovim](https://neovim.io/) configuration
-- `~/.vim/` - The home of vim configuration
-- `~/.vimrc` - The main init file for vim
-
-### `link`
+### Basic Usage
 
 ```bash
-./install.sh link
+dot help                    # Show help message and available commands
+dot backup                  # Backup existing dotfiles
+dot link [package]          # Link all or specific package
+dot unlink [package]        # Unlink all or specific package
 ```
 
-The `link` command will create
-[symbolic links](https://en.wikipedia.org/wiki/Symbolic_link) from the dotfiles
-directory into the `$HOME` directory, allowing for all of the configuration to
-_act_ as if it were there without being there, making it easier to maintain the
-dotfiles in isolation.
+>[!important]
+>
+>This command won't be in the path until ZSH is properly configured.
+> Until that's the case, you can run the command from the dotfiles root.
+> ```bash
+> bin/dot <command> <subcommand>
+>```
+```
 
-### `homebrew`
+### Backup Options
+
+The backup command creates a backup of your existing dotfiles before installing new ones:
 
 ```bash
-./install.sh homebrew
+dot backup -d <directory>   # Specify backup directory (default: ~/dotfiles-backup)
+dot backup -v               # Verbose output
 ```
 
-The `homebrew` command sets up [homebrew](https://brew.sh/) by downloading and
-running the homebrew installers script. Homebrew is a macOS package manager, but
-it also work on linux via Linuxbrew. If the script detects that you're
-installing the dotfiles on linux, it will use that instead. For consistency
-between operating systems, linuxbrew is set up but you may want to consider an
-alternate package manager for your particular system.
+This will back up important files and directories including:
+- Existing dotfiles in your home directory
+- Neovim configuration (`~/.config/nvim/`)
+- Vim configuration (`~/.vim/` and `~/.vimrc`)
 
-Once homebrew is installed, it executes the `brew bundle` command which will
-install the packages listed in the [Brewfile](./Brewfile).
-
-### `shell`
+### Link/Unlink Options
 
 ```bash
-./install.sh shell
+dot link -v                # Verbose output
+dot link -t <target>       # Specify target directory
+dot link <package>         # Link specific package
+dot link all               # Link all packages
 ```
 
-The `shell` command sets up the recommended shell configuration for the dotfiles
-setup. Specifically, it sets the shell to [zsh](https://www.zsh.org/) using the
-`chsh` command.
+### Built-in Commands
 
-### `terminfo`
+#### Git Configuration (`dot git`)
 
 ```bash
-./install.sh terminfo
+dot git setup    # Configure git user settings interactively
 ```
 
-This command uses `tic` to set up the terminfo, specifically to allow for
-_italics_ within the terminal. If you don't care about that, you can ignore this
-command.
+Sets up personalized Git configuration including name, email, and Github username. The configuration is saved to `~/.gitconfig-local`.
 
-### `macos`
+#### macOS Settings (`dot macos`)
 
 ```bash
-./install.sh macos
+dot macos defaults    # Configure recommended macOS system defaults
 ```
 
-The `macos` command sets up macOS-specific configurations using the
-`defaults write` commands to change default values for macOS.
-
+Configures various macOS system settings including:
 - Finder: show all filename extensions
-- show hidden files by default
-- only use UTF-8 in Terminal.app
-- expand save dialog by default
-- Enable full keyboard access for all controls (e.g. enable Tab in modal
-  dialogs)
+- Show hidden files by default
+- Only use UTF-8 in Terminal.app
+- Expand save dialog by default
+- Enable full keyboard access for all controls
 - Enable subpixel font rendering on non-Apple LCDs
 - Use current directory as default search scope in Finder
-- Show Path bar in Finder
-- Show Status bar in Finder
-- Disable press-and-hold for keys in favor of key repeat
-- Set a blazingly fast keyboard repeat rate
-- Set a shorter Delay until key repeat
-- Enable tap to click (Trackpad)
-- Enable Safari’s debug menu
+- Show Path bar and Status bar in Finder
+- Optimize keyboard settings for development
 
-### `all`
+#### Shell Configuration (`dot shell`)
 
 ```bash
-./install.sh all
+dot shell change     # Change default shell to zsh
+dot shell terminfo   # Install terminal information files
 ```
 
-This command runs all of the installation tasks described above, in full, with
-the exception of the `backup` script. You must run that one manually.
+These commands may not always be reqired. For example, macOS now sets the default shell to ZSH. And, the terminfo is only requried if you're interested in having italic support in Neovim.
+
+#### Homebrew Management (`dot homebrew`)
+
+```bash
+dot homebrew install    # Install Homebrew package manager
+dot homebrew bundle     # Install packages from Brewfile
+```
+
+Using this command is only needed if your machine does not currently have Homebrew installed. You can also install if the main way by following the [instructions on their website](https://brew.sh).
+
+#### Legacy Cleanup (`dot legacy`)
+
+```bash
+dot legacy clean    # Clean up broken legacy symlinks
+```
+
+This legacy command specifically cleans up the old symlinks that might exist from rpevious iterations of this repository.
+
+### Extending with Custom Commands
+
+The `dot` command is extensible. You can add custom commands by:
+
+1. Creating executable scripts named `dot-<command>` in your `$PATH`
+2. Adding a "Description:" comment for help text
+3. The command will then be available as `dot <command>`
 
 ## ZSH Configuration
 
@@ -252,10 +245,10 @@ The simplest way to install Neovim is to install it from homebrew.
 brew install neovim
 ```
 
-However, it was likely installed already if you ran the `./install.sh brew`
+However, it was likely installed already if you ran the `dot homebrew bundle`
 command provided in the dotfiles.
 
-All of the configuration for Neovim starts at `config/nvim/init.lua`, which is
+All of the configuration for Neovim starts at `nvim/.config/nvim/init.lua`, which is
 symlinked into the `~/.config/nvim` directory.
 
 > [!Warning]
