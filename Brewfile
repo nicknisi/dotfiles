@@ -1,10 +1,11 @@
 # vim:ft=ruby
 
+tap "homebrew/bundle"
+
 if OS.mac?
   # taps
   tap "homebrew/cask-fonts"
   tap "koekeishiya/formulae"
-  tap "pkgxdev/made"
 
   brew "noti" # utility to display notifications from scripts
   brew "trash" # rm, but put in the trash rather than completely delete
@@ -13,25 +14,18 @@ if OS.mac?
   cask "kitty" # a better terminal emulator
   cask "ghostty" # a better terminal emulator
   cask "wezterm" # a better terminal emulator
-  cask "imageoptim" # a tool to optimize images
   cask "1password/tap/1password-cli"
   cask "karabiner-elements" # keyboard customizer
   cask "nikitabobko/tap/aerospace"
 
   # Fonts
-  cask "font-fira-code"
-  cask "font-jetbrains-mono"
-  cask "font-cascadia-mono"
   cask "font-symbols-only-nerd-font"
-  cask "font-recursive-code"
   cask "font-monaspace"
 
   cask  "minisim" # A simple way to launch mobile simulators
 elsif OS.linux?
   brew "xclip" # access to clipboard (similar to pbcopy/pbpaste)
 end
-
-tap "homebrew/bundle"
 
 # packages
 brew "stow" # symlink farm manager
@@ -63,7 +57,5 @@ brew "tree" # pretty-print directory contents
 brew "vim" # Vim (latest)
 brew "wdiff" # word differences in text files
 brew "wget" # internet file retriever
-brew "z" # switch between most used directories
 brew "zoxide" # switch between most used directories
 brew "zsh" # zsh (latest)
-brew "pkgxdev/made/pkgx" # npx, but for anything
