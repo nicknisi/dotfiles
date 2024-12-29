@@ -1,7 +1,7 @@
 # theme = dark:catppuccin-mocha,light:catppuccin-latte
-theme = dark:vesper,light:catppuccin-latte
+theme = dark:catppuccin-mocha,light:catppuccin-latte
+background = 1c2021
 
-# Window style
 macos-titlebar-style = hidden
 bold-is-bright = true
 background-opacity = 0.90
@@ -11,18 +11,30 @@ window-padding-color = background
 window-padding-x = 0
 window-padding-y = 0
 window-padding-balance = false
+window-colorspace = "display-p3"
+adjust-cell-height = 10%
 
-# UI
+shell-integration-features = no-cursor,sudo
+
 font-family = "Monaspace Neon Regular"
 font-size = 16
 cursor-color = #FFA500
 font-feature = +liga
+cursor-style = block
 
 
 clipboard-read = allow
 clipboard-write = allow
 clipboard-trim-trailing-spaces = true
 
-# Quick Terminal
-keybind = ctrl+shift+x=toggle_quick_terminal
-quick-terminal-position = top
+# splits
+keybind = cmd+s>\=new_split:right
+keybind = cmd+s>-=new_split:down
+
+keybind = cmd+s>j=goto_split:bottom
+keybind = cmd+s>k=goto_split:top
+keybind = cmd+s>h=goto_split:left
+keybind = cmd+s>l=goto_split:right
+
+keybind = cmd+s>z=toggle_split_zoom
+keybind = cmd+s>e=equalize_splits
