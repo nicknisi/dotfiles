@@ -182,33 +182,63 @@ alt-shift-l = ['join-with right', 'mode main']
 
 # Event listeners
 
-[[on-window-detected]]
-if.app-id = 'com.github.wez.wezterm'
-run = 'move-node-to-workspace D'
-
 ## Chat apps
 
 [[on-window-detected]]
 if.app-id = 'com.apple.MobileSMS'
-run = 'move-node-to-workspace P'
+run = 'move-node-to-workspace C'
 
 [[on-window-detected]]
 if.app-id = 'com.hnc.Discord'
-run = 'move-node-to-workspace P'
-
-[[on-window-detected]]
-if.app-id = 'com.tinyspec.slackmacgap'
-run = 'move-node-to-workspace P'
+run = 'move-node-to-workspace C'
 
 ## Development
 
 [[on-window-detected]]
-if.app-id = 'com.facebook.fbvscode'
+if.app-id = 'com.github.wez.wezterm'
+run = 'move-node-to-workspace D'
+
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
 run = 'move-node-to-workspace D'
 
 [[on-window-detected]]
 if.app-id = 'com.microsoft.VSCode'
 run = 'move-node-to-workspace D'
+
+## Browsers
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Safari'
+run = 'move-node-to-workspace B'
+
+# Productivity
+
+[[on-window-detected]]
+if.app-id = 'notion.id'
+run = 'move-node-to-workspace P'
+
+[[on-window-detected]]
+if.app-id = 'com.linear'
+run = 'move-node-to-workspace P'
+
+[[on-window-detected]]
+if.app-id = 'com.tinyspeck.slackmacgap'
+run = 'move-node-to-workspace P'
+
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = 'move-node-to-workspace P'
+
+[[on-window-detected]]
+if.app-id = 'com.omnigroup.OmniFocus4'
+run = 'move-node-to-workspace P'
+
+# Zoom
+
+[[on-window-detected]]
+if.app-id = 'us.zoom.xos'
+run = 'move-node-to-workspace Z'
 
 ## Floaters
 
@@ -240,12 +270,3 @@ run = 'layout floating'
 if.app-id = 'com.rogueamoeba.audiohijack'
 run = 'layout floating'
 
-## Productivity
-
-[[on-window-detected]]
-if.app-id = 'com.omnigroup.OmniFocus4'
-run = 'move-node-to-workspace P'
-
-[[on-window-detected]]
-if.app-id = 'md.obsidian'
-run = 'move-node-to-workspace P'
