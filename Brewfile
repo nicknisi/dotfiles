@@ -4,7 +4,6 @@ tap "homebrew/bundle"
 
 if OS.mac?
   # taps
-  tap "homebrew/cask-fonts"
   tap "koekeishiya/formulae"
 
   brew "noti" # utility to display notifications from scripts
