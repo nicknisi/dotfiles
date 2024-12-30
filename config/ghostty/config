@@ -19,6 +19,7 @@ window-colorspace = "display-p3"
 adjust-cell-height = 10%
 
 shell-integration-features = no-cursor,sudo
+confirm-close-surface = false
 
 # Font settings
 font-family = "Monaspace Neon Regular"
