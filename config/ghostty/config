@@ -1,11 +1,15 @@
+# Theme settings
+theme = dark:vesper,light:catppuccin-latte
 # theme = dark:catppuccin-mocha,light:catppuccin-latte
-theme = dark:catppuccin-mocha,light:catppuccin-latte
-background = 1c2021
-
-macos-titlebar-style = hidden
-bold-is-bright = true
+# background = #1c2021
+background = #0B1215
 background-opacity = 0.90
-window-decoration = false
+background-blur-radius = 20
+bold-is-bright = true
+
+# window settings
+macos-titlebar-style = hidden
+window-decoration = true
 window-theme = auto
 window-padding-color = background
 window-padding-x = 0
@@ -16,6 +20,7 @@ adjust-cell-height = 10%
 
 shell-integration-features = no-cursor,sudo
 
+# Font settings
 font-family = "Monaspace Neon Regular"
 font-size = 16
 cursor-color = #FFA500
@@ -27,9 +32,26 @@ clipboard-read = allow
 clipboard-write = allow
 clipboard-trim-trailing-spaces = true
 
-# splits
+# Split keybindings
+# These are similar to tmux, but with the prefix being cmd+s
 keybind = cmd+s>\=new_split:right
 keybind = cmd+s>-=new_split:down
+
+keybind = cmd+s>c=new_tab
+keybind = cmd+s>shift+l=next_tab
+keybind = cmd+s>shift+h=previous_tab
+keybind = cmd+s>comma=move_tab:-1
+keybind = cmd+s>period=move_tab:1
+
+keybind = cmd+s>1=goto_tab:1
+keybind = cmd+s>2=goto_tab:2
+keybind = cmd+s>3=goto_tab:3
+keybind = cmd+s>4=goto_tab:4
+keybind = cmd+s>5=goto_tab:5
+keybind = cmd+s>6=goto_tab:6
+keybind = cmd+s>7=goto_tab:7
+keybind = cmd+s>8=goto_tab:8
+keybind = cmd+s>9=goto_tab:9
 
 keybind = cmd+s>j=goto_split:bottom
 keybind = cmd+s>k=goto_split:top
