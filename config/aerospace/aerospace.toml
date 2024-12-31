@@ -212,6 +212,10 @@ run = 'move-node-to-workspace D'
 if.app-id = 'com.apple.Safari'
 run = 'move-node-to-workspace B'
 
+[[on-window-detected]]
+if.app-id = 'company.thebrowser.Browser'
+run = 'move-node-to-workspace B'
+
 # Productivity
 
 [[on-window-detected]]
