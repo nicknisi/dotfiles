@@ -21,6 +21,11 @@ adjust-cell-height = 10%
 shell-integration-features = no-cursor,sudo
 confirm-close-surface = false
 
+macos-icon = "custom-style"
+macos-icon-frame = "plastic"
+macos-icon-ghost-color = "#FFA500"
+macos-icon-screen-color = "#FFA500"
+
 # Font settings
 font-family = "Monaspace Neon Regular"
 font-size = 16
