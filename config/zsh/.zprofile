@@ -12,3 +12,7 @@ elif [[ -d /home/linuxbrew/.linuxbrew ]]; then
     test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
     test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
+
+if [[ -x "$(command -v rbenv)" ]]; then
+  eval "$(rbenv init - --no-rehash zsh)";
+fi

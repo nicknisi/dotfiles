@@ -38,6 +38,7 @@ brew "entr"                            # file watcher / command runner
 brew "eza"                             # ls alternative
 brew "fd"                              # find alternative
 brew "fnm"                             # Fast Node version manager
+brew "rbenv"                           # Ruby version manager
 brew "fzf"                             # Fuzzy file searcher, used in scripts and in vim
 brew "gh"                              # GitHub CLI
 brew "git-delta"                       # a better git diff
