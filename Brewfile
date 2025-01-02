@@ -3,7 +3,7 @@
 tap "homebrew/bundle"
 
 if OS.mac?
-  tap FelixKratz/formulae               # For janky borders
+  tap "FelixKratz/formulae"               # For janky borders
 
   # taps
   brew "noti"                          # utility to display notifications from scripts
