@@ -221,6 +221,10 @@ run = 'move-node-to-workspace B'
 # Productivity
 
 [[on-window-detected]]
+if.app-id = 'com.apple.iCal'
+run = 'move-node-to-workspace P'
+
+[[on-window-detected]]
 if.app-id = 'notion.id'
 run = 'move-node-to-workspace P'
 
