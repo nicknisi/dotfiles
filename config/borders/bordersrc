@@ -3,7 +3,10 @@
 options=(
 	style=round
 	width=8.0
-  active_color=0xff88c0d0
+  # neon purple
+  active_color=0xffb400ff
+  # active_color=0xff88c0d0
+  # active_color=0xffe91e63
 	inactive_color=0xff494d64
 	hidpi=on
 )
