@@ -62,7 +62,7 @@ return {
       },
       integrations = {
         treesitter = true,
-        cmp = true,
+        blink_cmp = true,
         gitsigns = true,
         lsp_trouble = true,
         mason = true,
