@@ -11,6 +11,7 @@ local formatters = {
   css = { "stylelint", "prettier" },
   sh = { "shellcheck", "shfmt" },
   lua = { "stylua" },
+  ruby = { "rubocop" },
 }
 
 return {
