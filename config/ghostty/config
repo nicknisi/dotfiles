@@ -3,8 +3,8 @@ theme = dark:vesper,light:catppuccin-latte
 # theme = dark:catppuccin-mocha,light:catppuccin-latte
 # background = #1c2021
 background = #0B1215
-background-opacity = 0.90
-background-blur-radius = 20
+background-opacity = 0.75
+background-blur-radius = 40
 bold-is-bright = true
 
 # window settings
