@@ -1,5 +1,3 @@
-local cmp_nvim_lsp = require("cmp_nvim_lsp")
-
 local M = {}
 
 local border = {
@@ -37,7 +35,7 @@ function M.make_conf(...)
     properties = { "documentation", "detail", "additionalTextEdits", "documentHighlight" },
   }
   capabilities.textDocument.colorProvider = { dynamicRegistration = false }
-  capabilities = cmp_nvim_lsp.default_capabilities(capabilities)
+  capabilities = require("blink.cmp").get_lsp_capabilities(capabilities)
 
   return vim.tbl_deep_extend("force", {
     handlers = {

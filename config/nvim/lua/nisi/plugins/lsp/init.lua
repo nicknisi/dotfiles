@@ -32,6 +32,7 @@ return {
       -- Helpers to install LSPs and maintain them
       "williamboman/mason.nvim",
       "williamboman/mason-lspconfig.nvim",
+      "saghen/blink.cmp",
     },
     config = function()
       require("nisi.plugins.lsp.config").setup()
