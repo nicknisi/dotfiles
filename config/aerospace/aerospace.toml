@@ -15,7 +15,8 @@ after-startup-command = [
 ]
 
 exec-on-workspace-change = [
-    '/bin/bash',
+    '/usr/bin/env',
+    'bash',
     '-c',
     'sketchybar --trigger aerospace_workspace_change AEROSPACE_FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE AEROSPACE_PREV_WORKSPACE=$AEROSPACE_PREV_WORKSPACE',
 ]
@@ -64,7 +65,7 @@ inner.horizontal = [ { monitor."Built-in Retina Display" = 10 }, 15  ]
 inner.vertical =   [ { monitor."Built-in Retina Display" = 10 }, 15  ]
 outer.left =       [ { monitor."Built-in Retina Display" = 5 }, 25  ]
 outer.bottom =     [ { monitor."Built-in Retina Display" = 5 }, 25  ]
-outer.top =        [ { monitor."Built-in Retina Display" = 35 }, 70  ] # leave room for sketchybar
+outer.top =        [ { monitor."Built-in Retina Display" = 10 }, 15  ] # leave room for sketchybar
 outer.right =      [ { monitor."Built-in Retina Display" = 5 }, 25  ]
 
 # 'main' binding mode declaration
