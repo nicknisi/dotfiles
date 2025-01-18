@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+osascript -e '
+tell application "System Events"
+    set currentState to autohide menu bar of dock preferences
+    set autohide menu bar of dock preferences to not currentState
+end tell
+'
