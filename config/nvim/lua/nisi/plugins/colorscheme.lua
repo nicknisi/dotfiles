@@ -1,3 +1,5 @@
+local utils = require("nisi.utils")
+
 return {
   -- Catppuccin theme
   {
@@ -5,7 +7,7 @@ return {
     name = "catppuccin",
     lazy = true,
     opts = {
-      flavour = "macchiato", -- latte, frappe, macchiato, mocha
+      flavour = utils.is_dark_mode() and "macchiato" or "latte", -- latte, frappe, macchiato, mocha
       -- dim_inactive = { enabled = true, shade = "dark", percentage = 0.6 },
       transparent_background = true,
       term_colors = true,
