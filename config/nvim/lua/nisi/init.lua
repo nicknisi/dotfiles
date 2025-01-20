@@ -11,7 +11,6 @@ local utils = require("nisi.utils")
 ---@field copilot boolean|nil Whether copilot is enabled
 ---@field avante boolean|nil Whether avante is enabled
 ---@field fzf boolean|nil Whether too configure fzf for tooling like telescope
----@field git boolean|nil Whether or not to configure the dotfiles for git
 ---@field prefer_git boolean|nil Whether to prefer using git for dependencies over other options like curl
 ---@field proxy string|nil A proxy URL to use for certain network functions
 ---@field colorscheme string|fun()|nil What to set the colorscheme to and/or how
@@ -23,7 +22,6 @@ local config = {
   copilot = true,
   avante = true,
   fzf = true,
-  git = true,
   proxy = nil,
   prefer_git = false,
   colorscheme = function()
@@ -95,10 +93,6 @@ local function init_plugins()
   if config.avante then
     M.add_plugin({ import = "nisi.plugins.extras.avante" })
   end
-
-  -- if config.astro then
-  --   table.insert(plugins, { import = "nisi.plugins.extras.astro" })
-  -- end
 
   if config.fzf then
     M.add_plugin({ import = "nisi.plugins.extras.fzf" })
