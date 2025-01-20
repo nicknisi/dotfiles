@@ -1,6 +1,5 @@
 return {
   {
-
     "junegunn/fzf.vim",
     dependencies = { { dir = vim.env.HOMEBREW_PREFIX .. "/opt/fzf" } },
     config = function()
