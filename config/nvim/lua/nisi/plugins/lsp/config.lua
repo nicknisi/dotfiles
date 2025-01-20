@@ -223,10 +223,14 @@ function M.setup()
       lspconfig.lua_ls.setup(make_conf({
         settings = {
           Lua = {
+            runtime = {
+              version = "LuaJIT",
+            },
             telemetry = { enable = false },
             hint = { enable = true },
             workspace = {
               checkThirdParty = false,
+              library = vim.api.nvim_get_runtime_file("", true),
             },
             codeLens = {
               enable = true,
