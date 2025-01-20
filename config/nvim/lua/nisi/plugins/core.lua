@@ -1,10 +1,8 @@
 return {
   "tpope/vim-unimpaired",
-  "tpope/vim-surround",
   "tpope/vim-ragtag",
   "tpope/vim-abolish",
   "tpope/vim-repeat",
-  "AndrewRadev/splitjoin.vim",
   "tpope/vim-sleuth",
   "editorconfig/editorconfig-vim", -- TODO is this still required?
   {
@@ -18,11 +16,6 @@ return {
     "itchyny/vim-qfedit",
     cond = not vim.g.vscode,
     event = "VeryLazy",
-  },
-  {
-    "windwp/nvim-autopairs",
-    cond = not vim.g.vscode,
-    config = true,
   },
   {
     "nvim-pack/nvim-spectre",
