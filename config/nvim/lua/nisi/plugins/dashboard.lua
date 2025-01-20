@@ -8,6 +8,8 @@ vim.api.nvim_create_autocmd("FileType", { group = group, pattern = "startup", co
 -- if in a git directory, open git files, otherwise open all files when pressing the "Find File" shortcut
 local find_command = utils.is_in_git_repo() and ":Telescope git_files" or ":Telescope find_files"
 
+---@module 'snacks'
+
 return {
   "folke/snacks.nvim",
   ---@type snacks.Config
@@ -17,7 +19,7 @@ return {
       row = nil,
       col = nil,
       preset = {
-        header = table.concat(ascii.nicknisi, "\n"),
+        header = table.concat(ascii[config.startup_art] or ascii.meatboy, "\n"),
         ---@type snacks.dashboard.Item[]
         keys = {
           { icon = " ", key = "t", desc = "Find File", action = find_command },
