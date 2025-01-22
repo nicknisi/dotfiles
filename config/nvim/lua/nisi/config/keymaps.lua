@@ -69,10 +69,10 @@ vmap(">", ">gv")
 vmap(".", ":normal .<cr>") -- run `.` command in visual mode
 
 -- Move between panes or create new panes
-nmap("<C-h>", "<Plug>WinMoveLeft")
-nmap("<C-j>", "<Plug>WinMoveDown")
-nmap("<C-k>", "<Plug>WinMoveUp")
-nmap("<C-l>", "<Plug>WinMoveRight")
+-- nmap("<C-h>", "<Plug>WinMoveLeft")
+-- nmap("<C-j>", "<Plug>WinMoveDown")
+-- nmap("<C-k>", "<Plug>WinMoveUp")
+-- nmap("<C-l>", "<Plug>WinMoveRight")
 
 -- move line mappings
 local opt_h = "˙"

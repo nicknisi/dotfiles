@@ -5,6 +5,7 @@ return {
   "tpope/vim-repeat",
   "tpope/vim-sleuth",
   "editorconfig/editorconfig-vim", -- TODO is this still required?
+  "mrjones2014/smart-splits.nvim",
   {
     "andymass/vim-matchup",
     cond = not vim.g.vscode,

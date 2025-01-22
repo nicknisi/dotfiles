@@ -3,6 +3,7 @@ local h = require("utils.helpers")
 local wezterm = require("wezterm")
 local assets = wezterm.config_dir .. "/assets"
 local config = wezterm.config_builder()
+local act = wezterm.action
 
 -- set this to true to enable fancy background
 local fancy = true
@@ -55,6 +56,174 @@ config.adjust_window_size_when_changing_font_size = false
 -- keys config
 config.send_composed_key_when_left_alt_is_pressed = true
 config.send_composed_key_when_right_alt_is_pressed = false
+
+config.leader = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
+
+local resizeStep = 5
+config.key_tables = {
+  -- Defines the keys that are active in our resize-pane mode.
+  -- Since we're likely to want to make multiple adjustments,
+  -- we made the activation one_shot=false. We therefore need
+  -- to define a key assignment for getting out of this mode.
+  -- 'resize_pane' here corresponds to the name="resize_pane" in
+  -- the key assignments above.
+  resize_pane = {
+    { key = "H", mods = "SHIFT", action = act.AdjustPaneSize({ "Left", resizeStep }) },
+    { key = "L", mods = "SHIFT", action = act.AdjustPaneSize({ "Right", resizeStep }) },
+    { key = "K", mods = "SHIFT", action = act.AdjustPaneSize({ "Up", resizeStep }) },
+    { key = "J", mods = "SHIFT", action = act.AdjustPaneSize({ "Down", resizeStep }) },
+  },
+  change_tab = {
+    { key = "h", mods = "CTRL", action = act.ActivateTabRelative(-1) },
+    { key = "l", mods = "CTRL", action = act.ActivateTabRelative(1) },
+  },
+}
+local activateResize = act.ActivateKeyTable({
+  name = "resize_pane",
+  one_shot = false,
+  timeout_milliseconds = 1000,
+})
+local activateChangeTab = act.ActivateKeyTable({
+  name = "change_tab",
+  one_shot = false,
+  timeout_milliseconds = 1000,
+})
+config.keys = {
+  {
+    key = "H",
+    mods = "LEADER|SHIFT",
+    action = act.Multiple({
+      act.AdjustPaneSize({ "Left", resizeStep }),
+      activateResize,
+    }),
+  },
+  {
+    key = "J",
+    mods = "LEADER|SHIFT",
+    action = act.Multiple({
+      act.AdjustPaneSize({ "Down", resizeStep }),
+      activateResize,
+    }),
+  },
+  {
+    key = "K",
+    mods = "LEADER|SHIFT",
+    action = act.Multiple({
+      act.AdjustPaneSize({ "Up", resizeStep }),
+      activateResize,
+    }),
+  },
+  {
+    key = "L",
+    mods = "LEADER|SHIFT",
+    action = act.Multiple({
+      act.AdjustPaneSize({ "Right", resizeStep }),
+      activateResize,
+    }),
+  },
+  {
+    mods = "LEADER",
+    key = '"',
+    action = act.SplitVertical({ domain = "CurrentPaneDomain" }),
+  },
+  {
+    mods = "LEADER",
+    key = "%",
+    action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }),
+  },
+  {
+    mods = "LEADER",
+    key = "z",
+    action = act.TogglePaneZoomState,
+  },
+  {
+    mods = "LEADER|CTRL",
+    key = "h",
+    action = act.Multiple({
+      act.ActivateTabRelative(-1),
+      activateChangeTab,
+    }),
+  },
+  {
+    mods = "LEADER|CTRL",
+    key = "l",
+    action = act.Multiple({
+      act.ActivateTabRelative(1),
+      activateChangeTab,
+    }),
+  },
+  {
+    mods = "LEADER",
+    key = "N",
+    action = act.SpawnTab("CurrentPaneDomain"),
+  },
+  {
+    key = "Escape",
+    mods = "LEADER",
+    action = act.ActivateCopyMode,
+  },
+  {
+    key = "g",
+    mods = "LEADER",
+    action = act.SwitchToWorkspace({
+      name = "lazygit",
+      spawn = {
+        args = { "/opt/homebrew/bin/lazygit" }, -- @TODO don't use absolute path
+      },
+    }),
+  },
+  {
+    key = "s",
+    mods = "LEADER",
+    action = act.ShowLauncherArgs({
+      flags = "FUZZY|WORKSPACES",
+    }),
+  },
+  {
+    key = "w",
+    mods = "LEADER",
+    action = act.PromptInputLine({
+      description = wezterm.format({
+        { Attribute = { Intensity = "Bold" } },
+        { Foreground = { AnsiColor = "Fuchsia" } },
+        { Text = "Enter name for new workspace" },
+      }),
+      action = wezterm.action_callback(function(window, pane, line)
+        -- line will be `nil` if they hit escape without entering anything
+        -- An empty string if they just hit enter
+        -- Or the actual line of text they wrote
+        if line then
+          window:perform_action(
+            act.SwitchToWorkspace({
+              name = line,
+            }),
+            pane
+          )
+        end
+      end),
+    }),
+  },
+}
+
+local smart_splits = wezterm.plugin.require("https://github.com/mrjones2014/smart-splits.nvim")
+-- you can put the rest of your Wezterm config here
+smart_splits.apply_to_config(config, {
+  -- the default config is here, if you'd like to use the default keys,
+  -- you can omit this configuration table parameter and just use
+  -- smart_splits.apply_to_config(config)
+
+  -- directional keys to use in order of: left, down, up, right
+  direction_keys = { "h", "j", "k", "l" },
+  -- if you want to use separate direction keys for move vs. resize, you
+  -- can also do this:
+  -- modifier keys to combine with direction_keys
+  modifiers = {
+    move = "CTRL", -- modifier to use for pane movement, e.g. CTRL+h to move left
+    -- resize = "META", -- modifier to use for pane resize, e.g. META+h to resize to the left
+  },
+  -- log level to use: info, warn, error
+  log_level = "info",
+})
 
 if h.is_dark then
   -- local custom = wezterm.color.get_builtin_schemes()["Catppuccin Macchiato"]
