@@ -18,7 +18,9 @@ config.colors = {
 }
 
 config.macos_window_background_blur = 30
-config.enable_tab_bar = false
+config.enable_tab_bar = true
+config.hide_tab_bar_if_only_one_tab = true
+config.use_fancy_tab_bar = false
 config.window_decorations = "RESIZE"
 config.window_close_confirmation = "NeverPrompt"
 config.native_macos_fullscreen_mode = true
