@@ -1,10 +1,10 @@
 # Theme settings
-theme = dark:vesper,light:catppuccin-latte
-# theme = dark:catppuccin-mocha,light:catppuccin-latte
+# theme = dark:vesper,light:catppuccin-latte
+theme = dark:catppuccin-macchiato,light:catppuccin-latte
 # background = #1c2021
-background = #0B1215
-background-opacity = 0.75
-background-blur-radius = 40
+# background = #0B1215
+# background-opacity = 0.75
+# background-blur-radius = 40
 bold-is-bright = true
 
 # window settings
@@ -17,22 +17,27 @@ window-padding-y = 0
 window-padding-balance = false
 window-colorspace = "display-p3"
 adjust-cell-height = 10%
+cursor-invert-fg-bg = true
 
 shell-integration-features = no-cursor,sudo
 confirm-close-surface = false
 
 macos-icon = "custom-style"
 macos-icon-frame = "plastic"
-macos-icon-ghost-color = "#FFA500"
-macos-icon-screen-color = "#FFA500"
+macos-icon-ghost-color = "#8839ef"
+macos-icon-screen-color = "#1E1E2D"
+
+# Mouse settings
+mouse-hide-while-typing = true
 
 # Font settings
 font-family = "Monaspace Neon Regular"
+font-family-italic = "Monaspace Radon Var Regular Italic"
+font-family-bold-italic = "Monaspace Radon Var Bold Italic"
 font-size = 16
-cursor-color = #FFA500
 font-feature = +liga
 cursor-style = block
-
+adjust-underline-position = 4
 
 clipboard-read = allow
 clipboard-write = allow
@@ -66,6 +71,9 @@ keybind = cmd+s>l=goto_split:right
 
 keybind = cmd+s>z=toggle_split_zoom
 keybind = cmd+s>e=equalize_splits
+
+copy-on-select = clipboard
+shell-integration-features = cursor,sudo,no-title
 
 # Some shaders can be found in this repo, they're usually uploaded to discord
 # https://github.com/hackrmomo/ghostty-shaders
