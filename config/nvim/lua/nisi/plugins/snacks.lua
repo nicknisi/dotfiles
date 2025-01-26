@@ -16,7 +16,11 @@ return {
       },
       quickfile = { enabled = true },
       scroll = { enabled = false },
-      statuscolumn = { enabled = true },
+      statuscolumn = {
+        enabled = true,
+        left = { "sign", "git" },
+        right = { "mark", "fold" },
+      },
       words = { enabled = true },
       styles = {
         notification = {
