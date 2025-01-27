@@ -58,7 +58,7 @@ return {
         nmap("<leader>hd", gitsigns.diffthis, { desc = "Diff this" })
         nmap("<leader>hD", function()
           gitsigns.diffthis("~")
-        end, { desc = "" })
+        end, { desc = "Diff this file" })
         nmap("<leader>td", gitsigns.toggle_deleted, { desc = "Toggle deleted" })
 
         -- Text object
