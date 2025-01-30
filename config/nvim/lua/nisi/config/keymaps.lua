@@ -129,5 +129,8 @@ nmap("<leader>4", "<Plug>HiInterestingWord4")
 nmap("<leader>5", "<Plug>HiInterestingWord5")
 nmap("<leader>6", "<Plug>HiInterestingWord6")
 
+-- copy and normalize text
+vmap("<leader>y", utils.copy_normalized_block, { desc = "Copy and normalized" })
+
 -- open current buffer in a new tab
 nmap("gTT", ":tab sb<cr>", { desc = "Open current buffer in a new tab" })
