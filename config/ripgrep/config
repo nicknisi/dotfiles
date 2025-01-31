@@ -46,3 +46,6 @@ md:*.{md,mdx}
 
 # include hidden files
 --hidden
+
+# Don't go into the .git/ directory
+--glob=!.git/*
