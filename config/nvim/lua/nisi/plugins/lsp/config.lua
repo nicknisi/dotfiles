@@ -21,6 +21,7 @@ local servers = {
   "lua_ls",
   "denols",
   "astro",
+  "intelephense",
   "tailwindcss",
   "jsonls",
   "ruby_lsp",
@@ -243,6 +244,17 @@ function M.setup()
             },
           },
         },
+      }))
+    end
+  end
+
+  if utils.exists_in_table(servers, "intelephense") then
+    handlers["intelephense"] = function()
+      lspconfig.intelephense.setup(make_conf({
+        cmd = { "intelephense", "--stdio" },
+        filetypes = { "php" },
+        single_file_support = true,
+        root_dir = require("lspconfig/util").root_pattern("composer.json", ".git"),
       }))
     end
   end

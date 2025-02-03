@@ -12,6 +12,7 @@ local formatters = {
   sh = { "shellcheck", "shfmt" },
   lua = { "stylua" },
   ruby = { "rubocop" },
+  php = { "pint" },
 }
 
 return {
