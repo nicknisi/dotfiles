@@ -218,6 +218,10 @@ run = 'move-node-to-workspace B'
 if.app-id = 'company.thebrowser.Browser'
 run = 'move-node-to-workspace B'
 
+[[on-window-detected]]
+if.app-id = 'app.zen-browser.zen'
+run = 'move-node-to-workspace B'
+
 # Productivity
 
 [[on-window-detected]]
