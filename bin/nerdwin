@@ -67,8 +67,8 @@ get_icon() {
 
 ICON=$(get_icon)
 
-if [ "$SHOW_NAME" = true ]; then
-  echo "$ICON" "$NAME"
-else
-  echo "$ICON"
-fi
+# if [ "$SHOW_NAME" = true ]; then
+#   echo "$ICON" "$NAME"
+# else
+echo "$ICON"
+# fi
