@@ -34,12 +34,12 @@
             ]
           },
           {
-            "description": "Right Option to Hyper Key",
+            "description": "Right Command to Hyper Key",
             "manipulators": [
               {
                 "type": "basic",
                 "from": {
-                  "key_code": "right_option"
+                  "key_code": "right_command"
                 },
                 "to": [
                   {
