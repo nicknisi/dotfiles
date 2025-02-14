@@ -21,6 +21,7 @@ local servers = {
   "lua_ls",
   "denols",
   "astro",
+  "gopls",
   "intelephense",
   "tailwindcss",
   "jsonls",
