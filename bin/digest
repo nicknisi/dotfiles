@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+# Create a repository digest and copy to clipboard, excluding binary files
+# Usage: ./repo-digest.sh
+
+# Function to check if we're in a git repository
+check_git_repo() {
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "Error: Not in a git repository"
+    exit 1
+  fi
+}
+
+# Function to check if pbcopy exists
+check_pbcopy() {
+  if ! command -v pbcopy >/dev/null 2>&1; then
+    echo "Error: pbcopy not found. This script requires macOS."
+    exit 1
+  fi
+}
+
+# Function to check if a file is binary
+is_binary() {
+  local file="$1"
+  # Check if file is binary using 'file' command
+  if file "$file" | grep -q "binary"; then
+    return 0
+  fi
+  # Additional check for common binary extensions
+  if [[ "$file" =~ \.(png|jpg|jpeg|gif|pdf|zip|tar|gz|bin|exe|dll|so|dylib|class|pyc|o|a|lib|war|ear|jar|ico|ttf|otf|eot|woff|woff2|mp3|mp4|avi|mov|wmv|flv|webm|svg)$ ]]; then
+    return 0
+  fi
+  return 1
+}
+
+# Function to generate repository summary
+generate_summary() {
+  echo -e "\n## Repository Summary"
+  echo '```'
+  echo "Total files: $(git ls-files | wc -l)"
+
+  # Count only non-binary files for lines of code
+  local loc=0
+  while IFS= read -r file; do
+    if [ -f "$file" ] && ! is_binary "$file"; then
+      loc=$((loc + $(wc -l <"$file")))
+    fi
+  done < <(git ls-files)
+  echo "Total lines of code (excluding binary files): $loc"
+
+  echo "Contributors: $(git shortlog -sn --no-merges | wc -l)"
+  echo "First commit: $(git log --reverse --format="%cr" | head -n 1)"
+  echo "Latest commit: $(git log -1 --format="%cr")"
+
+  # File type statistics (excluding binary files)
+  echo -e "\nFile types (excluding binary files):"
+  git ls-files | while read -r file; do
+    if [ -f "$file" ] && ! is_binary "$file"; then
+      echo "$file"
+    fi
+  done | sed 's/.*\.//' | sort | uniq -c | sort -nr
+  echo '```'
+}
+
+# Function to generate detailed directory structure
+generate_directory_structure() {
+  echo -e "\n## Directory Structure with File Sizes"
+  echo '```'
+
+  # Generate tree with file sizes (excluding binary files)
+  git ls-files | while read -r file; do
+    if [ -f "$file" ]; then
+      if ! is_binary "$file"; then
+        size=$(ls -lh "$file" | awk '{print $5}')
+        printf "%-60s %8s\n" "$file" "$size"
+      else
+        printf "%-60s %8s\n" "$file" "[BINARY]"
+      fi
+    fi
+  done | sort
+
+  echo '```'
+
+  # Add directory summary
+  echo -e "\n### Directory Summary"
+  echo '```'
+  find . -type d -not -path '*/\.*' | sed 's/[^/]//g' | sort | uniq -c | awk '{printf "%s%s\n", $2, " ("$1" files)"}'
+  echo '```'
+}
+
+# Create the digest
+create_digest() {
+  # Repository information
+  echo "# Repository Digest"
+  echo "Generated on: $(date)"
+  echo -e "\n## Repository Information"
+  echo '```'
+  echo "Remote origin: $(git remote get-url origin 2>/dev/null || echo 'No remote origin')"
+  echo "Current branch: $(git branch --show-current)"
+  echo "Last commit: $(git log -1 --pretty=format:'%h - %s (%cr) <%an>')"
+  echo '```'
+
+  # Generate summary
+  generate_summary
+
+  # Generate directory structure
+  generate_directory_structure
+
+  # Git ignore patterns
+  echo -e "\n## Git Ignore Patterns"
+  echo '```'
+  if [ -f .gitignore ]; then
+    cat .gitignore
+  else
+    echo "No .gitignore file found"
+  fi
+  echo '```'
+
+  # File contents (excluding binary files)
+  echo -e "\n## File Contents"
+  git ls-files | while read -r file; do
+    if [ -f "$file" ]; then
+      if ! is_binary "$file"; then
+        echo -e "\n### $file"
+        echo '```'
+        # Add file size and last modified date
+        stat -f "Size: %z bytes, Last modified: %Sm" "$file" 2>/dev/null || stat -c "Size: %s bytes, Last modified: %y" "$file"
+        echo -e "\n"
+        cat "$file"
+        echo '```'
+      else
+        echo -e "\n### $file"
+        echo "[BINARY FILE - CONTENTS EXCLUDED]"
+      fi
+    fi
+  done
+}
+
+# Main execution
+check_git_repo
+check_pbcopy
+
+# Execute create_digest and pipe to pbcopy
+create_digest | pbcopy
+
+echo "Repository digest has been copied to clipboard!"
