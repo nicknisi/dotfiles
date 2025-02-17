@@ -47,6 +47,9 @@ return {
         documentation = { auto_show = true, auto_show_delay_ms = 200 },
         ghost_text = { enabled = true },
         menu = {
+          auto_show = function(ctx)
+            return ctx.mode ~= "cmdline" or not vim.tbl_contains({ "/", "?" }, vim.fn.getcmdtype())
+          end,
           draw = {
             treesitter = { "lsp" },
           },
