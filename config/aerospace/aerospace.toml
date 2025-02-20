@@ -120,6 +120,7 @@ alt-6 = 'workspace 6'
 alt-7 = 'workspace 7'
 alt-8 = 'workspace 8'
 alt-9 = 'workspace 9'
+alt-a = 'workspace A' # AI
 alt-b = 'workspace B' # Browsers
 alt-c = 'workspace C' # Chat apps
 alt-d = 'workspace D' # Development
