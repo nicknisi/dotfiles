@@ -21,6 +21,8 @@
     addnw = "!sh -c 'git diff -U0 -w --no-color \"$@\" | git apply --cached --ignore-whitespace --unidiff-zero -'"
     cane = commit --amend --no-edit
 
+  seperator = "commit --allow-empty -m \"--------SEPERATOR--------\""
+
     # gh commands
     browse = "!gh repo view --web"
 
