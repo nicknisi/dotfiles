@@ -140,7 +140,19 @@ create_digest() {
 check_git_repo
 check_pbcopy
 
-# Execute create_digest and pipe to pbcopy
-create_digest | pbcopy
+digest=$(create_digest)
+digest_size=$(echo "$digest" | wc -c | tr -d ' ')
 
-echo "Repository digest has been copied to clipboard!"
+# Format the size in a human-readable way
+if [ "$digest_size" -gt 1048576 ]; then # 1 MB
+  formatted_size="$(bc <<<"scale=2; $digest_size/1048576")MB"
+elif [ "$digest_size" -gt 1024 ]; then # 1 KB
+  formatted_size="$(bc <<<"scale=2; $digest_size/1024")KB"
+else
+  formatted_size="${digest_size}B"
+fi
+
+# Execute create_digest and pipe to pbcopy
+echo "$digest" | pbcopy
+
+echo "Repository digest (${formatted_size}) has been copied to clipboard!"
