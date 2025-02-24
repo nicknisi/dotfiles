@@ -8,7 +8,7 @@ options=(
   # active_color=0xffe91e63
   inactive_color=0xff494d64
   # inactive_color=0xffFF0000
-  active_color="gradient(top_left=0xffFF0000,bottom_right=0xff00FF00)"
+  active_color="gradient(top_left=0xffFF1493,bottom_right=0xff39FF14)"
   # active_color="glow(0xffFF0000)"
   hidpi=on
 )
