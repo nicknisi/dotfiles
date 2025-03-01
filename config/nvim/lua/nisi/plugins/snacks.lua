@@ -12,7 +12,11 @@ return {
       input = { enabled = true },
       notifier = {
         enabled = true,
-        timeout = 3000,
+        timeout = 1500,
+        filter = function(notif)
+          -- Filter out the "Fetching latest versions" notification
+          return not (notif.msg:match("Fetching latest versions"))
+        end,
       },
       quickfile = { enabled = true },
       scroll = { enabled = false },
