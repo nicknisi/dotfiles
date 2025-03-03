@@ -25,6 +25,7 @@ local servers = {
   "intelephense",
   "tailwindcss",
   "jsonls",
+  "pylsp",
   "ruby_lsp",
   "pylsp",
   "vimls",
@@ -154,6 +155,35 @@ function M.setup()
               -- },
             },
             validate = true,
+          },
+        },
+      }))
+    end
+  end
+
+  if utils.exists_in_table(servers, "pylsp") then
+    handlers["pylsp"] = function()
+      lspconfig.pylsp.setup(make_conf({
+        settings = {
+          pylsp = {
+            plugins = {
+              pycodestyle = {
+                enabled = true,
+                maxLineLength = 100,
+              },
+              pyflakes = { enabled = true },
+              pylint = { enabled = false },
+              jedi_completion = {
+                enabled = true,
+                include_params = true,
+              },
+              rope_completion = { enabled = true },
+              autopep8 = { enabled = false }, -- Disable if using black formatter
+              yapf = { enabled = false },
+              black = { enabled = true },
+              mypy = { enabled = true },
+              isort = { enabled = true },
+            },
           },
         },
       }))

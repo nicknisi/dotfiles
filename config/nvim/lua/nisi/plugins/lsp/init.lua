@@ -10,6 +10,7 @@ local formatters = {
   yaml = { "prettier" },
   css = { "stylelint", "prettier" },
   sh = { "shellcheck", "shfmt" },
+  python = { "black", "isort" },
   go = { "gofmt" },
   lua = { "stylua" },
   ruby = { "rubocop" },

@@ -9,6 +9,7 @@ local utils = require("nisi.utils")
 ---@field startup_color string|nil The color to use for the startup art
 ---@field zen boolean|nil Whether to show a minimal UI (hide statusline, line numbers, etc.)
 ---@field copilot boolean|nil Whether copilot is enabled
+---@field python boolean|nil Whether python is enabled
 ---@field avante boolean|nil Whether avante is enabled
 ---@field fzf boolean|nil Whether too configure fzf for tooling like telescope
 ---@field prefer_git boolean|nil Whether to prefer using git for dependencies over other options like curl
@@ -88,6 +89,10 @@ local function init_plugins()
 
   if config.copilot then
     M.add_plugin({ import = "nisi.plugins.extras.copilot" })
+  end
+
+  if config.python then
+    M.add_plugin({ import = "nisi.plugins.extras.python" })
   end
 
   if config.avante then
