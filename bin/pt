@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# List out the pid for the process that is currently listening on the provided port
+# Usage: wtfport find <port>
+# Usage: wtfport kill <port>
+# Example: wtfport find 3000
+# Example: wtfport kill 3000
+
+find_port() {
+  local port=$1
+  line="$(lsof -i -P -n | grep LISTEN | grep ":$port")"
+  pid=$(echo "$line" | awk '{print $2}')
+  pid_name=$(echo "$line" | awk '{print $1}')
+
+  # If there's nothing running, exit
+  if [[ -z "$pid" ]]; then
+    echo >&2 -e "No process found listening on port $port"
+    exit 0
+  fi
+
+  # output the process name to stderr so it won't be piped along
+  echo >&2 -e "Process \"$pid_name\" is listening on port $port"
+
+  # print the process id. It can be piped, for example to pbcopy
+  echo -e "$pid"
+}
+
+kill_port() {
+  local port=$1
+  line="$(lsof -i -P -n | grep LISTEN | grep ":$port")"
+  pid=$(echo "$line" | awk '{print $2}')
+  pid_name=$(echo "$line" | awk '{print $1}')
+
+  # If there's nothing running, exit
+  if [[ -z "$pid" ]]; then
+    echo >&2 -e "No process found listening on port $port"
+    exit 0
+  fi
+
+  kill -9 "$pid"
+  echo "Killed process \"$pid_name\" listening on port $port"
+}
+
+case "$1" in
+find | f)
+  if [ -z "$2" ]; then
+    echo "Usage: wtfport find <port>"
+    exit 1
+  fi
+  find_port "$2"
+  ;;
+kill | k)
+  if [ -z "$2" ]; then
+    echo "Usage: wtfport kill <port>"
+    exit 1
+  fi
+  kill_port "$2"
+  ;;
+*)
+  echo "Usage: pt <find|kill> <port>"
+  exit 1
+  ;;
+esac
