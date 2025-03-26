@@ -1,0 +1,2 @@
+# don't show these directories in the sesh
+blacklist = ['~/.local/share/*']
