@@ -100,7 +100,7 @@ function M.setup()
     end,
   }
 
-  if utils.exists_in_table(servers, "eslint") then
+  if utils.exists_in_table(servers, "eslint_d") then
     handlers["eslint"] = function()
       lspconfig.eslint.setup({
         root_dir = require("lspconfig/util").root_pattern(
