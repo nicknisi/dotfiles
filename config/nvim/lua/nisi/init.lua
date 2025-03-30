@@ -15,6 +15,7 @@ local utils = require("nisi.utils")
 ---@field prefer_git boolean|nil Whether to prefer using git for dependencies over other options like curl
 ---@field proxy string|nil A proxy URL to use for certain network functions
 ---@field colorscheme string|fun()|nil What to set the colorscheme to and/or how
+---@field transparent boolean|nil Whether to use a transparent background for the colorscheme
 local config = {
   lazypath = vim.fn.stdpath("data") .. "lazy/lazy.nvim",
   startup_art = "nicknisi",
@@ -34,6 +35,7 @@ local config = {
 
     vim.cmd("colorscheme catppuccin")
   end,
+  transparent = false,
 }
 
 ---Assign a user config to the config table

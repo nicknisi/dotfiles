@@ -1,4 +1,5 @@
 local utils = require("nisi.utils")
+local config = require("nisi").config
 
 return {
   -- Catppuccin theme
@@ -8,8 +9,8 @@ return {
     lazy = true,
     opts = {
       flavour = utils.is_dark_mode() and "mocha" or "latte", -- latte, frappe, macchiato, mocha
-      dim_inactive = { enabled = true, shade = "dark", percentage = 0.6 },
-      transparent_background = false,
+      -- dim_inactive = { enabled = config.transparent or false, shade = "dark", percentage = 0.6 },
+      transparent_background = config.transparent or false, -- set to true to enable transparent background
       term_colors = true,
       compile = { enabled = true, path = vim.fn.stdpath("cache") .. "/catppuccin", suffix = "_compiled" },
       styles = {
@@ -118,6 +119,14 @@ return {
       --     TelescopePreviewTitle = { bg = colors.mantle, fg = colors.blue },
       --   }
       -- end,
+    },
+  },
+  {
+    "folke/tokyonight.nvim",
+    lazy = false,
+    priority = 1000,
+    opts = {
+      transparent = config.transparent or false,
     },
   },
 }
