@@ -125,11 +125,62 @@ opt.shiftround = true -- round indent to a multiple of 'shiftwidth'
 
 -- code folding settings
 opt.foldmethod = "expr"
-opt.foldexpr = "nvim_treesitter#foldexpr()"
+opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 opt.foldlevelstart = 99
 opt.foldnestmax = 10 -- deepest fold is 10 levels
 opt.foldenable = false -- don't fold by default
-opt.foldlevel = 1
+opt.foldlevel = 99
+vim.opt.foldcolumn = "0"
+vim.opt.fillchars:append({ fold = " " })
+local function fold_virt_text(result, s, lnum, coloff)
+  if not coloff then
+    coloff = 0
+  end
+  local text = ""
+  local hl
+  for i = 1, #s do
+    local char = s:sub(i, i)
+    local hls = vim.treesitter.get_captures_at_pos(0, lnum, coloff + i - 1)
+    local _hl = hls[#hls]
+    if _hl then
+      local new_hl = "@" .. _hl.capture
+      if new_hl ~= hl then
+        table.insert(result, { text, hl })
+        text = ""
+        hl = nil
+      end
+      text = text .. char
+      hl = new_hl
+    else
+      text = text .. char
+    end
+  end
+  table.insert(result, { text, hl })
+end
+
+function _G.custom_foldtext()
+  local start = vim.fn.getline(vim.v.foldstart):gsub("\t", string.rep(" ", vim.o.tabstop))
+  local end_str = vim.fn.getline(vim.v.foldend)
+  local end_ = vim.trim(end_str)
+  local result = {}
+  fold_virt_text(result, start, vim.v.foldstart - 1)
+  table.insert(result, { " ... ", "Delimiter" })
+  fold_virt_text(result, end_, vim.v.foldend - 1, #(end_str:match("^(%s+)") or ""))
+  return result
+end
+
+vim.opt.foldtext = "v:lua.custom_foldtext()"
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if client and client:supports_method("textDocument/foldingRange") then
+      local win = vim.api.nvim_get_current_win()
+      vim.wo[win][0].foldmethod = "expr"
+      vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
+    end
+  end,
+})
+vim.api.nvim_create_autocmd("LspDetach", { command = "setl foldexpr<" })
 
 opt.virtualedit = "block"
 
@@ -154,6 +205,7 @@ opt.listchars = {
   extends = "❯",
   precedes = "❮",
 }
+vim.opt.fillchars:append({ fold = " " }) -- Use space for fold
 
 -- hide the ~ character on empty lines at the end of the buffer
 opt.fcs = "eob: "
