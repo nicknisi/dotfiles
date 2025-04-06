@@ -53,8 +53,8 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 #                 See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [gaps]
 # Allow for more space on smaller screens
-inner.horizontal = [ { monitor."Built-in Retina Display" = 25 }, 25  ]
-inner.vertical =   [ { monitor."Built-in Retina Display" = 25 }, 25  ]
+inner.horizontal = [ { monitor."Built-in Retina Display" = 10 }, 25  ]
+inner.vertical =   [ { monitor."Built-in Retina Display" = 10 }, 25  ]
 outer.left =       [ { monitor."Built-in Retina Display" = 15 }, 25  ]
 outer.bottom =     [ { monitor."Built-in Retina Display" = 15 }, 25  ]
 outer.top =        [ { monitor."Built-in Retina Display" = 15 }, 25  ]
