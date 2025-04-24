@@ -199,4 +199,26 @@ function M.copy_normalized_block()
   vim.notify("Copied normalized text to clipboard")
 end
 
+---Create a function that takes a table with a function and its arguments, returning a new function
+---@param t table A table where the first element is a function and the rest are its arguments
+---@return function A new function that calls the original function with the provided arguments
+function M.fun(t)
+  local f = t[1]
+  local args = { unpack(t, 2) }
+  return function()
+    return f(unpack(args))
+  end
+end
+
+---Create a function that takes a function and its arguments, returning a new function
+---@param f function The function to call
+---@param ... any The arguments to pass to the function
+---@return function A new function that calls the original function with the provided arguments
+function M.fn(f, ...)
+  local args = { ... }
+  return function(...)
+    return f(unpack(args), ...)
+  end
+end
+
 return M

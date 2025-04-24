@@ -4,6 +4,7 @@ local lspconfig = require("lspconfig")
 local mason = require("mason")
 local mason_lspconfig = require("mason-lspconfig")
 local utils = require("nisi.utils")
+local fn = utils.fn
 local border = {
   { "🭽", "FloatBorder" },
   { "▔", "FloatBorder" },
@@ -51,8 +52,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
     end
 
     keymap("<leader>aa", lsp_utils.lsp_show_diagnostics, false, "Show diagnostics")
-    keymap("[d", vim.diagnostic.goto_prev, false, "Go to previous diagnostic")
-    keymap("]d", vim.diagnostic.goto_next, false, "Go to next diagnostic")
+    keymap("[d", fn(vim.diagnostic.jump, { count = -1 }), false, "Go to previous diagnostic")
+    keymap("]d", fn(vim.diagnostic.jump, { count = 1 }), false, "Go to next diagnostic")
     keymap("<leader>aq", vim.diagnostic.setloclist, false, "Send diagnostics to loclist")
 
     keymap("gO", lsp_utils.lsp_organize_imports, true, "Organize imports")
