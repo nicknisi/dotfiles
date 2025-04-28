@@ -126,16 +126,19 @@ local function patch_syntax()
 
   vim.diagnostic.config({
     virtual_text = true,
+    virtual_lines = {
+      current_line = true,
+    },
     signs = true,
     update_in_insert = true,
     severity_sort = true,
   })
 
   -- make comments and HTML attributes italic
-  vim.cmd([[highlight Comment cterm=italic term=italic gui=italic]])
-  vim.cmd([[highlight htmlArg cterm=italic term=italic gui=italic]])
-  vim.cmd([[highlight xmlAttrib cterm=italic term=italic gui=italic]])
-  vim.cmd([[highlight Normal ctermbg=none]])
+  -- vim.api.nvim_set_hl(0, "Comment", { italic = true })
+  -- vim.api.nvim_set_hl(0, "htmlArg", { italic = true })
+  -- vim.api.nvim_set_hl(0, "xmlAttrib", { italic = true })
+  -- vim.cmd([[highlight Normal ctermbg=none]])
 end
 
 ---Apply the colorscheme setting
