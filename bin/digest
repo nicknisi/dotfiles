@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 
-# Create a repository digest and copy to clipboard, excluding binary files
-# Usage: ./repo-digest.sh
+# Repository Digest Generator
+# Creates a text summary of a git repository or specific directory
+# Version: 2.2 (macOS optimized)
+
+set -e
+
+# Default settings
+MAX_FILE_SIZE=100000   # Skip files larger than 100KB
+MAX_TOTAL_SIZE=1000000 # Target maximum output size (~1MB)
+CHARS_PER_TOKEN=4      # Estimated characters per token for English text
+TARGET_DIR=""          # Default to whole repo
 
 # Function to check if we're in a git repository
 check_git_repo() {
@@ -11,54 +20,130 @@ check_git_repo() {
   fi
 }
 
-# Function to check if pbcopy exists
-check_pbcopy() {
-  if ! command -v pbcopy >/dev/null 2>&1; then
-    echo "Error: pbcopy not found. This script requires macOS."
-    exit 1
+# Function to format file size
+format_file_size() {
+  local size=$1
+  if [[ $size -gt 1048576 ]]; then # 1 MB
+    printf "%.2fMB" "$(echo "scale=2; $size/1048576" | bc)"
+  elif [[ $size -gt 1024 ]]; then # 1 KB
+    printf "%.2fKB" "$(echo "scale=2; $size/1024" | bc)"
+  else
+    printf "%dB" "$size"
   fi
 }
 
-# Function to check if a file is binary
+# Calculate estimated token count from character count
+estimate_tokens() {
+  local chars=$1
+  echo $((chars / CHARS_PER_TOKEN))
+}
+
+# Improved binary detection for macOS
 is_binary() {
   local file="$1"
-  # Check if file is binary using 'file' command
-  if file "$file" | grep -q "binary"; then
+
+  # Skip empty files
+  if [[ ! -s "$file" ]]; then
+    return 1
+  fi
+
+  # Check git attributes if possible (can override other checks)
+  if git check-attr --all "$file" 2>/dev/null | grep -q "binary: set"; then
     return 0
   fi
-  # Additional check for common binary extensions
-  if [[ "$file" =~ \.(png|jpg|jpeg|gif|pdf|zip|tar|gz|bin|exe|dll|so|dylib|class|pyc|o|a|lib|war|ear|jar|ico|ttf|otf|eot|woff|woff2|mp3|mp4|avi|mov|wmv|flv|webm|svg)$ ]]; then
+
+  # Common binary extensions
+  local binary_extensions=".png .jpg .jpeg .gif .bmp .ico .webp .mp3 .mp4 .wav .flac .ogg .avi .mov .zip .tar .gz .7z .rar .jar .war .class .exe .dll .so .dylib .pyc .o .a .obj .lib .bin .pdf .ttf .otf .eot .woff .woff2 .svg"
+
+  local ext=".${file##*.}"
+  if [[ "$file" != "$ext" && "$binary_extensions" == *"$ext"* ]]; then
     return 0
   fi
+
+  # Use the file command to detect binary files
+  if file -b --mime-encoding "$file" | grep -q -v "utf-8\|us-ascii\|ascii"; then
+    return 0
+  fi
+
+  # Additional check for binary content within first 1000 bytes
+  if head -c 1000 "$file" | tr -d '[:print:][:space:]' | grep -q '[^ ]'; then
+    return 0
+  fi
+
   return 1
+}
+
+# Get list of files to process
+get_file_list() {
+  if [[ -n "$TARGET_DIR" ]]; then
+    # Normalize path (ensure it ends with slash for proper prefix matching)
+    if [[ "$TARGET_DIR" != */ ]]; then
+      TARGET_DIR="$TARGET_DIR/"
+    fi
+
+    # Get files only within the target directory
+    git ls-files "$TARGET_DIR"
+  else
+    # Get all files
+    git ls-files
+  fi
 }
 
 # Function to generate repository summary
 generate_summary() {
   echo -e "\n## Repository Summary"
   echo '```'
-  echo "Total files: $(git ls-files | wc -l)"
+
+  # Count files
+  local all_files=$(get_file_list | wc -l | tr -d ' ')
+  echo "Total files: $all_files"
+
+  # Setting scope text
+  local scope_text="repository"
+  if [[ -n "$TARGET_DIR" ]]; then
+    scope_text="directory '$TARGET_DIR'"
+  fi
 
   # Count only non-binary files for lines of code
   local loc=0
-  while IFS= read -r file; do
-    if [ -f "$file" ] && ! is_binary "$file"; then
-      loc=$((loc + $(wc -l <"$file")))
-    fi
-  done < <(git ls-files)
-  echo "Total lines of code (excluding binary files): $loc"
+  local non_binary_files=0
 
-  echo "Contributors: $(git shortlog -sn --no-merges | wc -l)"
-  echo "First commit: $(git log --reverse --format="%cr" | head -n 1)"
-  echo "Latest commit: $(git log -1 --format="%cr")"
+  while IFS= read -r file; do
+    if [[ -f "$file" ]]; then
+      if ! is_binary "$file"; then
+        file_size=$(stat -f %z "$file")
+
+        # Skip large files
+        if [[ $file_size -le $MAX_FILE_SIZE ]]; then
+          non_binary_files=$((non_binary_files + 1))
+          loc=$((loc + $(wc -l <"$file")))
+        fi
+      fi
+    fi
+  done < <(get_file_list)
+
+  echo "Text files: $non_binary_files"
+  echo "Total lines of code (text files): $loc"
+
+  # Only include git stats for whole repo or if we're at repo root
+  if [[ -z "$TARGET_DIR" || "$TARGET_DIR" == "./" ]]; then
+    echo "Contributors: $(git shortlog -sn --no-merges | wc -l | tr -d ' ')"
+    echo "First commit: $(git log --reverse --format="%cr" | head -n 1)"
+    echo "Latest commit: $(git log -1 --format="%cr")"
+
+    # Commit frequency if repo has sufficient history
+    if [[ $(git log --since='1 year ago' --format=oneline | wc -l) -gt 0 ]]; then
+      echo "Average commits per month: $(git log --format=oneline --since='1 year ago' | wc -l | awk '{print int($1/12)}')"
+    fi
+  fi
 
   # File type statistics (excluding binary files)
   echo -e "\nFile types (excluding binary files):"
-  git ls-files | while read -r file; do
-    if [ -f "$file" ] && ! is_binary "$file"; then
+  get_file_list | while read -r file; do
+    if [[ -f "$file" ]] && ! is_binary "$file"; then
       echo "$file"
     fi
-  done | sed 's/.*\.//' | sort | uniq -c | sort -nr
+  done | grep -v "^$" | sed -E 's/.*\.([^.]+)$/\1/' | sort | uniq -c | sort -nr | head -10
   echo '```'
 }
 
@@ -67,92 +152,227 @@ generate_directory_structure() {
   echo -e "\n## Directory Structure with File Sizes"
   echo '```'
 
-  # Generate tree with file sizes (excluding binary files)
-  git ls-files | while read -r file; do
-    if [ -f "$file" ]; then
-      if ! is_binary "$file"; then
-        size=$(ls -lh "$file" | awk '{print $5}')
-        printf "%-60s %8s\n" "$file" "$size"
-      else
-        printf "%-60s %8s\n" "$file" "[BINARY]"
+  # Generate tree with file sizes
+  get_file_list | sort | while read -r file; do
+    if [[ -f "$file" ]]; then
+      local size=$(stat -f %z "$file" 2>/dev/null)
+      if [[ $size -le $MAX_FILE_SIZE ]]; then
+        hr_size=$(format_file_size "$size")
+        if is_binary "$file"; then
+          binary_label="[BINARY]"
+          printf "%-60s %8s\n" "$file" "$binary_label"
+        else
+          printf "%-60s %8s\n" "$file" "$hr_size"
+        fi
       fi
     fi
-  done | sort
+  done
 
   echo '```'
 
   # Add directory summary
   echo -e "\n### Directory Summary"
   echo '```'
-  find . -type d -not -path '*/\.*' | sed 's/[^/]//g' | sort | uniq -c | awk '{printf "%s%s\n", $2, " ("$1" files)"}'
+  # Use our file list to get directories that actually exist
+  get_file_list | xargs -n1 dirname 2>/dev/null | sort | uniq -c | sort -nr | head -20 |
+    while read count dir; do
+      echo "${dir} (${count} files)"
+    done
+  echo '```'
+}
+
+# Function to show .gitignore patterns
+show_gitignore() {
+  echo -e "\n## Git Ignore Patterns"
+  echo '```'
+  # Find the most relevant .gitignore file
+  local gitignore_path=""
+
+  if [[ -n "$TARGET_DIR" && -f "$TARGET_DIR/.gitignore" ]]; then
+    gitignore_path="$TARGET_DIR/.gitignore"
+  elif [[ -f ".gitignore" ]]; then
+    gitignore_path=".gitignore"
+  fi
+
+  if [[ -n "$gitignore_path" ]]; then
+    cat "$gitignore_path"
+  else
+    echo "No .gitignore file found"
+  fi
   echo '```'
 }
 
 # Create the digest
 create_digest() {
-  # Repository information
-  echo "# Repository Digest"
-  echo "Generated on: $(date)"
-  echo -e "\n## Repository Information"
-  echo '```'
-  echo "Remote origin: $(git remote get-url origin 2>/dev/null || echo 'No remote origin')"
-  echo "Current branch: $(git branch --show-current)"
-  echo "Last commit: $(git log -1 --pretty=format:'%h - %s (%cr) <%an>')"
-  echo '```'
+  local total_size=0
+  local total_tokens=0
+  local digest=""
+
+  # Set title based on whether we're looking at whole repo or specific dir
+  if [[ -n "$TARGET_DIR" ]]; then
+    digest+="# Directory Digest: $TARGET_DIR\n"
+  else
+    digest+="# Repository Digest\n"
+  fi
+
+  digest+="Generated on: $(date)\n"
+  digest+="\n## Repository Information\n"
+  digest+='```\n'
+  digest+="Remote origin: $(git remote get-url origin 2>/dev/null || echo 'No remote origin')\n"
+  digest+="Current branch: $(git branch --show-current)\n"
+  digest+="Last commit: $(git log -1 --pretty=format:'%h - %s (%cr) <%an>')\n"
+
+  # If targeting a directory, add its specific last commit
+  if [[ -n "$TARGET_DIR" ]]; then
+    digest+="Last commit in $TARGET_DIR: $(git log -1 --pretty=format:'%h - %s (%cr) <%an>' -- "$TARGET_DIR")\n"
+  fi
+
+  digest+='```\n'
 
   # Generate summary
-  generate_summary
+  digest+=$(generate_summary)
 
   # Generate directory structure
-  generate_directory_structure
+  digest+=$(generate_directory_structure)
 
   # Git ignore patterns
-  echo -e "\n## Git Ignore Patterns"
-  echo '```'
-  if [ -f .gitignore ]; then
-    cat .gitignore
-  else
-    echo "No .gitignore file found"
-  fi
-  echo '```'
+  digest+=$(show_gitignore)
 
   # File contents (excluding binary files)
-  echo -e "\n## File Contents"
-  git ls-files | while read -r file; do
-    if [ -f "$file" ]; then
+  digest+="\n## File Contents\n"
+  local content_size=0
+  local file_count=0
+
+  while IFS= read -r file; do
+    if [[ $content_size -ge $MAX_TOTAL_SIZE ]]; then
+      digest+="\n### [TRUNCATED: Size limit reached]\n"
+      break
+    fi
+
+    if [[ -f "$file" ]]; then
+      local file_size=$(stat -f %z "$file" 2>/dev/null)
+
+      # Skip large files
+      if [[ $file_size -gt $MAX_FILE_SIZE ]]; then
+        continue
+      fi
+
       if ! is_binary "$file"; then
-        echo -e "\n### $file"
-        echo '```'
+        digest+="\n### $file\n"
+        digest+='```\n'
         # Add file size and last modified date
-        stat -f "Size: %z bytes, Last modified: %Sm" "$file" 2>/dev/null || stat -c "Size: %s bytes, Last modified: %y" "$file"
-        echo -e "\n"
-        cat "$file"
-        echo '```'
-      else
-        echo -e "\n### $file"
-        echo "[BINARY FILE - CONTENTS EXCLUDED]"
+        local mod_date=$(stat -f "%Sm" "$file")
+        local est_tokens=$(estimate_tokens "$file_size")
+        digest+="Size: $(format_file_size "$file_size"), Est. tokens: $est_tokens, Last modified: $mod_date\n\n"
+
+        # Get file contents and append to digest
+        local content=$(cat "$file")
+        digest+="$content\n"
+        digest+='```\n'
+
+        file_count=$((file_count + 1))
+        content_size=$((content_size + file_size + 100)) # Add overhead for formatting
+        total_tokens=$((total_tokens + est_tokens))
+
+        # Break if we've reached size limit
+        if [[ $content_size -ge $MAX_TOTAL_SIZE ]]; then
+          digest+="\n### [TRUNCATED: Size limit reached]\n"
+          break
+        fi
       fi
     fi
+  done < <(get_file_list | sort)
+
+  # Add token count summary at the end
+  total_size=${#digest}
+  total_tokens=$(estimate_tokens "$total_size")
+  digest+="\n## Summary Statistics\n"
+  digest+="Total size: $(format_file_size "$total_size")\n"
+  digest+="Estimated token count: $total_tokens\n"
+  digest+="Files included: $file_count\n"
+
+  if [[ -n "$TARGET_DIR" ]]; then
+    digest+="Directory: $TARGET_DIR\n"
+  fi
+
+  echo -e "$digest"
+}
+
+# Process arguments
+process_args() {
+  # Parse named arguments first
+  while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    --max-file-size)
+      MAX_FILE_SIZE="$2"
+      shift 2
+      ;;
+    --max-total-size)
+      MAX_TOTAL_SIZE="$2"
+      shift 2
+      ;;
+    --chars-per-token)
+      CHARS_PER_TOKEN="$2"
+      shift 2
+      ;;
+    --help | -h)
+      echo "Usage: $0 [OPTIONS] [DIRECTORY]"
+      echo
+      echo "Creates a digest of a git repository or specific directory."
+      echo
+      echo "Options:"
+      echo "  --max-file-size BYTES   Maximum size of individual files to include"
+      echo "  --max-total-size BYTES  Maximum total size of the digest"
+      echo "  --chars-per-token N     Number of characters per token (for estimation)"
+      echo "  --help, -h              Show this help message"
+      echo
+      echo "Example:"
+      echo "  $0                      # Digest entire repo"
+      echo "  $0 src/                 # Digest only the src directory"
+      echo "  $0 --max-total-size 2000000 app/  # Digest app dir with larger size limit"
+      exit 0
+      ;;
+    -*)
+      echo "Unknown option: $1"
+      echo "Use --help for usage information"
+      exit 1
+      ;;
+    *)
+      # First non-option argument is the target directory
+      if [[ -z "$TARGET_DIR" ]]; then
+        TARGET_DIR="$1"
+        # Validate the directory exists
+        if [[ ! -d "$TARGET_DIR" ]]; then
+          echo "Error: Directory '$TARGET_DIR' does not exist"
+          exit 1
+        fi
+      else
+        echo "Error: Only one directory can be specified"
+        exit 1
+      fi
+      shift
+      ;;
+    esac
   done
 }
 
 # Main execution
 check_git_repo
-check_pbcopy
+process_args "$@"
 
 digest=$(create_digest)
-digest_size=$(echo "$digest" | wc -c | tr -d ' ')
+digest_size=$(echo -n "$digest" | wc -c | tr -d ' ')
+formatted_size=$(format_file_size "$digest_size")
+token_estimate=$(estimate_tokens "$digest_size")
 
-# Format the size in a human-readable way
-if [ "$digest_size" -gt 1048576 ]; then # 1 MB
-  formatted_size="$(bc <<<"scale=2; $digest_size/1048576")MB"
-elif [ "$digest_size" -gt 1024 ]; then # 1 KB
-  formatted_size="$(bc <<<"scale=2; $digest_size/1024")KB"
-else
-  formatted_size="${digest_size}B"
+# Generate context message
+context_msg="Repository"
+if [[ -n "$TARGET_DIR" ]]; then
+  context_msg="Directory '$TARGET_DIR'"
 fi
 
-# Execute create_digest and pipe to pbcopy
+# Copy to clipboard
 echo "$digest" | pbcopy
+echo "$context_msg digest (${formatted_size}, ~${token_estimate} tokens) copied to clipboard!"
 
-echo "Repository digest (${formatted_size}) has been copied to clipboard!"
+exit 0
