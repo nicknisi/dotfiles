@@ -126,7 +126,11 @@ return {
     lazy = false,
     priority = 1000,
     opts = {
+      style = "night",
       transparent = config.transparent or false,
+      styles = {
+        comments = { italic = true },
+      },
     },
   },
 }

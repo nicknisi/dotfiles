@@ -7,5 +7,5 @@ local nisi = require("nisi")
 nisi.setup({
   python = true,
   transparent = true,
-  colorscheme = "tokyonight-night",
+  colorscheme = "tokyonight",
 })
