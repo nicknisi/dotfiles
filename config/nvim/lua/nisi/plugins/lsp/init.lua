@@ -33,8 +33,8 @@ return {
     cond = not vim.g.vscode,
     dependencies = {
       -- Helpers to install LSPs and maintain them
-      "williamboman/mason.nvim",
-      "williamboman/mason-lspconfig.nvim",
+      { "williamboman/mason.nvim", version = "^1.0.0" },
+      { "williamboman/mason-lspconfig.nvim", version = "^1.0.0" },
       "saghen/blink.cmp",
     },
     config = function()
