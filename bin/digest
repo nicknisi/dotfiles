@@ -2,7 +2,7 @@
 
 # Repository Digest Generator
 # Creates a text summary of a git repository or specific directory
-# Version: 2.2 (macOS optimized)
+# Version: 2.3 (macOS optimized)
 
 set -e
 
@@ -11,6 +11,7 @@ MAX_FILE_SIZE=100000   # Skip files larger than 100KB
 MAX_TOTAL_SIZE=1000000 # Target maximum output size (~1MB)
 CHARS_PER_TOKEN=4      # Estimated characters per token for English text
 TARGET_DIR=""          # Default to whole repo
+EXCLUDE_PATTERNS=()    # Array of patterns to exclude
 
 # Function to check if we're in a git repository
 check_git_repo() {
@@ -73,19 +74,54 @@ is_binary() {
   return 1
 }
 
-# Get list of files to process
+# Check if a file matches any exclusion pattern
+is_excluded() {
+  local file="$1"
+
+  # If there are no exclusion patterns, nothing is excluded
+  if [ ${#EXCLUDE_PATTERNS[@]} -eq 0 ]; then
+    return 1
+  fi
+
+  # Check each exclusion pattern
+  for pattern in "${EXCLUDE_PATTERNS[@]}"; do
+    # Simple glob matching using case statement
+    case "$file" in
+    $pattern)
+      return 0 # File matches exclusion pattern
+      ;;
+    esac
+
+    # Also check if file starts with the pattern (for directory exclusions)
+    if [[ "$pattern" == */ && "$file" == ${pattern}* ]]; then
+      return 0
+    fi
+  done
+
+  return 1 # No exclusion pattern matched
+}
+
+# Get list of files to process (filtered by target dir and exclusions)
 get_file_list() {
   if [[ -n "$TARGET_DIR" ]]; then
     # Normalize path (ensure it ends with slash for proper prefix matching)
-    if [[ "$TARGET_DIR" != */ ]]; then
+    if [[ "$TARGET_DIR" != */ && -d "$TARGET_DIR" ]]; then
       TARGET_DIR="$TARGET_DIR/"
     fi
 
-    # Get files only within the target directory
-    git ls-files "$TARGET_DIR"
+    # Get files only within the target directory and filter exclusions
+    git ls-files "$TARGET_DIR" | while read -r file; do
+      if ! is_excluded "$file"; then
+        echo "$file"
+      fi
+    done
   else
-    # Get all files
-    git ls-files
+    # Get all files (except excluded patterns)
+    git ls-files | while read -r file; do
+      if ! is_excluded "$file"; then
+        echo "$file"
+      fi
+    done
   fi
 }
 
@@ -202,6 +238,18 @@ show_gitignore() {
   echo '```'
 }
 
+# List exclusion patterns
+show_exclusions() {
+  if [ ${#EXCLUDE_PATTERNS[@]} -gt 0 ]; then
+    echo -e "\n## Excluded Patterns"
+    echo '```'
+    for pattern in "${EXCLUDE_PATTERNS[@]}"; do
+      echo "$pattern"
+    done
+    echo '```'
+  fi
+}
+
 # Create the digest
 create_digest() {
   local total_size=0
@@ -228,6 +276,9 @@ create_digest() {
   fi
 
   digest+='```\n'
+
+  # Add exclusion information
+  digest+=$(show_exclusions)
 
   # Generate summary
   digest+=$(generate_summary)
@@ -295,12 +346,41 @@ create_digest() {
     digest+="Directory: $TARGET_DIR\n"
   fi
 
+  if [ ${#EXCLUDE_PATTERNS[@]} -gt 0 ]; then
+    digest+="Exclusion patterns: ${#EXCLUDE_PATTERNS[@]}\n"
+  fi
+
   echo -e "$digest"
+}
+
+# Display help message
+show_help() {
+  echo "Usage: $0 [OPTIONS] [DIRECTORY]"
+  echo
+  echo "Creates a digest of a git repository or specific directory."
+  echo
+  echo "Options:"
+  echo "  --max-file-size BYTES   Maximum size of individual files to include"
+  echo "  --max-total-size BYTES  Maximum total size of the digest"
+  echo "  --chars-per-token N     Number of characters per token (for estimation)"
+  echo "  --exclude PATTERN       Exclude files/dirs matching pattern (can be used multiple times)"
+  echo "  --help, -h              Show this help message"
+  echo
+  echo "Examples:"
+  echo "  $0                                # Digest entire repo"
+  echo "  $0 src/                           # Digest only the src directory"
+  echo "  $0 --exclude 'node_modules/*'     # Exclude node_modules directory"
+  echo "  $0 --exclude '*.json' --exclude '*.md' src/  # Multiple exclusions"
+  echo
+  echo "Glob patterns are supported for exclusions. Add trailing slash to exclude directories."
+  echo "  node_modules/*   # Exclude everything in node_modules/"
+  echo "  *.json           # Exclude all JSON files"
+  echo "  test_*           # Exclude files/dirs starting with test_"
+  exit 0
 }
 
 # Process arguments
 process_args() {
-  # Parse named arguments first
   while [[ "$#" -gt 0 ]]; do
     case $1 in
     --max-file-size)
@@ -315,22 +395,12 @@ process_args() {
       CHARS_PER_TOKEN="$2"
       shift 2
       ;;
+    --exclude)
+      EXCLUDE_PATTERNS+=("$2")
+      shift 2
+      ;;
     --help | -h)
-      echo "Usage: $0 [OPTIONS] [DIRECTORY]"
-      echo
-      echo "Creates a digest of a git repository or specific directory."
-      echo
-      echo "Options:"
-      echo "  --max-file-size BYTES   Maximum size of individual files to include"
-      echo "  --max-total-size BYTES  Maximum total size of the digest"
-      echo "  --chars-per-token N     Number of characters per token (for estimation)"
-      echo "  --help, -h              Show this help message"
-      echo
-      echo "Example:"
-      echo "  $0                      # Digest entire repo"
-      echo "  $0 src/                 # Digest only the src directory"
-      echo "  $0 --max-total-size 2000000 app/  # Digest app dir with larger size limit"
-      exit 0
+      show_help
       ;;
     -*)
       echo "Unknown option: $1"
@@ -369,6 +439,11 @@ token_estimate=$(estimate_tokens "$digest_size")
 context_msg="Repository"
 if [[ -n "$TARGET_DIR" ]]; then
   context_msg="Directory '$TARGET_DIR'"
+fi
+
+# Add exclusion info to message
+if [ ${#EXCLUDE_PATTERNS[@]} -gt 0 ]; then
+  context_msg+=" (with ${#EXCLUDE_PATTERNS[@]} exclusion patterns)"
 fi
 
 # Copy to clipboard
