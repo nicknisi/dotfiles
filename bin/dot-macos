@@ -55,6 +55,9 @@ setup_macos() {
   log_info "Show Status bar in Finder"
   defaults write com.apple.finder ShowStatusBar -bool true
 
+  log_info "Press Ctrl+Cmd to drag windows from anywhere"
+  defaults write -g NSWindowShouldDragOnGesture -bool true
+
   log_info "Disable press-and-hold for keys in favor of key repeat"
   defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
