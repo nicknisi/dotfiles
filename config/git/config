@@ -15,13 +15,16 @@
     # push new branch - push a branch to origin and set upstream
     pnb = "!git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD)"
 
+    # force push - use force-with-lease to avoid overwriting other people's work
+    fp = push --force-with-lease
+
     co = checkout
     s = status --short --branch
     br = branch -v
     addnw = "!sh -c 'git diff -U0 -w --no-color \"$@\" | git apply --cached --ignore-whitespace --unidiff-zero -'"
     cane = commit --amend --no-edit
 
-  seperator = "commit --allow-empty -m \"--------SEPERATOR--------\""
+    seperator = "commit --allow-empty -m \"--------SEPERATOR--------\""
 
     # gh commands
     browse = "!gh repo view --web"
