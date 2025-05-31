@@ -53,12 +53,12 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 #                 See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [gaps]
 # Allow for more space on smaller screens
-inner.horizontal = [ { monitor."Built-in Retina Display" = 25 }, 25  ]
-inner.vertical =   [ { monitor."Built-in Retina Display" = 25 }, 25  ]
-outer.left =       [ { monitor."Built-in Retina Display" = 15 }, 25  ]
-outer.bottom =     [ { monitor."Built-in Retina Display" = 15 }, 25  ]
-outer.top =        [ { monitor."Built-in Retina Display" = 16 }, 25  ]
-outer.right =      [ { monitor."Built-in Retina Display" = 15 }, 25  ]
+inner.horizontal = [ { monitor."Built-in Retina Display" = 15 }, 20  ]
+inner.vertical =   [ { monitor."Built-in Retina Display" = 15 }, 20  ]
+outer.left =       [ { monitor."Built-in Retina Display" = 20 }, 25  ]
+outer.bottom =     [ { monitor."Built-in Retina Display" = 20 }, 25  ]
+outer.top =        [ { monitor."Built-in Retina Display" = 20 }, 25  ]
+outer.right =      [ { monitor."Built-in Retina Display" = 20 }, 25  ]
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -216,15 +216,15 @@ run = 'move-node-to-workspace D'
 
 [[on-window-detected]]
 if.app-id = 'com.apple.Safari'
-run = 'move-node-to-workspace B'
+run = 'move-node-to-workspace W'
 
 [[on-window-detected]]
 if.app-id = 'company.thebrowser.Browser'
-run = 'move-node-to-workspace B'
+run = 'move-node-to-workspace W'
 
 [[on-window-detected]]
 if.app-id = 'app.zen-browser.zen'
-run = 'move-node-to-workspace B'
+run = 'move-node-to-workspace W'
 
 # Productivity
 
