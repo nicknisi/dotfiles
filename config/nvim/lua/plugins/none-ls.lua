@@ -1,11 +1,19 @@
 ---@type LazySpec
 return {
     "nvimtools/none-ls.nvim",
-    opts = function(_, config)
-        -- config variable is the default configuration table for the setup function call
+    opts = function(_, opts)
+        -- opts variable is the default configuration table for the setup function call
         local null_ls = require "null-ls"
         local path = "--style=file:" .. vim.fn.stdpath "config" .. "/.clang-format"
-        local sources = {
+
+        -- Check supported formatters and linters
+        -- https://github.com/nvimtools/none-ls.nvim/tree/main/lua/null-ls/builtins/formatting
+        -- https://github.com/nvimtools/none-ls.nvim/tree/main/lua/null-ls/builtins/diagnostics
+
+        -- Only insert new sources, do not replace the existing ones
+        -- (If you wish to replace, use `opts.sources = {}` instead of the `list_insert_unique` function)
+        opts.sources = require("astrocore").list_insert_unique(opts.sources, {
+            -- Set a formatter
             null_ls.builtins.formatting.clang_format.with {
                 extra_args = { path },
             },
@@ -24,10 +32,7 @@ return {
             null_ls.builtins.formatting.prettier, --[[ todo:https://prettier.io/docs/en/configuration.html ]]
             null_ls.builtins.formatting.verible_verilog_format,
             -- null_ls.builtins.diagnostics.checkmake,
-        }
-
-        config.sources = sources
-        -- config.debug = true
-        return config -- return final config table
+        })
+        -- opts.debug = true
     end,
 }

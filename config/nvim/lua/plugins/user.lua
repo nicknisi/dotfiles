@@ -1,31 +1,31 @@
 -- You can also add or configure plugins by creating files in this `plugins/` folder
+-- PLEASE REMOVE THE EXAMPLES YOU HAVE NO INTEREST IN BEFORE ENABLING THIS FILE
 -- Here are some examples:
 
 ---@type LazySpec
 return {
     {
-        "goolord/alpha-nvim",
-        opts = function(_, opts)
-            -- customize the dashboard header
-            opts.section.header.val = {
-                " █████  ███████ ████████ ██████   ██████",
-                "██   ██ ██         ██    ██   ██ ██    ██",
-                "███████ ███████    ██    ██████  ██    ██",
-                "██   ██      ██    ██    ██   ██ ██    ██",
-                "██   ██ ███████    ██    ██   ██  ██████",
-                " ",
-                "    ███    ██ ██    ██ ██ ███    ███",
-                "    ████   ██ ██    ██ ██ ████  ████",
-                "    ██ ██  ██ ██    ██ ██ ██ ████ ██",
-                "    ██  ██ ██  ██  ██  ██ ██  ██  ██",
-                "    ██   ████   ████   ██ ██      ██",
-            }
-            return opts
-        end,
+        "folke/snacks.nvim",
+        opts = {
+            dashboard = {
+                preset = {
+                    header = table.concat({
+                        " █████  ███████ ████████ ██████   ██████ ",
+                        "██   ██ ██         ██    ██   ██ ██    ██",
+                        "███████ ███████    ██    ██████  ██    ██",
+                        "██   ██      ██    ██    ██   ██ ██    ██",
+                        "██   ██ ███████    ██    ██   ██  ██████ ",
+                        "",
+                        "███    ██ ██    ██ ██ ███    ███",
+                        "████   ██ ██    ██ ██ ████  ████",
+                        "██ ██  ██ ██    ██ ██ ██ ████ ██",
+                        "██  ██ ██  ██  ██  ██ ██  ██  ██",
+                        "██   ████   ████   ██ ██      ██",
+                    }, "\n"),
+                },
+            },
+        },
     },
-
-    -- You can disable default plugins as follows:
-    { "max397574/better-escape.nvim", enabled = true },
 
     -- You can also easily customize additional setup of plugins that is outside of the plugin's setup call
     {
@@ -88,19 +88,14 @@ return {
             },
         },
     },
+
     {
         "AstroNvim/astrotheme",
         lazy = false,
     },
+
     {
         "folke/noice.nvim",
-        dependencies = {
-            "rcarriga/nvim-notify",
-            opts = {
-                timeout = 1500,
-                top_down = false,
-            },
-        },
         opts = {
             presets = {
                 bottom_search = false, -- use a classic bottom cmdline for search
@@ -109,6 +104,9 @@ return {
                 inc_rename = false, -- enables an input dialog for inc-rename.nvim
                 lsp_doc_border = false, -- add a border to hover docs and signature help
             },
+
+            messages = { enable = false }, -- use snacks.notifier instead of noice
+
             lsp = {
                 hover = {
                     enabled = false,
@@ -117,171 +115,55 @@ return {
                     enabled = false,
                 },
             },
+
+            routes = {
+                {
+                    -- skip lsp progress from null-ls server
+                    filter = {
+                        event = "lsp",
+                        kind = "progress",
+                        cond = function(message)
+                            local client = vim.tbl_get(message.opts, "progress", "client")
+                            return client == "null-ls"
+                        end,
+                    },
+                    opts = { skip = true },
+                },
+            },
         },
     },
-    {
-        "nvimdev/lspsaga.nvim",
-        dependencies = {
-            {
-                -- AstroCore is always loaded on startup, so making it a dependency doesn't matter
-                "AstroNvim/astrolsp",
-                opts = {
-                    mappings = { -- define a mapping to load the plugin module
-                        n = {
-                            ["grr"] = false,
-                            ["gra"] = false,
-                            ["grn"] = false,
-                            ["gr"] = { "<cmd>Lspsaga rename<cr>" },
-                            ["gD"] = { "<cmd>Lspsaga peek_definition<cr>" },
-                            ["<Leader>fu"] = {
-                                function()
-                                    local astro = require "astrocore"
-                                    local is_available = astro.is_available
 
-                                    if is_available "aerial.nvim" then
-                                        require("telescope").extensions.aerial.aerial()
-                                    else
-                                        require("telescope.builtin").lsp_document_symbols()
-                                    end
-                                end,
-                                desc = "Search symbols",
-                            },
-                            ["<Leader>fi"] = {
-                                '<cmd>Telescope lsp_dynamic_workspace_symbols path_display="hidden"<cr>',
-                            },
-                            ["gh"] = { "<cmd>Lspsaga finder<cr>" },
+    {
+        "folke/snacks.nvim",
+        opts = {
+            notifier = {
+                timeout = 1500,
+                top_down = false,
+            },
+
+            picker = {
+                -- layout = {preset = "vscode"},
+                win = {
+                    -- internal keymaps
+                    input = {
+                        keys = {
+                            ["<c-v>"] = false,
+                            ["<c-q>"] = { "edit_vsplit", mode = { "i", "n" } },
+                        },
+                    },
+
+                    -- internal keymaps
+                    list = {
+                        keys = {
+                            ["<c-v>"] = false,
+                            ["<c-q>"] = "edit_vsplit",
                         },
                     },
                 },
             },
         },
-        opts = {
-            lightbulb = {
-                debounce = 500,
-            },
-        },
     },
-    {
-        "folke/flash.nvim",
-        event = "VeryLazy",
-        opts = {
-            modes = {
-                char = {
-                    jump_labels = true,
-                },
-            },
-            label = {
-                uppercase = false,
-            },
-        },
-    },
-    {
-        "nvim-telescope/telescope.nvim",
-        opts = {
-            defaults = {
-                mappings = {
-                    i = {
-                        ["<C-q>"] = require("telescope.actions").file_vsplit,
-                    },
-                },
-            },
-        },
-    },
-    {
-        "akinsho/toggleterm.nvim",
-        lazy = false,
-        dependencies = {
-            {
-                -- AstroCore is always loaded on startup, so making it a dependency doesn't matter
-                "AstroNvim/astrocore",
-                opts = {
-                    mappings = { -- define a mapping to load the plugin module
-                        n = {
-                            ["<c-\\>"] = false,
-                            ["<Leader>th"] = false,
-                            ["<Leader>tv"] = false,
-                            ["<Leader>tl"] = false,
-                            ["<Leader>gg"] = false,
-                        },
-                        t = {
-                            ["<ESC><ESC>"] = { "<C-\\><C-N>", desc = "return to normal mode" },
-                            ["<c-\\>"] = false,
-                        },
-                    },
-                },
-            },
-        },
-        opts = function(plugin, opts)
-            local direction = "float"
-            opts.size = 20
 
-            opts.on_create = function(t)
-                vim.opt_local.foldcolumn = "0"
-                vim.opt_local.signcolumn = "no"
-            end
-
-            -- used for lazygit
-            local Terminal = require("toggleterm.terminal").Terminal
-            local lazygit = Terminal:new {
-                cmd = "lazygit",
-                hidden = true,
-                direction = "float",
-                count = 10,
-            }
-
-            local function lazygit_toggle()
-                if vim.fn.bufname("%"):match "^term:" == nil then
-                    lazygit.dir = vim.fn.expand "%:p:h" -- current working directory for the active buffer
-                    lazygit:toggle()
-                end
-            end
-
-            vim.keymap.set(
-                "n",
-                "<Leader>gg",
-                function() lazygit_toggle() end,
-                { noremap = true, silent = true, desc = "lazygit" }
-            )
-
-            -- change direction for terminal
-            local function term_toggle(dir)
-                local size = opts.size
-                direction = dir
-                if dir == "vertical" then size = 80 end
-                vim.cmd(vim.v.count .. "ToggleTerm" .. " direction=" .. direction .. " size=" .. size)
-            end
-            vim.keymap.set(
-                "n",
-                "<Leader>tv",
-                function() term_toggle "vertical" end,
-                { noremap = true, silent = true, desc = "Open vertical terminal" }
-            )
-            vim.keymap.set(
-                "n",
-                "<Leader>th",
-                function() term_toggle "horizontal" end,
-                { noremap = true, silent = true, desc = "Open horizontal terminal" }
-            )
-            vim.keymap.set(
-                "n",
-                "<Leader>tf",
-                function() term_toggle "float" end,
-                { noremap = true, silent = true, desc = "Open floating terminal" }
-            )
-            vim.keymap.set(
-                "n",
-                "<c-\\>",
-                function() term_toggle(direction) end,
-                { noremap = true, silent = true, desc = "Toggle term" }
-            )
-            vim.keymap.set(
-                "t",
-                "<c-\\>",
-                "<Cmd>ToggleTerm<CR>",
-                { noremap = true, silent = true, desc = "Toggle term" }
-            )
-        end,
-    },
     {
         "folke/which-key.nvim",
         opts = {
@@ -297,23 +179,58 @@ return {
             },
         },
     },
+
     {
-        "nvim-neo-tree/neo-tree.nvim",
+        "folke/flash.nvim",
+        event = "VeryLazy",
         opts = {
-            filesystem = {
-                window = {
-                    mappings = {
-                        ["G"] = "live_grep",
-                    },
+            modes = {
+                char = {
+                    jump_labels = true,
                 },
             },
-            commands = {
-                live_grep = function(state)
-                    local node = state.tree:get_node()
-                    local path = node.type == "file" and node:get_parent_id() or node:get_id()
-                    require("telescope.builtin").live_grep { cwd = path }
-                end,
+            label = {
+                uppercase = false,
             },
         },
+    },
+
+    {
+        "nvimdev/lspsaga.nvim",
+        -- enabled = false,
+        opts = {
+            code_action = {
+                show_server_name = true,
+            },
+        },
+    },
+
+    {
+        "akinsho/toggleterm.nvim",
+        opts = {
+            direction = "float",
+        },
+    },
+    {
+        "rebelot/heirline.nvim",
+        opts = function(_, opts)
+            -- remove lsp progress
+            local status = require "astroui.status"
+            opts.statusline = {
+                status.component.mode(),
+                status.component.git_branch(),
+                status.component.file_info(),
+                status.component.git_diff(),
+                status.component.diagnostics(),
+                status.component.fill(),
+                status.component.cmd_info(),
+                status.component.fill(),
+                status.component.lsp { lsp_progress = false }, --https://github.com/AstroNvim/astroui/blob/525a900e55c86bdf81c52deacfb9407ae1240fae/lua/astroui/status/component.lua#L157
+                status.component.virtual_env(),
+                status.component.treesitter(),
+                status.component.nav(),
+                status.component.mode { surround = { separator = "right" } },
+            }
+        end,
     },
 }

@@ -4,7 +4,6 @@
 --       as this provides autocomplete and documentation while editing
 
 ---@type LazySpec
-
 return {
     "AstroNvim/astrolsp",
     ---@type AstroLSPOpts
@@ -15,31 +14,31 @@ return {
             inlay_hints = true, -- enable/disable inlay hints on start
             semantic_tokens = true, -- enable/disable semantic token highlighting
         },
+        defaults = {
+            signature_help = true,
+        },
         -- customize lsp formatting options
         formatting = {
-            filter = function(client)
-                -- apply whatever logic you want (in this example, we'll only use null-ls)
-                return client.name == "null-ls"
-            end,
-
             -- control auto formatting on save
             format_on_save = {
                 enabled = false, -- enable or disable format on save globally
                 allow_filetypes = { -- enable format on save for specified filetypes only
-                    "lua",
+                    -- "go",
                 },
                 ignore_filetypes = { -- disable format on save for specified filetypes
-                    "python",
+                    -- "python",
                 },
             },
             disabled = { -- disable formatting capabilities for the listed language servers
                 -- disable lua_ls formatting capability if you want to use StyLua to format your lua code
-                -- "lua_ls",
+                "lua_ls",
             },
             timeout_ms = 1000, -- default format timeout
-            -- filter = function(client) -- fully override the default formatting function
-            --   return true
-            -- end
+
+            filter = function(client)
+                -- apply whatever logic you want (in this example, we'll only use null-ls)
+                return client.name == "null-ls"
+            end,
         },
         -- enable servers that you already have installed without mason
         servers = {
@@ -65,21 +64,39 @@ return {
                         runtime = {
                             -- Tell the language server which version of Lua you're using (most likely LuaJIT in the case of Neovim)
                             version = "LuaJIT",
+                            -- Tell the language server how to find Lua modules same way as Neovim
+                            -- (see `:h lua-module-load`)
+                            -- path = {
+                            --     "lua/?.lua",
+                            --     "lua/plugins/?.lua",
+                            --     "lua/?/init.lua",
+                            -- },
                         },
+
                         diagnostics = {
                             -- Get the language server to recognize the `vim` global
                             globals = { "vim" },
                         },
+
+                        -- Make the server aware of Neovim runtime files
                         -- workspace = {
-                        --   -- Make the server aware of Neovim runtime files,
-                        --   -- see also https://github.com/LuaLS/lua-language-server/wiki/Libraries#link-to-workspace .
-                        --   -- Lua-dev.nvim also has similar settings for lua ls, https://github.com/folke/neodev.nvim/blob/main/lua/neodev/luals.lua .
-                        --   library = {
-                        --     fn.stdpath("data") .. "/site/pack/packer/opt/emmylua-nvim",
-                        --     fn.stdpath("config"),
-                        --   },
-                        --   maxPreload = 2000,
-                        --   preloadFileSize = 50000,
+                        --     checkThirdParty = false,
+                        --     ignoreDir = { ".git" },
+                        --     library = {
+                        --         vim.env.VIMRUNTIME,
+                        --         -- Depending on the usage, you might want to add additional paths
+                        --         -- here.
+                        --         -- '${3rd}/luv/library'
+                        --         -- '${3rd}/busted/library'
+                        --     },
+                        --
+                        --     -- Or pull in all of 'runtimepath'.
+                        --     -- NOTE: this is a lot slower and will cause issues when working on
+                        --     -- your own configuration.
+                        --     -- See https://github.com/neovim/nvim-lspconfig/issues/3189
+                        --     -- library = {
+                        --     --   vim.api.nvim_get_runtime_file('', true),
+                        --     -- },
                         -- },
                     },
                 },
@@ -98,7 +115,6 @@ return {
             -- the key is the server that is being setup with `lspconfig`
             -- rust_analyzer = false, -- setting a handler to false will disable the set up of that language server
             -- pyright = function(_, opts) require("lspconfig").pyright.setup(opts) end -- or a custom handler function can be passed
-            -- clangd = false,
         },
         -- Configure buffer local auto commands to add when attaching a language server
         autocmds = {
@@ -127,15 +143,26 @@ return {
         -- mappings to be set up on attaching of a language server
         mappings = {
             n = {
+                -- a `cond` key can provided as the string of a server capability to be required to attach, or a function with `client` and `bufnr` parameters from the `on_attach` that returns a boolean
                 ["<Leader>uY"] = {
                     function() require("astrolsp.toggles").buffer_semantic_tokens() end,
                     desc = "Toggle LSP semantic highlight (buffer)",
                     cond = function(client)
-                        return client.supports_method "textDocument/semanticTokens/full" and vim.lsp.semantic_tokens
+                        return client.supports_method "textDocument/semanticTokens/full"
+                            and vim.lsp.semantic_tokens ~= nil
                     end,
+                },
+
+                ["gD"] = { "<cmd>Lspsaga peek_definition<cr>" },
+                ["gh"] = { "<cmd>Lspsaga finder<cr>" },
+                ["<Leader>lG"] = {
+                    function() require("snacks").picker.lsp_workspace_symbols { filter = { lua = true } } end,
+                    desc = "Search wokespace symbols",
+                    cond = "workspace/symbol",
                 },
             },
         },
+
         -- A custom `on_attach` function to be run after the default `on_attach` function
         -- takes two parameters `client` and `bufnr`  (`:h lspconfig-setup`)
         on_attach = function(client, bufnr)

@@ -13,7 +13,7 @@ return {
             large_buf = { size = 1024 * 5000, lines = 80000 }, -- set global limits for large files for disabling features like treesitter
             autopairs = true, -- enable autopairs at start
             cmp = true, -- enable completion at start
-            diagnostics_mode = 3, -- diagnostic mode on start (0 = off, 1 = no signs/virtual text, 2 = no virtual text, 3 = on)
+            diagnostics = { virtual_text = true, virtual_lines = false }, -- diagnostic settings on startup
             highlighturl = true, -- highlight URLs at start
             notifications = true, -- enable notifications at start
         },
@@ -21,6 +21,19 @@ return {
         diagnostics = {
             virtual_text = true,
             underline = true,
+        },
+        -- passed to `vim.filetype.add`
+        filetypes = {
+            -- see `:h vim.filetype.add` for usage
+            extension = {
+                foo = "fooscript",
+            },
+            filename = {
+                [".foorc"] = "fooscript",
+            },
+            pattern = {
+                [".*/etc/foo/.*"] = "fooscript",
+            },
         },
         -- vim options can be configured here
         options = {
@@ -40,6 +53,7 @@ return {
                 expandtab = true, -- convert tabs to spaces
                 foldcolumn = "0",
                 jumpoptions = "view",
+                spell = false, -- sets vim.opt.spell
             },
             g = { -- vim.g.<key>
                 -- configure global vim variables (vim.g)
@@ -50,8 +64,23 @@ return {
         -- Mappings can be configured through AstroCore as well.
         -- NOTE: keycodes follow the casing in the vimdocs. For example, `<Leader>` must be capitalized
         mappings = {
-            -- see :h map-mode
+            -- first key is the mode
             n = {
+                -- second key is the lefthand side of the map
+                -- navigate buffer tabs
+                ["]b"] = { function() require("astrocore.buffer").nav(vim.v.count1) end, desc = "Next buffer" },
+                ["[b"] = { function() require("astrocore.buffer").nav(-vim.v.count1) end, desc = "Previous buffer" },
+
+                -- mappings seen under group name "Buffer"
+                ["<Leader>bd"] = {
+                    function()
+                        require("astroui.status.heirline").buffer_picker(
+                            function(bufnr) require("astrocore.buffer").close(bufnr) end
+                        )
+                    end,
+                    desc = "Close buffer from tabline",
+                },
+
                 -- navigate buffer tabs
                 ["<Leader>r"] = { "<cmd>Neotree focus<cr>" },
                 ["<A-,>"] = { "<C-o>", desc = "go back" },
@@ -64,6 +93,17 @@ return {
                 -- setting a mapping to false will disable it
                 ["<Leader>o"] = false,
                 ["<C-Q>"] = false,
+
+                -- snacks picker keymap
+                ["<Leader>fC"] = {
+                    function() require("snacks").picker.command_history() end,
+                    desc = "Find commands history",
+                },
+
+                -- terminal keymap
+                ["<c-\\>"] = false,
+                ["<F7>"] = false,
+                ["<F2>"] = { '<Cmd>execute v:count . "ToggleTerm"<CR>', desc = "Toggle terminal" },
             },
             v = {
                 [">"] = { ">gv", desc = "shift right with reselected range" },
@@ -74,28 +114,15 @@ return {
                 ["<A-l>"] = { "<Right>", desc = "move cursor in insert mode" },
                 ["<A-k>"] = { "<Up>", desc = "move cursor in insert mode" },
                 ["<A-j>"] = { "<Down>", desc = "move cursor in insert mode" },
+                ["<F7>"] = false,
+                ["<F2>"] = { "<Esc><Cmd>ToggleTerm<CR>", desc = "Toggle terminal" },
             },
             t = {
                 ["<C-L>"] = false,
-            },
-        },
-
-        autocmds = {
-            -- disable alpha autostart
-            alpha_autostart = false,
-            restore_session = {
-                {
-                    event = "VimEnter",
-                    desc = "Restore previous directory session if neovim opened with no arguments",
-                    nested = true, -- trigger other autocommands as buffers open
-                    callback = function()
-                        -- Only load the session if nvim was started with no args
-                        if vim.fn.argc(-1) == 0 then
-                            -- try to load a directory session using the current working directory
-                            require("resession").load(vim.fn.getcwd(), { dir = "dirsession", silence_errors = true })
-                        end
-                    end,
-                },
+                ["<c-\\>"] = false,
+                ["<F7>"] = false,
+                ["<F2>"] = { "<Cmd>ToggleTerm<CR>", desc = "Toggle terminal" },
+                ["<ESC><ESC>"] = { "<C-\\><C-N>", desc = "return to normal mode" },
             },
         },
     },
