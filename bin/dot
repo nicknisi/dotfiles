@@ -83,6 +83,18 @@ cmd_clean() {
     fi
   done
 
+  # Clean up broken symlinks from home directory
+  if [ -d "$DOTFILES/home" ]; then
+    while IFS= read -r -d '' file; do
+      relative_path="${file#$DOTFILES/home/}"
+      target_path="$HOME/$relative_path"
+      if [ -L "$target_path" ] && [ ! -e "$target_path" ]; then
+        log_success "Removing broken symbolic link: $target_path"
+        rm "$target_path"
+      fi
+    done < <(find "$DOTFILES/home" -type f -print0)
+  fi
+
   echo -e
   log_success "Done."
 }
@@ -123,7 +135,6 @@ cmd_backup() {
 
   files_to_backup=(
     ".zshrc"
-    ".zshenv"
     ".zprofile"
     ".zsh_aliases"
     ".zsh_functions"
@@ -140,6 +151,14 @@ cmd_backup() {
     ".config/wezterm"
     ".config/zsh"
   )
+
+  # Add home directory files to backup
+  if [ -d "$DOTFILES/home" ]; then
+    while IFS= read -r -d '' file; do
+      relative_path="${file#$DOTFILES/home/}"
+      files_to_backup+=("$relative_path")
+    done < <(find "$DOTFILES/home" -type f -print0)
+  fi
 
   tmpfile=$(mktemp)
   trap 'rm -f "$tmpfile"' EXIT
@@ -174,6 +193,43 @@ cmd_backup() {
   else
     log_warning "No files to backup"
   fi
+}
+
+link_home_files() {
+  local operation="$1"
+  local verbose="$2"
+  
+  if [ ! -d "$DOTFILES/home" ]; then
+    return 0
+  fi
+  
+  while IFS= read -r -d '' file; do
+    local relative_path="${file#$DOTFILES/home/}"
+    local target_path="$HOME/$relative_path"
+    local target_dir="$(dirname "$target_path")"
+    
+    if [ "$operation" = "link" ]; then
+      # Create parent directories if needed
+      if [ ! -d "$target_dir" ]; then
+        [ "$verbose" = true ] && log_info "Creating directory: $target_dir"
+        mkdir -p "$target_dir"
+      fi
+      
+      if [ -e "$target_path" ]; then
+        log_warning "~${target_path#"$HOME"} already exists... Skipping."
+      else
+        [ "$verbose" = true ] && log_info "Linking $relative_path"
+        ln -s "$file" "$target_path"
+      fi
+    else # unlink
+      if [ -L "$target_path" ]; then
+        [ "$verbose" = true ] && log_info "Unlinking $target_path"
+        rm "$target_path"
+      elif [ -e "$target_path" ]; then
+        log_warning "Skipping \"$target_path\" because it is not a symlink"
+      fi
+    fi
+  done < <(find "$DOTFILES/home" -type f -print0)
 }
 
 cmd_link() {
@@ -227,20 +283,8 @@ cmd_link() {
       fi
     done
 
-    # Handle .zshenv special case
-    if [ "$operation" = "link" ]; then
-      if [ ! -e "$HOME/.zshenv" ]; then
-        [ "$verbose" = true ] && log_info "Linking .zshenv"
-        ln -s "$DOTFILES/config/zsh/.zshenv" "$HOME/.zshenv"
-      else
-        [ "$verbose" = true ] && log_info "~/.zshenv already exists... Skipping."
-      fi
-    else # unlink
-      if [ -L "$HOME/.zshenv" ]; then
-        [ "$verbose" = true ] && log_info "Unlinking $HOME/.zshenv"
-        rm "$HOME/.zshenv"
-      fi
-    fi
+    # Handle home directory files
+    link_home_files "$operation" "$verbose"
   else
     # Handle specific package
     local target="$CONFIG_HOME/$pkg"
