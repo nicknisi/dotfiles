@@ -10,7 +10,8 @@ options=(
   # inactive_color=0xffFF0000
   # active_color="gradient(top_left=0xffFF1493,bottom_right=0xff39FF14)"
   # active_color="glow(0xff9D00FF)"
-  active_color="glow(0xff00FFFF)" # Aqua with glow effect
+  # active_color="glow(0xff00FFFF)" # Aqua with glow effect
+  active_color="glow(0xFFFC5C5E)" # Pink with glow effect
   hidpi=on
 )
 
