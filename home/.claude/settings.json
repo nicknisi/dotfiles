@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(git:*)",
+      "Read(~/Developer/**)",
+
+      "Bash(docker compose exec:*)",
+      "Bash(docker run:*)",
+      "Bash(find:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git fetch:*)",
+      "Bash(git rebase:*)",
+      "Bash(git stash:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)"
+    ]
+  },
+  "theme": "dark-daltonized",
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_METRICS_EXPORTER": "otlp"
+  },
+  "includeCoAuthoredBy": false
+}
