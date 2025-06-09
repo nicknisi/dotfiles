@@ -154,7 +154,6 @@ return {
                 },
 
                 ["gD"] = { "<cmd>Lspsaga peek_definition<cr>" },
-                ["gh"] = { "<cmd>Lspsaga finder<cr>" },
                 ["<Leader>lG"] = {
                     function() require("snacks").picker.lsp_workspace_symbols { filter = { lua = true } } end,
                     desc = "Search wokespace symbols",

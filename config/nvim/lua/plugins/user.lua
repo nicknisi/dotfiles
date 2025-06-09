@@ -211,6 +211,7 @@ return {
             direction = "float",
         },
     },
+
     {
         "rebelot/heirline.nvim",
         opts = function(_, opts)
