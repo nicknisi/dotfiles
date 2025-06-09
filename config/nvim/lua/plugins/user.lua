@@ -234,4 +234,35 @@ return {
             }
         end,
     },
+
+    {
+        "Saghen/blink.cmp",
+        optional = true,
+        opts = {
+            completion = {
+                menu = {
+                    draw = {
+                        columns = {
+                            { "kind_icon" },
+                            { "label", "label_description", gap = 1 },
+                            { "source_name" },
+                        },
+                    },
+                },
+            },
+
+            keymap = {
+                ["<Tab>"] = {
+                    "select_next",
+                    "snippet_forward",
+                    "fallback",
+                },
+                ["<S-Tab>"] = {
+                    "select_prev",
+                    "snippet_backward",
+                    "fallback",
+                },
+            },
+        },
+    },
 }
