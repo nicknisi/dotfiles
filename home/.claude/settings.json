@@ -3,7 +3,6 @@
     "allow": [
       "Bash(ls:*)",
       "Bash(mkdir:*)",
-      "Bash(git:*)",
       "Read(~/Developer/**)",
 
       "Bash(docker compose exec:*)",
@@ -11,11 +10,14 @@
       "Bash(find:*)",
       "Bash(git branch:*)",
       "Bash(git checkout:*)",
+      "Bash(git switch:*)",
       "Bash(git fetch:*)",
       "Bash(git rebase:*)",
       "Bash(git stash:*)",
       "Bash(grep:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+
+      "Fetch(https://docs.anthropic.com/*)"
     ]
   },
   "theme": "dark-daltonized",
