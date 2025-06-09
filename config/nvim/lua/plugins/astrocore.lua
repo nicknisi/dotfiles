@@ -61,6 +61,41 @@ return {
                 -- This can be found in the `lua/lazy_setup.lua` file
             },
         },
+
+        autocmds = {
+            leave_snippet = {
+                -- the value is a list of autocommands to create
+                {
+                    -- ref:https://github.com/L3MON4D3/LuaSnip/issues/747#issuecomment-1406946217
+                    -- event is added here as a string or a list-like table of events
+                    event = "CursorMovedI",
+                    -- the rest of the autocmd options (:h nvim_create_autocmd)
+                    desc = "Leave snippet",
+                    callback = function(ev)
+                        local ls = require "luasnip"
+                        if not ls.session or not ls.session.current_nodes[ev.buf] or ls.session.jump_active then
+                            return
+                        end
+
+                        local current_node = ls.session.current_nodes[ev.buf]
+                        local current_start, current_end = current_node:get_buf_position()
+                        current_start[1] = current_start[1] + 1 -- (1, 0) indexed
+                        current_end[1] = current_end[1] + 1 -- (1, 0) indexed
+                        local cursor = vim.api.nvim_win_get_cursor(0)
+
+                        if
+                            cursor[1] < current_start[1]
+                            or cursor[1] > current_end[1]
+                            or cursor[2] < current_start[2]
+                            or cursor[2] > current_end[2]
+                        then
+                            ls.unlink_current()
+                        end
+                    end,
+                },
+            },
+        },
+
         -- Mappings can be configured through AstroCore as well.
         -- NOTE: keycodes follow the casing in the vimdocs. For example, `<Leader>` must be capitalized
         mappings = {
