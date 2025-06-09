@@ -1,26 +1,27 @@
 #!/usr/bin/env bash
 
-# abort if we're already inside a TMUX session
-[ "$TMUX" == "" ] || exit 0
+# Interactive tmux session switcher using fzf
+# Lists all tmux sessions except the current one, shows window count and status,
+# allows switching with Enter, refreshing with Ctrl-R, and deleting with Ctrl-D
 
-# present menu for user to choose which workspace to open
-PS3="Please choose your session: "
-# shellcheck disable=SC2207
-IFS=$'\n' && options=("New Session" $(tmux list-sessions -F "#S" 2>/dev/null))
-echo "Available sessions"
-echo "------------------"
-echo " "
-select opt in "${options[@]}"
-do
-    case $opt in
-        "New Session")
-            read -rp "Enter new session name: " SESSION_NAME
-            tmux new -s "$SESSION_NAME"
-            break
-            ;;
-        *)
-            tmux attach-session -t "$opt"
-            break
-            ;;
-    esac
-done
+tmux list-sessions -F "#{session_name}|#{session_windows}|#{?session_attached,attached,detached}" | 
+  grep -v "^$(tmux display-message -p "#S")|" | 
+  awk -F"|" "{
+    status = (\$3 == \"attached\") ? \"\" : \"\"
+    printf \"%-20s %s %2s windows %s\\n\", \$1, status, \$2, \"\"
+  }" |
+    fzf --reverse \
+    --prompt="-> " \
+    --header="═══ Session Switcher ═══ | Ctrl-R: refresh | Ctrl-D: delete" \
+    --header-first \
+    --border=rounded \
+    --color="header:italic" \
+    --preview="tmux list-windows -t {1} -F \"  #{window_index}: #{window_name} #{?window_active,(active),}\"" \
+    --preview-window="right:40%:wrap" \
+    --bind="ctrl-r:reload(tmux list-sessions -F \"#{session_name}|#{session_windows}|#{?session_attached,attached,detached}\" | grep -v \"^\$(tmux display-message -p \"#S\")|\" | awk -F\"|\" \"{status = (\\\$3 == \\\"attached\\\") ? \\\"\\\" : \\\"\\\"; printf \\\"%-20s %s %2s windows %s\\\\n\\\", \\\$1, status, \\\$2, \\\"\\\"}\")" \
+    --bind="ctrl-d:execute(tmux kill-session -t {1})+reload(tmux list-sessions -F \"#{session_name}|#{session_windows}|#{?session_attached,attached,detached}\" | grep -v \"^\$(tmux display-message -p \"#S\")|\" | awk -F\"|\" \"{status = (\\\$3 == \\\"attached\\\") ? \\\"\\\" : \\\"\\\"; printf \\\"%-20s %s %2s windows %s\\\\n\\\", \\\$1, status, \\\$2, \\\"\\\"}\")" \
+    --info=inline \
+    --layout=reverse |
+    awk "{print \$1}" | 
+    xargs -r tmux switch-client -t
+  '
