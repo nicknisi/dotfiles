@@ -63,7 +63,7 @@ return {
         },
 
         autocmds = {
-            leave_snippet = {
+            luasnip_unlink_current = {
                 -- the value is a list of autocommands to create
                 {
                     -- ref:https://github.com/L3MON4D3/LuaSnip/issues/747#issuecomment-1406946217
@@ -91,6 +91,20 @@ return {
                         then
                             ls.unlink_current()
                         end
+                    end,
+                },
+            },
+
+            copilot_chat = {
+                {
+                    event = "BufEnter",
+                    pattern = "copilot-*",
+                    callback = function()
+                        -- Set buffer-local options
+                        vim.opt_local.relativenumber = false
+                        vim.opt_local.number = false
+                        vim.opt_local.conceallevel = 0
+                        vim.opt_local.foldcolumn = "0"
                     end,
                 },
             },

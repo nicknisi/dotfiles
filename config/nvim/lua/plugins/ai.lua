@@ -27,4 +27,50 @@ return {
             },
         },
     },
+
+    {
+        "CopilotC-Nvim/CopilotChat.nvim",
+        dependencies = {
+            { "zbirenbaum/copilot.lua" },
+            { "nvim-lua/plenary.nvim", branch = "master" }, -- for curl, log and async functions
+        },
+        opts = {
+            -- See Configuration section for options
+            question_header = "  ", -- Header to use for user questions
+            answer_header = "   ", -- Header to use for AI answers
+            error_header = "  ", -- Header to use for errors
+            -- separator = " ---",
+        },
+
+        specs = {
+            {
+                "AstroNvim/astroui",
+                optional = true,
+                opts = {
+                    highlights = {
+                        init = { -- this table overrides highlights in all themes
+                            CopilotChatHeader = { fg = "#56b6c2" }, -- Change the color of the question header
+                            CopilotChatSeparator = { fg = "#56b6c2" }, -- Change the color of the separator
+                        },
+                    },
+                },
+            },
+            {
+                "saghen/blink.cmp",
+                optional = true,
+                ---@module 'blink.cmp'
+                ---@type blink.cmp.Config
+                opts = {
+                    sources = {
+                        providers = {
+                            path = {
+                                -- Path sources triggered by "/" interfere with CopilotChat commands
+                                enabled = function() return vim.bo.filetype ~= "copilot-chat" end,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
 }
