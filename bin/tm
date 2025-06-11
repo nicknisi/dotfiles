@@ -3,25 +3,102 @@
 # Interactive tmux session switcher using fzf
 # Lists all tmux sessions except the current one, shows window count and status,
 # allows switching with Enter, refreshing with Ctrl-R, and deleting with Ctrl-D
+# Type a non-existing session name to create and switch to it
 
-tmux list-sessions -F "#{session_name}|#{session_windows}|#{?session_attached,attached,detached}" | 
-  grep -v "^$(tmux display-message -p "#S")|" | 
-  awk -F"|" "{
-    status = (\$3 == \"attached\") ? \"\" : \"\"
-    printf \"%-20s %s %2s windows %s\\n\", \$1, status, \$2, \"\"
-  }" |
-    fzf --reverse \
+get_sessions() {
+  local current_session=$(tmux display-message -p "#S" 2>/dev/null)
+  local inside_tmux="$1"
+  
+  tmux list-sessions -F "#{session_name}|#{session_windows}|#{?session_attached,attached,detached}" 2>/dev/null |
+    awk -F"|" -v current="$current_session" -v inside="$inside_tmux" "{
+      # If inside tmux, skip the current session
+      if (inside == \"true\" && \$1 == current) {
+        next
+      }
+      
+      if (inside == \"true\" && \$1 == current) {
+        status = \"(current)\"
+        icon = \"→\"
+      } else if (\$3 == \"attached\") {
+        status = \"\"
+        icon = \"\"
+      } else {
+        status = \"\"
+        icon = \" \"
+      }
+      printf \"%s %-20s %s %2s windows\\n\", icon, \$1, status, \$2
+    }"
+}
+
+# Check if we have any sessions at all
+session_count=$(tmux list-sessions 2>/dev/null | wc -l)
+if [[ $session_count -eq 0 ]]; then
+  echo "No tmux sessions found."
+  exit 1
+fi
+
+# Pass whether we're inside tmux to the function
+inside_tmux_flag=""
+if [[ -n "$TMUX" ]]; then
+  inside_tmux_flag="true"
+fi
+
+result=$(get_sessions "$inside_tmux_flag" |
+  fzf --reverse \
     --prompt="-> " \
-    --header="═══ Session Switcher ═══ | Ctrl-R: refresh | Ctrl-D: delete" \
+    --header="═══ TMUX ═══ | Enter: switch/create | Ctrl-D: delete | Ctrl-R: refresh" \
     --header-first \
     --border=rounded \
     --color="header:italic" \
-    --preview="tmux list-windows -t {1} -F \"  #{window_index}: #{window_name} #{?window_active,(active),}\"" \
+    --preview="tmux list-windows -t {2} -F \"  #{window_index}: #{window_name} #{?window_active,(active),}\" 2>/dev/null || echo 'New session: {q}'" \
     --preview-window="right:40%:wrap" \
-    --bind="ctrl-r:reload(tmux list-sessions -F \"#{session_name}|#{session_windows}|#{?session_attached,attached,detached}\" | grep -v \"^\$(tmux display-message -p \"#S\")|\" | awk -F\"|\" \"{status = (\\\$3 == \\\"attached\\\") ? \\\"\\\" : \\\"\\\"; printf \\\"%-20s %s %2s windows %s\\\\n\\\", \\\$1, status, \\\$2, \\\"\\\"}\")" \
-    --bind="ctrl-d:execute(tmux kill-session -t {1})+reload(tmux list-sessions -F \"#{session_name}|#{session_windows}|#{?session_attached,attached,detached}\" | grep -v \"^\$(tmux display-message -p \"#S\")|\" | awk -F\"|\" \"{status = (\\\$3 == \\\"attached\\\") ? \\\"\\\" : \\\"\\\"; printf \\\"%-20s %s %2s windows %s\\\\n\\\", \\\$1, status, \\\$2, \\\"\\\"}\")" \
-    --info=inline \
-    --layout=reverse |
-    awk "{print \$1}" | 
-    xargs -r tmux switch-client -t
-  '
+    --bind="ctrl-r:reload(bash -c 'source \"$0\"; get_sessions \"$1\"' -- \"$0\" \"$inside_tmux_flag\")" \
+    --bind="ctrl-d:execute(tmux kill-session -t {2} 2>/dev/null)+reload(bash -c 'source \"$0\"; get_sessions \"$1\"' -- \"$0\" \"$inside_tmux_flag\")" \
+    --expect="enter" \
+    --print-query)
+
+# Parse the result
+mapfile -t lines <<<"$result"
+query="${lines[0]}"
+key="${lines[1]}"
+selection="${lines[2]}"
+
+# Function to switch/attach to a session
+switch_or_attach() {
+  local session_name="$1"
+  if [[ -n "$TMUX" ]]; then
+    # Inside tmux, switch client
+    # Get the current client and try to switch
+    local current_client=$(tmux display-message -p "#{client_name}")
+    tmux switch-client -c "$current_client" -t "$session_name" 2>/dev/null || \
+    tmux switch-client -t "$session_name"
+  else
+    # Outside tmux, attach to session
+    tmux attach-session -t "$session_name"
+  fi
+}
+
+if [[ -n "$selection" ]]; then
+  # User selected an existing session
+  # Format: [icon] [session_name_padded] [status] [window_count] windows
+  # Extract the session name by removing icon, trimming, and stopping at status/windows
+  session_name=$(echo "$selection" | sed 's/^.//' | awk '{print $1}')
+  switch_or_attach "$session_name"
+elif [[ -n "$query" ]]; then
+  # User typed a session name that doesn't exist - create it
+  if tmux has-session -t "$query" 2>/dev/null; then
+    # Session exists, switch/attach to it
+    switch_or_attach "$query"
+  else
+    # Session doesn't exist, create and switch/attach to it
+    if [[ -n "$TMUX" ]]; then
+      # Inside tmux, create detached and switch
+      tmux new-session -d -s "$query"
+      tmux switch-client -t "$query"
+    else
+      # Outside tmux, create and attach directly
+      tmux new-session -s "$query"
+    fi
+  fi
+fi
+
