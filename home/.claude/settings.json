@@ -1,10 +1,14 @@
 {
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_METRICS_EXPORTER": "otlp"
+  },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
       "Bash(ls:*)",
       "Bash(mkdir:*)",
       "Read(~/Developer/**)",
-
       "Bash(docker compose exec:*)",
       "Bash(docker run:*)",
       "Bash(find:*)",
@@ -16,14 +20,9 @@
       "Bash(git stash:*)",
       "Bash(grep:*)",
       "Bash(rg:*)",
-
       "Fetch(https://docs.anthropic.com/*)"
     ]
   },
-  "theme": "dark-daltonized",
-  "env": {
-    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
-    "OTEL_METRICS_EXPORTER": "otlp"
-  },
-  "includeCoAuthoredBy": false
+  "theme": "dark",
+  "model": "sonnet"
 }
