@@ -20,9 +20,11 @@
       "Bash(git stash:*)",
       "Bash(grep:*)",
       "Bash(rg:*)",
-      "Fetch(https://docs.anthropic.com/*)"
+      "Fetch(https://docs.anthropic.com/*)",
+      "Fetch(https://github.com/*)"
     ]
   },
-  "theme": "dark",
-  "model": "sonnet"
+  "theme": "sonnet",
+  "model": "opus"
 }
+
