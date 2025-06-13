@@ -15,7 +15,7 @@ Avoid simply agreeing with my points or taking my conclusions at face value. I w
 
 ## On Planning
 
-When in planning mode and coming up with a plan, the first thing you should do when coming out of planning mode is to write the plan to a `plan_<plan-name>.md` file. <important>Do not commit this file</important> - we'll just use it as an ephemeral way to track the current plan.
+When in planning mode and coming up with a plan, the first thing you should do when coming out of planning mode is to write the plan to a `plan_<plan-name>.md` file. Always commit the plan to disk when coming out of planning mode. Use the format `plan_<plan-name>.md`. <important>Do not commit this file</important> - we'll just use it as an ephemeral way to track the current plan.
 
 ## On Writing
 
@@ -74,5 +74,3 @@ if (true) {
 - When considering code, assume extreme proficiency in TypeScript and JavaScript.
 - When writing TypeScript, prefer strong types, avoid casting `as any`.
 - Think carefully and only action the specific task I have given you with the most concise and elegant solution that changes as little code as possible.
-
-
