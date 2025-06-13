@@ -8,14 +8,14 @@
 get_sessions() {
   local current_session=$(tmux display-message -p "#S" 2>/dev/null)
   local inside_tmux="$1"
-  
+
   tmux list-sessions -F "#{session_name}|#{session_windows}|#{?session_attached,attached,detached}" 2>/dev/null |
     awk -F"|" -v current="$current_session" -v inside="$inside_tmux" "{
       # If inside tmux, skip the current session
       if (inside == \"true\" && \$1 == current) {
         next
       }
-      
+
       if (inside == \"true\" && \$1 == current) {
         status = \"(current)\"
         icon = \"→\"
@@ -29,6 +29,12 @@ get_sessions() {
       printf \"%s %-20s %s %2s windows\\n\", icon, \$1, status, \$2
     }"
 }
+
+# Handle command line arguments
+if [[ "$1" == "--get-sessions" ]]; then
+  get_sessions "$2"
+  exit 0
+fi
 
 # Check if we have any sessions at all
 session_count=$(tmux list-sessions 2>/dev/null | wc -l)
@@ -50,10 +56,10 @@ result=$(get_sessions "$inside_tmux_flag" |
     --header-first \
     --border=rounded \
     --color="header:italic" \
-    --preview="tmux list-windows -t {2} -F \"  #{window_index}: #{window_name} #{?window_active,(active),}\" 2>/dev/null || echo 'New session: {q}'" \
+    --preview="tmux list-windows -t {1} -F \"  #{window_index}: #{window_name} #{?window_active,(active),}\" 2>/dev/null || echo 'New session: {q}'" \
     --preview-window="right:40%:wrap" \
-    --bind="ctrl-r:reload(bash -c 'source \"$0\"; get_sessions \"$1\"' -- \"$0\" \"$inside_tmux_flag\")" \
-    --bind="ctrl-d:execute(tmux kill-session -t {2} 2>/dev/null)+reload(bash -c 'source \"$0\"; get_sessions \"$1\"' -- \"$0\" \"$inside_tmux_flag\")" \
+    --bind="ctrl-r:reload($0 --get-sessions \"$inside_tmux_flag\")" \
+    --bind="ctrl-d:execute(tmux kill-session -t {1} 2>/dev/null)+reload($0 --get-sessions \"$inside_tmux_flag\")" \
     --expect="enter" \
     --print-query)
 
@@ -70,8 +76,8 @@ switch_or_attach() {
     # Inside tmux, switch client
     # Get the current client and try to switch
     local current_client=$(tmux display-message -p "#{client_name}")
-    tmux switch-client -c "$current_client" -t "$session_name" 2>/dev/null || \
-    tmux switch-client -t "$session_name"
+    tmux switch-client -c "$current_client" -t "$session_name" 2>/dev/null ||
+      tmux switch-client -t "$session_name"
   else
     # Outside tmux, attach to session
     tmux attach-session -t "$session_name"
@@ -101,4 +107,3 @@ elif [[ -n "$query" ]]; then
     fi
   fi
 fi
-
