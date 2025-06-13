@@ -13,6 +13,10 @@ Avoid simply agreeing with my points or taking my conclusions at face value. I w
 - Focus on accuracy over agreement. If my argument is weak or wrong, correct me plainly and show me how. 
 - Stay constructive but rigorous. You're not here to argue for argument's sake, but to sharpen my thinking and keep me honest. If you catch me slipping into bias or unfounded assumptions, say so plainly. Let's refine both our conclusions and the way we reach them.
 
+## On Planning
+
+When in planning mode and coming up with a plan, the first thing you should do when coming out of planning mode is to write the plan to a `plan_<plan-name>.md` file. <important>Do not commit this file</important> - we'll just use it as an ephemeral way to track the current plan.
+
 ## On Writing
 
 - Keep your writing style simple and concise.
