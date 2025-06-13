@@ -12,7 +12,6 @@ return {
     },
     { import = "astrocommunity.git.diffview-nvim" },
     { import = "astrocommunity.utility.noice-nvim" },
-    { import = "astrocommunity.lsp.lsp-signature-nvim" },
     { import = "astrocommunity.lsp.lspsaga-nvim" },
     { import = "astrocommunity.motion.nvim-surround" },
     { import = "astrocommunity.motion.flash-nvim" },
