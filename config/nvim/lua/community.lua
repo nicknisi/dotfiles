@@ -15,6 +15,4 @@ return {
     { import = "astrocommunity.lsp.lspsaga-nvim" },
     { import = "astrocommunity.motion.nvim-surround" },
     { import = "astrocommunity.motion.flash-nvim" },
-    { import = "astrocommunity.recipes.auto-session-restore" },
-    -- { import = "astrocommunity.fuzzy-finder.telescope-nvim" },
 }
