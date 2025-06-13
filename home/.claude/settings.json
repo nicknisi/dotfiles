@@ -24,7 +24,5 @@
       "Fetch(https://github.com/*)"
     ]
   },
-  "theme": "sonnet",
-  "model": "opus"
+  "theme": "sonnet"
 }
-
