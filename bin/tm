@@ -38,10 +38,6 @@ fi
 
 # Check if we have any sessions at all
 session_count=$(tmux list-sessions 2>/dev/null | wc -l)
-if [[ $session_count -eq 0 ]]; then
-  echo "No tmux sessions found."
-  exit 1
-fi
 
 # Pass whether we're inside tmux to the function
 inside_tmux_flag=""
@@ -49,7 +45,15 @@ if [[ -n "$TMUX" ]]; then
   inside_tmux_flag="true"
 fi
 
-result=$(get_sessions "$inside_tmux_flag" |
+# Prepare the input for fzf
+if [[ $session_count -eq 0 ]]; then
+  # No sessions, start with empty input
+  sessions_input=""
+else
+  sessions_input=$(get_sessions "$inside_tmux_flag")
+fi
+
+result=$(echo "$sessions_input" |
   fzf --reverse \
     --prompt="-> " \
     --header="═══ TMUX ═══ | Enter: switch/create | Ctrl-D: delete | Ctrl-R: refresh" \
@@ -64,10 +68,7 @@ result=$(get_sessions "$inside_tmux_flag" |
     --print-query)
 
 # Parse the result
-mapfile -t lines <<<"$result"
-query="${lines[0]}"
-key="${lines[1]}"
-selection="${lines[2]}"
+IFS=$'\n' read -r -d '' query key selection <<< "$result"
 
 # Function to switch/attach to a session
 switch_or_attach() {
