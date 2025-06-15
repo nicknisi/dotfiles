@@ -8,6 +8,9 @@ return {
     "AstroNvim/astrolsp",
     ---@type AstroLSPOpts
     opts = {
+        --NOTE:_EXPERIMENTAL_ Use the native `vim.lsp.config` for LSP configuration
+        native_lsp_config = true,
+
         -- Configuration table of features provided by AstroLSP
         features = {
             codelens = true, -- enable/disable codelens refresh on start
@@ -103,6 +106,7 @@ return {
             cmake = {},
             verible = {
                 cmd = { "verible-verilog-ls", "--rules=-no-tabs" },
+                root_markers = { "verible.filelist" },
             },
         },
         -- customize how language servers are attached
