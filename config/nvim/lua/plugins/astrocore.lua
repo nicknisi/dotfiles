@@ -169,10 +169,19 @@ return {
                 ["<F7>"] = false,
                 ["<F2>"] = { '<Cmd>execute v:count . "ToggleTerm"<CR>', desc = "Toggle terminal" },
             },
+
             v = {
                 [">"] = { ">gv", desc = "shift right with reselected range" },
                 ["<"] = { "<gv", desc = "shift right with reselected range" },
             },
+
+            c = {
+                ["<A-h>"] = { "<Left>", desc = "move cursor in insert mode" },
+                ["<A-l>"] = { "<Right>", desc = "move cursor in insert mode" },
+                ["<A-k>"] = { "<Up>", desc = "move cursor in insert mode" },
+                ["<A-j>"] = { "<Down>", desc = "move cursor in insert mode" },
+            },
+
             i = {
                 ["<A-h>"] = { "<Left>", desc = "move cursor in insert mode" },
                 ["<A-l>"] = { "<Right>", desc = "move cursor in insert mode" },
