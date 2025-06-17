@@ -290,6 +290,12 @@ return {
                     menu = {
                         auto_show = true,
                     },
+
+                    list = {
+                        selection = {
+                            preselect = false,
+                        },
+                    },
                 },
             },
         },
