@@ -28,7 +28,7 @@ return {
 
             notifier = {
                 -- used for noice.nvim for notify view
-                timeout = 1500,
+                timeout = 2500,
                 top_down = false,
             },
 
@@ -132,16 +132,9 @@ return {
                 inc_rename = false, -- enables an input dialog for inc-rename.nvim
             },
 
-            messages = { view_history = "popup", view_search = false },
+            messages = { view_search = false },
 
             popupmenu = { enabled = false },
-
-            -- You can add any custom commands below that will be available with `:Noice command`
-            commands = {
-                history = {
-                    view = "popup",
-                },
-            },
 
             lsp = {
                 hover = {
@@ -164,6 +157,16 @@ return {
                         end,
                     },
                     opts = { skip = true },
+                },
+
+                {
+                    -- Add shell output and error notification
+                    filter = {
+                        event = "msg_show",
+                        kind = { "shell_out", "shell_err" },
+                    },
+                    view = "notify",
+                    opts = { title = "Shell" },
                 },
             },
         },
