@@ -6,6 +6,7 @@
 return {
     {
         "folke/snacks.nvim",
+        optional = true,
         opts = {
             dashboard = {
                 preset = {
@@ -22,6 +23,33 @@ return {
                         "██  ██ ██  ██  ██  ██ ██  ██  ██",
                         "██   ████   ████   ██ ██      ██",
                     }, "\n"),
+                },
+            },
+
+            notifier = {
+                -- used for noice.nvim for notify view
+                timeout = 1500,
+                top_down = false,
+            },
+
+            picker = {
+                -- layout = {preset = "vscode"},
+                win = {
+                    -- internal keymaps
+                    input = {
+                        keys = {
+                            ["<c-v>"] = false,
+                            ["<c-q>"] = { "edit_vsplit", mode = { "i", "n" } },
+                        },
+                    },
+
+                    -- internal keymaps
+                    list = {
+                        keys = {
+                            ["<c-v>"] = false,
+                            ["<c-q>"] = "edit_vsplit",
+                        },
+                    },
                 },
             },
         },
@@ -104,7 +132,16 @@ return {
                 inc_rename = false, -- enables an input dialog for inc-rename.nvim
             },
 
-            messages = { enable = false }, -- use snacks.notifier instead of noice
+            messages = { view_history = "popup", view_search = false },
+
+            popupmenu = { enabled = false },
+
+            -- You can add any custom commands below that will be available with `:Noice command`
+            commands = {
+                history = {
+                    view = "popup",
+                },
+            },
 
             lsp = {
                 hover = {
@@ -127,37 +164,6 @@ return {
                         end,
                     },
                     opts = { skip = true },
-                },
-            },
-        },
-    },
-
-    {
-        "folke/snacks.nvim",
-        opts = {
-            notifier = {
-                timeout = 1500,
-                top_down = false,
-            },
-
-            picker = {
-                -- layout = {preset = "vscode"},
-                win = {
-                    -- internal keymaps
-                    input = {
-                        keys = {
-                            ["<c-v>"] = false,
-                            ["<c-q>"] = { "edit_vsplit", mode = { "i", "n" } },
-                        },
-                    },
-
-                    -- internal keymaps
-                    list = {
-                        keys = {
-                            ["<c-v>"] = false,
-                            ["<c-q>"] = "edit_vsplit",
-                        },
-                    },
                 },
             },
         },
@@ -260,6 +266,27 @@ return {
                     "select_prev",
                     "snippet_backward",
                     "fallback",
+                },
+            },
+
+            -- sources = {
+            --     providers = {
+            --         cmdline = {
+            --             -- ignores cmdline completions when executing shell commands
+            --             -- refer to:https://github.com/Saghen/blink.cmp/issues/795
+            --             -- I select another ways to fix these issue
+            --             enabled = function()
+            --                 return vim.fn.getcmdline():sub(1, 1) ~= "!"
+            --             end,
+            --         },
+            --     },
+            -- },
+
+            cmdline = {
+                completion = {
+                    menu = {
+                        auto_show = true,
+                    },
                 },
             },
         },
