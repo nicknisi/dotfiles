@@ -17,6 +17,8 @@ return {
             "regex",
             "bash",
             "verilog",
+            "html",
+            "latex",
         },
     },
 }
