@@ -54,6 +54,7 @@ return {
                 foldcolumn = "0",
                 jumpoptions = "view",
                 spell = false, -- sets vim.opt.spell
+                completeopt = { "menu", "menuone", "noselect", "popup" }, -- sets vim.opt.completeopt
             },
             g = { -- vim.g.<key>
                 -- configure global vim variables (vim.g)

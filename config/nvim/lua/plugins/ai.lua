@@ -35,11 +35,11 @@ return {
             { "nvim-lua/plenary.nvim", branch = "master" }, -- for curl, log and async functions
         },
         opts = {
+            model = "claude-3.7-sonnet",
             -- See Configuration section for options
             question_header = "  ", -- Header to use for user questions
             answer_header = "   ", -- Header to use for AI answers
             error_header = "  ", -- Header to use for errors
-            -- separator = " ---",
         },
 
         specs = {
@@ -55,6 +55,7 @@ return {
                     },
                 },
             },
+
             {
                 "saghen/blink.cmp",
                 optional = true,
@@ -66,6 +67,37 @@ return {
                             path = {
                                 -- Path sources triggered by "/" interfere with CopilotChat commands
                                 enabled = function() return vim.bo.filetype ~= "copilot-chat" end,
+                            },
+                        },
+                    },
+                },
+            },
+
+            {
+                "AstroNvim/astrocore",
+                optional = true,
+                opts = {
+                    mappings = {
+                        n = {
+                            ["<Leader>a"] = {
+                                desc = "AiChat",
+                            },
+                            ["<Leader>aa"] = {
+                                "<cmd>CopilotChat<cr>",
+                            },
+                            ["<Leader>ae"] = {
+                                "<cmd>CopilotChatToggle<cr>",
+                            },
+                        },
+                        v = {
+                            ["<Leader>a"] = {
+                                desc = "AiChat",
+                            },
+                            ["<Leader>aa"] = {
+                                "<cmd>CopilotChat<cr>",
+                            },
+                            ["<Leader>ae"] = {
+                                "<cmd>CopilotChatToggle<cr>",
                             },
                         },
                     },
