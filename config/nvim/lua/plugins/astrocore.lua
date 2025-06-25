@@ -168,7 +168,10 @@ return {
                 -- terminal keymap
                 ["<c-\\>"] = false,
                 ["<F7>"] = false,
-                ["<F2>"] = { '<Cmd>execute v:count . "ToggleTerm"<CR>', desc = "Toggle terminal" },
+                ["<Leader>th"] = false,
+                ["<Leader>tv"] = false,
+                ["<Leader>tl"] = false,
+                ["<Leader>gg"] = false,
             },
 
             v = {
@@ -189,13 +192,11 @@ return {
                 ["<A-k>"] = { "<Up>", desc = "move cursor in insert mode" },
                 ["<A-j>"] = { "<Down>", desc = "move cursor in insert mode" },
                 ["<F7>"] = false,
-                ["<F2>"] = { "<Esc><Cmd>ToggleTerm<CR>", desc = "Toggle terminal" },
             },
             t = {
                 ["<C-L>"] = false,
                 ["<c-\\>"] = false,
                 ["<F7>"] = false,
-                ["<F2>"] = { "<Cmd>ToggleTerm<CR>", desc = "Toggle terminal" },
                 ["<ESC><ESC>"] = { "<C-\\><C-N>", desc = "return to normal mode" },
             },
         },

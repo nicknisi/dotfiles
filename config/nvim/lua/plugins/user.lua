@@ -215,9 +215,73 @@ return {
 
     {
         "akinsho/toggleterm.nvim",
-        opts = {
-            direction = "float",
-        },
+        lazy = false,
+        opts = function(plugin, opts)
+            opts.size = function(term)
+                if term.direction == "vertical" then return 80 end
+                return 20 -- default size for horizontal and float
+            end
+
+            opts.on_create = function(t)
+                vim.opt_local.foldcolumn = "0"
+                vim.opt_local.signcolumn = "no"
+            end
+
+            -- used for lazygit
+            local Terminal = require("toggleterm.terminal").Terminal
+            local lazygit = Terminal:new {
+                cmd = "lazygit",
+                hidden = true,
+                direction = "float",
+                count = 10,
+            }
+
+            local function lazygit_toggle()
+                if vim.fn.bufname("%"):match "^term:" == nil then
+                    lazygit.dir = vim.fn.expand "%:p:h" -- current working directory for the active buffer
+                    lazygit:toggle()
+                end
+            end
+
+            vim.keymap.set(
+                "n",
+                "<Leader>gg",
+                function() lazygit_toggle() end,
+                { noremap = true, silent = true, desc = "lazygit" }
+            )
+
+            -- change direction for terminal
+            local direction = "float"
+            local function term_toggle(dir)
+                direction = dir
+                vim.cmd(vim.v.count .. "ToggleTerm" .. " direction=" .. direction)
+            end
+            vim.keymap.set(
+                "n",
+                "<Leader>tv",
+                function() term_toggle "vertical" end,
+                { noremap = true, silent = true, desc = "Open vertical terminal" }
+            )
+            vim.keymap.set(
+                "n",
+                "<Leader>th",
+                function() term_toggle "horizontal" end,
+                { noremap = true, silent = true, desc = "Open horizontal terminal" }
+            )
+            vim.keymap.set(
+                "n",
+                "<Leader>tf",
+                function() term_toggle "float" end,
+                { noremap = true, silent = true, desc = "Open floating terminal" }
+            )
+            vim.keymap.set(
+                { "n", "i" },
+                "<F2>",
+                function() term_toggle(direction) end,
+                { noremap = true, silent = true, desc = "Toggle term" }
+            )
+            vim.keymap.set("t", "<F2>", "<Cmd>ToggleTerm<CR>", { noremap = true, silent = true, desc = "Toggle term" })
+        end,
     },
 
     {
