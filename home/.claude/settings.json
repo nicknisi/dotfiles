@@ -14,6 +14,8 @@
       "Bash(git fetch:*)",
       "Bash(git rebase:*)",
       "Bash(git stash:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh run view:*)",
       "Bash(grep:*)",
       "Bash(rg:*)",
       "Fetch(https://docs.anthropic.com/*)",
@@ -23,4 +25,3 @@
   "theme": "dark",
   "model": "sonnet"
 }
-
