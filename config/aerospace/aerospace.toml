@@ -232,31 +232,31 @@ run = 'move-node-to-workspace W'
 
 [[on-window-detected]]
 if.app-id = 'com.apple.iCal'
-run = 'move-node-to-workspace P'
+run = 'move-node-to-workspace S'
 
 [[on-window-detected]]
 if.app-id = 'notion.id'
-run = 'move-node-to-workspace P'
+run = 'move-node-to-workspace S'
 
 [[on-window-detected]]
 if.app-id = 'com.mimestream.Mimestream'
-run = 'move-node-to-workspace P'
+run = 'move-node-to-workspace S'
 
 [[on-window-detected]]
 if.app-id = 'com.linear'
-run = 'move-node-to-workspace P'
+run = 'move-node-to-workspace S'
 
 [[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'
-run = 'move-node-to-workspace P'
+run = 'move-node-to-workspace S'
 
 [[on-window-detected]]
 if.app-id = 'md.obsidian'
-run = 'move-node-to-workspace P'
+run = 'move-node-to-workspace S'
 
 [[on-window-detected]]
 if.app-id = 'com.omnigroup.OmniFocus4'
-run = 'move-node-to-workspace P'
+run = 'move-node-to-workspace S'
 
 # Zoom
 
