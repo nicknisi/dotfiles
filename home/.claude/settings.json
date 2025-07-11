@@ -2,26 +2,39 @@
   "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
-      "Bash(ls:*)",
-      "Bash(mkdir:*)",
-      "Read(~/Developer/**)",
+      "Bash(cat:*)",
       "Bash(docker compose exec:*)",
       "Bash(docker run:*)",
       "Bash(find:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh run view:*)",
       "Bash(git branch:*)",
       "Bash(git checkout:*)",
-      "Bash(git switch:*)",
       "Bash(git fetch:*)",
       "Bash(git rebase:*)",
       "Bash(git stash:*)",
-      "Bash(gh pr view:*)",
-      "Bash(gh run view:*)",
+      "Bash(git switch:*)",
       "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(node:*)",
+      "Bash(npm run build:*)",
       "Bash(rg:*)",
       "Fetch(https://docs.anthropic.com/*)",
-      "Fetch(https://github.com/*)"
+      "Fetch(https://github.com/*)",
+      "Read(~/Developer/**)",
+      "mcp__context7__get-library-docs",
+      "mcp__context7__resolve-library-id",
+      "mcp__puppeteer__puppeteer_click",
+      "mcp__puppeteer__puppeteer_evaluate",
+      "mcp__puppeteer__puppeteer_fill",
+      "mcp__puppeteer__puppeteer_navigate",
+      "mcp__puppeteer__puppeteer_screenshot",
+      "mcp__workos__workos_docs",
+      "mcp__workos__workos_search"
     ]
   },
   "theme": "dark",
   "model": "sonnet"
 }
+
