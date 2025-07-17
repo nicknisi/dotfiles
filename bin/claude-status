@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Get tmux session name from environment or parameter
+SESSION_NAME="${1:-$(tmux display-message -p '#{session_name}' 2>/dev/null)}"
+
+# Exit if no session name available
+[ -z "$SESSION_NAME" ] && exit 0
+
+STATUS_FILE="$HOME/.cache/claude-status/${SESSION_NAME}.status"
+
+if [ -f "$STATUS_FILE" ]; then
+    claude_status=$(cat "$STATUS_FILE" 2>/dev/null)
+    if [ "$claude_status" = "working" ]; then
+        echo "working"
+    else
+        echo "done"
+    fi
+else
+    echo "idle"
+fi

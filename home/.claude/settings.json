@@ -34,7 +34,47 @@
       "mcp__workos__workos_search"
     ]
   },
-  "theme": "dark",
-  "model": "sonnet"
+  "model": "sonnet",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook PreToolUse"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook Stop"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook SubagentStop"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook Notification"
+          }
+        ]
+      }
+    ]
+  }
 }
-
