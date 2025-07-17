@@ -10,7 +10,6 @@ local utils = require("nisi.utils")
 ---@field zen boolean|nil Whether to show a minimal UI (hide statusline, line numbers, etc.)
 ---@field copilot boolean|nil Whether copilot is enabled
 ---@field python boolean|nil Whether python is enabled
----@field avante boolean|nil Whether avante is enabled
 ---@field fzf boolean|nil Whether too configure fzf for tooling like telescope
 ---@field prefer_git boolean|nil Whether to prefer using git for dependencies over other options like curl
 ---@field proxy string|nil A proxy URL to use for certain network functions
@@ -22,7 +21,6 @@ local config = {
   startup_color = "#653CAD",
   zen = false,
   copilot = true,
-  avante = true,
   fzf = true,
   proxy = nil,
   prefer_git = false,
@@ -95,10 +93,6 @@ local function init_plugins()
 
   if config.python then
     M.add_plugin({ import = "nisi.plugins.extras.python" })
-  end
-
-  if config.avante then
-    M.add_plugin({ import = "nisi.plugins.extras.avante" })
   end
 
   if config.fzf then
