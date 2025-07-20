@@ -7,12 +7,12 @@
 " uses of the word in the file. If the match already exists, then the match is deleted,
 " allowing the highlight to be toggled.
 
-hi def InterestingWord1 guifg=#000000 ctermfg=16 guibg=#ffa724 ctermbg=214
-hi def InterestingWord2 guifg=#000000 ctermfg=16 guibg=#aeee00 ctermbg=154
-hi def InterestingWord3 guifg=#000000 ctermfg=16 guibg=#8cffba ctermbg=121
-hi def InterestingWord4 guifg=#000000 ctermfg=16 guibg=#b88853 ctermbg=137
-hi def InterestingWord5 guifg=#000000 ctermfg=16 guibg=#ff9eb8 ctermbg=211
-hi def InterestingWord6 guifg=#000000 ctermfg=16 guibg=#ff2c4b ctermbg=195
+hi def InterestingWord1 guifg=#ffffff ctermfg=16 guibg=#d73a49 ctermbg=214
+hi def InterestingWord2 guifg=#ffffff ctermfg=16 guibg=#28a745 ctermbg=154
+hi def InterestingWord3 guifg=#ffffff ctermfg=16 guibg=#7c3aed ctermbg=121
+hi def InterestingWord4 guifg=#ffffff ctermfg=16 guibg=#f56565 ctermbg=137
+hi def InterestingWord5 guifg=#ffffff ctermfg=16 guibg=#06b6d4 ctermbg=211
+hi def InterestingWord6 guifg=#ffffff ctermfg=16 guibg=#8b5cf6 ctermbg=195
 
 let s:base_mid = 68750
 
