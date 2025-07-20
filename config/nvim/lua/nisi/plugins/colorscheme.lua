@@ -62,6 +62,40 @@ return {
           sapphire = "#c07ab8", -- Purple-pink instead of sapphire
           rosewater = "#ffa0a0",
         },
+        latte = {
+          -- Clean light base colors
+          base = "#f8f8f8", -- Clean light background
+          mantle = "#f0f0f0", -- Slightly darker
+          crust = "#e8e8e8", -- Subtle border color
+
+          -- Refined grayscale text colors for light mode
+          text = "#2c2c2c",
+          subtext1 = "#4a4a4a",
+          subtext0 = "#666666",
+          overlay2 = "#7c7c7c",
+          overlay1 = "#919191",
+          overlay0 = "#a6a6a6",
+          surface2 = "#c8c8c8",
+          surface1 = "#d4d4d4",
+          surface0 = "#e0e0e0",
+
+          -- Vibrant but readable accent colors for light mode
+          red = "#d73a49", -- GitHub-like red
+          green = "#28a745", -- Clear green
+          yellow = "#ffd33d", -- Bright yellow
+          blue = "#7c3aed", -- Deep purple (matching dark mode preference)
+          mauve = "#8b5cf6", -- Bright purple
+          teal = "#20b2aa", -- True teal
+          flamingo = "#f56565", -- Coral-like orange
+          lavender = "#a78bfa", -- Light purple
+
+          -- Additional colors adapted for light mode
+          peach = "#ff8c00",
+          maroon = "#dc2626",
+          sky = "#06b6d4", -- Bright cyan
+          sapphire = "#8b5cf6", -- Purple consistent with blue
+          rosewater = "#f43f5e",
+        },
       },
       integrations = {
         treesitter = true,
@@ -96,29 +130,33 @@ return {
         which_key = true,
         ts_rainbow = true,
       },
-      -- custom_highlights = function(colors)
-      --   return {
-      --     NormalFloat = { bg = colors.mantle },
-      --     FloatBorder = { bg = colors.mantle },
-      --     TelescopeNormal = { bg = colors.mantle },
-      --     TelescopeBorder = { bg = colors.mantle },
-      --     NoiceCmdlinePopup = { bg = colors.mantle },
-      --     NoicePopup = { bg = colors.mantle },
-      --     WhichKeyFloat = { bg = colors.mantle },
-      --     -- Add Telescope prompt specific highlights
-      --     TelescopePrompt = { bg = colors.crust },
-      --     TelescopePromptNormal = { bg = colors.crust },
-      --     TelescopePromptBorder = { bg = colors.crust },
-      --     TelescopePromptPrefix = { bg = colors.crust },
-      --     TelescopePromptTitle = { bg = colors.crust, fg = colors.blue },
-      --
-      --     -- Different colors for results and preview
-      --     TelescopeResults = { bg = colors.mantle },
-      --     TelescopePreview = { bg = colors.mantle },
-      --     TelescopeResultsTitle = { bg = colors.mantle, fg = colors.blue },
-      --     TelescopePreviewTitle = { bg = colors.mantle, fg = colors.blue },
-      --   }
-      -- end,
+      custom_highlights = function(colors)
+        return {
+          NormalFloat = { bg = colors.mantle },
+          FloatBorder = { bg = colors.mantle, fg = colors.overlay0 },
+          TelescopeNormal = { bg = colors.mantle },
+          TelescopeBorder = { bg = colors.mantle, fg = colors.overlay0 },
+          NoiceCmdlinePopup = { bg = colors.mantle },
+          NoicePopup = { bg = colors.mantle },
+          WhichKeyFloat = { bg = colors.mantle },
+          -- Add Telescope prompt specific highlights
+          TelescopePrompt = { bg = colors.crust },
+          TelescopePromptNormal = { bg = colors.crust },
+          TelescopePromptBorder = { bg = colors.crust, fg = colors.overlay0 },
+          TelescopePromptPrefix = { bg = colors.crust, fg = colors.blue },
+          TelescopePromptTitle = { bg = colors.crust, fg = colors.blue },
+
+          -- Different colors for results and preview
+          TelescopeResults = { bg = colors.mantle },
+          TelescopePreview = { bg = colors.mantle },
+          TelescopeResultsTitle = { bg = colors.mantle, fg = colors.blue },
+          TelescopePreviewTitle = { bg = colors.mantle, fg = colors.blue },
+          
+          -- Selection highlights
+          TelescopeSelection = { bg = colors.surface0, fg = colors.text },
+          TelescopeSelectionCaret = { bg = colors.surface0, fg = colors.blue },
+        }
+      end,
     },
   },
   {

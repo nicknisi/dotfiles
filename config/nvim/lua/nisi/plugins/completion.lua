@@ -1,12 +1,5 @@
-local colors = require("nisi.colors")
-
--- Set colors for completion items
-vim.cmd("highlight! CmpItemAbbrMatch guibg=NONE guifg=" .. colors.lightblue)
-vim.cmd("highlight! CmpItemAbbrMatchFuzzy guibg=NONE guifg=" .. colors.lightblue)
-vim.cmd("highlight! CmpItemKindFunction guibg=NONE guifg=" .. colors.magenta)
-vim.cmd("highlight! CmpItemKindMethod guibg=NONE guifg=" .. colors.magenta)
-vim.cmd("highlight! CmpItemKindVariable guibg=NONE guifg=" .. colors.blue)
-vim.cmd("highlight! CmpItemKindKeyword guibg=NONE guifg=" .. colors.fg)
+-- Completion highlights are now handled by the colorscheme
+-- This allows proper light/dark mode adaptation
 
 return {
   {
