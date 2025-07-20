@@ -110,10 +110,8 @@ selected=$(echo "$sessions" | fzf \
   --ansi \
   --no-sort \
   --header="Sessions grouped by Claude status | j/k: navigate | Enter: select | Esc: cancel" \
-  --preview 'if echo {} | grep -q "━━━"; then echo "Category separator"; else session=$(echo {} | awk "{print \$1}"); tmux capture-pane -ep -t "$session" 2>/dev/null || echo "No preview available"; fi' \
-  --preview-window=right:40%:wrap \
   --prompt="Session> " \
-  --bind="j:down,k:up,ctrl-j:preview-down,ctrl-k:preview-up,q:cancel" \
+  --bind="j:down,k:up,q:cancel" \
   --layout=reverse \
   --info=inline)
 
