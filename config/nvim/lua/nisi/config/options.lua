@@ -74,14 +74,14 @@ opt.termguicolors = true
 
 if not config.zen then
   -- show absolute numbers in insert mode, relative in normal mode
-  opt.relativenumber = true
+  opt.relativenumber = false
   opt.number = true
   vim.cmd([[
-  augroup numbertoggle
-    autocmd!
-    autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
-    autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
-  augroup END
+  "augroup numbertoggle
+  "  autocmd!
+  "  autocmd BufEnter,FocusGained,InsertLeave * set relativenumber
+  "  autocmd BufLeave,FocusLost,InsertEnter   * set norelativenumber
+  "augroup END
 ]])
 end
 
