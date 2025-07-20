@@ -34,7 +34,6 @@
       "mcp__workos__workos_search"
     ]
   },
-  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
