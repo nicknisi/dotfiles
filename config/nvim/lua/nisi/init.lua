@@ -31,7 +31,7 @@ local config = {
       vim.o.background = "light"
     end
 
-    vim.cmd("colorscheme catppuccin")
+    vim.cmd("colorscheme tokyonight")
   end,
   transparent = false,
 }

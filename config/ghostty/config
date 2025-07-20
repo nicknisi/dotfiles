@@ -1,6 +1,8 @@
 # Theme settings
-# theme = dark:vesper,light:catppuccin-latte
-theme = dark:catppuccin-macchiato,light:catppuccin-latte
+# theme = dark:catppuccin-macchiato,light:catppuccin-latte
+theme = dark:tokyonight_night,light:tokyonight-day
+background-opacity = 0.85
+background-blur-radius = 30
 # background = #1c2021
 # background = #0B1215
 # background-opacity = 0.75
