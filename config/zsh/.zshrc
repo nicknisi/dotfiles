@@ -10,6 +10,8 @@ source "$ZDOTDIR/.zsh_functions"
 autoload -U compinit add-zsh-hook
 compinit
 
+prepend_path $HOME/.cargo/bin
+prepend_path $HOME/.local/bin
 prepend_path /usr/local/opt/grep/libexec/gnubin
 prepend_path /usr/local/sbin
 prepend_path $DOTFILES/bin
