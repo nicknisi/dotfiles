@@ -3,6 +3,7 @@ local formatters = {
   javascriptreact = { "prettier" },
   typescript = { "prettier" },
   typescriptreact = { "prettier" },
+  markdown = { "prettier" },
   astro = { "prettier" },
   json = { "prettier" },
   jsonc = { "prettier" },
