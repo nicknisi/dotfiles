@@ -85,6 +85,7 @@ if not config.zen then
 ]])
 end
 
+opt.winborder = "rounded"
 opt.hidden = true -- allow background buffers
 opt.joinspaces = false -- join lines without two spaces
 opt.wrap = true -- turn on line wrapping
@@ -181,6 +182,14 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 vim.api.nvim_create_autocmd("LspDetach", { command = "setl foldexpr<" })
+
+vim.api.nvim_create_autocmd("TextYankPost", {
+  desc = "Highlight when yanking text",
+  group = vim.api.nvim_create_augroup("highlight-yank", { clear = true }),
+  callback = function()
+    vim.highlight.on_yank()
+  end,
+})
 
 opt.virtualedit = "block"
 

@@ -151,7 +151,7 @@ return {
           TelescopePreview = { bg = colors.mantle },
           TelescopeResultsTitle = { bg = colors.mantle, fg = colors.blue },
           TelescopePreviewTitle = { bg = colors.mantle, fg = colors.blue },
-          
+
           -- Selection highlights
           TelescopeSelection = { bg = colors.surface0, fg = colors.text },
           TelescopeSelectionCaret = { bg = colors.surface0, fg = colors.blue },

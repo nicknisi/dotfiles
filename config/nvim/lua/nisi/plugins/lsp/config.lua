@@ -5,17 +5,7 @@ local mason = require("mason")
 local mason_lspconfig = require("mason-lspconfig")
 local utils = require("nisi.utils")
 local fn = utils.fn
-local border = {
-  { "🭽", "FloatBorder" },
-  { "▔", "FloatBorder" },
-  { "🭾", "FloatBorder" },
-  { "▕", "FloatBorder" },
-  { "🭿", "FloatBorder" },
-  { "▁", "FloatBorder" },
-  { "🭼", "FloatBorder" },
-  { "▏", "FloatBorder" },
-}
-
+local border = "rounded"
 local servers = {
   "eslint",
   "ts_ls",
@@ -26,7 +16,6 @@ local servers = {
   "intelephense",
   "tailwindcss",
   "jsonls",
-  "pylsp",
   "ruby_lsp",
   "pylsp",
   "vimls",
@@ -40,53 +29,47 @@ _G.lsp_organize_imports = lsp_utils.lsp_organize_imports
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("UserLspConfig", {}),
   callback = function(ev)
-    -- TODO: move this to typescript
-    vim.cmd([[command! OR lua lsp_organize_imports()]])
+    vim.api.nvim_buf_create_user_command(ev.buf, "OR", lsp_utils.lsp_organize_imports, {})
 
-    local function keymap(key, action, buf, desc)
-      local opts = { noremap = true, silent = true, desc = desc }
-      if buf then
-        opts.buffer = ev.buf
-      end
-      vim.keymap.set("n", key, action, opts)
+    local function map(mode, lhs, rhs, desc)
+      vim.keymap.set(mode, lhs, rhs, { buffer = ev.buf, desc = desc, silent = true })
     end
 
-    keymap("<leader>aa", lsp_utils.lsp_show_diagnostics, false, "Show diagnostics")
-    keymap("[d", fn(vim.diagnostic.jump, { count = -1 }), false, "Go to previous diagnostic")
-    keymap("]d", fn(vim.diagnostic.jump, { count = 1 }), false, "Go to next diagnostic")
-    keymap("<leader>aq", vim.diagnostic.setloclist, false, "Send diagnostics to loclist")
-
-    keymap("gO", lsp_utils.lsp_organize_imports, true, "Organize imports")
-    keymap("gd", vim.lsp.buf.definition, true, "Go to definition")
-    keymap("gD", vim.lsp.buf.declaration, true, "Go to declaration")
-    keymap("go", vim.lsp.buf.type_definition, true, "Go to type definition")
-    keymap("gr", vim.lsp.buf.rename, true, "Rename")
-    keymap("gR", vim.lsp.buf.references, true, "Show references")
-    keymap("gy", vim.lsp.buf.type_definition, true, "")
-    keymap("K", vim.lsp.buf.hover, true, "Show hover")
-    keymap("S", vim.lsp.buf.signature_help, true, "Show signature")
-    keymap("ga", vim.lsp.buf.code_action, true, "Show LSP code actions")
+    map("n", "gO", lsp_utils.lsp_organize_imports, "Organize imports")
+    map("n", "gd", vim.lsp.buf.definition, "Go to definition")
+    map("n", "gD", vim.lsp.buf.declaration, "Go to declaration")
+    map("n", "go", vim.lsp.buf.type_definition, "Go to type definition")
+    map("n", "gr", vim.lsp.buf.rename, "Rename")
+    map("n", "gR", vim.lsp.buf.references, "Show references")
+    map("n", "gy", vim.lsp.buf.type_definition, "Go to type definition")
+    map("n", "K", vim.lsp.buf.hover, "Show hover")
+    map("n", "S", vim.lsp.buf.signature_help, "Show signature")
+    map("n", "ga", vim.lsp.buf.code_action, "Show LSP code actions")
+    map("v", "ga", vim.lsp.buf.code_action, "Show LSP code actions")
+    map("n", "<RightMouse>", "<cmd>:popup mousemenu<cr>", "Show context menu")
 
     if vim.lsp.inlay_hint then
-      keymap("<Leader>hh", function()
+      map("n", "<Leader>hh", function()
         vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-      end, false, "Toggle inlay [h]ints")
+      end, "Toggle inlay [h]ints")
     end
 
-    -- FIXME the following keymaps are not working when using a autocmd to set up
-    -- vim.keymap.set("x", "gA", vim.lsp.buf.range_code_action, bufopts)
-    -- vim.keymap.set("n", "<C-x><C-x>", vim.lsp.buf.signature_help, bufopts)
+    map("n", "<C-x><C-x>", vim.lsp.buf.signature_help, "Show signature help")
 
     -- set up mousemenu options for lsp
     vim.cmd([[:amenu 10.100 mousemenu.Goto\ Definition <cmd>Telescope lsp_definitions<cr>]])
     vim.cmd([[:amenu 10.110 mousemenu.References <cmd>Telescope lsp_references<cr>]])
     vim.cmd([[:amenu 10.120 mousemenu.Implementation <cmd>Telescope lsp_implementations<cr>]])
-
-    vim.keymap.set("n", "<RightMouse>", "<cmd>:popup mousemenu<cr>")
   end,
 })
 
 function M.setup()
+  -- Set diagnostic keymaps globally
+  vim.keymap.set("n", "<leader>aa", lsp_utils.lsp_show_diagnostics, { desc = "Show diagnostics" })
+  vim.keymap.set("n", "[d", fn(vim.diagnostic.jump, { count = -1 }), { desc = "Go to previous diagnostic" })
+  vim.keymap.set("n", "]d", fn(vim.diagnostic.jump, { count = 1 }), { desc = "Go to next diagnostic" })
+  vim.keymap.set("n", "<leader>aq", vim.diagnostic.setloclist, { desc = "Send diagnostics to loclist" })
+
   mason.setup({ ui = { border = border } })
 
   mason_lspconfig.setup({
