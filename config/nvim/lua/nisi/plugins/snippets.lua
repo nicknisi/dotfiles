@@ -5,7 +5,6 @@ return {
     "hrsh7th/vim-vsnip",
     cond = not vim.g.vscode,
     dependencies = {
-      "hrsh7th/cmp-vsnip",
       "hrsh7th/vim-vsnip-integ",
     },
     config = function()
