@@ -66,7 +66,7 @@ end
 -- error bells
 opt.errorbells = false
 opt.visualbell = true
-opt.timeoutlen = 500
+opt.timeoutlen = 300
 
 -- Appearance
 ---------------------------------------------------------
@@ -86,14 +86,12 @@ if not config.zen then
 end
 
 opt.winborder = "rounded"
-opt.hidden = true -- allow background buffers
 opt.joinspaces = false -- join lines without two spaces
 opt.wrap = true -- turn on line wrapping
 opt.wrapmargin = 8 -- wrap lines when coming within n characters from side
 opt.linebreak = true -- set soft wrapping
 opt.showbreak = "↪"
 opt.autoindent = true -- automatically set indent of new line
-opt.ttyfast = true -- faster redrawing
 table.insert(opt.diffopt, "vertical")
 table.insert(opt.diffopt, "iwhite")
 table.insert(opt.diffopt, "internal")
@@ -110,7 +108,6 @@ opt.shell = env.SHELL
 opt.cmdheight = vim.g.vscode and 1 or 0
 opt.title = true -- set terminal title
 opt.showmatch = true -- show matching braces
-opt.mat = 2 -- how many tenths of a second to blink
 opt.updatetime = 200 -- save swap file
 opt.signcolumn = "yes" -- show the sign column
 opt.shortmess = "atToOFc" -- prompt message options
@@ -159,29 +156,45 @@ local function fold_virt_text(result, s, lnum, coloff)
   table.insert(result, { text, hl })
 end
 
-function _G.custom_foldtext()
-  local start = vim.fn.getline(vim.v.foldstart):gsub("\t", string.rep(" ", vim.o.tabstop))
-  local end_str = vim.fn.getline(vim.v.foldend)
-  local end_ = vim.trim(end_str)
-  local result = {}
-  fold_virt_text(result, start, vim.v.foldstart - 1)
-  table.insert(result, { " ... ", "Delimiter" })
-  fold_virt_text(result, end_, vim.v.foldend - 1, #(end_str:match("^(%s+)") or ""))
-  return result
-end
+-- Cache for fold text to avoid repeated treesitter calls
+local fold_cache = {}
 
-vim.opt.foldtext = "v:lua.custom_foldtext()"
-vim.api.nvim_create_autocmd("LspAttach", {
-  callback = function(args)
-    local client = vim.lsp.get_client_by_id(args.data.client_id)
-    if client and client:supports_method("textDocument/foldingRange") then
-      local win = vim.api.nvim_get_current_win()
-      vim.wo[win][0].foldmethod = "expr"
-      vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
-    end
+-- Clear cache on buffer changes
+vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+  callback = function()
+    fold_cache[vim.fn.bufnr()] = {}
   end,
 })
-vim.api.nvim_create_autocmd("LspDetach", { command = "setl foldexpr<" })
+
+function _G.custom_foldtext()
+  local buf = vim.fn.bufnr()
+  local start_line = vim.v.foldstart
+  local cache_key = string.format("%d:%d", buf, start_line)
+
+  -- Check cache first
+  if fold_cache[buf] and fold_cache[buf][cache_key] then
+    return fold_cache[buf][cache_key]
+  end
+
+  -- Your existing fold logic here, but simplified
+  local start = vim.fn.getline(start_line):gsub("\t", string.rep(" ", vim.o.tabstop))
+  local end_str = vim.trim(vim.fn.getline(vim.v.foldend))
+
+  -- Simple version without treesitter parsing every character
+  local result = {
+    { start, "Folded" },
+    { " ... ", "Comment" },
+    { end_str, "Folded" },
+  }
+
+  -- Cache the result
+  if not fold_cache[buf] then
+    fold_cache[buf] = {}
+  end
+  fold_cache[buf][cache_key] = result
+
+  return result
+end
 
 vim.api.nvim_create_autocmd("TextYankPost", {
   desc = "Highlight when yanking text",

@@ -23,9 +23,6 @@ local servers = {
 
 local M = {}
 
--- _G makes this function available to vimscript lua calls
-_G.lsp_organize_imports = lsp_utils.lsp_organize_imports
-
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("UserLspConfig", {}),
   callback = function(ev)
@@ -266,7 +263,7 @@ function M.setup()
                   ".stylelintrc.json",
                   "stylelint.config.json",
                 },
-                url = "http://json.schemastore.org/stylelintrc.json",
+                url = "https://json.schemastore.org/stylelintrc.json",
               },
             },
           },
@@ -385,6 +382,25 @@ function M.setup()
         [vim.diagnostic.severity.HINT] = "DiagnosticHint",
       },
     },
+    -- Add virtual text configuration
+    virtual_text = {
+      spacing = 4,
+      source = "if_many", -- Show source only if multiple sources
+      prefix = "●", -- Could also use a function for dynamic icons
+    },
+    -- Improve float windows
+    float = {
+      border = "rounded",
+      source = "if_many",
+      header = "",
+      prefix = "",
+    },
+    -- Underline diagnostics
+    underline = true,
+    -- Update diagnostics in insert mode
+    update_in_insert = false,
+    -- Sort by severity
+    severity_sort = true,
   })
 
   mason_lspconfig.setup_handlers(handlers)
