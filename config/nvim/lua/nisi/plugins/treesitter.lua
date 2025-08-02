@@ -4,6 +4,7 @@ return {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     version = false,
+    event = { "BufReadPost", "BufNewFile" },
     dependencies = {
       "nvim-treesitter/playground",
       "nvim-treesitter/nvim-treesitter-textobjects",
@@ -51,7 +52,6 @@ return {
         "html",
         "javascript",
         "jsdoc",
-        "json",
         "json",
         "json5",
         "jsonc",

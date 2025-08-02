@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
+  "runtime": {
+    "version": "LuaJIT"
+  },
+  "workspace": {
+    "checkThirdParty": false,
+    "library": [
+      "$VIMRUNTIME",
+      "${3rd}/luv/library",
+      "${HOME}/.local/share/nvim/lazy/snacks.nvim",
+      "~/.local/share/nvim/lazy/snacks.nvim/lua"
+    ],
+    "maxPreload": 2000,
+    "preloadFileSize": 1000
+  },
+  "diagnostics": {
+    "globals": ["vim", "Snacks"]
+  },
+  "telemetry": {
+    "enable": false
+  }
+}
+

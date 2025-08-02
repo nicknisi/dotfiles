@@ -16,7 +16,7 @@ return {
     -- File explorer plugin
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
-    lazy = false,
+    lazy = true,
     cond = not vim.g.vscode,
     dependencies = {
       "nvim-lua/plenary.nvim",

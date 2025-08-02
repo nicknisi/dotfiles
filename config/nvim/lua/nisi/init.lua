@@ -15,6 +15,7 @@ local utils = require("nisi.utils")
 ---@field proxy string|nil A proxy URL to use for certain network functions
 ---@field colorscheme string|fun()|nil What to set the colorscheme to and/or how
 ---@field transparent boolean|nil Whether to use a transparent background for the colorscheme
+---@field snippets_dir string|nil The directory to load snippets from
 local config = {
   lazypath = vim.fn.stdpath("data") .. "lazy/lazy.nvim",
   startup_art = "nicknisi",
@@ -106,24 +107,19 @@ end
 ---Apply syntax and LSP customizations
 local function patch_syntax()
   -- set up custom symbols for LSP errors
-  local signs = {
-    Error = icons.error,
-    Warning = icons.warning,
-    Warn = icons.warning,
-    Hint = icons.hint,
-    Info = icons.hint,
-  }
-  for type, icon in pairs(signs) do
-    local hl = "DiagnosticSign" .. type
-    vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-  end
-
   vim.diagnostic.config({
     virtual_text = true,
     virtual_lines = {
       current_line = true,
     },
-    signs = true,
+    signs = {
+      text = {
+        [vim.diagnostic.severity.ERROR] = icons.error,
+        [vim.diagnostic.severity.WARN] = icons.warning,
+        [vim.diagnostic.severity.HINT] = icons.hint,
+        [vim.diagnostic.severity.INFO] = icons.hint,
+      },
+    },
     update_in_insert = true,
     severity_sort = true,
   })

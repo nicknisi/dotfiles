@@ -3,24 +3,41 @@ return {
     "junegunn/fzf.vim",
     dependencies = { { dir = vim.env.HOMEBREW_PREFIX .. "/opt/fzf" } },
     config = function()
-      local utils = require("nisi.utils")
-      local imap = utils.imap
-
       -- Insert mode completion
-      imap("<c-x><c-k>", "<plug>(fzf-complete-word)")
-      imap("<c-x><c-f>", "<plug>(fzf-complete-path)")
-      imap("<c-x><c-j>", "<plug>(fzf-complete-file-ag)")
-      imap("<c-x><c-l>", "<plug>(fzf-complete-line)")
+      vim.keymap.set("i", "<c-x><c-k>", "<plug>(fzf-complete-word)", { remap = true })
+      vim.keymap.set("i", "<c-x><c-f>", "<plug>(fzf-complete-path)", { remap = true })
+      vim.keymap.set("i", "<c-x><c-j>", "<plug>(fzf-complete-file-ag)", { remap = true })
+      vim.keymap.set("i", "<c-x><c-l>", "<plug>(fzf-complete-line)", { remap = true })
 
-      vim.api.nvim_exec(
-        [[
-command! FZFMru call fzf#run({ 'source':  v:oldfiles, 'sink':    'e', 'options': '-m -x +s', 'down':    '40%'})
-command! -bang -nargs=* Find call fzf#vim#grep('rg --column --line-number --no-heading --follow --color=always '.<q-args>.' || true', 1, <bang>0 ? fzf#vim#with_preview('up:60%') : fzf#vim#with_preview('right:50%:hidden', '?'), <bang>0)
-command! -bang -nargs=? -complete=dir Files call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
-command! -bang -nargs=? -complete=dir GitFiles call fzf#vim#gitfiles(<q-args>, fzf#vim#with_preview(), <bang>0)
-]],
-        false
-      )
+      -- Create user commands using modern API
+      vim.api.nvim_create_user_command("FZFMru", function()
+        vim.fn["fzf#run"]({
+          source = vim.v.oldfiles,
+          sink = "e",
+          options = "-m -x +s",
+          down = "40%",
+        })
+      end, { desc = "Open FZF with most recently used files" })
+
+      vim.api.nvim_create_user_command("Find", function(opts)
+        local preview = opts.bang and "up:60%" or "right:50%:hidden"
+        vim.fn["fzf#vim#grep"](
+          "rg --column --line-number --no-heading --follow --color=always "
+            .. vim.fn.shellescape(opts.args)
+            .. " || true",
+          1,
+          vim.fn["fzf#vim#with_preview"](preview, "?"),
+          opts.bang
+        )
+      end, { bang = true, nargs = "*", desc = "Find text using ripgrep" })
+
+      vim.api.nvim_create_user_command("Files", function(opts)
+        vim.fn["fzf#vim#files"](opts.args, vim.fn["fzf#vim#with_preview"](), opts.bang)
+      end, { bang = true, nargs = "?", complete = "dir", desc = "Find files with FZF" })
+
+      vim.api.nvim_create_user_command("GitFiles", function(opts)
+        vim.fn["fzf#vim#gitfiles"](opts.args, vim.fn["fzf#vim#with_preview"](), opts.bang)
+      end, { bang = true, nargs = "?", complete = "dir", desc = "Find git files with FZF" })
 
       function FloatingFZF()
         local lines = vim.o.lines

@@ -14,7 +14,6 @@ return {
     version = "*",
 
     ---@module 'blink.cmp'
-    ---@type blink.cmp.Config
     opts = {
       keymap = {
         preset = "none", -- Use 'none' to have full control
@@ -24,7 +23,14 @@ return {
         ["<Tab>"] = { "accept", "fallback" }, -- Use Tab to accept
         ["<C-y>"] = { "select_and_accept" },
         ["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
-        ["<Esc>"] = { "cancel", "fallback" }, -- Cancel completion
+        ["<Esc>"] = {
+          function(cmp)
+            if cmp.is_visible() then
+              cmp.cancel()
+            end
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+          end,
+        },
       },
 
       completion = {
