@@ -2,7 +2,7 @@ autoload -Uz add-zsh-hook
 setopt prompt_subst
 
 # PROMPT_SYMBOL='▷'
-PROMPT_SYMBOL=' '
+PROMPT_SYMBOL=''
 
 # indicate a job (for example, vim) has been backgrounded
 # If there is a job in the background, display a ✱
@@ -21,7 +21,7 @@ node_prompt() {
 }
 
 add-zsh-hook precmd () {
-  print -P "\n \e[1m%F{075}%~\e[0m $(node_prompt) $(suspended_jobs)"
+  print -P "\n\e[1m%F{075}%~\e[0m $(node_prompt) $(suspended_jobs)"
 }
 
 # Two-line prompt with directory/node on first line, git info on second
