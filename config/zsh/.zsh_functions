@@ -1,33 +1,24 @@
 #!/usr/bin/env zsh
-#
+
 autoload -Uz compinit
 compinit
 
-c() {
-  cd $CODE_DIR/$1
-}
-
-_c() {
-  _files -W $CODE_DIR -/
-}
-compdef _c c
-
-h() {
-  cd $HOME/$1
-}
-
-_h() {
-  _files -W $HOME -/
-}
-compdef _h h
+# directory navigation functions with completion
+for func dir in c '$CODE_DIR' h '$HOME'; do
+  eval "
+  $func() { cd $dir/\$1 }
+  _$func() { _files -W $dir -/ }
+  compdef _$func $func
+  "
+done
 
 g() {
   if [[ $# > 0 ]]; then
-      # if there are arguments, send them to git
-      git $@
+    # if there are arguments, send them to git
+    git $@
   else
-      # otherwise, run git status
-      git s
+    # otherwise, run git status
+    git s
   fi
 }
 
@@ -36,100 +27,73 @@ last_modified() {
 }
 
 md() {
-  mkdir -p $1
-  cd $1
+  mkdir -p $1 && cd $1
 }
 
 prepend_path() {
   [[ ! -d "$1" ]] && return
 
   path=(
-      $1
-      $path
+    $1
+    $path
   )
 }
 
 zfetch() {
-  # Terminal colors
-  TC='\e['
-  Rst="${TC}0m"
-  Blk="${TC}30m";
-  Red="${TC}31m";
-  Grn="${TC}32m";
-  Yel="${TC}33m";
-  Blu="${TC}34m";
-  Prp="${TC}35m";
-  Cyn="${TC}36m";
-  Wht="${TC}37m";
+  # terminal colors
+  local TC='\e[' Rst="\e[0m" Red="\e[31m" Yel="\e[33m" Blu="\e[34m"
 
   git_clone_error_msg() {
-      echo -e "  ${Red}[ERROR]${Rst} git clone errored: ${Red}${1}${Rst}. ${Yel}aborting...${Rst}"
+    echo -e "  ${Red}[ERROR]${Rst} git clone errored: ${Red}${1}${Rst}. ${Yel}aborting...${Rst}"
   }
 
-  # Simplest dependency fetcher known to mankind
-  if [[ $1 == "update" ]]; then
-      for name in ${(@k)plugins}; do
-          local cwd=$(pwd)
-          local dest=$plugins[$name]
-          cd $dest
-          echo -e "Updating ${Yel}${name}${Rst}..."
-          git pull --quiet --recurse-submodules
-          cd $cwd
-      done
-  elif [[ $1 == "ls" ]]; then
-      for name in ${(@k)plugins}; do
-          echo -e "${name}: ${Yel}$plugins[$name]${Rst}"
-      done
-  else
+case $1 in
+  update)
+    for name in ${(@k)plugins}; do
+      (cd $plugins[$name] && echo -e "Updating ${Yel}${name}${Rst}..." && git pull --quiet --recurse-submodules)
+    done
+    ;;
+  ls)
+    for name in ${(@k)plugins}; do
+      echo -e "${name}: ${Yel}$plugins[$name]${Rst}"
+    done
+    ;;
+  *)
 
-    # the short name of the repo (org/repo)
     local name="$1"
-
     local plugin_name="${2:-"${name##*/}.plugin.zsh"}"
-
-    # where the repo is going
     local dest="${3:-"$ZPLUGDIR"}"
 
-    # if the dest dir ends with /, append the name to it to get the real dest dir
-    if [[ $dest == */ ]]; then
-        dest=$dest$name
-    else
-        dest=$dest/$name
-    fi
+    # append name to dest if it ends with /
+    [[ $dest == */ ]] && dest=$dest$name || dest=$dest/$name
 
-    local cwd=$(pwd)
     plugins[$name]=$dest
 
     if [[ ! -d $dest ]]; then
-        local url=git@github.com:$name
-        local ref=$3
-        echo -e "Missing plugin ${Yel}${name}${Rst}"
-        echo -e "  Cloning from ${Blu}${url}${Rst}..."
-        if [[ -n $ref ]]; then
-            git clone --quiet $url $dest
-            if [[ $? != 0 ]]; then
-                git_clone_error_msg $?
-                cd $cwd
-                return $?
-            fi
+      local url=git@github.com:$name
+      local ref=$3
+      echo -e "Missing plugin ${Yel}${name}${Rst}"
+      echo -e "  Cloning from ${Blu}${url}${Rst}..."
 
-            git checkout --quiet $ref
-            echo -e "  Checked out branch ${ref}"
+      local clone_cmd="git clone --quiet"
+      [[ -z $ref ]] && clone_cmd+=" --depth 1"
+
+      if $clone_cmd $url $dest; then
+        if [[ -n $ref ]]; then
+          (cd $dest && git checkout --quiet $ref)
+          echo -e "  Checked out branch ${ref}"
         else
-            git clone --quiet --depth 1 $url $dest
-            if [[ $? != 0 ]]; then
-                git_clone_error_msg $?
-                cd $cwd
-                return $?
-            fi
-            echo -e "  Checked out default branch"
+          echo -e "  Checked out default branch"
         fi
+      else
+        git_clone_error_msg $?
+        return $?
+      fi
     fi
-    plugin="$dest/$plugin_name"
-    if [ -f "$plugin" ]; then
-        source "$plugin"
-    fi
-    cd $cwd
-  fi
+
+    local plugin="$dest/$plugin_name"
+    [[ -f "$plugin" ]] && source "$plugin"
+    ;;
+esac
 }
 

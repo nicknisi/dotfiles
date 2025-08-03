@@ -10,19 +10,17 @@ source "$ZDOTDIR/.zsh_functions"
 autoload -U compinit add-zsh-hook
 compinit
 
-prepend_path $HOME/.cargo/bin
-prepend_path $HOME/.local/bin
-prepend_path /usr/local/opt/grep/libexec/gnubin
-prepend_path /usr/local/sbin
-prepend_path $DOTFILES/bin
-prepend_path $HOME/bin
+# setup PATH
+for dir in $HOME/.cargo/bin $HOME/.local/bin /usr/local/opt/grep/libexec/gnubin /usr/local/sbin $DOTFILES/bin $HOME/bin; do
+  prepend_path $dir
+done
 
 # define the code directory
 # This is where my code exists and where I want the `c` autocomplete to work from exclusively
 if [[ -d ~/code ]]; then
-    export CODE_DIR=~/code
+  export CODE_DIR=~/code
 elif [[ -d ~/Developer ]]; then
-    export CODE_DIR=~/Developer
+  export CODE_DIR=~/Developer
 fi
 
 # display how long all tasks over 10 seconds take
@@ -45,25 +43,30 @@ setopt HIST_IGNORE_ALL_DUPS      # delete old recorded entry if new entry is a d
 setopt COMPLETE_ALIASES
 
 # make terminal command navigation sane again
-bindkey "^[[1;5C" forward-word                      # [Ctrl-right] - forward one word
-bindkey "^[[1;5D" backward-word                     # [Ctrl-left] - backward one word
-bindkey '^[^[[C' forward-word                       # [Ctrl-right] - forward one word
-bindkey '^[^[[D' backward-word                      # [Ctrl-left] - backward one word
-bindkey '^[[1;3D' beginning-of-line                 # [Alt-left] - beginning of line
-bindkey '^[[1;3C' end-of-line                       # [Alt-right] - end of line
-bindkey '^[[5D' beginning-of-line                   # [Alt-left] - beginning of line
-bindkey '^[[5C' end-of-line                         # [Alt-right] - end of line
-bindkey '^?' backward-delete-char                   # [Backspace] - delete backward
-if [[ "${terminfo[kdch1]}" != "" ]]; then
-    bindkey "${terminfo[kdch1]}" delete-char        # [Delete] - delete forward
+# navigation key bindings
+bindkey "^[[1;5C" forward-word      # [Ctrl-right] - forward one word
+bindkey "^[[1;5D" backward-word     # [Ctrl-left] - backward one word
+bindkey '^[^[[C' forward-word
+bindkey '^[^[[D' backward-word
+bindkey '^[[1;3D' beginning-of-line  # [Alt-left] - beginning of line
+bindkey '^[[1;3C' end-of-line        # [Alt-right] - end of line
+bindkey '^[[5D' beginning-of-line
+bindkey '^[[5C' end-of-line
+bindkey '^?' backward-delete-char
+
+# delete key handling
+if [[ -n "${terminfo[kdch1]}" ]]; then
+  bindkey "${terminfo[kdch1]}" delete-char
 else
-    bindkey "^[[3~" delete-char                     # [Delete] - delete forward
-    bindkey "^[3;5~" delete-char
-    bindkey "\e[3~" delete-char
+  for key in "^[[3~" "^[3;5~" "\e[3~"; do
+    bindkey "$key" delete-char
+  done
 fi
+
+# vi mode bindings
 bindkey "^A" vi-beginning-of-line
-bindkey -M viins "^F" vi-forward-word               # [Ctrl-f] - move to next word
-bindkey -M viins "^E" vi-add-eol                    # [Ctrl-e] - move to end of line
+bindkey -M viins "^F" vi-forward-word
+bindkey -M viins "^E" vi-add-eol
 bindkey "^J" history-beginning-search-forward
 bindkey "^K" history-beginning-search-backward
 
@@ -98,9 +101,7 @@ zfetch zsh-users/zsh-autosuggestions
 zfetch grigorii-zander/zsh-npm-scripts-autocomplete
 zfetch Aloxaf/fzf-tab
 
-if [[ -x "$(command -v fnm)" ]]; then
-    eval "$(fnm env --use-on-cd)"
-fi
+command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd)"
 
 [[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
 
@@ -108,65 +109,52 @@ fi
 # Setup
 ########################################################
 
-if [ -x "$(command -v fzf)" ]; then
+if command -v fzf &>/dev/null; then
   export FZF_DEFAULT_COMMAND='fd --type f'
   export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
   export FZF_DEFAULT_OPTS="--color bg:-1,bg+:-1,fg:-1,fg+:#feffff,hl:#993f84,hl+:#d256b5,info:#676767,prompt:#676767,pointer:#676767"
   source <(fzf --zsh)
 fi
 
-# add color to man pages
+# colored man pages
 export MANROFFOPT='-c'
-export LESS_TERMCAP_mb=$(tput bold; tput setaf 2)
-export LESS_TERMCAP_md=$(tput bold; tput setaf 6)
-export LESS_TERMCAP_me=$(tput sgr0)
-export LESS_TERMCAP_so=$(tput bold; tput setaf 3; tput setab 4)
-export LESS_TERMCAP_se=$(tput rmso; tput sgr0)
-export LESS_TERMCAP_us=$(tput smul; tput bold; tput setaf 7)
-export LESS_TERMCAP_ue=$(tput rmul; tput sgr0)
-export LESS_TERMCAP_mr=$(tput rev)
-export LESS_TERMCAP_mh=$(tput dim)
+typeset -A man_colors=(
+  mb "$(tput bold; tput setaf 2)"
+  md "$(tput bold; tput setaf 6)"
+  me "$(tput sgr0)"
+  so "$(tput bold; tput setaf 3; tput setab 4)"
+  se "$(tput rmso; tput sgr0)"
+  us "$(tput smul; tput bold; tput setaf 7)"
+  ue "$(tput rmul; tput sgr0)"
+  mr "$(tput rev)"
+  mh "$(tput dim)"
+)
+for key val in ${(kv)man_colors}; do
+  export LESS_TERMCAP_$key=$val
+done
 
-# prefer zoxide over z.sh
-if [[ -x "$(command -v zoxide)" ]]; then
-    eval "$(zoxide init zsh --hook pwd)"
-else
-  # source z.sh if it exists
-  zpath="$(brew --prefix)/etc/profile.d/z.sh"
-  if [ -f "$zpath" ]; then
-      source "$zpath"
-  fi
+# directory jumping: prefer zoxide over z.sh
+if command -v zoxide &>/dev/null; then
+  eval "$(zoxide init zsh --hook pwd)"
+elif [[ -f "$(brew --prefix 2>/dev/null)/etc/profile.d/z.sh" ]]; then
+  source "$(brew --prefix)/etc/profile.d/z.sh"
 fi
 
-# Detect which `ls` flavor is in use
-if ls --color > /dev/null 2>&1; then # GNU `ls`
-    colorflag="--color"
-else # macOS `ls`
-    colorflag="-G"
-fi
+# detect ls flavor and set color flag
+colorflag=$(ls --color &>/dev/null && echo "--color" || echo "-G")
 
-# If a ~/.zshrc.local exists, source it
-[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
-# If a ~/.localrc zshrc exists, source it
-[[ -a ~/.localrc ]] && source ~/.localrc
-
-# look for all .zsh files and source them
-for file in "$ZDOTDIR/.zsh_prompt" "$ZDOTDIR/.zsh_aliases"; do
-    if [ -f $file ]; then
-        source $file
-    fi
+# source local and config files
+for file in ~/.zshrc.local ~/.localrc "$ZDOTDIR/.zsh_prompt" "$ZDOTDIR/.zsh_aliases"; do
+  [[ -f "$file" ]] && source "$file"
 done
 
 
-if [[ -x "$(command -v pnpm)" ]]; then
+if command -v pnpm &>/dev/null; then
   export PNPM_HOME="$HOME/Library/pnpm"
-  case ":$PATH:" in
-    *":$PNPM_HOME:"*) ;;
-    *) export PATH="$PNPM_HOME:$PATH" ;;
-  esac
+  [[ ":$PATH:" != *":$PNPM_HOME:"* ]] && export PATH="$PNPM_HOME:$PATH"
 fi
 
-if [[ -x "$(command -v pyenv)" ]]; then
+if command -v pyenv &>/dev/null; then
   export PYENV_ROOT="$HOME/.pyenv"
   [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
   eval "$(pyenv init -)"
