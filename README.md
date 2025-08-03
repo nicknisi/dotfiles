@@ -184,45 +184,17 @@ zfetch nicknisi/work-scripts
 
 ### Prompt
 
-Aloxaf/fzf-tab The prompt is meant to be simple while still providing a lot of
-information to the user, particularly about the status of the git project, if
-the PWD is a git project. This prompt sets `precmd`, `PROMPT` and `RPROMPT`. The
-`precmd` shows the current working directory in it and the `RPROMPT` shows the
-git and suspended jobs info. The main symbol used on the actual prompt line is
-`❯`.
-
-The prompt attempts to speed up certain information lookups by allowing for the
-prompt itself to be asynchronously rewritten as data comes in. This prevents the
-prompt from feeling sluggish when, for example, the user is in a large git repo
-and the git prompt commands take a considerable amount of time.
-
-It does this by writing the actual text that will be displayed int he prompt to
-a temp file, which is then used to update the prompt information when a signal
-is trapped.
-
-#### Git Prompt
-
-The git info shown on the `RPROMPT` displays the current branch name, along with
-the following symbols.
-
-- `+` - New files were added
-- `!` - Existing files were modified
-- `?` - Untracked files exist that are not ignored
-- `»` - Current changes include file renaming
-- `✘` - An existing tracked file has been deleted
-- `$` - There are currently stashed files
-- `=` - There are unmerged files
-- `⇡` - Branch is ahead of the remote (indicating a push is needed)
-- `⇣` - Branch is behind the remote (indicating a pull is needed)
-- `⇕` - The branches have diverged (indicating history has changed and maybe a
-  force-push is needed)
-- `✔` - The current working directory is clean
+The ZSH prompt is designed to be minimal and fast, focusing on essential information
+without git repository details. The prompt displays the current working directory,
+Node.js version (when in a Node.js project), and suspended job indicators on the first line.
+The second line shows a simple colored space character that indicates the success of
+the last command (cyan for success, red for failure).
 
 #### Jobs Prompt
 
-The prompt will also display a `✱` character in the `RPROMPT` indicating that
-there is a suspended job that exists in the background. This is helpful in
-keeping track of putting vim in the background by pressing CTRL-Z.
+The prompt will also display a `✱` character indicating that there is a suspended
+job that exists in the background. This is helpful in keeping track of putting
+vim in the background by pressing CTRL-Z.
 
 #### Node Prompt
 
@@ -248,7 +220,7 @@ brew install neovim
 However, it was likely installed already if you ran the `dot homebrew bundle`
 command provided in the dotfiles.
 
-All of the configuration for Neovim starts at `nvim/.config/nvim/init.lua`, which is
+All of the configuration for Neovim starts at `config/nvim/init.lua`, which is
 symlinked into the `~/.config/nvim` directory.
 
 > [!Warning]
@@ -262,9 +234,9 @@ symlinked into the `~/.config/nvim` directory.
 On the first run, all required plugins should automaticaly by installed by
 [lazy.nvim](https://github.com/folke/lazy.nvim), a plugin manager for neovim.
 
-All plugins are listed in [plugins.lua](./config/nvim/lua/plugins.lua). When a
-plugin is added, it will automatically be installed by lazy.nvim. To interface
-with lazy.nvim, simply run `:Lazy` from within vim.
+Plugins are organized in multiple files under `config/nvim/lua/nisi/plugins/` for better
+maintainability. When a plugin is added, it will automatically be installed by lazy.nvim.
+To interface with lazy.nvim, simply run `:Lazy` from within vim.
 
 > [!Note]
 >
@@ -292,9 +264,10 @@ Please choose your session: 1
 Enter new session name: open-source
 ```
 
-This configuration provides a bit of style to the tmux bar, along with some
-additional data such as the currently playing song (from Apple Music or
-Spotify), the system name, the session name, and the current time.
+This configuration features a custom theme system that automatically adapts to macOS 
+dark/light mode settings. The status bar includes rich git repository information, 
+currently playing music (from Apple Music or Spotify), session name, and system time.
+The theme uses powerline-style separators and modern styling with support for Nerd Font icons.
 
 > [!Note]
 >
@@ -319,6 +292,30 @@ tmux.
 | `⇧-L`       | Enlarge the pane to the right  |
 | `-` (dash)  | Create a vertical split        |
 | `\|` (pipe) | Create a horizontal split      |
+
+### Git Status Integration
+
+The tmux status bar includes comprehensive git repository information with the following indicators.
+The status bar also displays currently playing music from Apple Music or Spotify, and Claude
+working status when applicable:
+
+| Symbol | Description                     |
+| ------ | ------------------------------- |
+| 󰐖      | Untracked files exist           |
+| 󰜎      | Files added/staged for commit   |
+| 󰏫      | Modified files                  |
+| 󰑕      | Files renamed                   |
+| 󰮉      | Files deleted                   |
+| 󰘓      | Stashed changes exist           |
+| 󰧁      | Unmerged conflicts              |
+| 󰁞      | Branch ahead of remote          |
+| 󰁅      | Branch behind remote            |
+| 󰧈      | Branch diverged from remote     |
+| 󰸞      | Working directory clean         |
+
+> [!Note]
+>
+> Git status indicators require a Nerd Font to display properly. The status updates automatically as you work with git repositories.
 
 ### Minimal tmux UI
 
