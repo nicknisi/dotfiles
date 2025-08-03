@@ -80,8 +80,8 @@ if [[ -n "$result" ]]; then
   lines=()
   while IFS= read -r line; do
     lines+=("$line")
-  done <<< "$result"
-  
+  done <<<"$result"
+
   query="${lines[0]:-}"
   key="${lines[1]:-}"
   selection="${lines[2]:-}"
@@ -94,7 +94,7 @@ switch_or_attach() {
     echo "Error: No session name provided" >&2
     return 1
   fi
-  
+
   if [[ -n "$TMUX" ]]; then
     # Inside tmux, switch client
     tmux switch-client -t "$session_name" 2>&1
