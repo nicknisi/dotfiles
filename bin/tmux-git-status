@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Get git status for tmux status bar
+
+# Get the current pane's working directory from argument
+pane_pwd="$1"
+[[ -z "$pane_pwd" ]] && exit 0
+cd "$pane_pwd" 2>/dev/null || exit 0
+
+# Check if we're in a git repo
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  exit 0
+fi
+
+# Get branch name
+branch=$(git symbolic-ref --short HEAD 2>/dev/null || git describe --tags --exact-match 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)
+
+# Get git status indicators
+git_status=""
+INDEX=$(git status --porcelain -b 2>/dev/null)
+
+GIT_ADDED=''
+GIT_MODIFIED=''
+GIT_UNTRACKED=''
+GIT_RENAMED=''
+GIT_DELETED='󰮉'
+GIT_STASHED=''
+GIT_UNMERGED='󰧁'
+GIT_AHEAD=''
+GIT_BEHIND=''
+GIT_DIVERGED='󰧈'
+GIT_CLEAN=''
+
+# Check for untracked files
+[[ $(echo "$INDEX" | grep -E '^\?\? ' 2>/dev/null) ]] && git_status="${git_status}#[fg=#fab387,bold]${GIT_UNTRACKED} #[fg=default,nobold]"
+
+# Check for staged files
+if [[ $(echo "$INDEX" | grep '^A[ MDAU] ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^M[ MD] ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^UA' 2>/dev/null) ]]; then
+  git_status="${git_status}#[fg=#a6e3a1,bold]${GIT_ADDED} #[fg=default,nobold]"
+fi
+
+# Check for modified files
+[[ $(echo "$INDEX" | grep '^[ MARC ]M ' 2>/dev/null) ]] && git_status="${git_status}#[fg=#f9e2af,bold]${GIT_MODIFIED} #[fg=default,nobold]"
+
+# Check for renamed files
+[[ $(echo "$INDEX" | grep '^R[ MD] ' 2>/dev/null) ]] && git_status="${git_status}#[fg=#fab387,bold]${GIT_RENAMED} #[fg=default,nobold]"
+
+# Check for deleted files
+if [[ $(echo "$INDEX" | grep '^[MARCDU ]D ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^D[ UM] ' 2>/dev/null) ]]; then
+  git_status="${git_status}#[fg=#f38ba8,bold]${GIT_DELETED} #[fg=default,nobold]"
+fi
+
+# Check for stashes
+[[ $(git rev-parse --verify refs/stash >/dev/null 2>&1) ]] && git_status="${git_status}#[fg=#cba6f7,bold]${GIT_STASHED} #[fg=default,nobold]"
+
+# Check for unmerged files
+if [[ $(echo "$INDEX" | grep '^U[UDA] ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^AA ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^DD ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^[DA]U ' 2>/dev/null) ]]; then
+  git_status="${git_status}#[fg=#f38ba8,bold]${GIT_UNMERGED} #[fg=default,nobold]"
+fi
+
+# Check if ahead/behind/diverged
+local is_ahead=false
+local is_behind=false
+[[ $(echo "$INDEX" | grep '^## [^ ]\+ .*ahead' 2>/dev/null) ]] && is_ahead=true
+[[ $(echo "$INDEX" | grep '^## [^ ]\+ .*behind' 2>/dev/null) ]] && is_behind=true
+
+if [[ "$is_ahead" == true && "$is_behind" == true ]]; then
+  git_status="${git_status}#[fg=#89b4fa,bold]${GIT_DIVERGED} #[fg=default,nobold]"
+else
+  [[ "$is_ahead" == true ]] && git_status="${git_status}#[fg=#89b4fa,bold]${GIT_AHEAD} #[fg=default,nobold]"
+  [[ "$is_behind" == true ]] && git_status="${git_status}#[fg=#89dceb,bold]${GIT_BEHIND} #[fg=default,nobold]"
+fi
+
+# If no status, show clean
+[[ -z "$git_status" ]] && git_status="#[fg=#a6e3a1,bold]${GIT_CLEAN} #[fg=default,nobold]"
+
+# Output format
+if [[ -n "$git_status" ]]; then
+  echo " $branch $git_status"
+else
+  echo " $branch"
+fi
