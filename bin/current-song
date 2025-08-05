@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Function to get Music app track info
+get_music_track() {
+  osascript -l JavaScript <<EOF
+  let output = "";
+  try {
+    const musicApp = Application('Music');
+    if (musicApp.running()) {
+      try {
+        const track = musicApp.currentTrack;
+        const artist = track.artist();
+        const title = track.name();
+        output = \`\${title} - \${artist}\`.substr(0, 50);
+      } catch (e) {
+        // Handle case where track info can't be accessed
+      }
+  }
+} catch (e) {
+  // Music app not found, try Spotify
+}
+
+if (output === "") {
+  try {
+    const spotifyApp = Application('Spotify');
+    if (spotifyApp.running()) {
+      try {
+        const track = spotifyApp.currentTrack;
+        const artist = track.artist();
+        const title = track.name();
+        output = \`\${title} - \${artist}\`.substr(0, 50);
+      } catch (e) {
+        // Handle case where track info can't be accessed
+      }
+  }
+} catch (e) {
+  // Spotify app not found
+}
+}
+
+output;
+EOF
+}
+
+# Try to get track info
+track_info=$(get_music_track)
+
+# Output the result
+if [ -n "$track_info" ]; then
+  echo "$track_info"
+fi
