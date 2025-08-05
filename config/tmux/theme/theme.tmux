@@ -26,7 +26,6 @@ thm_fg_dark=$(get_tmux_option "@thm_fg_dark")
 thm_fg_gutter=$(get_tmux_option "@thm_fg_gutter")
 thm_cyan=$(get_tmux_option "@thm_cyan")
 thm_black=$(get_tmux_option "@thm_black")
-thm_gray=$(get_tmux_option "@thm_gray")
 thm_magenta=$(get_tmux_option "@thm_magenta")
 thm_magenta2=$(get_tmux_option "@thm_magenta2")
 thm_pink=$(get_tmux_option "@thm_pink")
@@ -60,12 +59,12 @@ tmux set -g status-left-length 100
 tmux set -g status-right-length 100
 
 # Messages
-tmux set -g message-style "fg=${thm_cyan},bg=${thm_gray},align=centre"
-tmux set -g message-command-style "fg=${thm_cyan},bg=${thm_gray},align=centre"
+tmux set -g message-style "fg=${thm_cyan},bg=${thm_fg_gutter},align=centre"
+tmux set -g message-command-style "fg=${thm_cyan},bg=${thm_fg_gutter},align=centre"
 
 # Pane borders
-tmux set-window-option -g pane-active-border-style "fg=${thm_gray},bg=${thm_gray}"
-tmux set-window-option -g pane-border-style "fg=${thm_gray},bg=${thm_gray}"
+tmux set-window-option -g pane-active-border-style "fg=${thm_fg_gutter},bg=${thm_fg_gutter}"
+tmux set-window-option -g pane-border-style "fg=${thm_fg_gutter},bg=${thm_fg_gutter}"
 tmux set-window-option -g pane-border-lines simple
 
 # Window status
