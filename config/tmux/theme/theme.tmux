@@ -76,6 +76,7 @@ tmux set -g status-style "bg=default,fg=white"
 tm_separator_left=""
 tm_separator_right=""
 tm_icon=""
+tm_music_icon=""
 
 # Create a formatted section with powerline separators
 # Usage: create_section "left|right" "icon" "text" "bg_color" "fg_color" ["no-start"|"no-end"|"no-separators"]
@@ -112,12 +113,13 @@ create_section() {
 create_tunes_section() {
   local tunes_result="$(current-song)"
   if [[ -n "$tunes_result" ]]; then
-    create_section "right" "" "${tunes_result}" "${thm_blue7}" "${thm_blue6}" "no-end"
+    echo -e "$(create_section "right" " " "${tunes_result}" "${thm_blue7}" "${thm_blue6}")"
   fi
 }
 
 # Tunes component
-tm_tunes_display="$(create_tunes_section)"
+# tm_tunes_display="$(create_tunes_section)"
+tm_tunes_display="#(song=\$(/Users/nicknisi/Developer/dotfiles/bin/current-song); if [[ -n \"\$song\" ]]; then echo \"#[bg=default]#[fg=${thm_blue7}]${tm_separator_right}#[bg=${thm_blue7}]#[fg=${thm_blue6}] ${tm_music_icon}  \$song #[bg=default]#[fg=${thm_blue7}]${tm_separator_left}#[bg=default,fg=default]\"; fi)"
 
 # Status line components
 session="$(create_section "left" "$tm_icon" "#S" "${thm_purple}" "${thm_bg}" "no-start")"
