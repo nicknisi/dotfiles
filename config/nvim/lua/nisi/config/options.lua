@@ -71,6 +71,8 @@ opt.timeoutlen = 300
 -- Appearance
 ---------------------------------------------------------
 opt.termguicolors = true
+opt.cursorline = true -- enable cursor line highlighting
+opt.cursorlineopt = "number" -- highlight only the line number, not the whole line
 
 if not config.zen then
   -- show absolute numbers in insert mode, relative in normal mode
