@@ -2,7 +2,7 @@
 
 options=(
   style=round
-  width=10.0
+  width=4
   # active_color=0xff8839ef
   # active_color=0xff88c0d0
   # active_color=0xffe91e63
