@@ -2,81 +2,241 @@
 
 ## Feature description: $ARGUMENTS
 
-Create a comprehensive feature specification from a high-level description or idea.
+Create a comprehensive, actionable feature specification with automated codebase analysis.
 
-## Analysis Process
+## Phase 1: Automated Discovery
 
-1. **Requirement Clarification**
-   - Parse the feature description
-   - Identify core functionality needed
-   - Extract user stories and use cases
-   - Note any constraints or preferences mentioned
+### Codebase Pattern Analysis
+```bash
+# Find similar features
+rg -l "similar_feature_keywords" --type ts --type tsx
+# Identify existing patterns
+find . -name "*.spec.ts" -path "*/features/*" | head -5
+# Check authentication patterns
+rg "useAuth|requireAuth|withAuth" --type ts -A 2
+# Database schema patterns
+find . -name "*.prisma" -o -name "*.sql" -o -name "*migration*"
+```
 
-2. **Context Discovery**
-   - Search existing codebase for related features
-   - Identify current user flows and patterns
-   - Check existing UI/UX patterns to follow
-   - Note authentication, data storage, and API patterns
+### Dependency Mapping
+- Search for related imports: `rg "import.*{feature_related}" --type ts`
+- Check existing API endpoints: `rg "router\.(get|post|put|delete)" --type ts`
+- Find UI components: `find ./src/components -name "*.tsx" | grep -i feature_area`
 
-3. **Scope Definition**
-   - Break down into logical components
-   - Identify MVP vs nice-to-have features
-   - Consider integration points with existing systems
-   - Flag potential technical challenges
+## Phase 2: Requirements Analysis
 
-4. **User Experience Planning**
-   - Map user journeys and workflows
-   - Consider different user types/roles
-   - Identify error states and edge cases
-   - Plan responsive/accessibility considerations
+### User Story Mining
+**Format**: As a [user_type], I want [capability] so that [business_value]
 
-## Specification Template
+**Required Classifications**:
+- Critical path (blocks other features)
+- Core functionality (MVP)
+- Enhancement (can ship without)
+- Future consideration (v2)
 
-### Feature Overview
-- **Name**: Clear, descriptive feature name
-- **Purpose**: Why this feature is needed
-- **Success Criteria**: How to measure success
+### Technical Complexity Scoring
+Calculate automatically:
+- Files to modify: `git ls-files | xargs grep -l "pattern" | wc -l`
+- New dependencies: Check against package.json
+- Database changes: Schema modifications needed
+- API surface: New endpoints required
 
-### User Stories
-- **Primary Users**: Who will use this feature
-- **Core User Stories**: "As a [user], I want [goal] so that [benefit]"
-- **Edge Cases**: Less common but important scenarios
+**Complexity Score**: 
+- 1-3: Simple (< 5 files, no deps, no DB)
+- 4-6: Medium (5-15 files, deps OR DB)
+- 7-10: Complex (> 15 files, deps AND DB)
 
-### Functional Requirements
-- **Core Features**: Must-have functionality
-- **User Interface**: Key screens/components needed
-- **Data Requirements**: What data needs to be stored/processed
-- **Integration Points**: How it connects to existing systems
+## Phase 3: Specification Generation
 
-### Technical Constraints
-- **Performance**: Response time, load requirements
-- **Security**: Authentication, authorization, data protection
-- **Compatibility**: Browser, device, API version requirements
-- **Scalability**: Expected usage growth
+### 1. Executive Summary
+- **Feature Name**: [Descriptive, searchable name]
+- **Business Value**: [Specific metric improvement expected]
+- **Complexity Score**: [Auto-calculated from above]
+- **Estimated Effort**: [Based on complexity and similar features]
 
-### Acceptance Criteria
-- **Definition of Done**: Specific, testable criteria
-- **Test Scenarios**: Key flows to validate
-- **Error Handling**: Expected error states and responses
+### 2. Technical Architecture
 
-### Out of Scope
-- **Future Enhancements**: Ideas for later iterations
-- **Explicitly Excluded**: What this feature will NOT do
+#### Database Schema
+```sql
+-- Required changes
+ALTER TABLE existing_table ADD COLUMN new_field TYPE;
+CREATE TABLE IF NOT EXISTS new_table (...);
+```
 
-## Interactive Questions
+#### API Design
+```typescript
+// New endpoints
+POST /api/feature
+GET /api/feature/:id
+PUT /api/feature/:id
+DELETE /api/feature/:id
 
-Ask clarifying questions if the description lacks:
-- Target users and their needs
-- Success metrics or business goals
-- Technical preferences or constraints
-- Integration requirements
-- Timeline or priority considerations
+// Request/Response types
+interface FeatureRequest { ... }
+interface FeatureResponse { ... }
+```
+
+#### Frontend Components
+```typescript
+// Component hierarchy
+<FeatureContainer>
+  <FeatureList />
+  <FeatureDetail />
+  <FeatureForm />
+</FeatureContainer>
+```
+
+### 3. Implementation Checklist
+
+#### Pre-Implementation
+- [ ] Review existing patterns in: [list similar files]
+- [ ] Confirm database migrations approach
+- [ ] Validate API design with team
+- [ ] Check accessibility requirements
+
+#### Core Implementation
+- [ ] Database schema and migrations
+- [ ] API endpoints with validation
+- [ ] Frontend components with tests
+- [ ] Integration with existing auth/permissions
+- [ ] Error handling and logging
+
+#### Validation
+- [ ] Unit tests (minimum 80% coverage)
+- [ ] Integration tests for API
+- [ ] E2E tests for critical paths
+- [ ] Performance benchmarks met
+- [ ] Security review completed
+
+### 4. Risk Analysis
+
+#### Technical Risks
+- **Breaking Changes**: [List any backward compatibility issues]
+- **Performance Impact**: [Database queries, API load]
+- **Security Concerns**: [Data exposure, permission gaps]
+
+#### Mitigation Strategies
+- Feature flags for gradual rollout
+- Database indexes for performance
+- Rate limiting for API endpoints
+- Audit logging for sensitive operations
+
+### 5. Dependencies and Integration
+
+#### External Dependencies
+```json
+{
+  "new-package": "^1.0.0",
+  "existing-upgrade": "^2.0.0 -> ^3.0.0"
+}
+```
+
+#### Internal Dependencies
+- Services: [List services that need updates]
+- Shared components: [List reusable components]
+- Configuration: [Environment variables needed]
+
+### 6. Testing Strategy
+
+#### Unit Tests
+```typescript
+describe('Feature', () => {
+  test('core functionality', () => { ... });
+  test('edge cases', () => { ... });
+  test('error handling', () => { ... });
+});
+```
+
+#### Integration Tests
+- API endpoint testing with supertest
+- Database transaction testing
+- Authentication/authorization flows
+
+#### Manual Testing Checklist
+- [ ] Happy path user flow
+- [ ] Error state handling
+- [ ] Mobile responsiveness
+- [ ] Accessibility (keyboard nav, screen readers)
+- [ ] Performance under load
+
+### 7. Rollout Plan
+
+#### Phase 1: Internal Testing
+- Deploy behind feature flag
+- Limited access to internal users
+- Monitor error rates and performance
+
+#### Phase 2: Beta Release
+- Enable for % of users
+- Gather feedback and metrics
+- Fix critical issues
+
+#### Phase 3: General Availability
+- Full rollout
+- Documentation updates
+- Support team training
+
+### 8. Success Metrics
+
+#### Quantitative
+- Feature adoption rate: [target %]
+- Performance metrics: [response time targets]
+- Error rate: [< threshold]
+
+#### Qualitative
+- User satisfaction score
+- Support ticket reduction
+- Developer experience feedback
+
+## Phase 4: PRP Preparation
+
+### Research Links
+Collect during analysis:
+- API documentation: [urls]
+- Library docs: [urls]
+- Design patterns: [urls]
+- Security best practices: [urls]
+
+### Code References
+- Similar implementations: `path/to/file.ts:line`
+- Pattern examples: `path/to/example.ts:line`
+- Test examples: `path/to/test.spec.ts:line`
+
+### Outstanding Questions
+- [ ] Technical decisions needed
+- [ ] Architecture review required
+- [ ] Performance optimization approach
 
 ## Output
-Save as: `features/{feature-name}.md`
 
-The resulting spec should be detailed enough to:
-- Hand off to another developer
-- Generate accurate time estimates
-- Create comprehensive PRPs
-- Validate against user needs
+### Primary Spec
+Save to: `docs/specs/{feature-name}-spec.md`
+
+### Supporting Artifacts
+- `docs/specs/{feature-name}-api.yaml` - OpenAPI spec
+- `docs/specs/{feature-name}-db.sql` - Database changes
+- `docs/specs/{feature-name}-tests.md` - Test plan
+
+### Validation
+Run after generation:
+```bash
+# Validate spec completeness
+grep -c "TODO\|TBD\|FIXME" docs/specs/{feature-name}-spec.md
+# Check for broken references
+grep -o "path/to/.*\.ts:[0-9]*" docs/specs/{feature-name}-spec.md | while read ref; do
+  file=$(echo $ref | cut -d: -f1)
+  [ -f "$file" ] || echo "Missing: $file"
+done
+```
+
+## Usage Notes
+
+This command now:
+1. Automatically analyzes your codebase for patterns
+2. Calculates complexity scores
+3. Generates actionable, specific specifications
+4. Prepares for PRP generation
+5. Includes validation and rollout planning
+6. Provides testable success criteria
+
+The spec is no longer just documentation - it's a blueprint for implementation.
