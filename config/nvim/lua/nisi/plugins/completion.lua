@@ -19,7 +19,7 @@ return {
         preset = "none", -- Use 'none' to have full control
         ["<C-j>"] = { "select_next" },
         ["<C-k>"] = { "select_prev" },
-        ["<CR>"] = { "fallback" }, -- Just fallback, don't accept
+        ["<CR>"] = { "accept", "fallback" }, -- Accept completion like Tab
         ["<Tab>"] = { "accept", "fallback" }, -- Use Tab to accept
         ["<C-y>"] = { "select_and_accept" },
         ["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
@@ -66,7 +66,7 @@ return {
       -- Default list of enabled providers defined so that you can extend it
       -- elsewhere in your config, without redefining it, due to `opts_extend`
       sources = {
-        default = { "lsp", "path", "snippets", "buffer" },
+        default = { "lsp", "copilot", "snippets", "path", "buffer" },
       },
     },
     opts_extend = { "sources.default" },
