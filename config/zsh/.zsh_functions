@@ -77,8 +77,7 @@ case $1 in
 
       local clone_cmd="git clone --quiet"
       [[ -z $ref ]] && clone_cmd+=" --depth 1"
-
-      if $clone_cmd $url $dest; then
+      if eval "$clone_cmd $url $dest"; then
         if [[ -n $ref ]]; then
           (cd $dest && git checkout --quiet $ref)
           echo -e "  Checked out branch ${ref}"

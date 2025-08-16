@@ -67,7 +67,7 @@ EOF
 
 cmd_clean() {
   links=(
-    ".zshrc" ".zshenv" ".zprofile" ".zsh_aliases"
+    ".zshrc" ".zshenv" ".zprofile" ".zsh_aliases" ".kubectl_aliases.zsh"
     ".zsh_functions" ".zsh_prompt" ".config/aerospace"
     ".config/git" ".config/karabiner" ".config/kitty"
     ".config/lazygit" ".config/nvim" ".config/ripgrep"
@@ -140,6 +140,7 @@ cmd_backup() {
     ".zshrc"
     ".zprofile"
     ".zsh_aliases"
+    ".kubectl_aliases.zsh"
     ".zsh_functions"
     ".zsh_prompt"
     ".config/aerospace"

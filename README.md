@@ -148,7 +148,7 @@ The `dot` command is extensible. You can add custom commands by:
 
 ## ZSH Configuration
 
-The prompt for ZSH is configured in the `cnofig/zsh/zshrc` file and performs the
+The prompt for ZSH is configured in the `config/zsh/zshrc` file and performs the
 following operations.
 
 - Sets `EDITOR` to `nvim`

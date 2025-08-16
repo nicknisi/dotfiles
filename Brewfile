@@ -2,27 +2,22 @@
 
 tap 'homebrew/bundle'
 
-if OS.mac?
-  tap 'FelixKratz/formulae' # For janky borders
 
-  # taps
-  brew 'noti'                          # utility to display notifications from scripts
-  brew 'trash'                         # rm, but put in the trash rather than completely delete
-  brew 'borders'                       # add borders to windows
+tap 'FelixKratz/formulae' # For janky borders
 
-  # Applications
-  cask 'ghostty'                       # a better terminal emulator
-  cask 'wezterm'                       # a better terminal emulator
-  cask '1password/tap/1password-cli'   # 1Password CLI
-  cask 'karabiner-elements'            # keyboard customizer
-  cask 'nikitabobko/tap/aerospace'     # a tiling window manager
+# taps
+brew 'trash'                         # rm, but put in the trash rather than completely delete
+brew 'borders'                       # add borders to windows
 
-  # Fonts
-  cask 'font-symbols-only-nerd-font'   # nerd-only symbols font
-  cask 'font-monaspace'                # Preferred monospace font
-elsif OS.linux?
-  brew 'xclip'                         # access to clipboard (similar to pbcopy/pbpaste)
-end
+# Applications
+cask 'ghostty'                       # a better terminal emulator
+cask 'wezterm'                       # a better terminal emulator
+cask 'karabiner-elements'            # keyboard customizer
+cask 'nikitabobko/tap/aerospace'     # a tiling window manager
+
+# Fonts
+cask 'font-symbols-only-nerd-font'   # nerd-only symbols font
+cask 'font-monaspace'                # Preferred monospace font
 
 # Latest versions of some core utilities
 brew 'git'                             # Git version control
@@ -37,9 +32,7 @@ brew 'cloc'                            # lines of code counter
 brew 'entr'                            # file watcher / command runner
 brew 'eza'                             # ls alternative
 brew 'fd'                              # find alternative
-brew 'fnm'                             # Fast Node version manager
 brew 'gum'                             # fancy UI utilities
-brew 'rbenv'                           # Ruby version manager
 brew 'fzf'                             # Fuzzy file searcher, used in scripts and in vim
 brew 'gh'                              # GitHub CLI
 brew 'git-delta'                       # a better git diff

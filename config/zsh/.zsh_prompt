@@ -60,8 +60,10 @@ node_prompt() {
 }
 
 git_status_done() {
+    autoload -U colors; colors
     # $3 is the stdout of the git_status command
-    RPROMPT="$3 $(suspended_jobs)"
+    KUBE_PS1_SYMBOL_DEFAULT=${KUBE_PS1_SYMBOL_DEFAULT:-$'\u2388'}
+    RPROMPT="$3 $(suspended_jobs) %{$fg[green]%}${KUBE_PS1_SYMBOL_DEFAULT}%{$reset_color%} %{$fg[yellow]%}($ZSH_KUBECTL_PROMPT)%{$reset_color%}"
     zle reset-prompt
 }
 

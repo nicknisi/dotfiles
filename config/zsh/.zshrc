@@ -100,6 +100,7 @@ zfetch zsh-users/zsh-syntax-highlighting
 zfetch zsh-users/zsh-autosuggestions
 zfetch grigorii-zander/zsh-npm-scripts-autocomplete
 zfetch Aloxaf/fzf-tab
+zfetch superbrothers/zsh-kubectl-prompt
 
 command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd)"
 
@@ -144,7 +145,7 @@ fi
 colorflag=$(ls --color &>/dev/null && echo "--color" || echo "-G")
 
 # source local and config files
-for file in ~/.zshrc.local ~/.localrc "$ZDOTDIR/.zsh_prompt" "$ZDOTDIR/.zsh_aliases"; do
+for file in ~/.zshrc.local ~/.localrc "$ZDOTDIR/.zsh_prompt" "$ZDOTDIR/.zsh_aliases" "$ZDOTDIR/.kubectl_aliases.zsh"; do
   [[ -f "$file" ]] && source "$file"
 done
 
