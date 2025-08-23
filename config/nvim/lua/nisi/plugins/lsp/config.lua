@@ -8,6 +8,7 @@ local fn = utils.fn
 local border = "rounded"
 local servers = {
   "eslint",
+  "elixirls",
   "ts_ls",
   "lua_ls",
   "denols",
@@ -103,6 +104,13 @@ function M.setup()
           "tailwind.config.ts",
           "tailwind.config.cjs"
         ),
+        init_options = {
+          userLanguages = {
+            elixir = "html-eex",
+            eelixir = "html-eex",
+            heex = "html-eex",
+          },
+        },
         settings = {
           tailwindCSS = {
             lint = {
