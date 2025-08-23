@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+echo -e "🧪 Setting up MCP for GPT-5...\n"
+claude mcp add gpt5-server --scope user -e OPENAI_API_KEY="$OPENAI_API_KEY" -- npx tsx ~/Developer/dotfiles/tools/gpt5-mcp-server/src/index.ts
+
+echo -e "🧪 Setting up Playwright MCP...\n"
+claude mcp add playwright --scope user npx @playwright/mcp@latest
+
+echo -e "🧪 Setting up Context7 MCP...\n"
+claude mcp add --scope user --transport http context7 https://mcp.context7.com/mcp --header "CONTEXT7_API_KEY: $CONTEXT7_API_KEY"
+
+echo -e "✅ Done!\n"
