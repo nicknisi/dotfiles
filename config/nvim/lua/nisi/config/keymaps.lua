@@ -26,10 +26,10 @@ vim.keymap.set("v", ">", ">gv", { desc = "Indent right and reselect" })
 vim.keymap.set("v", ".", ":normal .<cr>", { desc = "Repeat last command" })
 
 -- Move between panes or create new panes
-vim.keymap.set("n", "<C-h>", "<Plug>WinMoveLeft", { desc = "Move to left window", remap = true })
-vim.keymap.set("n", "<C-j>", "<Plug>WinMoveDown", { desc = "Move to window below", remap = true })
-vim.keymap.set("n", "<C-k>", "<Plug>WinMoveUp", { desc = "Move to window above", remap = true })
-vim.keymap.set("n", "<C-l>", "<Plug>WinMoveRight", { desc = "Move to right window", remap = true })
+vim.keymap.set("n", "<C-h>", "<Plug>WinMoveLeft", { desc = "Move to left window", remap = true, silent = true })
+vim.keymap.set("n", "<C-j>", "<Plug>WinMoveDown", { desc = "Move to window below", remap = true, silent = true })
+vim.keymap.set("n", "<C-k>", "<Plug>WinMoveUp", { desc = "Move to window above", remap = true, silent = true })
+vim.keymap.set("n", "<C-l>", "<Plug>WinMoveRight", { desc = "Move to right window", remap = true, silent = true })
 
 -- Quickfix navigation using vim-unimpaired style
 vim.keymap.set("n", "[q", "<cmd>cprev<cr>zz", { desc = "Previous quickfix item" })
@@ -92,4 +92,3 @@ end, { desc = "Copy and normalize" })
 
 -- open current buffer in a new tab
 vim.keymap.set("n", "gTT", "<cmd>tab sb<cr>", { desc = "Open current buffer in a new tab" })
-
