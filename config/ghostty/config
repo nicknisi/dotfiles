@@ -1,6 +1,6 @@
 # Theme settings
 # theme = dark:catppuccin-macchiato,light:catppuccin-latte
-theme = dark:tokyonight_night,light:tokyonight-day
+theme = dark:TokyoNight Night,light:TokyoNight Day
 background-opacity = 0.85
 background-blur-radius = 30
 # background = #1c2021
