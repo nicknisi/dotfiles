@@ -24,10 +24,10 @@ cursor-invert-fg-bg = true
 shell-integration-features = no-cursor,sudo
 confirm-close-surface = false
 
-macos-icon = "custom-style"
-macos-icon-frame = "plastic"
-macos-icon-ghost-color = "#8839ef"
-macos-icon-screen-color = "#1E1E2D"
+# macos-icon = "custom-style"
+# macos-icon-frame = "chrome"
+# macos-icon-ghost-color = "#8839ef"
+# macos-icon-screen-color = "#1E1E2D"
 
 # Mouse settings
 mouse-hide-while-typing = true
