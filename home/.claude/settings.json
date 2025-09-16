@@ -31,7 +31,8 @@
       "mcp__puppeteer__puppeteer_navigate",
       "mcp__puppeteer__puppeteer_screenshot",
       "mcp__workos__workos_docs",
-      "mcp__workos__workos_search"
+      "mcp__workos__workos_search",
+      "mcp__gpt5-server__gpt5_generate"
     ]
   },
   "hooks": {
