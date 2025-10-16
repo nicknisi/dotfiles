@@ -267,7 +267,16 @@ return {
       if utils.is_in_git_repo() then
         utils.table_append(keys, {
           { "<leader>fs", "<cmd>Telescope git_files<cr>", desc = "Find Git files" },
-          { "<leader>t", "<cmd>Telescope git_files<cr>", desc = "Find in Git files" },
+          -- { "<leader>t", "<cmd>Telescope git_files<cr>", desc = "Find in Git files" },
+          {
+            "<leader>t",
+            function()
+              require("telescope.builtin").find_files({
+                find_command = { "rg", "--files", "--hidden", "--glob", "!.git" },
+              })
+            end,
+            desc = "Find files (respects .gitignore)",
+          },
           { "<D-p>", "<cmd>Telescope git_files<cr>", desc = "Find in Git files" },
           { "<leader>gc", "<cmd>Telescope git_commits<cr>", desc = "Commits" },
           { "<leader>gs", "<cmd>Telescope git_status<cr>", desc = "Status" },
