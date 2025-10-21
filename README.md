@@ -31,7 +31,7 @@ git clone git@github.com:nicknisi/dotfiles.git
 
 ## The `dot` Command
 
-This repository includes a powerful `dot` command for managing your dotfiles. It replaces the previous `install.sh` script with a more flexible and maintainable solution.
+This repository includes a powerful `dot` command for managing your dotfiles using [GNU Stow](https://www.gnu.org/software/stow/). Stow is a symlink farm manager that makes it easy to manage dotfiles by creating symlinks from your home directory to files in the dotfiles repository.
 
 ### Configuration
 
@@ -39,18 +39,31 @@ The tool respects these environment variables:
 - `DOTFILES`: Path to your dotfiles directory
 - `PATH`: For discovering external commands
 
-By default, the following directories are ignored when linking:
-- bin
-- applescripts
-- resources
+### Directory Structure
+
+The dotfiles are organized in a `home/` directory that mirrors your home directory structure:
+```
+dotfiles/
+  home/
+    .config/
+      nvim/
+      git/
+      tmux/
+      ...
+    .claude/
+    .zshenv
+```
+
+When you run `dot link`, GNU Stow creates symlinks in your home directory pointing to files in the repository.
 
 ### Basic Usage
 
 ```bash
 dot help                    # Show help message and available commands
 dot backup                  # Backup existing dotfiles
-dot link [package]          # Link all or specific package
-dot unlink [package]        # Unlink all or specific package
+dot link                    # Link dotfiles using GNU Stow
+dot unlink                  # Unlink dotfiles
+dot restow                  # Restow (useful after updating dotfiles)
 ```
 
 >[!important]
@@ -79,10 +92,14 @@ This will back up important files and directories including:
 ### Link/Unlink Options
 
 ```bash
+dot link                   # Link all dotfiles
 dot link -v                # Verbose output
-dot link -t <target>       # Specify target directory
-dot link <package>         # Link specific package
-dot link all               # Link all packages
+dot link -n                # Dry run (show what would be done)
+dot unlink                 # Unlink all dotfiles
+dot unlink -v              # Verbose output
+dot unlink -n              # Dry run
+dot restow                 # Restow all dotfiles (unlink then link)
+dot restow -v              # Verbose restow
 ```
 
 ### Built-in Commands

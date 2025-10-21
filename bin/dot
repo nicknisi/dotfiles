@@ -36,23 +36,20 @@ usage() {
   cat <<EOF
   $(fmt_key "Usage:") $(fmt_cmd "$command_name") $(fmt_value "<command> [subcommand] [options]")
 
-Dotfiles management script.
+Dotfiles management script using GNU Stow.
 
 $(fmt_key "Available Commands:")
     help                          Show this help message
     clean                         Clean up broken symlinks
     backup                        Backup dotfiles
         -d, --directory <dir>   Backup directory (default: ~/dotfiles-backup)
-    link                          Link dotfiles packages to their respective locations
-        all                       Link all
-        <pkg>                     Link a specific package
-        clean                     Clean up broken symlinks
-            -n, --dry-run         Show what would be removed without actually removing
-            -v, --verbose         Show detailed output
+    link                          Link dotfiles using GNU Stow
         -v, --verbose             Show detailed output
-    unlink                        Unlink dotfiles packages
-        all                       Unlink all
-        <pkg>                     Unlink a specific package
+        -n, --dry-run             Show what would be done without doing it
+    unlink                        Unlink dotfiles using GNU Stow
+        -v, --verbose             Show detailed output
+        -n, --dry-run             Show what would be done without doing it
+    restow                        Restow dotfiles (useful after updates)
         -v, --verbose             Show detailed output
 EOF
 
@@ -66,40 +63,40 @@ EOF
 }
 
 cmd_clean() {
-  links=(
-    ".zshrc" ".zshenv" ".zprofile" ".zsh_aliases"
-    ".zsh_functions" ".zsh_prompt" ".config/aerospace"
-    ".config/git" ".config/karabiner" ".config/kitty"
-    ".config/lazygit" ".config/nvim" ".config/ripgrep"
-    ".config/tmux" ".config/wezterm" ".config/zsh"
-  )
+  fmt_title_underline "Cleaning up broken symlinks..."
 
-  fmt_title_underline "Cleaning up broken legacy symlinks..."
+  local broken_count=0
 
-  for link in "${links[@]}"; do
-    path_link="$HOME/$link"
-    if [ -L "$path_link" ] && [ ! -e "$path_link" ]; then
-      log_success "Removing Broken symbolic link: $path_link"
-      rm "$path_link"
-    else
-      log_info "Link to $path_link not found or is not broken. Skipping..."
-    fi
-  done
-
-  # Clean up broken symlinks from home directory
-  if [ -d "$DOTFILES/home" ]; then
-    while IFS= read -r -d '' file; do
-      relative_path="${file#"$DOTFILES"/home/}"
-      target_path="$HOME/$relative_path"
-      if [ -L "$target_path" ] && [ ! -e "$target_path" ]; then
-        log_success "Removing broken symbolic link: $target_path"
-        rm "$target_path"
+  # Check config directory symlinks
+  if [ -d "$CONFIG_HOME" ]; then
+    while IFS= read -r -d '' link; do
+      if [ -L "$link" ] && [ ! -e "$link" ]; then
+        broken_count=$((broken_count + 1))
+        log_info "Removing broken symlink: ~${link#"$HOME"}"
+        rm "$link"
       fi
-    done < <(find "$DOTFILES/home" -type f -print0)
+    done < <(find "$CONFIG_HOME" -type l -print0 2>/dev/null || true)
   fi
 
-  echo -e
-  log_success "Done."
+  # Check home directory for broken symlinks
+  while IFS= read -r -d '' link; do
+    if [ -L "$link" ] && [ ! -e "$link" ]; then
+      # Check if this broken symlink points to our dotfiles directory
+      local link_target=$(readlink "$link" 2>/dev/null || echo "")
+      if [[ "$link_target" == "$DOTFILES"* ]]; then
+        broken_count=$((broken_count + 1))
+        log_info "Removing broken symlink: ~${link#"$HOME"}"
+        rm "$link"
+      fi
+    fi
+  done < <(find "$HOME" -maxdepth 3 -type l -print0 2>/dev/null || true)
+
+  echo
+  if [ "$broken_count" -eq 0 ]; then
+    log_success "No broken symlinks found"
+  else
+    log_success "Removed $broken_count broken symlink(s)"
+  fi
 }
 
 cmd_backup() {
@@ -136,26 +133,8 @@ cmd_backup() {
 
   log_info "Creating backup in: $backup_path"
 
-  files_to_backup=(
-    ".zshrc"
-    ".zprofile"
-    ".zsh_aliases"
-    ".zsh_functions"
-    ".zsh_prompt"
-    ".config/aerospace"
-    ".config/git"
-    ".config/ghostty"
-    ".config/karabiner"
-    ".config/kitty"
-    ".config/lazygit"
-    ".config/nvim"
-    ".config/ripgrep"
-    ".config/tmux"
-    ".config/wezterm"
-    ".config/zsh"
-  )
-
-  # Add home directory files to backup
+  # Find all files that would be stowed
+  local files_to_backup=()
   if [ -d "$DOTFILES/home" ]; then
     while IFS= read -r -d '' file; do
       relative_path="${file#"$DOTFILES"/home/}"
@@ -198,55 +177,21 @@ cmd_backup() {
   fi
 }
 
-link_home_files() {
-  local operation="$1"
-  local verbose="$2"
-
-  if [ ! -d "$DOTFILES/home" ]; then
-    return 0
-  fi
-
-  while IFS= read -r -d '' file; do
-    local relative_path="${file#"$DOTFILES"/home/}"
-    local target_path="$HOME/$relative_path"
-    local target_dir="$(dirname "$target_path")"
-
-    if [ "$operation" = "link" ]; then
-      # Create parent directories if needed
-      if [ ! -d "$target_dir" ]; then
-        [ "$verbose" = true ] && log_info "Creating directory: $target_dir"
-        mkdir -p "$target_dir"
-      fi
-
-      if [ -e "$target_path" ]; then
-        log_warning "~${target_path#"$HOME"} already exists... Skipping."
-      else
-        [ "$verbose" = true ] && log_info "Linking $relative_path"
-        ln -s "$file" "$target_path"
-      fi
-    else # unlink
-      if [ -L "$target_path" ]; then
-        [ "$verbose" = true ] && log_info "Unlinking $target_path"
-        rm "$target_path"
-      elif [ -e "$target_path" ]; then
-        log_warning "Skipping \"$target_path\" because it is not a symlink"
-      fi
-    fi
-  done < <(find "$DOTFILES/home" -type f -print0)
-}
-
-cmd_link_clean() {
+cmd_link() {
   local verbose=false
   local dry_run=false
+  local stow_args=()
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -v | --verbose)
       verbose=true
+      stow_args+=("--verbose")
       shift
       ;;
     -n | --dry-run)
       dry_run=true
+      stow_args+=("--no")
       shift
       ;;
     *)
@@ -256,88 +201,56 @@ cmd_link_clean() {
     esac
   done
 
-  fmt_title_underline "Cleaning up broken symlinks"
+  fmt_title_underline "Linking dotfiles with GNU Stow"
 
-  local broken_count=0
-
-  # Check config directory symlinks
-  if [ -d "$CONFIG_HOME" ]; then
-    while IFS= read -r -d '' link; do
-      if [ -L "$link" ] && [ ! -e "$link" ]; then
-        broken_count=$((broken_count + 1))
-        if [ "$dry_run" = true ]; then
-          log_warning "[DRY RUN] Would remove broken symlink: ~${link#"$HOME"}"
-        else
-          [ "$verbose" = true ] && log_info "Removing broken symlink: ~${link#"$HOME"}"
-          rm "$link"
-        fi
-      fi
-    done < <(find "$CONFIG_HOME" -type l -print0 2>/dev/null || true)
+  # Check if stow is installed
+  if ! command -v stow >/dev/null 2>&1; then
+    log_error "GNU Stow is not installed. Please install it first:"
+    log_error "  macOS: brew install stow"
+    log_error "  Linux: apt-get install stow or yum install stow"
+    exit 1
   fi
 
-  # Check home directory symlinks created from $DOTFILES/home
+  # Use stow to link the home package
   if [ -d "$DOTFILES/home" ]; then
-    # Get all directories that contain files in $DOTFILES/home
-    local home_dirs=()
-    while IFS= read -r -d '' file; do
-      local dir_path="$HOME/$(dirname "${file#"$DOTFILES"/home/}")"
-      # Add to array if not already present
-      if [[ ! " ${home_dirs[@]} " =~ " ${dir_path} " ]]; then
-        home_dirs+=("$dir_path")
-      fi
-    done < <(find "$DOTFILES/home" -type f -print0)
+    [[ "$verbose" == true ]] && log_info "Running: stow --target=$HOME --dir=$DOTFILES ${stow_args[*]:-} home"
 
-    # Now check for broken symlinks only in those directories
-    for dir in "${home_dirs[@]}"; do
-      if [ -d "$dir" ]; then
-        while IFS= read -r -d '' link; do
-          if [ -L "$link" ] && [ ! -e "$link" ]; then
-            # Check if this broken symlink points to our dotfiles directory
-            local link_target=$(readlink "$link")
-            if [[ "$link_target" == "$DOTFILES"* ]]; then
-              broken_count=$((broken_count + 1))
-              if [ "$dry_run" = true ]; then
-                log_warning "[DRY RUN] Would remove broken symlink: ~${link#"$HOME"}"
-              else
-                [ "$verbose" = true ] && log_info "Removing broken symlink: ~${link#"$HOME"}"
-                rm "$link"
-              fi
-            fi
-          fi
-        done < <(find "$dir" -maxdepth 1 -type l -print0 2>/dev/null || true)
+    if stow --target="$HOME" --dir="$DOTFILES" "${stow_args[@]}" home 2>&1; then
+      echo
+      if [ "$dry_run" == true ]; then
+        log_success "Dry run completed. No changes were made."
+      else
+        log_success "Dotfiles linked successfully"
       fi
-    done
-  fi
-
-  echo
-  if [ "$broken_count" -eq 0 ]; then
-    log_success "No broken symlinks found"
-  else
-    if [ "$dry_run" = true ]; then
-      log_info "Found $broken_count broken symlink(s). Run without --dry-run to remove them."
     else
-      log_success "Removed $broken_count broken symlink(s)"
+      echo
+      log_error "Failed to stow dotfiles. You may need to:"
+      log_error "  1. Back up existing files: dot backup"
+      log_error "  2. Remove conflicting files manually"
+      log_error "  3. Run with --verbose to see what's conflicting"
+      exit 1
     fi
+  else
+    log_error "Home package not found at $DOTFILES/home"
+    exit 1
   fi
 }
 
-cmd_link() {
-  local operation="$1"
-  local pkg="$2"
-  shift 2 || true
-
-  # Handle 'dot link clean' syntax
-  if [ "$operation" = "link" ] && [ "$pkg" = "clean" ]; then
-    cmd_link_clean "$@"
-    return
-  fi
-
+cmd_unlink() {
   local verbose=false
+  local dry_run=false
+  local stow_args=("--delete")
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
     -v | --verbose)
       verbose=true
+      stow_args+=("--verbose")
+      shift
+      ;;
+    -n | --dry-run)
+      dry_run=true
+      stow_args+=("--no")
       shift
       ;;
     *)
@@ -347,66 +260,78 @@ cmd_link() {
     esac
   done
 
-  if [ "$pkg" = "all" ]; then
-    local title_text="$operation"ing" all packages"
-  else
-    local title_text="$operation"ing" package: $pkg"
+  fmt_title_underline "Unlinking dotfiles with GNU Stow"
+
+  # Check if stow is installed
+  if ! command -v stow >/dev/null 2>&1; then
+    log_error "GNU Stow is not installed"
+    exit 1
   fi
 
-  fmt_title_underline "$title_text"
+  # Use stow to unlink the home package
+  if [ -d "$DOTFILES/home" ]; then
+    [[ "$verbose" == true ]] && log_info "Running: stow --target=$HOME --dir=$DOTFILES ${stow_args[*]} home"
 
-  if [ "$pkg" = "all" ]; then
-    # Handle all packages in config directory
-    for config in "$DOTFILES/config"/*; do
-      if [ -d "$config" ]; then
-        local target="$CONFIG_HOME/$(basename "$config")"
-        if [ "$operation" = "link" ]; then
-          if [ -e "$target" ]; then
-            log_warning "~${target#"$HOME"} already exists... Skipping."
-          else
-            [ "$verbose" = true ] && log_info "Linking $(basename "$config")"
-            ln -s "$config" "$target"
-          fi
-        else # unlink
-          if [ -L "$target" ]; then
-            [ "$verbose" = true ] && log_info "Unlinking $target"
-            rm "$target"
-          elif [ -e "$target" ]; then
-            log_warning "Skipping \"$target\" because it is not a symlink"
-          fi
-        fi
-      fi
-    done
-
-    # Handle home directory files
-    link_home_files "$operation" "$verbose"
-  else
-    # Handle specific package
-    local target="$CONFIG_HOME/$pkg"
-    if [ -d "$DOTFILES/config/$pkg" ]; then
-      if [ "$operation" = "link" ]; then
-        if [ -e "$target" ]; then
-          log_warning "~${target#"$HOME"} already exists... Skipping."
-        else
-          [ "$verbose" = true ] && log_info "Linking $pkg"
-          ln -s "$DOTFILES/config/$pkg" "$target"
-        fi
-      else # unlink
-        if [ -L "$target" ]; then
-          [ "$verbose" = true ] && log_info "Unlinking $target"
-          rm "$target"
-        elif [ -e "$target" ]; then
-          log_warning "Skipping \"$target\" because it is not a symlink"
-        fi
+    if stow --target="$HOME" --dir="$DOTFILES" "${stow_args[@]}" home 2>&1; then
+      echo
+      if [ "$dry_run" == true ]; then
+        log_success "Dry run completed. No changes were made."
+      else
+        log_success "Dotfiles unlinked successfully"
       fi
     else
-      log_error "Package $pkg not found in config directory"
-      return 1
+      echo
+      log_error "Failed to unstow dotfiles"
+      exit 1
     fi
+  else
+    log_error "Home package not found at $DOTFILES/home"
+    exit 1
+  fi
+}
+
+cmd_restow() {
+  local verbose=false
+  local stow_args=("--restow")
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -v | --verbose)
+      verbose=true
+      stow_args+=("--verbose")
+      shift
+      ;;
+    *)
+      log_error "Unknown argument: $1"
+      exit 1
+      ;;
+    esac
+  done
+
+  fmt_title_underline "Restowing dotfiles with GNU Stow"
+
+  # Check if stow is installed
+  if ! command -v stow >/dev/null 2>&1; then
+    log_error "GNU Stow is not installed"
+    exit 1
   fi
 
-  echo -e
-  log_success "Done"
+  # Use stow to restow the home package
+  if [ -d "$DOTFILES/home" ]; then
+    [[ "$verbose" == true ]] && log_info "Running: stow --target=$HOME --dir=$DOTFILES ${stow_args[*]} home"
+
+    if stow --target="$HOME" --dir="$DOTFILES" "${stow_args[@]}" home 2>&1; then
+      echo
+      log_success "Dotfiles restowed successfully"
+    else
+      echo
+      log_error "Failed to restow dotfiles"
+      exit 1
+    fi
+  else
+    log_error "Home package not found at $DOTFILES/home"
+    exit 1
+  fi
 }
 
 main() {
@@ -417,7 +342,6 @@ main() {
 
   cmd="$1"
   shift || true
-  subcmd="${1:-all}"
 
   case "$cmd" in
   help)
@@ -430,10 +354,13 @@ main() {
     cmd_backup "$@"
     ;;
   link)
-    cmd_link "link" "$@"
+    cmd_link "$@"
     ;;
   unlink)
-    cmd_link "unlink" "$@"
+    cmd_unlink "$@"
+    ;;
+  restow)
+    cmd_restow "$@"
     ;;
   *)
     if command -v "dot-$cmd" >/dev/null 2>&1; then

@@ -53,6 +53,7 @@ brew 'neovim'                          # A better vim
 brew 'python'                          # python (latest)
 brew 'ripgrep'                         # very fast file searcher
 brew 'shellcheck'                      # diagnostics for shell sripts
+brew 'stow'                            # symlink manager
 brew 'stylua'                          # lua code formatter
 brew 'tmux'                            # terminal multiplexer
 brew 'tree'                            # pretty-print directory contents
