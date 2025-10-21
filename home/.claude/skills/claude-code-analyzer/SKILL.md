@@ -1,157 +1,299 @@
 ---
 name: claude-code-analyzer
-description: Analyzes Claude Code chat history and outputs structured JSON data for Claude to interpret. Extracts tool usage, auto-allow settings, model distribution, and project activity. Claude then provides intelligent, context-aware recommendations based on the data.
+description: Analyzes Claude Code usage patterns and provides comprehensive recommendations. Runs usage analysis, discovers GitHub community resources, suggests CLAUDE.md improvements, and fetches latest docs on-demand. Use when user wants to optimize their Claude Code workflow, create configurations (agents/skills/commands), or set up project documentation.
 ---
 
 # Claude Code History Analyzer
 
-Extracts structured usage data from Claude Code history for intelligent analysis.
+Complete workflow optimization for Claude Code through usage analysis, community discovery, and intelligent configuration generation.
 
-## How It Works
+## Core Capabilities
 
-The skill runs a bash script that:
-1. Extracts tool usage, model distribution, and project activity from JSONL files
-2. Reads your current auto-allow settings from `~/.claude/settings.json`
-3. Outputs structured JSON data to stdout
-4. Claude receives this data and provides context-aware recommendations
+This skill provides a complete Claude Code optimization workflow:
 
-This approach lets Claude make intelligent recommendations based on:
-- Your actual workflow patterns
-- Current configuration vs usage
-- Project-specific context
-- Cross-project comparisons
-- Feature discovery opportunities
+**1. Usage Analysis** - Extracts patterns from Claude Code history
+- Tool usage frequency
+- Auto-allowed tools vs actual usage
+- Model distribution
+- Project activity levels
 
-## Usage
+**2. GitHub Discovery** - Finds community resources automatically
+- Skills matching your tools
+- Agents for your workflows  
+- Slash commands for common operations
+- CLAUDE.md examples from similar projects
 
-**Analyze current project**:
+**3. Project Analysis** - Detects tech stack and suggests documentation
+- Package manager and scripts
+- Framework and testing setup
+- Docker, CI/CD, TypeScript configuration
+- Project-specific CLAUDE.md sections
+
+**4. On-Demand Documentation** - Fetches latest Claude Code docs
+- Agents/subagents structure and configuration
+- Skills architecture and bundled resources
+- Slash commands with MCP integration
+- CLAUDE.md best practices from Anthropic teams
+- Settings and environment variables
+
+## Complete Analysis Workflow
+
+When user asks to optimize their Claude Code setup, follow this workflow:
+
+### Step 1: Run Usage Analysis
 ```bash
 bash scripts/analyze.sh --current-project
 ```
 
-**Analyze all projects**:
+This automatically:
+- Extracts tool usage from JSONL files
+- Checks auto-allowed tools configuration
+- Analyzes model distribution
+- **Searches GitHub for community resources** (always enabled)
+
+### Step 2: Run Project Analysis
 ```bash
-bash scripts/analyze.sh
+bash scripts/analyze-claude-md.sh
 ```
 
-**Analyze single file**:
+This detects:
+- Package manager (npm, pnpm, yarn, cargo, go, python)
+- Framework (Next.js, React, Django, FastAPI, etc.)
+- Testing setup (Vitest, Jest, pytest, etc.)
+- CI/CD, Docker, TypeScript, linting configuration
+
+### Step 3: Interpret Combined Results
+
+Combine insights from both analyses:
+
+**Usage patterns** show:
+- Tools used frequently but requiring approval → Add to auto-allows
+- Auto-allowed tools never used → Remove from config
+- Repetitive bash commands → Create slash commands
+- Complex workflows → Create dedicated agents
+- Domain-specific tasks → Build custom skills
+
+**GitHub discovery** provides:
+- Similar configurations from community
+- Proven patterns for your tool usage
+- Example agents/skills/commands to adapt
+
+**Project analysis** reveals:
+- Required CLAUDE.md sections
+- Framework-specific conventions to document
+- Testing and build commands to include
+
+### Step 4: Fetch Docs and Create Configurations
+
+Based on recommendations, fetch latest docs and create:
+
+**For frequently used tools** → Update auto-allows:
 ```bash
-bash scripts/analyze.sh --file /path/to/conversation.jsonl
+# Fetch settings docs
+web_fetch: https://docs.claude.com/en/docs/claude-code/settings
+# Update ~/.claude/settings.json
 ```
 
-## Output Format
+**For repetitive commands** → Create slash command:
+```bash
+# Fetch slash commands docs
+web_fetch: https://docs.claude.com/en/docs/claude-code/slash-commands
+# Create .claude/commands/[command-name].md
+```
 
-The script outputs JSON containing:
+**For complex workflows** → Create agent:
+```bash
+# Fetch agents docs
+web_fetch: https://docs.claude.com/en/docs/claude-code/sub-agents
+# Create .claude/agents/[agent-name].md
+```
 
+**For reusable domain knowledge** → Build skill:
+```bash
+# Fetch skills docs
+web_fetch: https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview
+# Create .claude/skills/[skill-name]/SKILL.md
+```
+
+**For project context** → Write CLAUDE.md:
+```bash
+# Fetch CLAUDE.md best practices
+web_fetch: https://www.anthropic.com/engineering/claude-code-best-practices
+# Create .claude/CLAUDE.md with detected info
+```
+
+## Example: Complete Optimization Session
+
+**User**: "Help me optimize my Claude Code setup"
+
+**Claude executes**:
+
+1. **Analyze usage patterns**
+   ```bash
+   bash scripts/analyze.sh --current-project
+   ```
+   Finds: Bash tool used 150 times, Read 80 times, Write 45 times
+   Auto-allows: None configured
+   GitHub: Discovers community skills for TypeScript testing
+
+2. **Analyze project structure**
+   ```bash
+   bash scripts/analyze-claude-md.sh
+   ```
+   Detects: Next.js project with Vitest, npm scripts: dev, build, test, lint
+   Missing: CLAUDE.md doesn't exist
+
+3. **Make recommendations**
+   "I analyzed your Claude Code usage. Here's what I recommend:
+   
+   **Auto-Allows**: You use Bash (150×), Read (80×), and Write (45×) constantly. Let me add them to auto-allows.
+   
+   **Slash Command**: You run tests frequently. I'll create /test command.
+   
+   **CLAUDE.md**: Your Next.js project needs documentation. I'll create one with your npm scripts and testing setup.
+   
+   **Community Resource**: I found a TypeScript testing skill on GitHub that matches your workflow."
+
+4. **Fetch docs and create configs**
+   
+   Fetch settings docs → Update `~/.claude/settings.json`:
+   ```json
+   {
+     "autoAllowedTools": ["Bash", "Read", "Write"]
+   }
+   ```
+   
+   Fetch slash commands docs → Create `.claude/commands/test.md`:
+   ```markdown
+   ---
+   name: /test
+   description: Run tests for current file or project
+   allowed-tools: [Bash]
+   ---
+   Run tests: !npm test
+   ```
+   
+   Fetch CLAUDE.md best practices → Create `.claude/CLAUDE.md`:
+   ```markdown
+   # Project Context
+   
+   ## Commands
+   - Dev: `npm run dev` (port 3000)
+   - Build: `npm run build`
+   - Test: `npm test`
+   - Lint: `npm run lint`
+   
+   ## Tech Stack
+   - Next.js 14
+   - TypeScript
+   - Vitest for testing
+   
+   ## Testing
+   Run tests before commits: `npm test`
+   ```
+
+5. **Share GitHub findings**
+   "I also found this community skill for TypeScript testing that you might find useful: [GitHub link]"
+
+## When to Use Each Tool
+
+### Use analyze.sh when:
+- User asks to "analyze my workflow"
+- Optimizing Claude Code setup
+- Finding unused auto-allows
+- Discovering community resources
+- Understanding usage patterns
+
+### Use analyze-claude-md.sh when:
+- Creating CLAUDE.md
+- Setting up new project
+- User asks "what should I document?"
+- Need project-specific recommendations
+
+### Fetch docs when:
+- Creating any configuration file
+- User asks "how do I create an agent/skill/command?"
+- Explaining configuration options
+- Need current best practices
+
+### Use GitHub discovery for:
+- Finding proven patterns
+- Learning from community
+- Getting configuration examples
+- Discovering new approaches
+
+## Critical Documentation URLs
+
+Always fetch latest docs before creating configurations:
+
+| Type | URL |
+|------|-----|
+| Agents | https://docs.claude.com/en/docs/claude-code/sub-agents |
+| Skills | https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview |
+| Slash Commands | https://docs.claude.com/en/docs/claude-code/slash-commands |
+| Settings | https://docs.claude.com/en/docs/claude-code/settings |
+| CLAUDE.md | https://www.anthropic.com/engineering/claude-code-best-practices |
+
+## Key Configuration Facts (from latest docs)
+
+**Agents** (.md files with YAML frontmatter):
+- Required: name, description
+- Optional: tools (comma-separated), model (sonnet/opus/haiku/inherit)
+- Location: `.claude/agents/` (project) or `~/.claude/agents/` (user)
+- NOT .yaml files!
+
+**Skills** (directory with SKILL.md):
+- Structure: `skill-name/SKILL.md`
+- Bundled resources: scripts/, references/, assets/
+- Progressive loading: metadata → instructions → resources
+- Location: `.claude/skills/`
+
+**Slash Commands** (.md files):
+- Required: name (with / prefix)
+- Arguments: $ARGUMENTS, $1, $2
+- Optional: allowed-tools, model, argument-hint
+- Location: `.claude/commands/`
+
+**CLAUDE.md** (project documentation):
+- Hierarchical: user-level → parent → project → nested
+- Include: commands, style guidelines, testing, issues
+- Keep concise and actionable
+- Location: `.claude/CLAUDE.md`
+
+## Output Formats
+
+### Usage Analysis JSON
 ```json
 {
-  "metadata": {
-    "generated_at": "2025-01-15T10:30:00Z",
-    "scope": "current_project",
-    "scope_detail": "/Users/you/project",
-    "total_conversations": 12
-  },
-  "tool_usage": [
-    {"tool": "Bash", "count": 122},
-    {"tool": "Read", "count": 49}
-  ],
-  "auto_allowed_tools": [
-    {"tool": "Bash", "usage_count": 122},
-    {"tool": "Read", "usage_count": 49}
-  ],
-  "model_usage": [
-    {"tool": "claude-sonnet-4-5-20250929", "count": 634}
-  ],
-  "project_activity": [
-    {"project": "~/authkit/tanstack/start", "conversations": 37}
-  ]
+  "tool_usage": [{"tool": "Bash", "count": 122}],
+  "auto_allowed_tools": [{"tool": "Read", "usage_count": 49}],
+  "model_usage": [{"model": "claude-sonnet-4-5-20250929", "count": 634}],
+  "github_discovery": {"searches": [...]}
 }
 ```
 
-Claude interprets this data to provide:
-- Auto-allow recommendations (excluding already configured tools)
-- Configuration validation
-- Workflow optimization suggestions
-- Feature recommendations
-- Project-specific insights
-
-## Why JSON Output?
-
-Instead of hard-coding recommendations in bash, the script extracts raw data and lets Claude:
-- Understand full context of your workflow
-- Make nuanced recommendations based on patterns
-- Adapt suggestions to your specific situation
-- Explain the reasoning behind recommendations
-- Answer follow-up questions about the data
-
-## Modes
-
-**Current Project** (`--current-project`)
-Analyzes only the current working directory's history. Provides project-specific recommendations.
-
-**All Projects** (default)
-Comprehensive analysis across all Claude Code projects. Shows cross-project patterns.
-
-**Single File** (`--file`)
-Analyzes a specific conversation file. Useful for Claude Desktop users or spot checks.
-
-## What Claude Analyzes
-
-**Tool Usage Patterns**
-- Which tools you use most
-- Tools you approve manually every time
-- Workflow efficiency opportunities
-
-**Configuration Validation**
-- Auto-allowed tools you actually use
-- Tools that should be auto-allowed
-- Unused auto-allows to consider removing
-
-**Project Activity** (all-projects mode)
-- High-activity projects
-- Candidates for custom skills or agents
-
-**Model Distribution**
-- Which Claude models you use
-- Usage patterns across conversations
-
-**Feature Opportunities**
-- Agents for repetitive workflows
-- Slash commands for frequent operations
-- Multi-file editing patterns
-- Search optimization
+### Project Analysis JSON
+```json
+{
+  "detected_package_manager": {"type": "npm", "scripts": ["dev", "test"]},
+  "testing": {"framework": "vitest"},
+  "framework": {"type": "nextjs"},
+  "claude_md_suggestions": ["Document npm scripts", "Document testing"]
+}
+```
 
 ## Requirements
 
-- `jq` must be installed
+- `jq` (install: `brew install jq` or `apt install jq`)
 - Claude Code projects at `~/.claude/projects`
-- Bash shell
+- Optional: `gh` CLI for direct GitHub search
 
-Install jq:
-- macOS: `brew install jq`
-- Linux: `apt install jq` or `yum install jq`
+## Why This Approach Works
 
-## Additional Scripts
+**Comprehensive**: Combines usage analysis + community discovery + project detection
+**Current**: Fetches latest docs on-demand, never stale
+**Actionable**: Provides specific, implementable recommendations
+**Automated**: GitHub discovery runs automatically, no flags needed
+**Integrated**: All tools work together for complete workflow optimization
 
-**Feature Discovery**
-
-Browse all available Claude Code features:
-```bash
-bash scripts/fetch-features.sh
-```
-
-Use this when you want to explore what Claude Code can do. The main analyzer recommends features based on your usage patterns, but this script shows the complete catalog of capabilities. Useful for discovering features you didn't know existed.
-
-## Use Cases
-
-**Project optimization**: Analyze your current project's workflow
-
-**Configuration cleanup**: Find unused auto-allows
-
-**Cross-project insights**: Compare patterns across codebases
-
-**Desktop integration**: Analyze exported conversation files
-
-**Feature discovery**: Learn about capabilities that match your usage
-
-**Workflow improvement**: Get personalized optimization suggestions
+When helping users optimize Claude Code, always run both analyses, interpret results together, fetch latest docs, and create configurations with current best practices.
