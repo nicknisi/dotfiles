@@ -61,7 +61,7 @@ float ease(float x) {
 }
 
 // const vec4 TRAIL_COLOR = vec4(1., 1., 0., 1.0);
-const vec4 TRAIL_COLOR = vec4(0.075, 1.0, 0.937, 1.0);
+const vec4 TRAIL_COLOR = vec4(1.0, 0.063, 0.941, 1.0);
 const float OPACITY = 0.6;
 const float DURATION = 0.3; //IN SECONDS
 
