@@ -9,12 +9,13 @@ SESSION_NAME="${1:-$(tmux display-message -p '#{session_name}' 2>/dev/null)}"
 STATUS_FILE="$HOME/.cache/claude-status/${SESSION_NAME}.status"
 
 if [ -f "$STATUS_FILE" ]; then
-    claude_status=$(cat "$STATUS_FILE" 2>/dev/null)
-    if [ "$claude_status" = "working" ]; then
-        echo "working"
-    else
-        echo "done"
-    fi
+  claude_status=$(cat "$STATUS_FILE" 2>/dev/null)
+  if [ "$claude_status" = "working" ]; then
+    echo "working"
+  else
+    echo "done"
+  fi
 else
-    echo "idle"
+  echo "idle"
 fi
+
