@@ -34,7 +34,18 @@ return {
     cond = not vim.g.vscode,
     dependencies = {
       -- Helpers to install LSPs and maintain them
-      { "williamboman/mason.nvim", version = "^1.0.0" },
+      {
+        "williamboman/mason.nvim",
+        opts = {
+          ui = {
+            icons = {
+              package_installed = "✓",
+              package_pending = "➜",
+              package_uninstalled = "✗",
+            },
+          },
+        },
+      },
       { "williamboman/mason-lspconfig.nvim", version = "^1.0.0" },
       "saghen/blink.cmp",
     },
