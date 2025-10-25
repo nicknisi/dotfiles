@@ -35,7 +35,6 @@
       "mcp__gpt5-server__gpt5_generate"
     ]
   },
-  "model": "sonnet[1m]",
   "hooks": {
     "PreToolUse": [
       {
