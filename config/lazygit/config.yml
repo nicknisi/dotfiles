@@ -142,19 +142,19 @@ gui:
 # Config relating to git
 git:
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_Pagers.md
-  paging:
-    # Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'
-    colorArg: always
-    # e.g.
-    # diff-so-fancy
-    pager: delta --dark --paging=never
-    # ydiff -p cat -s --wrap --width={{columnWidth}}
-    # pager: ""
+  pagers:
+    - # Value of the --color arg in the git diff command. Some pagers want this to be set to 'always' and some want it set to 'never'
+      colorArg: always
+      # e.g.
+      # diff-so-fancy
+      pager: delta --dark --paging=never
+      # ydiff -p cat -s --wrap --width={{columnWidth}}
+      # pager: ""
 
-    # If true, Lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager).
-    useConfig: false
-    # e.g. 'difft --color=always'
-    externalDiffCommand: ""
+      # If true, Lazygit will use whatever pager is specified in `$GIT_PAGER`, `$PAGER`, or your *git config*. If the pager ends with something like ` | less` we will strip that part out, because less doesn't play nice with our rendering approach. If the custom pager uses less under the hood, that will also break rendering (hence the `--paging=never` flag for the `delta` pager).
+      useConfig: false
+      # e.g. 'difft --color=always'
+      externalDiffCommand: ""
   # Config relating to committing
   commit:
     # If true, pass '--signoff' flag when committing
@@ -394,7 +394,7 @@ keybinding:
     viewResetOptions: D
     fetch: f
     toggleTreeView: "`"
-    openMergeTool: M
+    openMergeOptions: M
     openStatusFilter: <c-b>
     copyFileInfoToClipboard: "y"
   branches:
