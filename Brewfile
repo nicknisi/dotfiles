@@ -16,6 +16,7 @@ if OS.mac?
   cask '1password/tap/1password-cli'   # 1Password CLI
   cask 'karabiner-elements'            # keyboard customizer
   cask 'nikitabobko/tap/aerospace'     # a tiling window manager
+  cask 'claude-code'                   # Claude AI CLI
 
   # Fonts
   cask 'font-symbols-only-nerd-font'   # nerd-only symbols font
