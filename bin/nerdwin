@@ -34,6 +34,9 @@ get_icon() {
   lazygit | git | tig)
     echo ""
     ;;
+  claude)
+    echo "󱙺"
+    ;;
   node)
     echo "󰎙"
     ;;
