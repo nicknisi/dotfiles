@@ -132,8 +132,8 @@ tmux set -g status-left "$session"
 tmux set -g status-right "${tm_claude_display}${tm_tunes_display}${tm_git_status}"
 
 # Window status formats
-tmux setw -g window-status-format "#[fg=${thm_black4}] #{?#{window_name},#W,#{b:pane_current_path}} "
-tmux setw -g window-status-current-format "#[fg=${thm_magenta},bold] #{?#{window_name},#W,#{b:pane_current_path}} "
+tmux setw -g window-status-format "#[fg=${thm_black4}] #{?#{window_name},#W,#{b:pane_current_path}} #[fg=${thm_fg_gutter}]│"
+tmux setw -g window-status-current-format "#[fg=${thm_magenta},bold] #{?#{window_name},#W,#{b:pane_current_path}} #[fg=${thm_fg_gutter}]│"
 
 # Clock mode
 tmux setw -g clock-mode-colour "${thm_blue0}"
