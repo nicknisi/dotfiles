@@ -59,3 +59,5 @@ if [[ -n "$(command -v nvim)" ]]; then
     # immediately open to fugitive's status screen
     alias vimg="nvim +Ge:"
 fi
+
+alias claude!="claude --dangerously-skip-permissions"
