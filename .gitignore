@@ -13,3 +13,4 @@ config/zsh/.zsh_sessions
 config/ghostty/overrides
 node_modules/
 build/
+config/karabiner/automatic_backups/
