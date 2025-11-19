@@ -69,7 +69,7 @@ tmux set-window-option -g pane-border-lines simple
 
 # Window status
 tmux setw -g window-status-activity-style "fg=${thm_fg},none"
-tmux setw -g window-status-separator ""
+tmux setw -g window-status-separator " #[fg=${thm_fg_gutter}]│ "
 tmux set -g status-style "bg=default,fg=white"
 
 # Icons and separators (Powerline symbols) - define first
@@ -132,8 +132,8 @@ tmux set -g status-left "$session"
 tmux set -g status-right "${tm_claude_display}${tm_tunes_display}${tm_git_status}"
 
 # Window status formats
-tmux setw -g window-status-format "#[fg=${thm_black4}] #{?#{window_name},#W,#{b:pane_current_path}} #[fg=${thm_fg_gutter}]│"
-tmux setw -g window-status-current-format "#[fg=${thm_magenta},bold] #{?#{window_name},#W,#{b:pane_current_path}} #[fg=${thm_fg_gutter}]│"
+tmux setw -g window-status-format "#[fg=${thm_black4}]#{?#{window_name},#W,#{b:pane_current_path}}"
+tmux setw -g window-status-current-format "#[fg=${thm_magenta},bold]#{?#{window_name},#W,#{b:pane_current_path}}"
 
 # Clock mode
 tmux setw -g clock-mode-colour "${thm_blue0}"
