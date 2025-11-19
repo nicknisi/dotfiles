@@ -13,13 +13,33 @@ RESET='\033[0m'
 # Read JSON input from stdin
 input=$(cat)
 
-# Extract information from JSON input
-model=$(echo "$input" | jq -r '.model.display_name // "Unknown Model"')
-output_style=$(echo "$input" | jq -r '.output_style.name // "default"')
-current_dir=$(echo "$input" | jq -r '.workspace.current_dir // "."')
+# Helper functions for extracting data
+get_model_name() { echo "$input" | jq -r '.model.display_name // "Unknown Model"'; }
+get_output_style() { echo "$input" | jq -r '.output_style.name // "default"'; }
+get_current_dir() { echo "$input" | jq -r '.workspace.current_dir // "."'; }
+get_project_dir() { echo "$input" | jq -r '.workspace.project_dir // "."'; }
+get_cost() {
+  local cost=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
+  if (($(echo "$cost >= 1" | bc -l))); then
+    printf "\$%.2f" "$cost"
+  else
+    printf "%.1f¢" $(echo "$cost * 100" | bc)
+  fi
+}
 
-# Get project name (current directory name)
-project=$(basename "$current_dir")
+# Extract values
+model=$(get_model_name)
+output_style=$(get_output_style)
+current_dir=$(get_current_dir)
+project_dir=$(get_project_dir)
+cost_display=$(get_cost)
+
+# Get project name and handle subdirectory display
+project=$(basename "$project_dir")
+if [ "$current_dir" != "$project_dir" ]; then
+  subdir=$(basename "$current_dir")
+  project="${project} (CWD: ${subdir}/)"
+fi
 
 # Get git branch
 git_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "no-git")
@@ -33,5 +53,7 @@ statusline+=" ${WHITE}|${RESET} "
 statusline+="${MAGENTA}🧠 ${model}${RESET}"
 statusline+=" ${WHITE}|${RESET} "
 statusline+="${YELLOW}🎨 ${output_style}${RESET}"
+statusline+=" ${WHITE}|${RESET} "
+statusline+="${CYAN}💰 ${cost_display}${RESET}"
 
 echo -e "$statusline"
