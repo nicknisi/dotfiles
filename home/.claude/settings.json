@@ -118,11 +118,10 @@
     "content@nicknisi": true,
     "developer-experience@nicknisi": true,
     "essentials@nicknisi": true,
-    "gpt5-consultant@nicknisi": true,
     "sandbox@nicknisi": true,
     "spec-driven@nicknisi": true,
     "workos@nicknisi": true,
-    "researcher@nicknisi": true
+    "consultant@nicknisi": true
   },
   "alwaysThinkingEnabled": true
 }
