@@ -20,11 +20,7 @@ get_current_dir() { echo "$input" | jq -r '.workspace.current_dir // "."'; }
 get_project_dir() { echo "$input" | jq -r '.workspace.project_dir // "."'; }
 get_cost() {
   local cost=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
-  if (($(echo "$cost >= 1" | bc -l))); then
-    printf "\$%.2f" "$cost"
-  else
-    printf "%.1f¢" $(echo "$cost * 100" | bc)
-  fi
+  printf "\$%.2f" "$cost"
 }
 
 # Extract values
