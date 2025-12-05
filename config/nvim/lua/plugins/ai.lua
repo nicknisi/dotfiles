@@ -35,11 +35,12 @@ return {
             { "nvim-lua/plenary.nvim", branch = "master" }, -- for curl, log and async functions
         },
         opts = {
-            model = "claude-3.7-sonnet",
-            -- See Configuration section for options
-            question_header = "  ", -- Header to use for user questions
-            answer_header = "   ", -- Header to use for AI answers
-            error_header = "  ", -- Header to use for errors
+            model = "gpt-4.1",
+            headers = {
+                user = "/Usr👤",
+                assistant = "/Ai🤖 ",
+                tool = "/Tool🔧 ",
+            },
         },
 
         specs = {
