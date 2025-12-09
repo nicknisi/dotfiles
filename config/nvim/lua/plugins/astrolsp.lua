@@ -52,10 +52,12 @@ return {
                 capabilities = { offsetEncoding = "utf-8" },
                 cmd = {
                     "clangd",
-                    "--query-driver=/home/linuxbrew/.linuxbrew/bin/gcc-13,/usr/bin/gcc,/usr/bin/gcc-11",
+                    "--query-driver=/home/linuxbrew/.linuxbrew/bin/gcc-13,/usr/bin/gcc,/usr/bin/gcc-11,/home/wl_ubuntu/.vcpkg/downloads/artifacts/2139c4c6/compilers.arm.arm.none.eabi.gcc/14.2.1/bin/arm-none-eabi-gcc",
                     "--limit-references=0",
                     "--limit-results=1000",
                     "--pch-storage=memory",
+                    "-j=2",
+                    "--header-insertion=iwyu",
                     -- "--log=verbose",
                 },
             },
@@ -117,6 +119,24 @@ return {
             -- the key is the server that is being setup with `lspconfig`
             -- rust_analyzer = false, -- setting a handler to false will disable the set up of that language server
             -- pyright = function(_, opts) require("lspconfig").pyright.setup(opts) end -- or a custom handler function can be passed
+            clangd = function(_, opts)
+                local file = vim.uv.cwd() .. "/" .. ".clangd"
+                if vim.uv.fs_stat(file) then
+                    local fd = io.open(file, "r")
+                    if not fd then
+                        error "Could not open .clangd file"
+                        return
+                    end
+
+                    local content = fd:read "*a"
+                    fd:close()
+                    if content == "" then return end
+
+                    local dir = string.match(content, "CompilationDatabase:%s*(%S+)%s*$")
+                    if dir then table.insert(opts.cmd, "--compile-commands-dir=" .. vim.fn.fnamemodify(dir, ":p")) end
+                end
+                require("lspconfig").clangd.setup(opts)
+            end,
         },
         -- Configure buffer local auto commands to add when attaching a language server
         autocmds = {
