@@ -8,13 +8,35 @@ BLUE='\033[0;34m'
 MAGENTA='\033[0;35m'
 CYAN='\033[0;36m'
 WHITE='\033[0;37m'
+DIM='\033[2m'
 RESET='\033[0m'
+
+# Separator (minimal style)
+SEP="${DIM}│${RESET}"
+
+# Emoji icons
+ICON_PROJECT="📁"
+ICON_BRANCH="🌿"
+ICON_CONTEXT="📊"
+ICON_COST="💰"
+ICON_STYLE="🎨"
 
 # Read JSON input from stdin
 input=$(cat)
 
 # Helper functions for extracting data
 get_model_name() { echo "$input" | jq -r '.model.display_name // "Unknown Model"'; }
+
+# Get model-specific icon based on model name
+get_model_icon() {
+  local model_name=$(get_model_name)
+  case "$model_name" in
+    *[Oo]pus*)     echo "🎭" ;;  # Theater masks for the dramatic, powerful model
+    *[Ss]onnet*)   echo "🎵" ;;  # Musical note for the balanced, harmonious model
+    *[Hh]aiku*)    echo "🍃" ;;  # Leaf for the light, quick model
+    *)             echo "🧠" ;;  # Default brain icon
+  esac
+}
 get_output_style() { echo "$input" | jq -r '.output_style.name // "default"'; }
 get_current_dir() { echo "$input" | jq -r '.workspace.current_dir // "."'; }
 get_project_dir() { echo "$input" | jq -r '.workspace.project_dir // "."'; }
@@ -23,12 +45,59 @@ get_cost() {
   printf "\$%.2f" "$cost"
 }
 
+get_context_percent() {
+  local input_tokens=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
+  local output_tokens=$(echo "$input" | jq -r '.context_window.total_output_tokens // 0')
+  local context_size=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
+
+  local total_tokens=$((input_tokens + output_tokens))
+  local percent=$((total_tokens * 100 / context_size))
+  echo "$percent"
+}
+
+# Build a progress bar with color based on percentage
+build_context_bar() {
+  local percent=$(get_context_percent)
+  local bar_width=10
+  local filled=$((percent * bar_width / 100))
+  local empty=$((bar_width - filled))
+
+  # Cap filled at bar_width
+  if [ "$filled" -gt "$bar_width" ]; then
+    filled=$bar_width
+    empty=0
+  fi
+
+  # Choose color based on percentage thresholds
+  local bar_color
+  if [ "$percent" -lt 40 ]; then
+    bar_color="$WHITE"
+  elif [ "$percent" -lt 80 ]; then
+    bar_color="$YELLOW"
+  else
+    bar_color="$RED"
+  fi
+
+  # Build the bar
+  local bar=""
+  for ((i=0; i<filled; i++)); do
+    bar+="█"
+  done
+  for ((i=0; i<empty; i++)); do
+    bar+="░"
+  done
+
+  printf "%s%s%s %d%%" "$bar_color" "$bar" "$RESET" "$percent"
+}
+
 # Extract values
 model=$(get_model_name)
+model_icon=$(get_model_icon)
 output_style=$(get_output_style)
 current_dir=$(get_current_dir)
 project_dir=$(get_project_dir)
 cost_display=$(get_cost)
+context_bar=$(build_context_bar)
 
 # Get project name and handle subdirectory display
 project=$(basename "$project_dir")
@@ -40,16 +109,18 @@ fi
 # Get git branch
 git_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "no-git")
 
-# Build statusline with colors
+# Build statusline (order: project → branch → context → model → cost → style)
 statusline=""
-statusline+="${BLUE}📁 ${project}${RESET}"
-statusline+=" ${WHITE}|${RESET} "
-statusline+="${GREEN}🌿 ${git_branch}${RESET}"
-statusline+=" ${WHITE}|${RESET} "
-statusline+="${MAGENTA}🧠 ${model}${RESET}"
-statusline+=" ${WHITE}|${RESET} "
-statusline+="${YELLOW}🎨 ${output_style}${RESET}"
-statusline+=" ${WHITE}|${RESET} "
-statusline+="${CYAN}💰 ${cost_display}${RESET}"
+statusline+="${ICON_PROJECT} ${BLUE}${project}${RESET}"
+statusline+=" ${SEP} "
+statusline+="${ICON_BRANCH} ${GREEN}${git_branch}${RESET}"
+statusline+=" ${SEP} "
+statusline+="${ICON_CONTEXT} ${context_bar}"
+statusline+=" ${SEP} "
+statusline+="${model_icon} ${MAGENTA}${model}${RESET}"
+statusline+=" ${SEP} "
+statusline+="${ICON_COST} ${CYAN}${cost_display}${RESET}"
+statusline+=" ${SEP} "
+statusline+="${ICON_STYLE} ${DIM}${output_style}${RESET}"
 
 echo -e "$statusline"
