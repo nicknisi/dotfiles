@@ -47,11 +47,9 @@ get_cost() {
 
 get_context_percent() {
   local input_tokens=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
-  local output_tokens=$(echo "$input" | jq -r '.context_window.total_output_tokens // 0')
   local context_size=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
 
-  local total_tokens=$((input_tokens + output_tokens))
-  local percent=$((total_tokens * 100 / context_size))
+  local percent=$((input_tokens * 100 / context_size))
   echo "$percent"
 }
 
