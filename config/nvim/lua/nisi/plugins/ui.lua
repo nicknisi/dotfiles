@@ -1,4 +1,10 @@
 return {
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    ft = { "markdown", "codecompanion" },
+    dependencies = { "dkarter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+    opts = {},
+  },
   -- fast colorizer for showing hex colors
   {
     "NvChad/nvim-colorizer.lua",
