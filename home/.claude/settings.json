@@ -67,7 +67,7 @@
       "Bash(sudo rm -rf /*)"
     ]
   },
-  "model": "sonnet[1m]",
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
