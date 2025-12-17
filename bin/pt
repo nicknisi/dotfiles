@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
-# List out the pid for the process that is currently listening on the provided port
-# Usage: wtfport find <port>
-# Usage: wtfport kill <port>
-# Example: wtfport find 3000
-# Example: wtfport kill 3000
+
+# Usage: pt find <port> - Echo the PID for the process that is currently
+#   listening on the provided port to STDOUT & echo additional details to STDERR
+# Usage: pt kill <port> - Kill the process that is currently listening on the
+#   provided port Example: pt find 3000 Example: pt kill 3000
 
 find_port() {
   local port=$1
   line="$(lsof -i -P -n | grep LISTEN | grep ":$port")"
   pid=$(echo "$line" | awk '{print $2}')
-  pid_name=$(echo "$line" | awk '{print $1}')
 
   # If there's nothing running, exit
   if [[ -z "$pid" ]]; then
@@ -17,8 +16,14 @@ find_port() {
     exit 0
   fi
 
-  # output the process name to stderr so it won't be piped along
-  echo >&2 -e "Process \"$pid_name\" is listening on port $port"
+  # Get detailed process info (output to stderr so it won't be piped along)
+  echo >&2 -e "Process listening on port $port:"
+  echo >&2 -e "  PID:      $pid"
+  echo >&2 -e "  User:     $(ps -p "$pid" -o user= 2>/dev/null)"
+  echo >&2 -e "  CPU:    $(ps -p "$pid" -o %cpu= 2>/dev/null)%"
+  echo >&2 -e "  Memory:  $(ps -p "$pid" -o %mem= 2>/dev/null)%"
+  echo >&2 -e "  Started: $(ps -p "$pid" -o start= 2>/dev/null)"
+  echo >&2 -e "  Command:  $(ps -p "$pid" -o args= 2>/dev/null)"
 
   # print the process id. It can be piped, for example to pbcopy
   echo -e "$pid"
@@ -28,7 +33,6 @@ kill_port() {
   local port=$1
   line="$(lsof -i -P -n | grep LISTEN | grep ":$port")"
   pid=$(echo "$line" | awk '{print $2}')
-  pid_name=$(echo "$line" | awk '{print $1}')
 
   # If there's nothing running, exit
   if [[ -z "$pid" ]]; then
@@ -36,21 +40,27 @@ kill_port() {
     exit 0
   fi
 
+  # Grab the command before we nuke it
+  local cmd
+  cmd=$(ps -p "$pid" -o args= 2>/dev/null)
+
   kill -9 "$pid"
-  echo "Killed process \"$pid_name\" listening on port $port"
+  echo "Killed process on port $port:"
+  echo "  PID:     $pid"
+  echo "  Command: $cmd"
 }
 
 case "$1" in
 find | f)
   if [ -z "$2" ]; then
-    echo "Usage: wtfport find <port>"
+    echo "Usage: pt find <port>"
     exit 1
   fi
   find_port "$2"
   ;;
 kill | k)
   if [ -z "$2" ]; then
-    echo "Usage: wtfport kill <port>"
+    echo "Usage: pt kill <port>"
     exit 1
   fi
   kill_port "$2"
