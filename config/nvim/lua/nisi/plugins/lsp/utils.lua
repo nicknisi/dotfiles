@@ -3,14 +3,19 @@ local M = {}
 local border = "rounded"
 
 ---Trigger the LSP's provided organizeImports helper (for TypeScript)
+---Removes unused imports, then organizes the rest
 function M.lsp_organize_imports()
   vim.lsp.buf.code_action({
-    context = {
-      only = { "source.organizeImports" },
-      diagnostics = {},
-    },
+    context = { only = { "source.removeUnusedImports" }, diagnostics = {} },
     apply = true,
   })
+  -- Defer second action to allow first edit to complete
+  vim.defer_fn(function()
+    vim.lsp.buf.code_action({
+      context = { only = { "source.organizeImports" }, diagnostics = {} },
+      apply = true,
+    })
+  end, 100)
 end
 
 ---Show LSP diagnostics
