@@ -36,6 +36,11 @@
       "mcp__*"
     ],
     "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./config/credentials.json)",
+      "Read(./build)",
       "Bash( /dev/sda)",
       "Bash(> /dev/sda)",
       "Bash(dd if=/dev/zero of=/dev/sda)",
