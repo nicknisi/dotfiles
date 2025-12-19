@@ -55,6 +55,7 @@ return {
                 jumpoptions = "view",
                 spell = false, -- sets vim.opt.spell
                 completeopt = { "menu", "menuone", "noselect", "popup" }, -- sets vim.opt.completeopt
+                equalalways = false
             },
             g = { -- vim.g.<key>
                 -- configure global vim variables (vim.g)
