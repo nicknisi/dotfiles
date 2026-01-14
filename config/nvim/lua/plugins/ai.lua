@@ -1,3 +1,11 @@
+local function filter_ai_trigger()
+    local filename = vim.fn.expand("%:t")
+    if filename:match("%.localrc") or filename:match("%.env") then
+        return false
+    end
+    return true
+end
+
 return {
     {
         "zbirenbaum/copilot.lua",
@@ -21,6 +29,7 @@ return {
                             module = "blink-cmp-copilot",
                             score_offset = 100,
                             async = true,
+                            enabled = filter_ai_trigger,
                         },
                     },
                 },
@@ -29,81 +38,121 @@ return {
     },
 
     {
-        "CopilotC-Nvim/CopilotChat.nvim",
-        dependencies = {
-            { "zbirenbaum/copilot.lua" },
-            { "nvim-lua/plenary.nvim", branch = "master" }, -- for curl, log and async functions
-        },
+        "supermaven-inc/supermaven-nvim",
         opts = {
-            model = "gpt-4.1",
-            headers = {
-                user = "/Usr👤",
-                assistant = "/Ai🤖 ",
-                tool = "/Tool🔧 ",
-            },
+            disable_inline_completion = true, -- disables inline completion for use with cmp
+            disable_keymaps = true, -- disables built in keymaps for more manual control
+            condition = filter_ai_trigger,
         },
-
         specs = {
-            {
-                "AstroNvim/astroui",
-                optional = true,
-                opts = {
-                    highlights = {
-                        init = { -- this table overrides highlights in all themes
-                            CopilotChatHeader = { fg = "#56b6c2" }, -- Change the color of the question header
-                            CopilotChatSeparator = { fg = "#56b6c2" }, -- Change the color of the separator
-                        },
-                    },
-                },
-            },
-
-            {
-                "saghen/blink.cmp",
-                optional = true,
-                ---@module 'blink.cmp'
-                ---@type blink.cmp.Config
-                opts = {
-                    sources = {
-                        providers = {
-                            path = {
-                                -- Path sources triggered by "/" interfere with CopilotChat commands
-                                enabled = function() return vim.bo.filetype ~= "copilot-chat" end,
-                            },
-                        },
-                    },
-                },
-            },
-
-            {
-                "AstroNvim/astrocore",
-                optional = true,
-                opts = {
-                    mappings = {
-                        n = {
-                            ["<Leader>a"] = {
-                                desc = "AiChat",
-                            },
-                            ["<Leader>aa"] = {
-                                "<cmd>CopilotChat<cr>",
-                            },
-                            ["<Leader>ae"] = {
-                                "<cmd>CopilotChatToggle<cr>",
-                            },
-                        },
-                        v = {
-                            ["<Leader>a"] = {
-                                desc = "AiChat",
-                            },
-                            ["<Leader>aa"] = {
-                                "<cmd>CopilotChat<cr>",
-                            },
-                            ["<Leader>ae"] = {
-                                "<cmd>CopilotChatToggle<cr>",
-                            },
+            "saghen/blink.cmp",
+            optional = true,
+            dependencies = { "huijiro/blink-cmp-supermaven" },
+            opts = {
+                sources = {
+                    default = { "supermaven" },
+                    providers = {
+                        supermaven = {
+                            name = "supermaven",
+                            module = "blink-cmp-supermaven",
+                            score_offset = 99,
+                            async = true,
+                            enabled = filter_ai_trigger,
                         },
                     },
                 },
             },
         },
     },
+
+    {
+        "Exafunction/windsurf.nvim",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+        },
+        config = function()
+            require("codeium").setup {
+                enable_chat = false,
+            }
+        end,
+        specs = {
+            "saghen/blink.cmp",
+            optional = true,
+            opts = {
+                sources = {
+                    default = { "codeium" },
+                    providers = {
+                        codeium = {
+                            name = "Codeium",
+                            module = "codeium.blink",
+                            max_items = 3,
+                            async = true,
+                            enabled = filter_ai_trigger,
+                        },
+                    },
+                },
+            },
+        },
+    },
+
+    -- {
+    --     "milanglacier/minuet-ai.nvim",
+    --     enabled = false,
+    --     config = function()
+    --         require("minuet").setup {
+    --             n_completions = 1,
+    --             provider = "codestral",
+    --             provider_options = {
+    --                 codestral = {
+    --                     optional = {
+    --                         temperature = 0.0,
+    --                         max_tokens = 256,
+    --                         stop = { "\n\n" },
+    --                     },
+    --                 },
+    --
+    --                 openai_fim_compatible = {
+    --                     api_key = "DEEPSEEK_API_KEY",
+    --                     name = "deepseek",
+    --                     optional = {
+    --                         temperature = 0.0,
+    --                         max_tokens = 256,
+    --                     },
+    --                 },
+    --
+    --                 openai_compatible = {
+    --                     end_point = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+    --                     api_key = "DASHSCOPE_API_KEY",
+    --                     name = "qwen",
+    --                     model = "qwen3-coder-flash",
+    --                     optional = {
+    --                         max_tokens = 256,
+    --                         temperature = 0.0,
+    --                     },
+    --                 },
+    --             },
+    --         }
+    --     end,
+    --     specs = {
+    --         {
+    --             "saghen/blink.cmp",
+    --             optional = true,
+    --             opts = {
+    --                 sources = {
+    --                     default = { "minuet" },
+    --                     providers = {
+    --                         minuet = {
+    --                             name = "minuet",
+    --                             module = "minuet.blink",
+    --                             async = true,
+    --                             timeout_ms = 3000,
+    --                             score_offset = 50, -- Gives minuet higher priority among suggestions
+    --                             enabled = filter_ai_trigger,
+    --                         },
+    --                     },
+    --                 },
+    --             },
+    --         },
+    --     },
+    -- },
 }
