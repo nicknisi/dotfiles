@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Toggle borders brew service on/off
+set -euo pipefail
+
+if ! brew services list | grep -q "^borders "; then
+    echo "borders not installed" >&2
+    exit 1
+fi
+
+if brew services list | grep -q "^borders.*started"; then
+    brew services stop borders
+else
+    brew services start borders
+fi
