@@ -228,6 +228,10 @@ run = 'move-node-to-workspace W'
 if.app-id = 'app.zen-browser.zen'
 run = 'move-node-to-workspace W'
 
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome.canary'
+run = 'move-node-to-workspace W'
+
 # Productivity
 
 [[on-window-detected]]
