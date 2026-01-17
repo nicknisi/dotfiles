@@ -46,13 +46,10 @@ get_cost() {
 }
 
 get_context_percent() {
-  local input_tokens=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
-  local output_tokens=$(echo "$input" | jq -r '.context_window.total_output_tokens // 0')
-  local context_size=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
-
-  local total_tokens=$((input_tokens + output_tokens))
-  local percent=$((total_tokens * 100 / context_size))
-  echo "$percent"
+  # Use pre-calculated percentage from Claude Code (recommended approach)
+  local percent=$(echo "$input" | jq -r '.context_window.used_percentage // 0')
+  # Round to integer for display
+  printf "%.0f" "$percent"
 }
 
 # Build a progress bar with color based on percentage
@@ -115,8 +112,8 @@ statusline+="${ICON_PROJECT} ${BLUE}${project}${RESET}"
 statusline+=" ${SEP} "
 statusline+="${ICON_BRANCH} ${GREEN}${git_branch}${RESET}"
 statusline+=" ${SEP} "
-# statusline+="${ICON_CONTEXT} ${context_bar}"
-# statusline+=" ${SEP} "
+statusline+="${ICON_CONTEXT} ${context_bar}"
+statusline+=" ${SEP} "
 statusline+="${model_icon} ${MAGENTA}${model}${RESET}"
 statusline+=" ${SEP} "
 statusline+="${ICON_COST} ${CYAN}${cost_display}${RESET}"
