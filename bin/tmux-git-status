@@ -16,7 +16,7 @@ branch=$(git symbolic-ref --short HEAD 2>/dev/null || git describe --tags --exac
 
 # Get git status indicators
 git_status=""
-INDEX=$(git status --porcelain -b 2>/dev/null)
+INDEX=$(git --no-optional-locks status --porcelain -b 2>/dev/null)
 
 GIT_ADDED=''
 GIT_MODIFIED=''
