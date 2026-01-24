@@ -21,6 +21,9 @@ ICON_CONTEXT="📊"
 ICON_COST="💰"
 ICON_STYLE="🎨"
 
+# Feature flags (set env vars to 0 to disable)
+SHOW_CONTEXT_TOKENS="${CLAUDE_STATUSLINE_TOKENS:-1}"
+
 # Read JSON input from stdin
 input=$(cat)
 
@@ -50,6 +53,18 @@ get_context_percent() {
   local percent=$(echo "$input" | jq -r '.context_window.used_percentage // 0')
   # Round to integer for display
   printf "%.0f" "$percent"
+}
+
+get_context_used() {
+  # Calculate tokens from percentage and window size (most accurate)
+  local percent=$(echo "$input" | jq -r '.context_window.used_percentage // 0')
+  local window=$(echo "$input" | jq -r '.context_window.context_window_size // 200000')
+  local used=$(echo "$percent * $window / 100" | bc)
+  if [ "$used" -ge 1000 ]; then
+    printf "%.0fK" "$(echo "scale=0; $used / 1000" | bc)"
+  else
+    printf "%d" "$used"
+  fi
 }
 
 # Build a progress bar with color based on percentage
@@ -84,7 +99,12 @@ build_context_bar() {
     bar+="░"
   done
 
-  printf "%s%s%s %d%%" "$bar_color" "$bar" "$RESET" "$percent"
+  if [ "$SHOW_CONTEXT_TOKENS" = "1" ]; then
+    local used=$(get_context_used)
+    printf "%s%s%s %d%% ${DIM}(%s)${RESET}" "$bar_color" "$bar" "$RESET" "$percent" "$used"
+  else
+    printf "%s%s%s %d%%" "$bar_color" "$bar" "$RESET" "$percent"
+  fi
 }
 
 # Extract values
