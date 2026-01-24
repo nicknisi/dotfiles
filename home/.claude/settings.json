@@ -1,13 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "cleanupPeriodDays": 60,
   "attribution": {
     "commit": "",
     "pr": ""
   },
   "permissions": {
-    "additionalDirectories": [
-      "~/.claude/"
-    ],
     "allow": [
       "Bash(basename:*)",
       "Bash(cat:*)",
@@ -23,14 +21,12 @@
       "Bash(stat:*)",
       "Bash(tail:*)",
       "Bash(tree:*)",
-
       "Bash(docker compose exec:*)",
       "Bash(docker images:*)",
       "Bash(docker inspect:*)",
       "Bash(docker logs:*)",
       "Bash(docker ps:*)",
       "Bash(docker run:*)",
-
       "Bash(gh api:*)",
       "Bash(gh issue list:*)",
       "Bash(gh issue view:*)",
@@ -40,7 +36,6 @@
       "Bash(gh repo view:*)",
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
-
       "Bash(git blame:*)",
       "Bash(git branch:*)",
       "Bash(git checkout:*)",
@@ -60,7 +55,6 @@
       "Bash(git status:*)",
       "Bash(git switch:*)",
       "Bash(git tag -l:*)",
-
       "Bash(date:*)",
       "Bash(df:*)",
       "Bash(du:*)",
@@ -70,7 +64,6 @@
       "Bash(pwd:*)",
       "Bash(uname:*)",
       "Bash(whoami:*)",
-
       "Bash(cut:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
@@ -81,7 +74,6 @@
       "Bash(uniq:*)",
       "Bash(wc:*)",
       "Bash(yq:*)",
-
       "Bash(brew info:*)",
       "Bash(brew list:*)",
       "Bash(npm --version:*)",
@@ -93,28 +85,19 @@
       "Bash(npm view:*)",
       "Bash(pip list:*)",
       "Bash(pip show:*)",
-
       "Bash(node --version:*)",
       "Bash(node:*)",
       "Bash(python --version:*)",
       "Bash(ruby --version:*)",
-
       "Bash(curl:*)",
       "Bash(echo:*)",
       "Bash(mkdir:*)",
       "Bash(wget:*)",
       "Bash(which:*)",
-
       "ExitPlanMode(*)",
       "WebFetch(domain:*)",
       "WebSearch",
       "mcp__*"
-    ],
-    "ask": [
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(docker push:*)",
-      "Bash(npm publish:*)"
     ],
     "deny": [
       "Read(./.env)",
@@ -124,7 +107,6 @@
       "Read(./build)",
       "Read(~/.aws/**)",
       "Read(~/.ssh/**)",
-
       "Bash(dd if=/dev/zero:*)",
       "Bash(dd of=/dev:*)",
       "Bash(diskutil apfs changePassphrase:*)",
@@ -153,10 +135,18 @@
       "Bash(rm -rf $HOME:*)",
       "Bash(sudo rm -rf /:*)",
       "Bash(sudo rm -rf /*:*)"
+    ],
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(docker push:*)",
+      "Bash(npm publish:*)"
+    ],
+    "additionalDirectories": [
+      "~/.claude/"
     ]
   },
   "model": "opus",
-  "cleanupPeriodDays": 60,
   "hooks": {
     "PreToolUse": [
       {
