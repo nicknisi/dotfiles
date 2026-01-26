@@ -12,6 +12,10 @@ for func dir in c '$CODE_DIR' h '$HOME'; do
   "
 done
 
+lw() {
+aerospace list-windows --workspace  $1 --format "%{app-name} - %{app-bundle-id}"
+}
+
 g() {
   if [[ $# > 0 ]]; then
     # if there are arguments, send them to git
