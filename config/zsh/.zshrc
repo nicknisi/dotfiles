@@ -2,6 +2,9 @@ export ZSH=$DOTFILES/zsh
 
 source "$ZDOTDIR/.zsh_functions"
 
+# source local config (after functions are available)
+[[ -f "$HOME/.localrc" ]] && source "$HOME/.localrc"
+
 ########################################################
 # Configuration
 ########################################################
