@@ -14,8 +14,8 @@ usage() {
   Setup shell configuration. This can be used to set the default shell, install terminfo, etc.
 
   - default shell: The default shell in this configuration is zsh.
-  - terminfo: Terminfo files are installed for tmux and neovim. They help us to
-    have italic text and other features.
+  - terminfo: Terminfo files are installed for tmux, neovim, and ghostty. They help us to
+    have italic text and other features, and ensure proper terminal behavior over SSH.
 
 
 Options:
@@ -51,6 +51,9 @@ cmd_terminfo() {
 
   log_info "adding xterm-256color-italic.terminfo"
   tic -x "$DOTFILES/resources/xterm-256color-italic.terminfo"
+
+  log_info "adding xterm-ghostty.terminfo"
+  tic -x "$DOTFILES/resources/xterm-ghostty.terminfo"
 
   log_success "terminfo files added."
 }
