@@ -52,7 +52,7 @@ return {
                 capabilities = { offsetEncoding = "utf-8" },
                 cmd = {
                     "clangd",
-                    "--query-driver=/home/linuxbrew/.linuxbrew/bin/gcc-13,/usr/bin/gcc,/usr/bin/gcc-11,/home/wl_ubuntu/.vcpkg/downloads/artifacts/2139c4c6/compilers.arm.arm.none.eabi.gcc/14.2.1/bin/arm-none-eabi-gcc",
+                    "--query-driver=/home/linuxbrew/.linuxbrew/bin/gcc-13,/usr/bin/gcc,/usr/bin/gcc-11,/home/wl_ubuntu/.vcpkg/downloads/artifacts/2139c4c6/compilers.arm.arm.none.eabi.gcc/14.2.1/bin/arm-none-eabi-gcc,/usr/bin/arm-none-eabi-gcc,/usr/bin/arm-none-eabi-gcc",
                     "--limit-references=0",
                     "--limit-results=1000",
                     "--pch-storage=memory",
@@ -132,7 +132,7 @@ return {
                     fd:close()
                     if content == "" then return end
 
-                    local dir = string.match(content, "CompilationDatabase:%s*(%S+)%s*$")
+                    local dir = string.match(content, "CompilationDatabase:%s*(%S+)")
                     if dir then table.insert(opts.cmd, "--compile-commands-dir=" .. vim.fn.fnamemodify(dir, ":p")) end
                 end
                 require("lspconfig").clangd.setup(opts)
