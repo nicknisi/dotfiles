@@ -2,46 +2,44 @@
 
 # Claude Code hook for tmux status integration
 # Updates tmux session status files based on Claude's working state
+#
+# States:
+#   working - Claude is executing tools
+#   waiting - Claude finished, awaiting user input
+#   idle    - No active session
 
 STATUS_DIR="$HOME/.cache/claude-status"
 mkdir -p "$STATUS_DIR"
 
-# Debug logging
-echo "$(date): Hook called with args: $*" >> "$STATUS_DIR/debug.log"
-
 # Read JSON from stdin (required by Claude Code hooks)
-JSON_INPUT=$(cat)
-echo "$(date): JSON input: $JSON_INPUT" >> "$STATUS_DIR/debug.log"
+cat > /dev/null
 
 # Get tmux session if in tmux
 if [ -n "$TMUX" ]; then
-  # Try to get session name via tmux command first
   TMUX_SESSION=$(tmux display-message -p '#{session_name}' 2>/dev/null)
 
-  # If that fails (e.g., when called from Claude hooks), parse TMUX env var
+  # Fallback: parse TMUX env var if command fails
   if [ -z "$TMUX_SESSION" ]; then
-    # TMUX format: /tmp/tmux-1000/default,3847,10
-    # Extract session name from socket path
     SOCKET_PATH=$(echo "$TMUX" | cut -d',' -f1)
     TMUX_SESSION=$(basename "$SOCKET_PATH")
   fi
 
   if [ -n "$TMUX_SESSION" ]; then
-    HOOK_TYPE="$1"
     STATUS_FILE="$STATUS_DIR/${TMUX_SESSION}.status"
 
-    case "$HOOK_TYPE" in
-    "PreToolUse" | "Notification")
-      # Claude is starting to work
-      echo "working" >"$STATUS_FILE"
-      ;;
-    "Stop" | "SubagentStop" | "PostToolUse")
-      # Claude has finished responding or completed a tool
-      echo "done" >"$STATUS_FILE"
-      ;;
+    case "$1" in
+      "PreToolUse")
+        echo "working" > "$STATUS_FILE"
+        ;;
+      "waiting")
+        # Only set by Notification matchers (permission_prompt, elicitation_dialog, idle_prompt)
+        echo "waiting" > "$STATUS_FILE"
+        ;;
+      "Stop"|"SubagentStop"|"SessionEnd")
+        echo "idle" > "$STATUS_FILE"
+        ;;
     esac
   fi
 fi
 
-# Always exit successfully
 exit 0

@@ -10,11 +10,11 @@ STATUS_FILE="$HOME/.cache/claude-status/${SESSION_NAME}.status"
 
 if [ -f "$STATUS_FILE" ]; then
   claude_status=$(cat "$STATUS_FILE" 2>/dev/null)
-  if [ "$claude_status" = "working" ]; then
-    echo "working"
-  else
-    echo "done"
-  fi
+  case "$claude_status" in
+    "working") echo "working" ;;
+    "waiting") echo "waiting" ;;
+    *) echo "idle" ;;
+  esac
 else
   echo "idle"
 fi

@@ -180,10 +180,24 @@
     ],
     "Notification": [
       {
+        "matcher": "idle_prompt",
+        "hooks": [{ "type": "command", "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook waiting" }]
+      },
+      {
+        "matcher": "permission_prompt",
+        "hooks": [{ "type": "command", "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook waiting" }]
+      },
+      {
+        "matcher": "elicitation_dialog",
+        "hooks": [{ "type": "command", "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook waiting" }]
+      }
+    ],
+    "SessionEnd": [
+      {
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook Notification"
+            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook SessionEnd"
           }
         ]
       }

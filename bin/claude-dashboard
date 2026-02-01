@@ -50,8 +50,9 @@ get_claude_status() {
 
 # Get all sessions with formatted output
 get_sessions_with_status() {
+  local waiting_sessions=()
   local working_sessions=()
-  local done_sessions=()
+  local idle_sessions=()
   local no_claude_sessions=()
 
   # Collect all sessions into arrays
@@ -63,40 +64,54 @@ get_sessions_with_status() {
       # Get status from hook file
       local claude_status=$(get_claude_status "$name")
 
-      # Default to "done" if no status file exists
-      [ -z "$claude_status" ] && claude_status="done"
+      # Default to "idle" if no status file exists
+      [ -z "$claude_status" ] && claude_status="idle"
 
-      if [ "$claude_status" = "working" ]; then
-        formatted_line=$(printf "%-20s %2s windows %-12s \033[38;5;208m⚡ working\033[0m" "$name" "$windows" "$attached")
-        working_sessions+=("$formatted_line")
-      else
-        formatted_line=$(printf "%-20s %2s windows %-12s \033[32m✓ done\033[0m" "$name" "$windows" "$attached")
-        done_sessions+=("$formatted_line")
-      fi
+      case "$claude_status" in
+        "waiting")
+          formatted_line=$(printf "%-20s %2s windows %-12s \033[1;33m⏳ waiting\033[0m" "$name" "$windows" "$attached")
+          waiting_sessions+=("$formatted_line")
+          ;;
+        "working")
+          formatted_line=$(printf "%-20s %2s windows %-12s \033[38;5;208m⚡ working\033[0m" "$name" "$windows" "$attached")
+          working_sessions+=("$formatted_line")
+          ;;
+        *)
+          formatted_line=$(printf "%-20s %2s windows %-12s \033[32m✓ idle\033[0m" "$name" "$windows" "$attached")
+          idle_sessions+=("$formatted_line")
+          ;;
+      esac
     else
       formatted_line=$(printf "%-20s %2s windows %-12s" "$name" "$windows" "$attached")
       no_claude_sessions+=("$formatted_line")
     fi
   done < <(tmux list-sessions -F "#{session_name}:#{session_windows}:#{?session_attached,(attached),}")
 
-  # Output grouped sessions with separators
+  # Output grouped sessions with separators (waiting first - needs attention!)
+
+  # Waiting sessions (needs user input)
+  if [ ${#waiting_sessions[@]} -gt 0 ]; then
+    echo -e "\033[1;33m━━━ ⏳ WAITING FOR INPUT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+    printf '%s\n' "${waiting_sessions[@]}"
+  fi
 
   # Working sessions
   if [ ${#working_sessions[@]} -gt 0 ]; then
-    echo -e "\033[1;33m━━━ ⚡ WORKING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+    [ ${#waiting_sessions[@]} -gt 0 ] && echo
+    echo -e "\033[38;5;208m━━━ ⚡ WORKING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
     printf '%s\n' "${working_sessions[@]}"
   fi
 
-  # Done sessions
-  if [ ${#done_sessions[@]} -gt 0 ]; then
-    [ ${#working_sessions[@]} -gt 0 ] && echo
-    echo -e "\033[1;32m━━━ ✓ DONE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-    printf '%s\n' "${done_sessions[@]}"
+  # Idle sessions
+  if [ ${#idle_sessions[@]} -gt 0 ]; then
+    [ ${#waiting_sessions[@]} -gt 0 ] || [ ${#working_sessions[@]} -gt 0 ] && echo
+    echo -e "\033[1;32m━━━ ✓ IDLE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+    printf '%s\n' "${idle_sessions[@]}"
   fi
 
   # No Claude sessions
   if [ ${#no_claude_sessions[@]} -gt 0 ]; then
-    [ ${#working_sessions[@]} -gt 0 ] || [ ${#done_sessions[@]} -gt 0 ] && echo
+    [ ${#waiting_sessions[@]} -gt 0 ] || [ ${#working_sessions[@]} -gt 0 ] || [ ${#idle_sessions[@]} -gt 0 ] && echo
     echo -e "\033[1;90m━━━ NO CLAUDE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
     printf '%s\n' "${no_claude_sessions[@]}"
   fi
