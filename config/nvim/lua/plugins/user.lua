@@ -52,6 +52,19 @@ return {
                     },
                 },
             },
+
+            terminal = {
+                win = {
+                    style = "terminal",
+                },
+            },
+        },
+        keys = {
+            {
+                "<leader>gg",
+                function() require("snacks").lazygit { cwd = vim.fn.expand "%:p:h" } end,
+                desc = "Lazygit (Current File Dir)",
+            },
         },
     },
 
@@ -226,29 +239,6 @@ return {
                 vim.opt_local.foldcolumn = "0"
                 vim.opt_local.signcolumn = "no"
             end
-
-            -- used for lazygit
-            local Terminal = require("toggleterm.terminal").Terminal
-            local lazygit = Terminal:new {
-                cmd = "lazygit",
-                hidden = true,
-                direction = "float",
-                count = 10,
-            }
-
-            local function lazygit_toggle()
-                if vim.fn.bufname("%"):match "^term:" == nil then
-                    lazygit.dir = vim.fn.expand "%:p:h" -- current working directory for the active buffer
-                    lazygit:toggle()
-                end
-            end
-
-            vim.keymap.set(
-                "n",
-                "<Leader>gg",
-                function() lazygit_toggle() end,
-                { noremap = true, silent = true, desc = "lazygit" }
-            )
 
             -- change direction for terminal
             local direction = "float"
