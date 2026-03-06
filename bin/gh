@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if [[ "$*" == *"pr merge" ]]; then
+  echo "🚫 Blocked: merging requries human approval."
+  exit 1
+fi
+
+exec "$(brew --prefix)/bin/gh" "$@"
