@@ -182,6 +182,7 @@ function M.setup()
   end
 
   if utils.exists_in_table(servers, "ts_ls") then
+    vim.lsp.enable("oxlint")
     vim.lsp.config(
       "ts_ls",
       make_conf({
