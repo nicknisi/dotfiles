@@ -361,6 +361,7 @@
     ]
   },
   "alwaysThinkingEnabled": true,
+  "voiceEnabled": true,
   "skipDangerousModePermissionPrompt": true,
   "teammateMode": "tmux"
 }
