@@ -195,7 +195,17 @@
     "consultant@nicknisi": true,
     "ideation@nicknisi": true,
     "essentials@nicknisi": true,
-    "content@nicknisi": true
+    "content@nicknisi": true,
+    "workos@workos": true,
+    "claudit@quickstop": true,
+    "code-review@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "agent-sdk-dev@claude-plugins-official": true,
+    "plugin-dev@claude-plugins-official": true,
+    "hookify@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "frontend-design@claude-code-plugins": true
   },
   "spinnerVerbs": {
     "mode": "replace",
