@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Reset tmux pane borders after Claude agent teams modify them
+# Hook: SessionEnd
+
+if [ -n "$TMUX" ]; then
+  # Unset window-level overrides so global theme values take effect
+  tmux set-window-option -u pane-border-status 2>/dev/null
+  tmux set-window-option -u pane-border-style 2>/dev/null
+  tmux set-window-option -u pane-active-border-style 2>/dev/null
+  tmux set-window-option -u pane-border-format 2>/dev/null
+  tmux set-window-option -u pane-border-lines 2>/dev/null
+
+  # Also reset globally in case it was set there
+  tmux set-option -g -u pane-border-status 2>/dev/null
+
+  # Re-apply theme
+  DOTFILES="${DOTFILES:-$HOME/Developer/dotfiles}"
+  bash "$DOTFILES/config/tmux/theme/theme.tmux" 2>/dev/null
+fi
+
+exit 0
