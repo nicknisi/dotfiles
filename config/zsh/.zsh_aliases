@@ -61,3 +61,5 @@ if [[ -n "$(command -v nvim)" ]]; then
 fi
 
 alias claude!="claude --dangerously-skip-permissions"
+alias cc="claude"
+alias cc!="claude!"
