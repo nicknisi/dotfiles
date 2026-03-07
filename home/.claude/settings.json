@@ -205,7 +205,17 @@
     "plugin-dev@claude-plugins-official": true,
     "hookify@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true,
-    "frontend-design@claude-code-plugins": true
+    "frontend-design@claude-code-plugins": true,
+    "case@case": true
+  },
+  "extraKnownMarketplaces": {
+    "case": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/nicknisi/Developer/case"
+      },
+      "autoUpdate": true
+    }
   },
   "spinnerVerbs": {
     "mode": "replace",
@@ -373,5 +383,6 @@
   "alwaysThinkingEnabled": true,
   "voiceEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "teammateMode": "tmux"
+  "teammateMode": "tmux",
+  "effortLevel": "high"
 }
