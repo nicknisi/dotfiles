@@ -20,9 +20,15 @@ ICON_BRANCH="🌿"
 ICON_CONTEXT="📊"
 ICON_COST="💰"
 ICON_STYLE="🎨"
+ICON_USAGE="⚡"
 
 # Feature flags (set env vars to 0 to disable)
 SHOW_CONTEXT_TOKENS="${CLAUDE_STATUSLINE_TOKENS:-1}"
+SHOW_USAGE="${CLAUDE_STATUSLINE_USAGE:-1}"
+
+# Usage limits config
+USAGE_CACHE_TTL="${CLAUDE_STATUSLINE_USAGE_TTL:-120}"
+USAGE_CACHE_DIR="${TMPDIR:-/tmp}/claude-statusline-cache"
 
 # Read JSON input from stdin
 input=$(cat)
@@ -107,6 +113,146 @@ build_context_bar() {
   fi
 }
 
+# ── Usage limits ──────────────────────────────────────────────────────────────
+
+get_oauth_token() {
+  local creds
+  creds=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null) || return 1
+  echo "$creds" | jq -r '.claudeAiOauth.accessToken // empty'
+}
+
+# Format ISO 8601 timestamp to human-readable time-until string
+format_time_until() {
+  local resets_at="$1"
+  [ -z "$resets_at" ] && echo "?" && return
+
+  local reset_epoch
+  # Normalize: strip +00:00 → Z, strip fractional seconds (.943648)
+  local normalized="${resets_at/+00:00/Z}"
+  normalized=$(echo "$normalized" | sed 's/\.[0-9]*Z/Z/')
+  reset_epoch=$(date -u -jf "%Y-%m-%dT%H:%M:%SZ" "$normalized" "+%s" 2>/dev/null) \
+    || { echo "?"; return; }
+
+  local now
+  now=$(date "+%s")
+  if [ "$now" -ge "$reset_epoch" ]; then
+    echo "now"
+    return
+  fi
+
+  local secs=$((reset_epoch - now))
+  local mins=$((secs / 60))
+  local hours=$((mins / 60))
+  local days=$((hours / 24))
+
+  if [ "$days" -gt 0 ]; then
+    printf "%dd%dh" "$days" $((hours % 24))
+  elif [ "$hours" -gt 0 ]; then
+    printf "%dh%dm" "$hours" $((mins % 60))
+  else
+    printf "%dm" "$mins"
+  fi
+}
+
+# Read cached usage data if fresh enough
+read_usage_cache() {
+  local cache_file="${USAGE_CACHE_DIR}/usage.json"
+  [ -f "$cache_file" ] || return 1
+
+  local file_age
+  local file_mod
+  file_mod=$(stat -f "%m" "$cache_file" 2>/dev/null) || return 1
+  local now
+  now=$(date "+%s")
+  file_age=$((now - file_mod))
+
+  [ "$file_age" -lt "$USAGE_CACHE_TTL" ] || return 1
+  cat "$cache_file"
+}
+
+# Fetch usage from API and write to cache
+fetch_usage() {
+  local token
+  token=$(get_oauth_token) || return 1
+  [ -n "$token" ] || return 1
+
+  mkdir -p "$USAGE_CACHE_DIR"
+
+  local response
+  response=$(curl -s --max-time 3 \
+    -H "Authorization: Bearer $token" \
+    -H "anthropic-beta: oauth-2025-04-20" \
+    "https://api.anthropic.com/api/oauth/usage" 2>/dev/null) || return 1
+
+  # Validate response has expected fields
+  echo "$response" | jq -e '.five_hour.utilization' >/dev/null 2>&1 || return 1
+
+  echo "$response" > "${USAGE_CACHE_DIR}/usage.json"
+  echo "$response"
+}
+
+# Get usage data (cache-first, then fetch)
+get_usage_data() {
+  local data
+  data=$(read_usage_cache) && echo "$data" && return
+  fetch_usage
+}
+
+# Build a mini usage bar for a single window
+# Args: $1=remaining_pct (0-100), $2=label ("5h"/"7d"), $3=time_until
+build_usage_bar() {
+  local remaining="$1" label="$2" time_until="$3"
+  local bar_width=5
+  local filled=$((remaining * bar_width / 100))
+  local empty=$((bar_width - filled))
+
+  [ "$filled" -gt "$bar_width" ] && filled=$bar_width && empty=0
+  [ "$filled" -lt 0 ] && filled=0 && empty=$bar_width
+
+  local bar_color
+  if [ "$remaining" -gt 50 ]; then
+    bar_color="$GREEN"
+  elif [ "$remaining" -gt 20 ]; then
+    bar_color="$YELLOW"
+  else
+    bar_color="$RED"
+  fi
+
+  local bar=""
+  for ((i = 0; i < filled; i++)); do bar+="━"; done
+  for ((i = 0; i < empty; i++)); do bar+="╌"; done
+
+  printf "${DIM}%s${RESET} %s%s%s %d%% ${DIM}↻%s${RESET}" \
+    "$label" "$bar_color" "$bar" "$RESET" "$remaining" "$time_until"
+}
+
+# Build usage display string
+build_usage_display() {
+  [ "$SHOW_USAGE" = "1" ] || return
+
+  local data
+  data=$(get_usage_data) || return
+
+  local five_used seven_used five_reset seven_reset
+  five_used=$(echo "$data" | jq -r '.five_hour.utilization // 0' | xargs printf "%.0f")
+  seven_used=$(echo "$data" | jq -r '.seven_day.utilization // 0' | xargs printf "%.0f")
+  five_reset=$(echo "$data" | jq -r '.five_hour.resets_at // empty')
+  seven_reset=$(echo "$data" | jq -r '.seven_day.resets_at // empty')
+
+  local five_remaining=$((100 - five_used))
+  local seven_remaining=$((100 - seven_used))
+
+  local five_until seven_until
+  five_until=$(format_time_until "$five_reset")
+  seven_until=$(format_time_until "$seven_reset")
+
+  local five_bar seven_bar
+  five_bar=$(build_usage_bar "$five_remaining" "5h" "$five_until")
+  seven_bar=$(build_usage_bar "$seven_remaining" "7d" "$seven_until")
+
+  printf "%s ${DIM}╱${RESET} %s" "$five_bar" "$seven_bar"
+}
+
 # Extract values
 model=$(get_model_name)
 model_icon=$(get_model_icon)
@@ -115,6 +261,7 @@ current_dir=$(get_current_dir)
 project_dir=$(get_project_dir)
 cost_display=$(get_cost)
 context_bar=$(build_context_bar)
+usage_display=$(build_usage_display)
 
 # Get project name and handle subdirectory display
 project=$(basename "$project_dir")
@@ -137,6 +284,10 @@ statusline+=" ${SEP} "
 statusline+="${model_icon} ${MAGENTA}${model}${RESET}"
 statusline+=" ${SEP} "
 statusline+="${ICON_COST} ${CYAN}${cost_display}${RESET}"
+if [ -n "$usage_display" ]; then
+  statusline+=" ${SEP} "
+  statusline+="${ICON_USAGE} ${usage_display}"
+fi
 if [ "$output_style" != "default" ]; then
   statusline+=" ${SEP} "
   statusline+="${ICON_STYLE} ${DIM}${output_style}${RESET}"
