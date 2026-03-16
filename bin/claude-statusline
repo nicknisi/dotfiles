@@ -288,12 +288,19 @@ else
 fi
 
 # Build segments — order: identity → impact → resources → meta
-seg_add() { statusline+=" ${SEP} $1"; }
+seg_add() {
+  if [ -n "$statusline" ]; then
+    statusline+=" ${SEP} "
+  fi
+  statusline+="$1"
+}
 
 statusline=""
 
-# ── Identity ──
-statusline+="${model_icon} ${MAGENTA}${model}${RESET}"
+# ── Identity (only show model if not Opus) ──
+if [[ "$model" != *[Oo]pus* ]]; then
+  statusline+="${model_icon} ${MAGENTA}${model}${RESET}"
+fi
 if [ -n "$agent_name" ]; then
   statusline+=" ${DIM}(${agent_name})${RESET}"
 fi
