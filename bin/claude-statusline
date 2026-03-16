@@ -17,7 +17,7 @@ SEP="${DIM}│${RESET}"
 # Emoji icons
 ICON_PROJECT="📁"
 ICON_BRANCH="🌿"
-ICON_CONTEXT="📊"
+ICON_CONTEXT="🧠"
 ICON_COST="💰"
 ICON_STYLE="🎨"
 ICON_USAGE="⚡"
@@ -34,16 +34,16 @@ USAGE_CACHE_DIR="${TMPDIR:-/tmp}/claude-statusline-cache"
 input=$(cat)
 
 # Helper functions for extracting data
-get_model_name() { echo "$input" | jq -r '.model.display_name // "Unknown Model"'; }
+get_model_name() { echo "$input" | jq -r '.model.display_name // "Unknown Model"' | sed 's/ (.*)//'; }
 
 # Get model-specific icon based on model name
 get_model_icon() {
   local model_name=$(get_model_name)
   case "$model_name" in
-  *[Oo]pus*) echo "🎭" ;;   # Theater masks for the dramatic, powerful model
+  *[Oo]pus*) echo "🦉" ;;
   *[Ss]onnet*) echo "🎵" ;; # Musical note for the balanced, harmonious model
   *[Hh]aiku*) echo "🍃" ;;  # Leaf for the light, quick model
-  *) echo "🧠" ;;           # Default brain icon
+  *) echo "🤖" ;;
   esac
 }
 get_output_style() { echo "$input" | jq -r '.output_style.name // "default"'; }
@@ -75,41 +75,33 @@ get_context_used() {
 
 # Build a progress bar with color based on percentage
 build_context_bar() {
-  local percent=$(get_context_percent)
-  local bar_width=10
-  local filled=$((percent * bar_width / 100))
+  local used=$(get_context_percent)
+  local remaining=$((100 - used))
+  local bar_width=5
+  local filled=$((remaining * bar_width / 100))
   local empty=$((bar_width - filled))
 
-  # Cap filled at bar_width
-  if [ "$filled" -gt "$bar_width" ]; then
-    filled=$bar_width
-    empty=0
-  fi
+  [ "$filled" -gt "$bar_width" ] && filled=$bar_width && empty=0
+  [ "$filled" -lt 0 ] && filled=0 && empty=$bar_width
 
-  # Choose color based on percentage thresholds
   local bar_color
-  if [ "$percent" -lt 40 ]; then
-    bar_color="$WHITE"
-  elif [ "$percent" -lt 80 ]; then
+  if [ "$remaining" -gt 50 ]; then
+    bar_color="$GREEN"
+  elif [ "$remaining" -gt 20 ]; then
     bar_color="$YELLOW"
   else
     bar_color="$RED"
   fi
 
-  # Build the bar
   local bar=""
-  for ((i = 0; i < filled; i++)); do
-    bar+="█"
-  done
-  for ((i = 0; i < empty; i++)); do
-    bar+="░"
-  done
+  for ((i = 0; i < filled; i++)); do bar+="━"; done
+  for ((i = 0; i < empty; i++)); do bar+="╌"; done
 
   if [ "$SHOW_CONTEXT_TOKENS" = "1" ]; then
-    local used=$(get_context_used)
-    printf "%s%s%s %d%% ${DIM}(%s)${RESET}" "$bar_color" "$bar" "$RESET" "$percent" "$used"
+    local tokens=$(get_context_used)
+    printf "%s%s%s %d%% ${DIM}(%s)${RESET}" "$bar_color" "$bar" "$RESET" "$remaining" "$tokens"
   else
-    printf "%s%s%s %d%%" "$bar_color" "$bar" "$RESET" "$percent"
+    printf "%s%s%s %d%%" "$bar_color" "$bar" "$RESET" "$remaining"
   fi
 }
 
