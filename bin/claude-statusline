@@ -280,8 +280,12 @@ fi
 # Get git branch
 git_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "no-git")
 
-# Terminal width for adaptive display
-term_width="${COLUMNS:-$(tput cols 2>/dev/null || echo 200)}"
+# Terminal width for adaptive display (tmux pane-aware)
+if [ -n "$TMUX" ]; then
+  term_width=$(tmux display-message -p '#{pane_width}' 2>/dev/null || echo 200)
+else
+  term_width="${COLUMNS:-$(tput cols 2>/dev/null || echo 200)}"
+fi
 
 # Build segments — order: identity → impact → resources → meta
 seg_add() { statusline+=" ${SEP} $1"; }
