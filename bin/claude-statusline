@@ -313,12 +313,12 @@ if [ -n "$usage_display" ]; then
 fi
 
 # ── Meta (collapsible) ──
-if [ "$term_width" -gt 120 ] && [ "$output_style" != "default" ]; then
+if [ "$term_width" -gt 160 ] && [ "$output_style" != "default" ]; then
   seg_add "${ICON_STYLE} ${DIM}${output_style}${RESET}"
 fi
 
 # Prepend project/branch on wide terminals
-if [ "$term_width" -gt 80 ]; then
+if [ "$term_width" -gt 120 ]; then
   local_prefix="${ICON_PROJECT} ${BLUE}${project}${RESET} ${SEP} ${ICON_BRANCH} ${GREEN}${git_branch}${RESET}"
   statusline="${local_prefix} ${SEP} ${statusline}"
 fi
