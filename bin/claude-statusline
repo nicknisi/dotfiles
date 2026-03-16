@@ -21,6 +21,8 @@ ICON_CONTEXT="🧠"
 ICON_COST="💰"
 ICON_STYLE="🎨"
 ICON_USAGE="⚡"
+ICON_LINES="✏️"
+ICON_AGENT="🤖"
 
 # Feature flags (set env vars to 0 to disable)
 SHOW_CONTEXT_TOKENS="${CLAUDE_STATUSLINE_TOKENS:-1}"
@@ -51,7 +53,18 @@ get_current_dir() { echo "$input" | jq -r '.workspace.current_dir // "."'; }
 get_project_dir() { echo "$input" | jq -r '.workspace.project_dir // "."'; }
 get_cost() {
   local cost=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
-  printf "\$%.2f" "$cost"
+  printf "${DIM}\$%.2f${RESET}" "$cost"
+}
+
+get_lines_changed() {
+  local added=$(echo "$input" | jq -r '.cost.total_lines_added // 0')
+  local removed=$(echo "$input" | jq -r '.cost.total_lines_removed // 0')
+  [ "$added" = "0" ] && [ "$removed" = "0" ] && return
+  printf "${GREEN}+%d${RESET}/${RED}-%d${RESET}" "$added" "$removed"
+}
+
+get_agent_name() {
+  echo "$input" | jq -r '.agent.name // empty'
 }
 
 get_context_percent() {
@@ -254,6 +267,8 @@ project_dir=$(get_project_dir)
 cost_display=$(get_cost)
 context_bar=$(build_context_bar)
 usage_display=$(build_usage_display)
+lines_display=$(get_lines_changed)
+agent_name=$(get_agent_name)
 
 # Get project name and handle subdirectory display
 project=$(basename "$project_dir")
@@ -265,24 +280,43 @@ fi
 # Get git branch
 git_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "no-git")
 
-# Build statusline (order: project → branch → context → model → cost → style)
+# Terminal width for adaptive display
+term_width="${COLUMNS:-$(tput cols 2>/dev/null || echo 200)}"
+
+# Build segments — order: identity → impact → resources → meta
+seg_add() { statusline+=" ${SEP} $1"; }
+
 statusline=""
-statusline+="${ICON_PROJECT} ${BLUE}${project}${RESET}"
-statusline+=" ${SEP} "
-statusline+="${ICON_BRANCH} ${GREEN}${git_branch}${RESET}"
-statusline+=" ${SEP} "
-statusline+="${ICON_CONTEXT} ${context_bar}"
-statusline+=" ${SEP} "
+
+# ── Identity ──
 statusline+="${model_icon} ${MAGENTA}${model}${RESET}"
-statusline+=" ${SEP} "
-statusline+="${ICON_COST} ${CYAN}${cost_display}${RESET}"
-if [ -n "$usage_display" ]; then
-  statusline+=" ${SEP} "
-  statusline+="${ICON_USAGE} ${usage_display}"
+if [ -n "$agent_name" ]; then
+  statusline+=" ${DIM}(${agent_name})${RESET}"
 fi
-if [ "$output_style" != "default" ]; then
-  statusline+=" ${SEP} "
-  statusline+="${ICON_STYLE} ${DIM}${output_style}${RESET}"
+
+# ── Session impact ──
+if [ "$cost_display" != "\$0.00" ]; then
+  seg_add "${ICON_COST} ${cost_display}"
+fi
+if [ -n "$lines_display" ]; then
+  seg_add "${ICON_LINES} ${lines_display}"
+fi
+
+# ── Resource gauges ──
+seg_add "${ICON_CONTEXT} ${context_bar}"
+if [ -n "$usage_display" ]; then
+  seg_add "${ICON_USAGE} ${usage_display}"
+fi
+
+# ── Meta (collapsible) ──
+if [ "$term_width" -gt 120 ] && [ "$output_style" != "default" ]; then
+  seg_add "${ICON_STYLE} ${DIM}${output_style}${RESET}"
+fi
+
+# Prepend project/branch on wide terminals
+if [ "$term_width" -gt 80 ]; then
+  local_prefix="${ICON_PROJECT} ${BLUE}${project}${RESET} ${SEP} ${ICON_BRANCH} ${GREEN}${git_branch}${RESET}"
+  statusline="${local_prefix} ${SEP} ${statusline}"
 fi
 
 echo -e "$statusline"
