@@ -93,7 +93,6 @@
       "~/.claude/"
     ]
   },
-  "model": "opus[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -381,8 +380,8 @@
     ]
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
   "voiceEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "teammateMode": "tmux",
-  "effortLevel": "high"
+  "teammateMode": "tmux"
 }
