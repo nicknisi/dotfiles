@@ -14,3 +14,7 @@ config/ghostty/overrides
 node_modules/
 build/
 config/karabiner/automatic_backups/
+
+# pi agent
+home/.pi/agent/auth.json
+home/.pi/agent/sessions/

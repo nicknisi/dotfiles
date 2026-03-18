@@ -1,0 +1,5 @@
+{
+  "defaultProvider": "anthropic",
+  "theme": "nightowl",
+  "lastChangelogVersion": "0.60.0"
+}
