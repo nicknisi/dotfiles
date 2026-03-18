@@ -14,7 +14,7 @@ autoload -U compinit add-zsh-hook
 compinit
 
 # setup PATH
-for dir in $HOME/.cargo/bin $HOME/.local/bin /usr/local/opt/grep/libexec/gnubin /usr/local/sbin $DOTFILES/bin $HOME/bin; do
+for dir in $HOME/.bun/bin $HOME/.cargo/bin $HOME/.local/bin /usr/local/opt/grep/libexec/gnubin /usr/local/sbin $DOTFILES/bin $HOME/bin; do
   prepend_path $dir
 done
 
