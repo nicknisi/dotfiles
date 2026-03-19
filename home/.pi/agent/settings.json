@@ -15,7 +15,8 @@
   "packages": [
     "npm:pi-subagents",
     "git:github.com/ghoseb/pi-askuserquestion",
-    "npm:@nicknisi/pi-ideation"
+    "npm:@nicknisi/pi-ideation",
+    "npm:pi-prompt-template-model"
   ],
   "defaultModel": "claude-opus-4-6"
 }
