@@ -1,26 +1,26 @@
 {
 	"$schema": "https://raw.githubusercontent.com/badlogic/pi-mono/main/packages/coding-agent/theme-schema.json",
-	"name": "tokyonight-night",
+	"name": "tokyonight-day",
 	"vars": {
-		"bg": "#1a1b26",
-		"bgDark": "#16161e",
-		"bgHighlight": "#283457",
-		"fg": "#c0caf5",
-		"fgDark": "#a9b1d6",
-		"comment": "#565f89",
-		"dark3": "#3b4261",
-		"dark5": "#737aa2",
-		"blue": "#7aa2f7",
-		"blue1": "#2ac3de",
-		"blue5": "#89ddff",
-		"cyan": "#73daca",
-		"green": "#9ece6a",
-		"magenta": "#bb9af7",
-		"orange": "#ff9e64",
-		"red": "#f7768e",
-		"yellow": "#e0af68",
-		"teal": "#1abc9c",
-		"terminal_black": "#414868"
+		"bg": "#e1e2e7",
+		"bgDark": "#d5d6db",
+		"bgHighlight": "#c4c8da",
+		"fg": "#3760bf",
+		"fgDark": "#6172b0",
+		"comment": "#848cb5",
+		"dark3": "#8990b3",
+		"dark5": "#68709a",
+		"blue": "#2e7de9",
+		"blue1": "#188092",
+		"blue5": "#006a83",
+		"cyan": "#007197",
+		"green": "#587539",
+		"magenta": "#9854f1",
+		"orange": "#b15c00",
+		"red": "#f52a65",
+		"yellow": "#8c6c3e",
+		"teal": "#118c74",
+		"terminal_black": "#a1a6c5"
 	},
 	"colors": {
 		"accent": "blue",
@@ -36,15 +36,15 @@
 		"thinkingText": "comment",
 
 		"selectedBg": "bgHighlight",
-		"userMessageBg": "#1e1f2b",
+		"userMessageBg": "#d8dae2",
 		"userMessageText": "",
-		"customMessageBg": "#1e1f2b",
+		"customMessageBg": "#d8dae2",
 		"customMessageText": "",
 		"customMessageLabel": "blue",
 
-		"toolPendingBg": "#121318",
-		"toolSuccessBg": "#141c28",
-		"toolErrorBg": "#2d1b2e",
+		"toolPendingBg": "bgDark",
+		"toolSuccessBg": "#dae0d4",
+		"toolErrorBg": "#ebd4da",
 		"toolTitle": "",
 		"toolOutput": "comment",
 
@@ -83,8 +83,8 @@
 		"bashMode": "orange"
 	},
 	"export": {
-		"pageBg": "#16161e",
-		"cardBg": "#1a1b26",
-		"infoBg": "#1e1f2b"
+		"pageBg": "#d5d6db",
+		"cardBg": "#e1e2e7",
+		"infoBg": "#d8dae2"
 	}
 }

@@ -1,6 +1,6 @@
 {
   "defaultProvider": "anthropic",
-  "theme": "tokyonight-night",
+  "theme": "catppuccin-mocha",
   "quietStartup": true,
   "hideThinkingBlock": true,
   "lastChangelogVersion": "0.60.0",
