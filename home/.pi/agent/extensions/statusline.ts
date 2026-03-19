@@ -93,13 +93,13 @@ function getOAuthToken(): string | undefined {
 	return undefined;
 }
 
-function readUsageCache(): UsageData | undefined {
+function readUsageCache(allowStale = false): UsageData | undefined {
 	const cacheFile = join(USAGE_CACHE_DIR, "usage.json");
 	try {
 		if (!existsSync(cacheFile)) return undefined;
 		const stat = statSync(cacheFile);
 		const age = (Date.now() - stat.mtimeMs) / 1000;
-		if (age >= USAGE_CACHE_TTL) return undefined;
+		if (!allowStale && age >= USAGE_CACHE_TTL) return undefined;
 		return JSON.parse(readFileSync(cacheFile, "utf-8"));
 	} catch {
 		return undefined;
@@ -126,7 +126,7 @@ function fetchUsage(): UsageData | undefined {
 }
 
 function getUsageData(): UsageData | undefined {
-	return readUsageCache() ?? fetchUsage();
+	return readUsageCache() ?? fetchUsage() ?? readUsageCache(true);
 }
 
 function formatTimeUntil(resetsAt: string): string {
