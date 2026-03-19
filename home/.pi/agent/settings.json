@@ -1,5 +1,21 @@
 {
   "defaultProvider": "anthropic",
-  "theme": "nightowl",
-  "lastChangelogVersion": "0.60.0"
+  "theme": "tokyonight-night",
+  "quietStartup": true,
+  "hideThinkingBlock": true,
+  "lastChangelogVersion": "0.60.0",
+  "skills": [
+    "~/.claude/skills",
+    "~/Developer/claude-plugins/plugins/consultant/skills",
+    "~/Developer/claude-plugins/plugins/content/skills",
+    "~/Developer/claude-plugins/plugins/essentials/skills",
+    "~/Developer/claude-plugins/plugins/meta/skills"
+  ],
+  "defaultThinkingLevel": "high",
+  "packages": [
+    "npm:pi-subagents",
+    "git:github.com/ghoseb/pi-askuserquestion",
+    "npm:@nicknisi/pi-ideation"
+  ],
+  "defaultModel": "claude-opus-4-6"
 }
