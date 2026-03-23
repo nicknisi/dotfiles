@@ -19,3 +19,4 @@ config/karabiner/automatic_backups/
 home/.pi/agent/auth.json
 home/.pi/agent/sessions/
 home/.pi/agent/git/
+home/.pi/agent/run-history.jsonl
