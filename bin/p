@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+detect_pm() {
+  # 1. Lock files (most reliable)
+  [[ -f "bun.lock" || -f "bun.lockb" ]] && echo "bun" && return
+  [[ -f "yarn.lock" ]] && echo "yarn" && return
+  [[ -f "pnpm-lock.yaml" ]] && echo "pnpm" && return
+  [[ -f "package-lock.json" ]] && echo "npm" && return
+
+  # 2. packageManager field in package.json (corepack)
+  if [[ -f "package.json" ]] && command -v jq >/dev/null 2>&1; then
+    local pm
+    pm=$(jq -r '.packageManager // empty' package.json 2>/dev/null | cut -d'@' -f1)
+    [[ -n "$pm" ]] && echo "$pm" && return
+  fi
+
+  # 3. Default to npm
+  echo "npm"
+}
+
+is_npm_script() {
+  [[ -f "package.json" ]] || return 1
+  if command -v jq >/dev/null 2>&1; then
+    jq -e ".scripts[\"$1\"]" package.json >/dev/null 2>&1
+  else
+    grep -q "\"$1\"" package.json 2>/dev/null
+  fi
+}
+
+p() {
+  if [[ $# -eq 0 ]]; then
+    echo "Usage: p <command> [args...]" >&2
+    return 1
+  fi
+
+  local cmd="$1"
+  shift
+
+  local pm
+  pm=$(detect_pm)
+
+  if [[ "$pm" == "npm" ]] && is_npm_script "$cmd"; then
+    if [[ $# -gt 0 ]]; then
+      npm run "$cmd" -- "$@"
+    else
+      npm run "$cmd"
+    fi
+  else
+    "$pm" "$cmd" "$@"
+  fi
+}
+
+p "$@"
