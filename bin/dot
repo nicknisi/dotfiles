@@ -5,8 +5,6 @@ trap cleanup SIGINT SIGTERM ERR EXIT
 
 cleanup() {
   trap - SIGINT SIGTERM ERR EXIT
-  tput cnorm # enable cursor
-  # script cleanup here
 }
 
 command_name=$(basename "${BASH_SOURCE[0]}")
@@ -43,17 +41,10 @@ $(fmt_key "Available Commands:")
     clean                         Clean up broken symlinks
     backup                        Backup dotfiles
         -d, --directory <dir>   Backup directory (default: ~/dotfiles-backup)
-    link                          Link dotfiles packages to their respective locations
-        all                       Link all
-        <pkg>                     Link a specific package
-        clean                     Clean up broken symlinks
-            -n, --dry-run         Show what would be removed without actually removing
-            -v, --verbose         Show detailed output
-        -v, --verbose             Show detailed output
-    unlink                        Unlink dotfiles packages
-        all                       Unlink all
-        <pkg>                     Unlink a specific package
-        -v, --verbose             Show detailed output
+    link [pkg]                    Link packages (default: all)
+        clean                     Remove broken symlinks
+            -n, --dry-run         Preview without removing
+    unlink [pkg]                  Unlink packages (default: all)
 EOF
 
   echo -e "\nExternal commands:"
@@ -88,14 +79,18 @@ cmd_clean() {
 
   # Clean up broken symlinks from home directory
   if [ -d "$DOTFILES/home" ]; then
-    while IFS= read -r -d '' file; do
-      relative_path="${file#"$DOTFILES"/home/}"
-      target_path="$HOME/$relative_path"
+    shopt -s dotglob
+    for entry in "$DOTFILES/home"/*; do
+      [ -e "$entry" ] || continue
+      local name="$(basename "$entry")"
+      [[ "$name" == ".DS_Store" ]] && continue
+      local target_path="$HOME/$name"
       if [ -L "$target_path" ] && [ ! -e "$target_path" ]; then
         log_success "Removing broken symbolic link: $target_path"
         rm "$target_path"
       fi
-    done < <(find "$DOTFILES/home" -type f -print0)
+    done
+    shopt -u dotglob
   fi
 
   echo -e
@@ -155,12 +150,16 @@ cmd_backup() {
     ".config/zsh"
   )
 
-  # Add home directory files to backup
+  # Add home directory entries to backup
   if [ -d "$DOTFILES/home" ]; then
-    while IFS= read -r -d '' file; do
-      relative_path="${file#"$DOTFILES"/home/}"
-      files_to_backup+=("$relative_path")
-    done < <(find "$DOTFILES/home" -type f -print0)
+    shopt -s dotglob
+    for entry in "$DOTFILES/home"/*; do
+      [ -e "$entry" ] || continue
+      local name="$(basename "$entry")"
+      [[ "$name" == ".DS_Store" ]] && continue
+      files_to_backup+=("$name")
+    done
+    shopt -u dotglob
   fi
 
   tmpfile=$(mktemp)
@@ -198,65 +197,85 @@ cmd_backup() {
   fi
 }
 
-link_home_files() {
-  local operation="$1"
-  local verbose="$2"
+# ── Symlink helpers ──────────────────────────────────────────────
 
-  if [ ! -d "$DOTFILES/home" ]; then
-    return 0
-  fi
+STAT_LINKED=0
+STAT_UNLINKED=0
+STAT_UNCHANGED=0
+STAT_SKIPPED=0
 
-  while IFS= read -r -d '' file; do
-    local relative_path="${file#"$DOTFILES"/home/}"
-    local target_path="$HOME/$relative_path"
-    local target_dir="$(dirname "$target_path")"
+stat_reset() { STAT_LINKED=0; STAT_UNLINKED=0; STAT_UNCHANGED=0; STAT_SKIPPED=0; }
 
-    if [ "$operation" = "link" ]; then
-      # Create parent directories if needed
-      if [ ! -d "$target_dir" ]; then
-        [ "$verbose" = true ] && log_info "Creating directory: $target_dir"
-        mkdir -p "$target_dir"
-      fi
+do_link() {
+  local src="$1" target="$2" label="$3"
+  local display="~${target#"$HOME"}"
 
-      if [ -e "$target_path" ]; then
-        log_warning "~${target_path#"$HOME"} already exists... Skipping."
-      else
-        [ "$verbose" = true ] && log_info "Linking $relative_path"
-        ln -s "$file" "$target_path"
-      fi
-    else # unlink
-      if [ -L "$target_path" ]; then
-        [ "$verbose" = true ] && log_info "Unlinking $target_path"
-        rm "$target_path"
-      elif [ -e "$target_path" ]; then
-        log_warning "Skipping \"$target_path\" because it is not a symlink"
-      fi
+  if [ -L "$target" ]; then
+    if [ "$(readlink "$target")" = "$src" ]; then
+      STAT_UNCHANGED=$((STAT_UNCHANGED + 1))
+      return 0
     fi
-  done < <(find "$DOTFILES/home" -type f -print0)
+    printf "  ${YELLOW}⚠ %-20s${RESET} ${DIM}symlink → wrong target${RESET}\n" "$label"
+    STAT_SKIPPED=$((STAT_SKIPPED + 1))
+  elif [ -e "$target" ]; then
+    printf "  ${YELLOW}⚠ %-20s${RESET} ${DIM}exists (not a symlink)${RESET}\n" "$label"
+    STAT_SKIPPED=$((STAT_SKIPPED + 1))
+  else
+    ln -s "$src" "$target"
+    printf "  ${GREEN}+ %-20s${RESET} ${DIM}→ %s${RESET}\n" "$label" "$display"
+    STAT_LINKED=$((STAT_LINKED + 1))
+  fi
 }
 
+do_unlink() {
+  local target="$1" label="$2"
+  local display="~${target#"$HOME"}"
+
+  if [ -L "$target" ]; then
+    rm "$target"
+    printf "  ${RED}- %-20s${RESET} ${DIM}%s${RESET}\n" "$label" "$display"
+    STAT_UNLINKED=$((STAT_UNLINKED + 1))
+  elif [ -e "$target" ]; then
+    printf "  ${YELLOW}⚠ %-20s${RESET} ${DIM}not a symlink${RESET}\n" "$label"
+    STAT_SKIPPED=$((STAT_SKIPPED + 1))
+  else
+    STAT_UNCHANGED=$((STAT_UNCHANGED + 1))
+  fi
+}
+
+print_summary() {
+  local operation="$1"
+  local parts=()
+
+  if [ "$operation" = "link" ]; then
+    [ "$STAT_LINKED" -gt 0 ] && parts+=("$(printf "${GREEN}%d linked${RESET}" "$STAT_LINKED")")
+  else
+    [ "$STAT_UNLINKED" -gt 0 ] && parts+=("$(printf "${RED}%d unlinked${RESET}" "$STAT_UNLINKED")")
+  fi
+  [ "$STAT_SKIPPED" -gt 0 ] && parts+=("$(printf "${YELLOW}%d skipped${RESET}" "$STAT_SKIPPED")")
+  [ "$STAT_UNCHANGED" -gt 0 ] && parts+=("$(printf "${DIM}%d unchanged${RESET}" "$STAT_UNCHANGED")")
+
+  if [ ${#parts[@]} -gt 0 ]; then
+    local IFS=", "
+    printf "\n  ${BOLD}${SUCCESS_ICON}${RESET} %s\n" "${parts[*]}"
+  fi
+}
+
+# ── Clean broken symlinks ───────────────────────────────────────
+
 cmd_link_clean() {
-  local verbose=false
   local dry_run=false
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    -v | --verbose)
-      verbose=true
-      shift
-      ;;
-    -n | --dry-run)
-      dry_run=true
-      shift
-      ;;
-    *)
-      log_error "Unknown argument: $1"
-      exit 1
-      ;;
+    -n | --dry-run) dry_run=true; shift ;;
+    *) log_error "Unknown argument: $1"; exit 1 ;;
     esac
   done
 
-  fmt_title_underline "Cleaning up broken symlinks"
+  printf "\n  ${BOLD}dot link clean${RESET}"
+  [ "$dry_run" = true ] && printf " ${DIM}(dry run)${RESET}"
+  printf "\n\n"
 
   local broken_count=0
 
@@ -265,148 +284,141 @@ cmd_link_clean() {
     while IFS= read -r -d '' link; do
       if [ -L "$link" ] && [ ! -e "$link" ]; then
         broken_count=$((broken_count + 1))
+        local display="~${link#"$HOME"}"
         if [ "$dry_run" = true ]; then
-          log_warning "[DRY RUN] Would remove broken symlink: ~${link#"$HOME"}"
+          printf "  ${YELLOW}⚠ %s${RESET}\n" "$display"
         else
-          [ "$verbose" = true ] && log_info "Removing broken symlink: ~${link#"$HOME"}"
+          printf "  ${RED}- %s${RESET}\n" "$display"
           rm "$link"
         fi
       fi
     done < <(find "$CONFIG_HOME" -type l -print0 2>/dev/null || true)
   fi
 
-  # Check home directory symlinks created from $DOTFILES/home
+  # Check home directory symlinks
   if [ -d "$DOTFILES/home" ]; then
-    # Get all directories that contain files in $DOTFILES/home
-    local home_dirs=()
-    while IFS= read -r -d '' file; do
-      local dir_path="$HOME/$(dirname "${file#"$DOTFILES"/home/}")"
-      # Add to array if not already present
-      if [[ ! " ${home_dirs[@]} " =~ " ${dir_path} " ]]; then
-        home_dirs+=("$dir_path")
-      fi
-    done < <(find "$DOTFILES/home" -type f -print0)
-
-    # Now check for broken symlinks only in those directories
-    for dir in "${home_dirs[@]}"; do
-      if [ -d "$dir" ]; then
-        while IFS= read -r -d '' link; do
-          if [ -L "$link" ] && [ ! -e "$link" ]; then
-            # Check if this broken symlink points to our dotfiles directory
-            local link_target=$(readlink "$link")
-            if [[ "$link_target" == "$DOTFILES"* ]]; then
-              broken_count=$((broken_count + 1))
-              if [ "$dry_run" = true ]; then
-                log_warning "[DRY RUN] Would remove broken symlink: ~${link#"$HOME"}"
-              else
-                [ "$verbose" = true ] && log_info "Removing broken symlink: ~${link#"$HOME"}"
-                rm "$link"
-              fi
-            fi
+    shopt -s dotglob
+    for entry in "$DOTFILES/home"/*; do
+      [ -e "$entry" ] || continue
+      local name="$(basename "$entry")"
+      [[ "$name" == ".DS_Store" ]] && continue
+      local target_path="$HOME/$name"
+      if [ -L "$target_path" ] && [ ! -e "$target_path" ]; then
+        local link_target
+        link_target=$(readlink "$target_path")
+        if [[ "$link_target" == "$DOTFILES"* ]]; then
+          broken_count=$((broken_count + 1))
+          if [ "$dry_run" = true ]; then
+            printf "  ${YELLOW}⚠ ~/%s${RESET}\n" "$name"
+          else
+            printf "  ${RED}- ~/%s${RESET}\n" "$name"
+            rm "$target_path"
           fi
-        done < <(find "$dir" -maxdepth 1 -type l -print0 2>/dev/null || true)
+        fi
       fi
     done
+    shopt -u dotglob
   fi
 
   echo
   if [ "$broken_count" -eq 0 ]; then
-    log_success "No broken symlinks found"
+    printf "  ${BOLD}${SUCCESS_ICON}${RESET} ${DIM}no broken symlinks${RESET}\n"
+  elif [ "$dry_run" = true ]; then
+    printf "  ${BOLD}${WARNING_ICON}${RESET} ${YELLOW}%d broken symlink(s)${RESET} ${DIM}— run without --dry-run to remove${RESET}\n" "$broken_count"
   else
-    if [ "$dry_run" = true ]; then
-      log_info "Found $broken_count broken symlink(s). Run without --dry-run to remove them."
-    else
-      log_success "Removed $broken_count broken symlink(s)"
-    fi
+    printf "  ${BOLD}${SUCCESS_ICON}${RESET} ${GREEN}removed %d broken symlink(s)${RESET}\n" "$broken_count"
   fi
+  echo
 }
+
+# ── Link / Unlink ───────────────────────────────────────────────
 
 cmd_link() {
   local operation="$1"
-  local pkg="$2"
-  shift 2 || true
+  shift
 
-  # Handle 'dot link clean' syntax
-  if [ "$operation" = "link" ] && [ "$pkg" = "clean" ]; then
+  # Handle 'dot link clean' — pass remaining args through
+  if [ "$operation" = "link" ] && [[ "${1:-}" == "clean" ]]; then
+    shift
     cmd_link_clean "$@"
     return
   fi
 
-  local verbose=false
+  local pkg="all"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    -v | --verbose)
-      verbose=true
-      shift
-      ;;
-    *)
-      log_error "Unknown argument: $1"
-      exit 1
-      ;;
+    -v | --verbose) shift ;; # accepted for backwards compat, ignored
+    -*) log_error "Unknown option: $1"; exit 1 ;;
+    *) pkg="$1"; shift ;;
     esac
   done
 
+  stat_reset
+
+  # Title
+  local action_word
+  [ "$operation" = "link" ] && action_word="link" || action_word="unlink"
+
   if [ "$pkg" = "all" ]; then
-    local title_text="$operation"ing" all packages"
+    printf "\n  ${BOLD}dot %s${RESET}\n\n" "$action_word"
   else
-    local title_text="$operation"ing" package: $pkg"
+    printf "\n  ${BOLD}dot %s${RESET} ${DIM}─${RESET} %s\n\n" "$action_word" "$pkg"
   fi
 
-  fmt_title_underline "$title_text"
-
   if [ "$pkg" = "all" ]; then
-    # Handle all packages in config directory
+    # Config packages
     for config in "$DOTFILES/config"/*; do
-      if [ -d "$config" ]; then
-        local target="$CONFIG_HOME/$(basename "$config")"
-        if [ "$operation" = "link" ]; then
-          if [ -e "$target" ]; then
-            log_warning "~${target#"$HOME"} already exists... Skipping."
-          else
-            [ "$verbose" = true ] && log_info "Linking $(basename "$config")"
-            ln -s "$config" "$target"
-          fi
-        else # unlink
-          if [ -L "$target" ]; then
-            [ "$verbose" = true ] && log_info "Unlinking $target"
-            rm "$target"
-          elif [ -e "$target" ]; then
-            log_warning "Skipping \"$target\" because it is not a symlink"
-          fi
-        fi
+      [ -d "$config" ] || continue
+      local name
+      name="$(basename "$config")"
+      if [ "$operation" = "link" ]; then
+        do_link "$config" "$CONFIG_HOME/$name" "$name"
+      else
+        do_unlink "$CONFIG_HOME/$name" "$name"
       fi
     done
 
-    # Handle home directory files
-    link_home_files "$operation" "$verbose"
+    # Home entries
+    if [ -d "$DOTFILES/home" ]; then
+      shopt -s dotglob
+      for entry in "$DOTFILES/home"/*; do
+        [ -e "$entry" ] || continue
+        local name
+        name="$(basename "$entry")"
+        [[ "$name" == ".DS_Store" ]] && continue
+        if [ "$operation" = "link" ]; then
+          do_link "$entry" "$HOME/$name" "$name"
+        else
+          do_unlink "$HOME/$name" "$name"
+        fi
+      done
+      shopt -u dotglob
+    fi
   else
-    # Handle specific package
-    local target="$CONFIG_HOME/$pkg"
+    # Specific package — check config/ first, then home/
     if [ -d "$DOTFILES/config/$pkg" ]; then
       if [ "$operation" = "link" ]; then
-        if [ -e "$target" ]; then
-          log_warning "~${target#"$HOME"} already exists... Skipping."
-        else
-          [ "$verbose" = true ] && log_info "Linking $pkg"
-          ln -s "$DOTFILES/config/$pkg" "$target"
-        fi
-      else # unlink
-        if [ -L "$target" ]; then
-          [ "$verbose" = true ] && log_info "Unlinking $target"
-          rm "$target"
-        elif [ -e "$target" ]; then
-          log_warning "Skipping \"$target\" because it is not a symlink"
-        fi
+        do_link "$DOTFILES/config/$pkg" "$CONFIG_HOME/$pkg" "$pkg"
+      else
+        do_unlink "$CONFIG_HOME/$pkg" "$pkg"
+      fi
+    elif [ -e "$DOTFILES/home/.$pkg" ] || [ -e "$DOTFILES/home/$pkg" ]; then
+      local name="$pkg"
+      [ -e "$DOTFILES/home/.$pkg" ] && name=".$pkg"
+      if [ "$operation" = "link" ]; then
+        do_link "$DOTFILES/home/$name" "$HOME/$name" "$name"
+      else
+        do_unlink "$HOME/$name" "$name"
       fi
     else
-      log_error "Package $pkg not found in config directory"
+      log_error "Package \"$pkg\" not found in config/ or home/"
       return 1
     fi
   fi
 
-  echo -e
-  log_success "Done"
+  print_summary "$operation"
+  echo
 }
 
 main() {

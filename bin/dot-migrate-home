@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# Description: Migrate home/ packages from per-file to directory-level symlinks
+
+set -Eeuo pipefail
+
+DOTFILES="${DOTFILES:-$HOME/Developer/dotfiles}"
+
+if [[ -f "$DOTFILES/bin/lib/common.sh" ]]; then
+  source "$DOTFILES/bin/lib/common.sh"
+else
+  echo "Error: Unable to source common.sh"
+  exit 1
+fi
+
+DRY_RUN=false
+if [[ "${1:-}" == "-n" || "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=true
+  log_info "DRY RUN — no changes will be made"
+  echo
+fi
+
+run() {
+  if [ "$DRY_RUN" = true ]; then
+    log_info "[dry-run] $*"
+  else
+    "$@"
+  fi
+}
+
+migrate_claude() {
+  local src="$HOME/.claude"
+  local dest="$DOTFILES/home/.claude"
+
+  fmt_title_underline "Migrating ~/.claude"
+
+  # Already a symlink — nothing to do
+  if [ -L "$src" ]; then
+    log_success "~/.claude is already a symlink. Nothing to do."
+    return 0
+  fi
+
+  if [ ! -d "$src" ]; then
+    log_info "~/.claude does not exist. Nothing to migrate."
+    return 0
+  fi
+
+  # 1. Remove per-file symlinks that point back into dotfiles
+  log_info "Removing old per-file symlinks..."
+  while IFS= read -r -d '' link; do
+    local target
+    target=$(readlink "$link")
+    if [[ "$target" == "$DOTFILES"* ]]; then
+      local name="${link#"$src"/}"
+      log_info "  rm symlink: ~/${link#"$HOME"/} -> $target"
+      run rm "$link"
+    fi
+  done < <(find "$src" -maxdepth 1 -type l -print0 2>/dev/null)
+
+  # 2. Sync settings.json if the real file differs from dotfiles copy
+  if [ -f "$src/settings.json" ] && [ -f "$dest/settings.json" ]; then
+    if ! diff -q "$src/settings.json" "$dest/settings.json" &>/dev/null; then
+      log_warning "~/.claude/settings.json differs from dotfiles copy"
+      log_info "  Copying real file into dotfiles repo (preserving your live config)"
+      run cp "$src/settings.json" "$dest/settings.json"
+    fi
+  elif [ -f "$src/settings.json" ]; then
+    log_info "  Copying settings.json into dotfiles repo"
+    run cp "$src/settings.json" "$dest/settings.json"
+  fi
+
+  # 3. Move all remaining content into the dotfiles directory
+  log_info "Moving remaining content into dotfiles repo..."
+  shopt -s dotglob
+  for entry in "$src"/*; do
+    [ -e "$entry" ] || continue
+    local name
+    name=$(basename "$entry")
+
+    # Skip if the destination already has this entry
+    if [ -e "$dest/$name" ]; then
+      # For files, prefer the live version
+      if [ -f "$entry" ] && [ -f "$dest/$name" ]; then
+        if ! diff -q "$entry" "$dest/$name" &>/dev/null; then
+          log_info "  Overwriting dotfiles copy: $name (live version wins)"
+          run cp "$entry" "$dest/$name"
+        fi
+        log_info "  Removing: $name (already in dotfiles)"
+        run rm -f "$entry"
+      elif [ -d "$entry" ]; then
+        # For directories, merge: move contents that don't exist in dest
+        log_info "  Merging directory: $name"
+        run cp -Rn "$entry/" "$dest/$name/" 2>/dev/null || true
+        run rm -rf "$entry"
+      fi
+    else
+      log_info "  Moving: $name"
+      run mv "$entry" "$dest/$name"
+    fi
+  done
+  shopt -u dotglob
+
+  # 4. Remove the now-empty directory
+  if [ "$DRY_RUN" = false ]; then
+    if [ -d "$src" ] && [ -z "$(ls -A "$src")" ]; then
+      rmdir "$src"
+      log_success "Removed empty ~/.claude directory"
+    elif [ -d "$src" ]; then
+      log_warning "~/.claude is not empty — check for leftover files:"
+      ls -la "$src"
+      return 1
+    fi
+  else
+    log_info "[dry-run] rmdir ~/.claude"
+  fi
+
+  log_success "~/.claude migration complete"
+}
+
+main() {
+  fmt_title_underline "Home directory migration: per-file → directory-level symlinks"
+  echo
+  log_info "This migrates real directories under ~/ to symlinks into dotfiles/home/"
+  log_info "Run with --dry-run first to preview changes"
+  echo
+
+  migrate_claude
+
+  echo
+  if [ "$DRY_RUN" = false ]; then
+    fmt_title_underline "Running dot link..."
+    "$DOTFILES/bin/dot" link all -v
+  else
+    log_info "[dry-run] Would run: dot link"
+  fi
+}
+
+main

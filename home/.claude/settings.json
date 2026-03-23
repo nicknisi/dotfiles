@@ -2,9 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "cleanupPeriodDays": 60,
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "1",
-    "CLAUDE_CODE_NEW_INIT": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "attribution": {
     "commit": "",
@@ -95,39 +94,6 @@
     ]
   },
   "hooks": {
-    "PreToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook PreToolUse",
-            "timeout": 5000
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook Stop",
-            "timeout": 5000
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook SubagentStop",
-            "timeout": 5000
-          }
-        ]
-      }
-    ],
     "Notification": [
       {
         "matcher": "idle_prompt",
@@ -158,6 +124,26 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "TOKENBAR_PROVIDER=Claude TOKENBAR_EVENT=notification /Users/nicknisi/.tokenbar/agent-signals/tokenbar-notify.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook PreToolUse",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "SessionEnd": [
@@ -179,6 +165,37 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook Stop",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "TOKENBAR_PROVIDER=Claude TOKENBAR_EVENT=stop /Users/nicknisi/.tokenbar/agent-signals/tokenbar-notify.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook SubagentStop",
+            "timeout": 5000
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -187,26 +204,25 @@
   },
   "enabledPlugins": {
     "agent-sdk-dev@claude-code-plugins": true,
-    "learning-output-style@claude-code-plugins": true,
-    "plugin-dev@claude-code-plugins": true,
-    "pr-review-toolkit@claude-code-plugins": true,
-    "ralph-wiggum@claude-code-plugins": true,
-    "security-guidance@claude-code-plugins": true,
-    "consultant@nicknisi": true,
-    "ideation@nicknisi": true,
-    "essentials@nicknisi": true,
-    "content@nicknisi": true,
-    "workos@workos": true,
+    "agent-sdk-dev@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
     "claudit@quickstop": true,
     "code-review@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true,
-    "agent-sdk-dev@claude-plugins-official": true,
-    "plugin-dev@claude-plugins-official": true,
-    "hookify@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true,
+    "consultant@nicknisi": true,
+    "content@nicknisi": true,
+    "essentials@nicknisi": true,
     "frontend-design@claude-code-plugins": true,
-    "case@case": true
+    "hookify@claude-plugins-official": true,
+    "ideation@nicknisi": true,
+    "learning-output-style@claude-code-plugins": true,
+    "plugin-dev@claude-code-plugins": true,
+    "plugin-dev@claude-plugins-official": true,
+    "pr-review-toolkit@claude-code-plugins": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "ralph-wiggum@claude-code-plugins": true,
+    "security-guidance@claude-code-plugins": true,
+    "skill-creator@claude-plugins-official": true,
+    "workos@workos": true
   },
   "extraKnownMarketplaces": {
     "case": {
