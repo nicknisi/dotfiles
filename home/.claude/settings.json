@@ -3,7 +3,8 @@
   "cleanupPeriodDays": 60,
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "1"
+    "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "1",
+    "CLAUDE_CODE_NEW_INIT": "1"
   },
   "attribution": {
     "commit": "",
