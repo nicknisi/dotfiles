@@ -160,8 +160,8 @@ run_with_spinner() {
   spinner $! "${style:-0}" "${msg:-Working...}"
 
   # Wait for command to finish and get its exit status
-  wait $!
-  local exit_status=$?
+  local exit_status=0
+  wait $! || exit_status=$?
 
   # clear the spinner from the line
   echo -en "\r\033[K"
