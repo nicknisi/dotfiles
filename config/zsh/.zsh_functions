@@ -90,8 +90,9 @@ case $1 in
           echo -e "  Checked out default branch"
         fi
       else
-        git_clone_error_msg $?
-        return $?
+        local exit_code=$?
+        git_clone_error_msg $exit_code
+        return $exit_code
       fi
     fi
 

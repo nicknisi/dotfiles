@@ -90,9 +90,7 @@ update_dotfiles() {
   echo "Updates available:"
   git -C "$DOTFILES" --no-pager log --oneline --graph --decorate --color=always HEAD.."@{u}"
   # Try to update if everything is clean
-  run_with_spinner "git -C '$DOTFILES' pull --ff-only origin main > '$log_file' 2>&1" 11 "Updating dotfiles"
-
-  if [ $? -eq 0 ]; then
+  if run_with_spinner "git -C '$DOTFILES' pull --ff-only origin main > '$log_file' 2>&1" 11 "Updating dotfiles"; then
     log_info "Dotfiles updated successfully"
   else
     log_error "Failed to update dotfiles"

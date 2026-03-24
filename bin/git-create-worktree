@@ -91,8 +91,10 @@ function spinner() {
     sleep .1
   done
   tput cnorm
-  wait "$pid" # capture exit code
-  return $?
+
+  local exit_status=0
+  wait "$pid" || exit_status=$? # capture exit code
+  return $exit_status
 }
 
 run_command() {
@@ -100,9 +102,8 @@ run_command() {
   shift
   echo >&2 -ne "$message "
   "$@" &>/dev/null &
-  spinner $!
-  # shellcheck disable=SC2181
-  if [ $? -eq 0 ]; then
+  
+  if spinner $!; then
     echo >&2 -e " ${GREEN}Done.${NOFORMAT}"
   else
     echo >&2 -e " ${RED}FAILED.${NOFORMAT}"
