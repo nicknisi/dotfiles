@@ -54,7 +54,7 @@ update_nvim_plugins() {
   # Check for errors
   if grep -q "Error\|ERROR\|Could not\|not installed" "$log_file"; then
     echo "Error occurred during update:"
-    rm -f "$temp_lua" "$log_file"
+    rm -f "$log_file"
     exit 1
   fi
 
