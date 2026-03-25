@@ -196,11 +196,18 @@ fetch_usage() {
   echo "$response"
 }
 
-# Get usage data (cache-first, then fetch)
+# Read stale cache (ignores TTL)
+read_stale_cache() {
+  local cache_file="${USAGE_CACHE_DIR}/usage.json"
+  [ -f "$cache_file" ] && cat "$cache_file"
+}
+
+# Get usage data (cache-first, then fetch, then stale fallback)
 get_usage_data() {
   local data
   data=$(read_usage_cache) && echo "$data" && return
-  fetch_usage
+  data=$(fetch_usage) && echo "$data" && return
+  read_stale_cache
 }
 
 # Build a mini usage bar for a single window
