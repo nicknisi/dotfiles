@@ -78,4 +78,3 @@ copy-on-select = clipboard
 shell-integration-features = cursor,sudo,no-title
 
 config-file = ?./overrides
-keybind = shift+enter=text:\n
