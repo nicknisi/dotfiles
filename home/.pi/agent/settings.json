@@ -3,7 +3,7 @@
   "theme": "catppuccin-mocha",
   "quietStartup": true,
   "hideThinkingBlock": true,
-  "lastChangelogVersion": "0.62.0",
+  "lastChangelogVersion": "0.63.1",
   "skills": [
     "~/.claude/skills",
     "~/Developer/claude-plugins/plugins/consultant/skills",
