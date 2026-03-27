@@ -224,15 +224,7 @@
     "skill-creator@claude-plugins-official": true,
     "workos@workos": true
   },
-  "extraKnownMarketplaces": {
-    "case": {
-      "source": {
-        "source": "directory",
-        "path": "/Users/nicknisi/Developer/case"
-      },
-      "autoUpdate": true
-    }
-  },
+  "extraKnownMarketplaces": {},
   "spinnerVerbs": {
     "mode": "replace",
     "verbs": [
