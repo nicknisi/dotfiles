@@ -123,8 +123,8 @@ tm_tunes_display="#(song=\$(current-song); if [[ -n \"\$song\" ]]; then echo \"#
 
 # Status line components
 session="$(create_section "left" "$tm_icon" "#S" "${thm_purple}" "${thm_bg}" "no-start")"
-tm_claude_display="#(s=\$(claude-status #{session_name}); if [ \"\$s\" = \"working\" ]; then echo '#[fg=colour208] ⚡ '; elif [ \"\$s\" = \"waiting\" ]; then echo '#[fg=#f9e2af] ⏳ '; fi)"
-tm_pi_display="#(s=\$(pi-status #{session_name}); if [ \"\$s\" = \"working\" ]; then echo '#[fg=colour208] ⚡ '; elif [ \"\$s\" = \"waiting\" ]; then echo '#[fg=#f9e2af] ⏳ '; fi)"
+tm_claude_display="#(claude-status --tmux #{session_name} #{pane_id})"
+tm_pi_display="#(pi-status --tmux #{session_name} #{pane_id})"
 tm_git_status="$(create_section "right" "" "#(tmux-git-status '#{pane_current_path}')" "${thm_bg}" "${thm_fg}" "no-end")"
 
 # Status left and right - using the exact original syntax

@@ -1,21 +1,89 @@
 #!/usr/bin/env bash
 
-# Get tmux session name from environment or parameter
-SESSION_NAME="${1:-$(tmux display-message -p '#{session_name}' 2>/dev/null)}"
+# Query Claude agent status for a tmux session (aggregated across panes)
+# Reads pane-level JSON status files and aggregates by session
+#
+# Usage: claude-status [--tmux] <session_name> [current_pane_id]
+#   --tmux  Output tmux-formatted status string (icon + badge)
+# Output (default): "<state> <waiting_count>"
+# Output (--tmux):  tmux format string with colors, or empty if idle
+#
+# States: waiting > completed > working > idle
+# "completed" decays to "idle" after COMPLETED_DECAY seconds
 
-# Exit if no session name available
-[ -z "$SESSION_NAME" ] && exit 0
+COMPLETED_DECAY=5
 
-STATUS_FILE="$HOME/.cache/claude-status/${SESSION_NAME}.status"
-
-if [ -f "$STATUS_FILE" ]; then
-  claude_status=$(cat "$STATUS_FILE" 2>/dev/null)
-  case "$claude_status" in
-    "working") echo "working" ;;
-    "waiting") echo "waiting" ;;
-    *) echo "idle" ;;
-  esac
-else
-  echo "idle"
+TMUX_FORMAT=false
+if [ "${1:-}" = "--tmux" ]; then
+  TMUX_FORMAT=true
+  shift
 fi
 
+STATUS_DIR="$HOME/.cache/claude-status"
+SESSION="${1:-$(tmux display-message -p '#{session_name}' 2>/dev/null)}"
+CURRENT_PANE="${2:-}"
+
+[ -z "$SESSION" ] && { $TMUX_FORMAT || echo "idle 0"; exit 0; }
+[ ! -d "$STATUS_DIR" ] && { $TMUX_FORMAT || echo "idle 0"; exit 0; }
+
+now=$(date +%s)
+most_urgent="idle"
+waiting_count=0
+
+for f in "$STATUS_DIR"/*.status; do
+  [ -f "$f" ] || continue
+
+  # Quick session filter before jq parse
+  grep -q "\"session\":\"$SESSION\"" "$f" || continue
+
+  state=$(jq -r '.state // "idle"' "$f" 2>/dev/null)
+  pane=$(jq -r '.pane // empty' "$f" 2>/dev/null)
+  ts=$(jq -r '.ts // 0' "$f" 2>/dev/null)
+
+  # Skip files that aren't valid JSON (old format)
+  [ -z "$state" ] && continue
+
+  # Verify pane still exists (stale cleanup)
+  if [ -n "$pane" ] && ! tmux display-message -t "$pane" -p '#{pane_id}' >/dev/null 2>&1; then
+    rm -f "$f"
+    continue
+  fi
+
+  # Decay completed → idle after threshold
+  if [ "$state" = "completed" ]; then
+    local_ts="${ts:-0}"
+    if [ "$((now - local_ts))" -ge "$COMPLETED_DECAY" ]; then
+      state="idle"
+    fi
+  fi
+
+  # Priority: waiting > completed > working > idle
+  case "$state" in
+    waiting)
+      waiting_count=$((waiting_count + 1))
+      most_urgent="waiting"
+      ;;
+    completed)
+      [ "$most_urgent" != "waiting" ] && most_urgent="completed"
+      ;;
+    working)
+      [ "$most_urgent" != "waiting" ] && [ "$most_urgent" != "completed" ] && most_urgent="working"
+      ;;
+  esac
+done
+
+if $TMUX_FORMAT; then
+  icon=""
+  case "$most_urgent" in
+    working)   icon="#[fg=colour208] ⚡" ;;
+    waiting)   icon="#[fg=#f9e2af] ⏳" ;;
+    completed) icon="#[fg=#a6e3a1] ✓" ;;
+  esac
+  badge=""
+  if [ "$waiting_count" -gt 0 ] 2>/dev/null; then
+    badge="#[fg=#f9e2af]($waiting_count)"
+  fi
+  [ -n "$icon" ] && printf '%s%s ' "$icon" "$badge"
+else
+  echo "$most_urgent $waiting_count"
+fi

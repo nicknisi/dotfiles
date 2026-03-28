@@ -1,45 +1,52 @@
 #!/usr/bin/env bash
 
 # Claude Code hook for tmux status integration
-# Updates tmux session status files based on Claude's working state
+# Writes pane-level JSON status files for agent awareness
+#
+# Status file: ~/.cache/claude-status/{pane_num}.status
+# Format: {"state":"...","pane":"%42","session":"name","tool":"Edit","ts":123}
 #
 # States:
-#   working - Claude is executing tools
-#   waiting - Claude finished, awaiting user input
-#   idle    - No active session
+#   working   - Claude is executing tools
+#   waiting   - Claude finished, awaiting user input
+#   completed - Claude just finished a task (decays to idle after 5s)
+#   idle      - No active session
 
 STATUS_DIR="$HOME/.cache/claude-status"
 mkdir -p "$STATUS_DIR"
 
-# Read JSON from stdin (required by Claude Code hooks)
-cat > /dev/null
+# Read Claude Code hook payload from stdin
+INPUT=$(cat)
 
-# Get tmux session if in tmux
-if [ -n "$TMUX" ]; then
-  TMUX_SESSION=$(tmux display-message -p '#{session_name}' 2>/dev/null)
+# Require tmux
+[ -z "$TMUX" ] && exit 0
 
-  # Fallback: parse TMUX env var if command fails
-  if [ -z "$TMUX_SESSION" ]; then
-    SOCKET_PATH=$(echo "$TMUX" | cut -d',' -f1)
-    TMUX_SESSION=$(basename "$SOCKET_PATH")
-  fi
+PANE_ID="${TMUX_PANE}"
+[ -z "$PANE_ID" ] && exit 0
 
-  if [ -n "$TMUX_SESSION" ]; then
-    STATUS_FILE="$STATUS_DIR/${TMUX_SESSION}.status"
+PANE_NUM="${PANE_ID#%}"
+SESSION=$(tmux display-message -p '#{session_name}' 2>/dev/null)
+[ -z "$SESSION" ] && exit 0
 
-    case "$1" in
-      "PreToolUse")
-        echo "working" > "$STATUS_FILE"
-        ;;
-      "waiting")
-        # Only set by Notification matchers (permission_prompt, elicitation_dialog, idle_prompt)
-        echo "waiting" > "$STATUS_FILE"
-        ;;
-      "Stop"|"SubagentStop"|"SessionEnd")
-        echo "idle" > "$STATUS_FILE"
-        ;;
-    esac
-  fi
+STATUS_FILE="$STATUS_DIR/${PANE_NUM}.status"
+TS=$(date +%s)
+
+# Extract tool_name from JSON payload (PreToolUse only)
+TOOL=""
+if [ "$1" = "PreToolUse" ]; then
+  TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null || echo "")
 fi
+
+write_status() {
+  printf '{"state":"%s","pane":"%s","session":"%s","tool":"%s","ts":%s}\n' \
+    "$1" "$PANE_ID" "$SESSION" "${2:-}" "$TS" > "$STATUS_FILE"
+}
+
+case "$1" in
+  PreToolUse)        write_status "working" "$TOOL" ;;
+  waiting)           write_status "waiting" ;;
+  Stop|SubagentStop) write_status "completed" ;;
+  SessionEnd)        rm -f "$STATUS_FILE" ;;
+esac
 
 exit 0

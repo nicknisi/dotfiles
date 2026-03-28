@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+# Detect Claude Code activity by scraping tmux pane output
+# Used as a fallback when status files may be stale
+#
+# Usage: claude-pane-detect <pane_id>
+# Output: working | waiting | idle | unknown
+#
+# Detection logic (based on CMS detectClaudeActivity):
+#   1. Permission prompts in bottom 15 lines → waiting
+#   2. ❯ prompt with spinner above → working
+#   3. ❯ prompt without spinner → idle
+#   4. No Claude UI detected → unknown
+
+PANE_ID="$1"
+[ -z "$PANE_ID" ] && echo "unknown" && exit 0
+
+# Capture bottom 30 lines of pane
+OUTPUT=$(tmux capture-pane -p -t "$PANE_ID" -S -30 2>/dev/null)
+[ -z "$OUTPUT" ] && echo "unknown" && exit 0
+
+# 1. Check for permission/approval prompts in bottom 15 lines
+BOTTOM=$(echo "$OUTPUT" | tail -15)
+if echo "$BOTTOM" | grep -qE '\[y/n\]|\[Y/n\]'; then
+  echo "waiting" && exit 0
+fi
+if echo "$BOTTOM" | grep -qE 'Do you want to (proceed|allow)'; then
+  echo "waiting" && exit 0
+fi
+if echo "$BOTTOM" | grep -qE 'Enter to select.*↑/↓|Esc to cancel.*Tab to amend'; then
+  echo "waiting" && exit 0
+fi
+
+# 2. Check for input field (❯ prompt — Claude Code's prompt marker)
+PROMPT_LINE=0
+LINE_NUM=0
+while IFS= read -r line; do
+  LINE_NUM=$((LINE_NUM + 1))
+  if [[ "$line" == *"❯"* ]]; then
+    PROMPT_LINE=$LINE_NUM
+  fi
+done <<< "$OUTPUT"
+
+if [ "$PROMPT_LINE" -gt 0 ]; then
+  # 3. Check for spinner/working indicators above the prompt
+  START=$((PROMPT_LINE - 10))
+  [ "$START" -lt 1 ] && START=1
+  ABOVE=$(echo "$OUTPUT" | sed -n "${START},$((PROMPT_LINE - 1))p")
+  if echo "$ABOVE" | grep -qE '^[✢✶·⏳⏺●] \S+…|Running…'; then
+    echo "working" && exit 0
+  fi
+  echo "idle" && exit 0
+fi
+
+echo "unknown"

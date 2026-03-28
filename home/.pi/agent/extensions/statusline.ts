@@ -45,12 +45,33 @@ function getTmuxSession(): string | undefined {
 	}
 }
 
-function writeStatus(status: "working" | "waiting" | "idle") {
+function removeStatus() {
+	const paneId = process.env.TMUX_PANE;
+	if (!paneId) return;
+	const paneNum = paneId.replace("%", "");
+	try {
+		const file = join(STATUS_DIR, `${paneNum}.status`);
+		if (existsSync(file)) {
+			const { unlinkSync } = require("node:fs");
+			unlinkSync(file);
+		}
+	} catch {
+		// Silently fail
+	}
+}
+
+function writeStatus(status: "working" | "waiting" | "completed" | "idle", tool?: string) {
+	const paneId = process.env.TMUX_PANE;
+	if (!paneId) return;
 	const session = getTmuxSession();
 	if (!session) return;
+	const paneNum = paneId.replace("%", "");
 	try {
 		if (!existsSync(STATUS_DIR)) mkdirSync(STATUS_DIR, { recursive: true });
-		writeFileSync(join(STATUS_DIR, `${session}.status`), status);
+		writeFileSync(
+			join(STATUS_DIR, `${paneNum}.status`),
+			JSON.stringify({ state: status, pane: paneId, session, tool: tool ?? "", ts: Math.floor(Date.now() / 1000) }),
+		);
 	} catch {
 		// Silently fail - don't break the agent
 	}
@@ -182,8 +203,8 @@ export default function (pi: ExtensionAPI) {
 		writeStatus("idle");
 	});
 
-	pi.on("tool_execution_start", async () => {
-		writeStatus("working");
+	pi.on("tool_execution_start", async (event) => {
+		writeStatus("working", (event as any).toolName);
 	});
 
 	pi.on("agent_end", async () => {
@@ -191,7 +212,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("session_shutdown", async () => {
-		writeStatus("idle");
+		removeStatus();
 	});
 
 	pi.on("session_switch", async (event) => {
