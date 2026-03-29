@@ -73,17 +73,8 @@ while IFS= read -r dir; do
 done < <(agent_status_dirs)
 
 if $TMUX_FORMAT; then
-  icon=""
-  case "$most_urgent" in
-    working)   icon="#[fg=colour208] ⚡" ;;
-    waiting)   icon="#[fg=#f9e2af] ⏳" ;;
-    completed) icon="#[fg=#a6e3a1] ✓" ;;
-  esac
-  badge=""
-  if [ "$waiting_count" -gt 0 ] 2>/dev/null; then
-    badge="#[fg=#f9e2af]($waiting_count)"
-  fi
-  [ -n "$icon" ] && printf '%s%s ' "$icon" "$badge"
+  # Only show an icon when agents are waiting — nothing otherwise
+  [ "$most_urgent" = "waiting" ] && printf '#[fg=#f9e2af] ⏳ '
 else
   echo "$most_urgent $waiting_count"
 fi
