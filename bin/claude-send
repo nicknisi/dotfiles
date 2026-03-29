@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Send text to a waiting agent pane
+# Usage: claude-send <text>
+#        claude-send --pane %42 <text>
+#        echo "yes" | claude-send
+#
+# Without --pane: sends to the highest-priority waiting pane (oldest first)
+# With --pane: sends to the specified pane (regardless of state)
+
+. agent-status-lib
+
+# Parse args
+TARGET_PANE=""
+TEXT=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --pane) TARGET_PANE="$2"; shift 2 ;;
+    *) TEXT="$*"; break ;;
+  esac
+done
+
+# Read from stdin if no text argument
+[ -z "$TEXT" ] && read -r TEXT
+
+[ -z "$TEXT" ] && { echo "Usage: claude-send [--pane %ID] <text>" >&2; exit 1; }
+
+# Find target pane if not specified
+if [ -z "$TARGET_PANE" ]; then
+  best_pane=""
+  best_ts=0
+  now=$(date +%s)
+
+  while IFS= read -r dir; do
+    [ -d "$dir" ] || continue
+    for f in "$dir"/*.status; do
+      [ -f "$f" ] || continue
+      state=$(jq -r '.state // "idle"' "$f" 2>/dev/null)
+      pane=$(jq -r '.pane // empty' "$f" 2>/dev/null)
+      ts=$(jq -r '.ts // 0' "$f" 2>/dev/null)
+      [ -n "$pane" ] || continue
+      tmux display-message -t "$pane" -p '#{pane_id}' >/dev/null 2>&1 || continue
+      # Apply effective state (handles decay + timeout)
+      state=$(agent_effective_state "$state" "${ts:-0}" "$now")
+      [ "$state" = "waiting" ] || continue
+      # Oldest waiting pane gets priority (been waiting longest)
+      if [ -z "$best_pane" ] || [ "$ts" -lt "$best_ts" ] 2>/dev/null; then
+        best_pane="$pane"
+        best_ts="$ts"
+      fi
+    done
+  done < <(agent_status_dirs)
+
+  [ -z "$best_pane" ] && { echo "No waiting agent panes found" >&2; exit 1; }
+  TARGET_PANE="$best_pane"
+fi
+
+# Send text + Enter
+tmux send-keys -t "$TARGET_PANE" "$TEXT" Enter
+echo "Sent to $TARGET_PANE: $TEXT"
