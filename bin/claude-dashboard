@@ -27,7 +27,6 @@ format_elapsed() {
   fi
 }
 
-# Get a useful location label for a pane
 pane_location() {
   local pane="$1" session="$2"
   local path
@@ -36,12 +35,10 @@ pane_location() {
 
   local short="${path/#$HOME\//}"
   short="${short/#Developer\//}"
-
   [ "$short" = "$session" ] && return
   echo "$short"
 }
 
-# Git branch resolver with simple cache
 declare -A _git_cache
 
 pane_git_branch() {
@@ -49,16 +46,13 @@ pane_git_branch() {
   local path
   path=$(tmux display-message -t "$pane" -p '#{pane_current_path}' 2>/dev/null)
   [ -z "$path" ] && return
-
   [ -n "${_git_cache[$path]+x}" ] && { echo "${_git_cache[$path]}"; return; }
-
   local branch
   branch=$(git -C "$path" rev-parse --abbrev-ref HEAD 2>/dev/null)
   _git_cache[$path]="${branch:-}"
   [ -n "$branch" ] && echo "$branch"
 }
 
-# Compact port hint: ⌁3000 or ⌁3000+2
 format_ports() {
   local raw="$1"
   [ -z "$raw" ] && return
@@ -69,28 +63,24 @@ format_ports() {
   else
     local count=1
     local tmp="$rest"
-    while [ "$tmp" != "${tmp#*,}" ]; do
-      count=$((count + 1))
-      tmp="${tmp#*,}"
-    done
+    while [ "$tmp" != "${tmp#*,}" ]; do count=$((count + 1)); tmp="${tmp#*,}"; done
     count=$((count + 1))
     echo "⌁${first}+${count}"
   fi
 }
 
-# Preview: capture pane output for the selected item
 show_preview() {
   local line="$1"
-  local pane_id
-  pane_id=$(echo "$line" | sed -n 's/.*\(%[0-9]*\).*/\1/p')
+  # Pane ID is the first tab-separated field
+  local pane_id="${line%%	*}"
 
-  if [ -n "$pane_id" ]; then
+  if [ -n "$pane_id" ] && [[ "$pane_id" == %* ]]; then
     echo -e "\033[1m── Pane $pane_id ──\033[0m"
     echo
     tmux capture-pane -p -t "$pane_id" -S -25 2>/dev/null
   else
     local session
-    session=$(echo "$line" | awk '{print $1}')
+    session=$(echo "$line" | awk -F'\t' '{print $2}' | awk '{print $1}')
     [ -z "$session" ] && return
     echo -e "\033[1m── $session ──\033[0m"
     echo
@@ -102,6 +92,10 @@ generate_listing() {
   local now
   now=$(date +%s)
 
+  local CURRENT_PANE
+  CURRENT_PANE=$(tmux display-message -p '#{pane_id}' 2>/dev/null)
+
+  local current_line=""
   local waiting=()
   local working=()
   local completed=()
@@ -110,13 +104,11 @@ generate_listing() {
   local agent_sessions=()
   local w_count=0 a_count=0 c_count=0 s_count=0 i_count=0
 
-  # Build port lookup for all panes
   declare -A _pane_ports
   while read -r p port; do
     _pane_ports[$p]="${_pane_ports[$p]:+${_pane_ports[$p]},}$port"
   done < <(claude-ports 2>/dev/null)
 
-  # Scan status files from all registered dirs
   while IFS= read -r dir; do
     [ -d "$dir" ] || continue
     for f in "$dir"/*.status; do
@@ -132,40 +124,33 @@ generate_listing() {
       [ -n "$pane" ] || continue
       [ -n "$session" ] || continue
 
-      # Verify pane exists (stale cleanup)
       if ! tmux display-message -t "$pane" -p '#{pane_id}' >/dev/null 2>&1; then
-        rm -f "$f"
-        continue
+        rm -f "$f"; continue
       fi
 
       agent_sessions+=("$session")
 
-      # Location
       local location
       location=$(pane_location "$pane" "$session")
 
-      # Elapsed time
       local elapsed=""
       if [ "$ts" -gt 0 ] 2>/dev/null; then
         local diff=$((now - ts))
         [ "$diff" -ge 0 ] && elapsed=$(format_elapsed "$diff")
       fi
 
-      # Compute effective state
       state=$(agent_effective_state "$state" "${ts:-0}" "$now")
 
-      # Build detail: location, then branch with  icon, then ports
+      # Build detail: location · branch · ports
       local detail=""
       [ -n "$location" ] && detail="$location"
 
-      # Git branch (suppress main/master, truncate, nerd font  icon)
       local git_branch
       git_branch=$(pane_git_branch "$pane")
       if [ -n "$git_branch" ] && [ "$git_branch" != "main" ] && [ "$git_branch" != "master" ]; then
         detail="${detail:+$detail · } ${git_branch:0:20}"
       fi
 
-      # Port info (compact)
       local ports="${_pane_ports[$pane]:-}"
       if [ -n "$ports" ]; then
         local port_hint
@@ -173,48 +158,67 @@ generate_listing() {
         detail="${detail:+$detail · }$port_hint"
       fi
 
-      # Truncate detail
       detail="${detail:0:32}"
 
-      # Unseen dot prefix — ● when unseen, space when seen
       local dot=" "
       agent_is_unseen "$f" && dot="\033[1;33m●\033[0m"
 
-      # Pane ID embedded at end (dimmed, for extraction by fzf handler)
-      local pane_tag="\033[8m$pane\033[0m"
+      local is_current=false
+      [ "$pane" = "$CURRENT_PANE" ] && is_current=true
 
-      # Left accent bar ▌ colored by state + line content
+      # Format line: pane_id<TAB>visible_content
+      # fzf --with-nth=2.. hides the pane_id, but it's still in the selected output
       local line
       case "$state" in
         waiting)
           w_count=$((w_count + 1))
-          line=$(printf "%b \033[1;33m▌\033[0m %-14s \033[33m%-32s\033[0m \033[1;33m%4s\033[0m %b" \
-            "$dot" "$session" "$detail" "$elapsed" "$pane_tag")
-          waiting+=("$line")
+          if $is_current; then
+            line=$(printf "%s\t%b \033[1;33m▌\033[0m \033[1m%-14s\033[0m \033[33m%-32s\033[0m \033[1;33m%4s\033[0m" \
+              "$pane" "$dot" "$session" "$detail" "$elapsed")
+          else
+            line=$(printf "%s\t%b \033[1;33m▌\033[0m %-14s \033[33m%-32s\033[0m \033[1;33m%4s\033[0m" \
+              "$pane" "$dot" "$session" "$detail" "$elapsed")
+          fi
+          $is_current && current_line="$line" || waiting+=("$line")
           ;;
         completed)
           c_count=$((c_count + 1))
-          line=$(printf "%b \033[1;32m▌\033[0m %-14s \033[32m%-32s\033[0m \033[32m%4s\033[0m %b" \
-            "$dot" "$session" "${detail:-done}" "$elapsed" "$pane_tag")
-          completed+=("$line")
+          if $is_current; then
+            line=$(printf "%s\t%b \033[1;32m▌\033[0m \033[1m%-14s\033[0m \033[32m%-32s\033[0m \033[32m%4s\033[0m" \
+              "$pane" "$dot" "$session" "${detail:-done}" "$elapsed")
+          else
+            line=$(printf "%s\t%b \033[1;32m▌\033[0m %-14s \033[32m%-32s\033[0m \033[32m%4s\033[0m" \
+              "$pane" "$dot" "$session" "${detail:-done}" "$elapsed")
+          fi
+          $is_current && current_line="$line" || completed+=("$line")
           ;;
         working)
           a_count=$((a_count + 1))
-          line=$(printf "  \033[38;5;208m▌\033[0m %-14s \033[2m%-32s\033[0m \033[2m%4s\033[0m %b" \
-            "$session" "$detail" "$elapsed" "$pane_tag")
-          working+=("$line")
+          if $is_current; then
+            line=$(printf "%s\t  \033[38;5;208m▌\033[0m \033[1m%-14s\033[0m %-32s %4s" \
+              "$pane" "$session" "$detail" "$elapsed")
+          else
+            line=$(printf "%s\t  \033[38;5;208m▌\033[0m %-14s \033[2m%-32s\033[0m \033[2m%4s\033[0m" \
+              "$pane" "$session" "$detail" "$elapsed")
+          fi
+          $is_current && current_line="$line" || working+=("$line")
           ;;
         stale)
           s_count=$((s_count + 1))
-          line=$(printf "  \033[2;33m▌\033[0m %-14s \033[2;33m%-32s\033[0m \033[2;33m%4s\033[0m %b" \
-            "$session" "${detail:-stale}" "$elapsed" "$pane_tag")
-          stale_lines+=("$line")
+          line=$(printf "%s\t  \033[2;33m▌\033[0m %-14s \033[2;33m%-32s\033[0m \033[2;33m%4s\033[0m" \
+            "$pane" "$session" "${detail:-stale}" "$elapsed")
+          $is_current && current_line="$line" || stale_lines+=("$line")
           ;;
         *)
           i_count=$((i_count + 1))
-          line=$(printf "  \033[2m▌\033[0m %-14s \033[2m%-32s\033[0m \033[2m%4s\033[0m %b" \
-            "$session" "$detail" "$elapsed" "$pane_tag")
-          idle+=("$line")
+          if $is_current; then
+            line=$(printf "%s\t  \033[2m▌\033[0m \033[1m%-14s\033[0m %-32s %4s" \
+              "$pane" "$session" "$detail" "$elapsed")
+          else
+            line=$(printf "%s\t  \033[2m▌\033[0m %-14s \033[2m%-32s\033[0m \033[2m%4s\033[0m" \
+              "$pane" "$session" "$detail" "$elapsed")
+          fi
+          $is_current && current_line="$line" || idle+=("$line")
           ;;
       esac
     done
@@ -228,9 +232,12 @@ generate_listing() {
   [ "$s_count" -gt 0 ] && summary+="\033[2;33m${s_count} stale\033[0m  "
   [ "$i_count" -gt 0 ] && summary+="\033[2m${i_count} idle\033[0m  "
   if [ -n "$summary" ]; then
-    echo -e "$summary"
-    echo -e "\033[2m────────────────────────────────────────────────────────\033[0m"
+    echo -e "\t$summary"
+    echo -e "\t\033[2m────────────────────────────────────────────────────────\033[0m"
   fi
+
+  # Current pane first (bold session name = "you are here")
+  [ -n "$current_line" ] && echo -e "$current_line"
 
   # Agent panes: waiting → completed → working → stale → idle
   for l in "${waiting[@]}"; do echo -e "$l"; done
@@ -248,11 +255,11 @@ generate_listing() {
     done
     $has_agent && continue
 
-    no_agent+=("$(printf "\033[2m  ▌ %-14s %-32s %sw %s\033[0m" "$name" "" "$windows" "$attached")")
+    no_agent+=("$(printf "\t\033[2m  ▌ %-14s %-32s %sw %s\033[0m" "$name" "" "$windows" "$attached")")
   done < <(tmux list-sessions -F "#{session_name}:#{session_windows}:#{?session_attached,(attached),}" 2>/dev/null)
 
   if [ ${#no_agent[@]} -gt 0 ]; then
-    [ "$((w_count + c_count + a_count + s_count + i_count))" -gt 0 ] && echo -e "\033[2m────────────────────────────────────────────────────────\033[0m"
+    [ "$((w_count + c_count + a_count + s_count + i_count))" -gt 0 ] && echo -e "\t\033[2m────────────────────────────────────────────────────────\033[0m"
     for l in "${no_agent[@]}"; do echo -e "$l"; done
   fi
 }
@@ -272,10 +279,11 @@ esac
 
 SELF=$(realpath "$0")
 
-# Run fzf with preview and reload
 selected=$(generate_listing | fzf \
   --ansi \
   --no-sort \
+  --delimiter='\t' \
+  --with-nth=2.. \
   --header="enter: switch · ctrl-r: refresh · ctrl-n: next waiting · esc: cancel" \
   --prompt="  " \
   --pointer="▶" \
@@ -289,20 +297,18 @@ selected=$(generate_listing | fzf \
   --margin=0 \
   --padding=0)
 
-# Handle selection
 if [ -n "$selected" ]; then
-  # Skip separator/summary lines
-  echo "$selected" | grep -qE '━━━|────| waiting| working| idle| done' && exit 0
+  # Skip separator/summary lines (no pane ID in first field)
+  echo "$selected" | grep -qE '────| waiting| working| idle| done' && exit 0
 
-  # Extract pane ID (%NN embedded in the line)
-  pane_id=$(echo "$selected" | sed -n 's/.*\(%[0-9]*\).*/\1/p')
+  # Pane ID is the first tab-separated field
+  pane_id="${selected%%	*}"
 
-  if [ -n "$pane_id" ]; then
-    # Agent pane — switch directly
+  if [ -n "$pane_id" ] && [[ "$pane_id" == %* ]]; then
     tmux switch-client -t "$pane_id" 2>/dev/null
   else
     # Non-agent session — smart switch
-    session_name=$(echo "$selected" | awk '{print $2}')
+    session_name=$(echo "$selected" | awk -F'\t' '{print $2}' | awk '{for(i=1;i<=NF;i++){if($i!="▌"&&$i!="·"&&$i!=""){print $i;exit}}}')
     [ -n "$session_name" ] && claude-smart-switch "$session_name" 2>/dev/null
   fi
 fi
