@@ -154,15 +154,15 @@ generate_listing() {
       # Compute effective state
       state=$(agent_effective_state "$state" "${ts:-0}" "$now")
 
-      # Build detail: location, then branch, then ports
+      # Build detail: location, then branch with  icon, then ports
       local detail=""
       [ -n "$location" ] && detail="$location"
 
-      # Git branch (suppress main/master, truncate)
+      # Git branch (suppress main/master, truncate, nerd font  icon)
       local git_branch
       git_branch=$(pane_git_branch "$pane")
       if [ -n "$git_branch" ] && [ "$git_branch" != "main" ] && [ "$git_branch" != "master" ]; then
-        detail="${detail:+$detail · }${git_branch:0:20}"
+        detail="${detail:+$detail · } ${git_branch:0:20}"
       fi
 
       # Port info (compact)
@@ -174,48 +174,45 @@ generate_listing() {
       fi
 
       # Truncate detail
-      detail="${detail:0:30}"
+      detail="${detail:0:32}"
 
-      # Icon: unseen ● replaces state icon, seen uses state icon
-      local icon mark
-      if agent_is_unseen "$f"; then
-        mark="\033[1;33m●\033[0m"
-      else
-        mark=" "
-      fi
+      # Unseen dot prefix — ● when unseen, space when seen
+      local dot=" "
+      agent_is_unseen "$f" && dot="\033[1;33m●\033[0m"
 
       # Pane ID embedded at end (dimmed, for extraction by fzf handler)
-      local pane_tag="\033[2;30m$pane\033[0m"
+      local pane_tag="\033[8m$pane\033[0m"
 
+      # Left accent bar ▌ colored by state + line content
       local line
       case "$state" in
         waiting)
           w_count=$((w_count + 1))
-          line=$(printf "%b \033[1;33m⏳\033[0m %-14s \033[33m%-30s\033[0m \033[1;33m%5s\033[0m  %b" \
-            "$mark" "$session" "$detail" "$elapsed" "$pane_tag")
+          line=$(printf "%b \033[1;33m▌\033[0m %-14s \033[33m%-32s\033[0m \033[1;33m%4s\033[0m %b" \
+            "$dot" "$session" "$detail" "$elapsed" "$pane_tag")
           waiting+=("$line")
           ;;
         completed)
           c_count=$((c_count + 1))
-          line=$(printf "%b \033[1;32m✓\033[0m  %-14s \033[32m%-30s\033[0m \033[32m%5s\033[0m  %b" \
-            "$mark" "$session" "${detail:-done}" "$elapsed" "$pane_tag")
+          line=$(printf "%b \033[1;32m▌\033[0m %-14s \033[32m%-32s\033[0m \033[32m%4s\033[0m %b" \
+            "$dot" "$session" "${detail:-done}" "$elapsed" "$pane_tag")
           completed+=("$line")
           ;;
         working)
           a_count=$((a_count + 1))
-          line=$(printf "  \033[38;5;208m⚡\033[0m %-14s \033[2m%-30s\033[0m \033[2m%5s\033[0m  %b" \
+          line=$(printf "  \033[38;5;208m▌\033[0m %-14s \033[2m%-32s\033[0m \033[2m%4s\033[0m %b" \
             "$session" "$detail" "$elapsed" "$pane_tag")
           working+=("$line")
           ;;
         stale)
           s_count=$((s_count + 1))
-          line=$(printf "  \033[2m⚠\033[0m  %-14s \033[2;33m%-30s\033[0m \033[2;33m%5s\033[0m  %b" \
+          line=$(printf "  \033[2;33m▌\033[0m %-14s \033[2;33m%-32s\033[0m \033[2;33m%4s\033[0m %b" \
             "$session" "${detail:-stale}" "$elapsed" "$pane_tag")
           stale_lines+=("$line")
           ;;
         *)
           i_count=$((i_count + 1))
-          line=$(printf "  \033[2m·\033[0m  %-14s \033[2m%-30s\033[0m \033[2m%5s\033[0m  %b" \
+          line=$(printf "  \033[2m▌\033[0m %-14s \033[2m%-32s\033[0m \033[2m%4s\033[0m %b" \
             "$session" "$detail" "$elapsed" "$pane_tag")
           idle+=("$line")
           ;;
@@ -251,7 +248,7 @@ generate_listing() {
     done
     $has_agent && continue
 
-    no_agent+=("$(printf "\033[2m   ·  %-14s %-30s %sw %s\033[0m" "$name" "" "$windows" "$attached")")
+    no_agent+=("$(printf "\033[2m  ▌ %-14s %-32s %sw %s\033[0m" "$name" "" "$windows" "$attached")")
   done < <(tmux list-sessions -F "#{session_name}:#{session_windows}:#{?session_attached,(attached),}" 2>/dev/null)
 
   if [ ${#no_agent[@]} -gt 0 ]; then
