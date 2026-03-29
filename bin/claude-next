@@ -1,30 +1,29 @@
 #!/usr/bin/env bash
 
 # Jump to next waiting agent pane (cycles across all sessions)
-# Scans both Claude and Pi status directories
+# Scans all registered agent status directories
 #
 # Usage: claude-next [--verify]
 #   --verify  Use pane-detect to confirm status before switching
 #
 # Bind in tmux: bind-key n run-shell "claude-next"
 
-CLAUDE_DIR="$HOME/.cache/claude-status"
-PI_DIR="$HOME/.cache/pi-status"
+. agent-status-lib
+
 VERIFY="${1:-}"
 CURRENT_PANE=$(tmux display-message -p '#{pane_id}' 2>/dev/null)
+now=$(date +%s)
 
 waiting_panes=()
 
-scan_dir() {
-  local dir="$1"
-  [ -d "$dir" ] || return
+while IFS= read -r dir; do
+  [ -d "$dir" ] || continue
   for f in "$dir"/*.status; do
     [ -f "$f" ] || continue
-    local state pane
     state=$(jq -r '.state // empty' "$f" 2>/dev/null)
     pane=$(jq -r '.pane // empty' "$f" 2>/dev/null)
+    ts=$(jq -r '.ts // 0' "$f" 2>/dev/null)
 
-    [ "$state" = "waiting" ] || continue
     [ -n "$pane" ] || continue
 
     # Verify pane exists (stale cleanup)
@@ -33,19 +32,20 @@ scan_dir() {
       continue
     fi
 
+    # Compute effective state (handles decay + timeout)
+    state=$(agent_effective_state "$state" "${ts:-0}" "$now")
+
+    [ "$state" = "waiting" ] || continue
+
     # Optional: verify via pane output scraping
     if [ "$VERIFY" = "--verify" ]; then
-      local detected
       detected=$(claude-pane-detect "$pane")
       [ "$detected" = "waiting" ] || continue
     fi
 
     waiting_panes+=("$pane")
   done
-}
-
-scan_dir "$CLAUDE_DIR"
-scan_dir "$PI_DIR"
+done < <(agent_status_dirs)
 
 if [ ${#waiting_panes[@]} -eq 0 ]; then
   tmux display-message "No waiting agents"

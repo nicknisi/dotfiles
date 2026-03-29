@@ -123,14 +123,13 @@ tm_tunes_display="#(song=\$(current-song); if [[ -n \"\$song\" ]]; then echo \"#
 
 # Status line components
 session="$(create_section "left" "$tm_icon" "#S" "${thm_purple}" "${thm_bg}" "no-start")"
-tm_claude_display="#(claude-status --tmux #{session_name} #{pane_id})"
-tm_pi_display="#(pi-status --tmux #{session_name} #{pane_id})"
+tm_agent_display="#(agent-status --tmux #{session_name} #{pane_id})"
 tm_git_status="$(create_section "right" "" "#(tmux-git-status '#{pane_current_path}')" "${thm_bg}" "${thm_fg}" "no-end")"
 
 # Status left and right - using the exact original syntax
 tmux set -g status-left "$session"
 # tmux set -g status-right "${tm_claude_display}#{?$tm_tunes,${tm_tunes_display},}${tm_git_status}"
-tmux set -g status-right "${tm_claude_display}${tm_pi_display}${tm_tunes_display}${tm_git_status}"
+tmux set -g status-right "${tm_agent_display}${tm_tunes_display}${tm_git_status}"
 
 # Window status formats
 tmux setw -g window-status-format "#[fg=${thm_black4}]#{?#{window_name},#W,#{b:pane_current_path}}"
