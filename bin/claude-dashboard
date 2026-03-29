@@ -45,6 +45,25 @@ pane_location() {
   echo "$short"
 }
 
+# Git branch resolver with simple cache
+declare -A _git_cache
+
+pane_git_branch() {
+  local pane="$1"
+  local path
+  path=$(tmux display-message -t "$pane" -p '#{pane_current_path}' 2>/dev/null)
+  [ -z "$path" ] && return
+
+  # Check cache
+  [ -n "${_git_cache[$path]+x}" ] && { echo "${_git_cache[$path]}"; return; }
+
+  # Resolve branch
+  local branch
+  branch=$(git -C "$path" rev-parse --abbrev-ref HEAD 2>/dev/null)
+  _git_cache[$path]="${branch:-}"
+  [ -n "$branch" ] && echo "$branch"
+}
+
 # Preview: capture pane output for the selected item
 # Called via fzf --preview with the selected line
 show_preview() {
@@ -80,6 +99,12 @@ generate_listing() {
   local idle=()
   local agent_sessions=()
   local w_count=0 a_count=0 c_count=0 s_count=0 i_count=0
+
+  # Build port lookup for all panes
+  declare -A _pane_ports
+  while read -r p port; do
+    _pane_ports[$p]="${_pane_ports[$p]:+${_pane_ports[$p]},}$port"
+  done < <(claude-ports 2>/dev/null)
 
   # Scan status files from all registered dirs
   while IFS= read -r dir; do
@@ -132,6 +157,18 @@ generate_listing() {
       elif [ -n "$location" ]; then
         detail="$location"
       fi
+
+      # Git branch (suppress main/master, truncate)
+      local git_branch
+      git_branch=$(pane_git_branch "$pane")
+      if [ -n "$git_branch" ] && [ "$git_branch" != "main" ] && [ "$git_branch" != "master" ]; then
+        local branch_display="${git_branch:0:20}"
+        detail="${detail:+$detail · }$branch_display"
+      fi
+
+      # Port info
+      local ports="${_pane_ports[$pane]:-}"
+      [ -n "$ports" ] && detail="${detail:+$detail · }:$ports"
 
       # Unseen marker for waiting/completed panes
       local unseen=""

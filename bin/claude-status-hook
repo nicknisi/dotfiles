@@ -44,8 +44,14 @@ write_status() {
 
 case "$1" in
   PreToolUse)        write_status "working" "$TOOL" ;;
-  waiting)           write_status "waiting" ;;
-  Stop|SubagentStop) write_status "completed" ;;
+  waiting)
+    write_status "waiting"
+    claude-notify "waiting" "$SESSION" "$PANE_ID" >/dev/null 2>&1 &
+    ;;
+  Stop|SubagentStop)
+    write_status "completed"
+    claude-notify "completed" "$SESSION" "$PANE_ID" "$TOOL" >/dev/null 2>&1 &
+    ;;
   SessionEnd)        rm -f "$STATUS_FILE" ;;
 esac
 

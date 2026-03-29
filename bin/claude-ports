@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Detect listening localhost ports for tmux panes
+# Usage: claude-ports
+# Output: lines of "pane_id port" (e.g., "%42 3000")
+#
+# Scans process trees of all tmux panes for listening TCP ports.
+# Skips well-known system ports (< 1024).
+
+# Get PIDs of all tmux panes
+declare -A pane_pids
+while IFS=: read -r pane_id pid; do
+  pane_pids[$pid]="$pane_id"
+done < <(tmux list-panes -a -F '#{pane_id}:#{pane_pid}' 2>/dev/null)
+
+[ ${#pane_pids[@]} -eq 0 ] && exit 0
+
+# Get listening ports and their PIDs
+declare -A port_map
+while IFS= read -r line; do
+  local_pid=$(echo "$line" | awk '{print $2}')
+  port=$(echo "$line" | awk '{print $9}' | sed 's/.*://')
+  [ -z "$port" ] && continue
+
+  # Skip well-known system ports
+  [ "$port" -lt 1024 ] 2>/dev/null && continue
+
+  # Walk up process tree to find a pane PID
+  check_pid="$local_pid"
+  while [ "$check_pid" -gt 1 ] 2>/dev/null; do
+    if [ -n "${pane_pids[$check_pid]+x}" ]; then
+      port_map["${pane_pids[$check_pid]}:$port"]=1
+      break
+    fi
+    # Get parent PID
+    check_pid=$(ps -o ppid= -p "$check_pid" 2>/dev/null | tr -d ' ')
+  done
+done < <(lsof -iTCP -sTCP:LISTEN -n -P 2>/dev/null | tail -n +2)
+
+# Output
+for key in "${!port_map[@]}"; do
+  IFS=: read -r pane port <<< "$key"
+  echo "$pane $port"
+done | sort -t' ' -k1,1 -k2,2n

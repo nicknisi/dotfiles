@@ -21,7 +21,7 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
 import { writeFileSync, readFileSync, mkdirSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { execSync } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
 
 // ── Tmux status integration ─────────────────────────────────────────────────
 
@@ -209,6 +209,14 @@ export default function (pi: ExtensionAPI) {
 
 	pi.on("agent_end", async () => {
 		writeStatus("waiting");
+		const session = getTmuxSession();
+		const paneId = process.env.TMUX_PANE;
+		if (session && paneId) {
+			spawn("claude-notify", ["waiting", session, paneId], {
+				detached: true,
+				stdio: "ignore",
+			}).unref();
+		}
 	});
 
 	pi.on("session_shutdown", async () => {
