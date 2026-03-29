@@ -14,34 +14,30 @@
 
 format_elapsed() {
   local secs=$1
-  if [ "$secs" -lt 60 ]; then
+  if [ "$secs" -lt 5 ]; then
+    echo "now"
+  elif [ "$secs" -lt 60 ]; then
     echo "${secs}s"
   elif [ "$secs" -lt 3600 ]; then
-    local m=$((secs / 60))
-    local s=$((secs % 60))
-    [ "$s" -gt 0 ] && echo "${m}m ${s}s" || echo "${m}m"
+    echo "$(( secs / 60 ))m"
+  elif [ "$secs" -lt 86400 ]; then
+    echo "$(( secs / 3600 ))h"
   else
-    local h=$((secs / 3600))
-    local m=$((secs % 3600 / 60))
-    [ "$m" -gt 0 ] && echo "${h}h ${m}m" || echo "${h}h"
+    echo "$(( secs / 86400 ))d"
   fi
 }
 
 # Get a useful location label for a pane
-# Shows path relative to ~/Developer, or just the basename if shallow
 pane_location() {
   local pane="$1" session="$2"
   local path
   path=$(tmux display-message -t "$pane" -p '#{pane_current_path}' 2>/dev/null)
   [ -z "$path" ] && return
 
-  # Strip home and Developer prefix
   local short="${path/#$HOME\//}"
   short="${short/#Developer\//}"
 
-  # If it's just the session name, not useful — show nothing
   [ "$short" = "$session" ] && return
-
   echo "$short"
 }
 
@@ -54,30 +50,45 @@ pane_git_branch() {
   path=$(tmux display-message -t "$pane" -p '#{pane_current_path}' 2>/dev/null)
   [ -z "$path" ] && return
 
-  # Check cache
   [ -n "${_git_cache[$path]+x}" ] && { echo "${_git_cache[$path]}"; return; }
 
-  # Resolve branch
   local branch
   branch=$(git -C "$path" rev-parse --abbrev-ref HEAD 2>/dev/null)
   _git_cache[$path]="${branch:-}"
   [ -n "$branch" ] && echo "$branch"
 }
 
+# Compact port hint: ⌁3000 or ⌁3000+2
+format_ports() {
+  local raw="$1"
+  [ -z "$raw" ] && return
+  local first="${raw%%,*}"
+  local rest="${raw#*,}"
+  if [ "$rest" = "$raw" ]; then
+    echo "⌁${first}"
+  else
+    local count=1
+    local tmp="$rest"
+    while [ "$tmp" != "${tmp#*,}" ]; do
+      count=$((count + 1))
+      tmp="${tmp#*,}"
+    done
+    count=$((count + 1))
+    echo "⌁${first}+${count}"
+  fi
+}
+
 # Preview: capture pane output for the selected item
-# Called via fzf --preview with the selected line
 show_preview() {
   local line="$1"
   local pane_id
   pane_id=$(echo "$line" | sed -n 's/.*\(%[0-9]*\).*/\1/p')
 
   if [ -n "$pane_id" ]; then
-    # Agent pane — show captured output
     echo -e "\033[1m── Pane $pane_id ──\033[0m"
     echo
     tmux capture-pane -p -t "$pane_id" -S -25 2>/dev/null
   else
-    # Non-agent session — show window list
     local session
     session=$(echo "$line" | awk '{print $1}')
     [ -z "$session" ] && return
@@ -87,7 +98,6 @@ show_preview() {
   fi
 }
 
-# Generate the listing
 generate_listing() {
   local now
   now=$(date +%s)
@@ -130,7 +140,7 @@ generate_listing() {
 
       agent_sessions+=("$session")
 
-      # Location (only if it adds info beyond session name)
+      # Location
       local location
       location=$(pane_location "$pane" "$session")
 
@@ -141,75 +151,72 @@ generate_listing() {
         [ "$diff" -ge 0 ] && elapsed=$(format_elapsed "$diff")
       fi
 
-      # Compute effective state (handles decay + timeout)
+      # Compute effective state
       state=$(agent_effective_state "$state" "${ts:-0}" "$now")
 
-      # Tool display (truncate)
-      local tool_display=""
-      [ -n "$tool" ] && tool_display="${tool:0:14}"
-
-      # Build detail string: tool + location context
+      # Build detail: location, then branch, then ports
       local detail=""
-      if [ -n "$tool_display" ] && [ -n "$location" ]; then
-        detail="$tool_display · $location"
-      elif [ -n "$tool_display" ]; then
-        detail="$tool_display"
-      elif [ -n "$location" ]; then
-        detail="$location"
-      fi
+      [ -n "$location" ] && detail="$location"
 
       # Git branch (suppress main/master, truncate)
       local git_branch
       git_branch=$(pane_git_branch "$pane")
       if [ -n "$git_branch" ] && [ "$git_branch" != "main" ] && [ "$git_branch" != "master" ]; then
-        local branch_display="${git_branch:0:20}"
-        detail="${detail:+$detail · }$branch_display"
+        detail="${detail:+$detail · }${git_branch:0:20}"
       fi
 
-      # Port info
+      # Port info (compact)
       local ports="${_pane_ports[$pane]:-}"
-      [ -n "$ports" ] && detail="${detail:+$detail · }:$ports"
+      if [ -n "$ports" ]; then
+        local port_hint
+        port_hint=$(format_ports "$ports")
+        detail="${detail:+$detail · }$port_hint"
+      fi
 
-      # Truncate detail to fit column
+      # Truncate detail
       detail="${detail:0:30}"
 
-      # Unseen marker — fixed-width 2-char prefix for alignment
-      local mark="  "
+      # Icon: unseen ● replaces state icon, seen uses state icon
+      local icon mark
       if agent_is_unseen "$f"; then
-        mark="\033[1;33m●\033[0m "
+        mark="\033[1;33m●\033[0m"
+      else
+        mark=" "
       fi
 
-      # Build line: [mark] icon session pane detail elapsed
+      # Pane ID embedded at end (dimmed, for extraction by fzf handler)
+      local pane_tag="\033[2;30m$pane\033[0m"
+
       local line
       case "$state" in
         waiting)
           w_count=$((w_count + 1))
-          line=$(printf "%b\033[1;33m⏳\033[0m %-14s \033[2m%-6s\033[0m \033[33m%-30s\033[0m \033[1;33m%8s\033[0m" \
-            "$mark" "$session" "$pane" "$detail" "$elapsed")
+          line=$(printf "%b \033[1;33m⏳\033[0m %-14s \033[33m%-30s\033[0m \033[1;33m%5s\033[0m  %b" \
+            "$mark" "$session" "$detail" "$elapsed" "$pane_tag")
           waiting+=("$line")
           ;;
         completed)
           c_count=$((c_count + 1))
-          line=$(printf "%b\033[1;32m✓\033[0m  %-14s \033[2m%-6s\033[0m \033[32m%-30s\033[0m \033[32m%8s\033[0m" \
-            "$mark" "$session" "$pane" "${detail:-done}" "$elapsed")
+          line=$(printf "%b \033[1;32m✓\033[0m  %-14s \033[32m%-30s\033[0m \033[32m%5s\033[0m  %b" \
+            "$mark" "$session" "${detail:-done}" "$elapsed" "$pane_tag")
           completed+=("$line")
           ;;
         working)
           a_count=$((a_count + 1))
-          line=$(printf "  \033[38;5;208m⚡\033[0m %-14s \033[2m%-6s\033[0m \033[2m%-30s\033[0m \033[2m%8s\033[0m" \
-            "$session" "$pane" "$detail" "$elapsed")
+          line=$(printf "  \033[38;5;208m⚡\033[0m %-14s \033[2m%-30s\033[0m \033[2m%5s\033[0m  %b" \
+            "$session" "$detail" "$elapsed" "$pane_tag")
           working+=("$line")
           ;;
         stale)
           s_count=$((s_count + 1))
-          line=$(printf "  \033[2m⚠\033[0m  %-14s \033[2m%-6s\033[0m \033[2;33m%-30s\033[0m \033[2;33m%8s\033[0m" \
-            "$session" "$pane" "${detail:-stale}" "$elapsed")
+          line=$(printf "  \033[2m⚠\033[0m  %-14s \033[2;33m%-30s\033[0m \033[2;33m%5s\033[0m  %b" \
+            "$session" "${detail:-stale}" "$elapsed" "$pane_tag")
           stale_lines+=("$line")
           ;;
         *)
           i_count=$((i_count + 1))
-          line=$(printf "  \033[2m·\033[0m  %-14s \033[2m%-6s\033[0m \033[2m%-30s\033[0m \033[2m%8s\033[0m" \
-            "$session" "$pane" "$detail" "$elapsed")
+          line=$(printf "  \033[2m·\033[0m  %-14s \033[2m%-30s\033[0m \033[2m%5s\033[0m  %b" \
+            "$session" "$detail" "$elapsed" "$pane_tag")
           idle+=("$line")
           ;;
       esac
@@ -225,7 +232,7 @@ generate_listing() {
   [ "$i_count" -gt 0 ] && summary+="\033[2m${i_count} idle\033[0m  "
   if [ -n "$summary" ]; then
     echo -e "$summary"
-    echo -e "\033[2m─────────────────────────────────────────────────────────────────\033[0m"
+    echo -e "\033[2m────────────────────────────────────────────────────────\033[0m"
   fi
 
   # Agent panes: waiting → completed → working → stale → idle
@@ -244,12 +251,11 @@ generate_listing() {
     done
     $has_agent && continue
 
-    local win_label="win"
-    no_agent+=("$(printf "\033[2m·  %-16s        %-28s %s %s\033[0m" "$name" "" "$windows $win_label" "$attached")")
+    no_agent+=("$(printf "\033[2m   ·  %-14s %-30s %sw %s\033[0m" "$name" "" "$windows" "$attached")")
   done < <(tmux list-sessions -F "#{session_name}:#{session_windows}:#{?session_attached,(attached),}" 2>/dev/null)
 
   if [ ${#no_agent[@]} -gt 0 ]; then
-    [ "$((w_count + c_count + a_count + s_count + i_count))" -gt 0 ] && echo -e "\033[2m─────────────────────────────────────────────────────────────────\033[0m"
+    [ "$((w_count + c_count + a_count + s_count + i_count))" -gt 0 ] && echo -e "\033[2m────────────────────────────────────────────────────────\033[0m"
     for l in "${no_agent[@]}"; do echo -e "$l"; done
   fi
 }
@@ -289,7 +295,7 @@ selected=$(generate_listing | fzf \
 # Handle selection
 if [ -n "$selected" ]; then
   # Skip separator/summary lines
-  echo "$selected" | grep -qE '━━━|─────| waiting| working| idle| done' && exit 0
+  echo "$selected" | grep -qE '━━━|────| waiting| working| idle| done' && exit 0
 
   # Extract pane ID (%NN embedded in the line)
   pane_id=$(echo "$selected" | sed -n 's/.*\(%[0-9]*\).*/\1/p')
@@ -298,7 +304,7 @@ if [ -n "$selected" ]; then
     # Agent pane — switch directly
     tmux switch-client -t "$pane_id" 2>/dev/null
   else
-    # Non-agent session — smart switch (land on best agent pane if any)
+    # Non-agent session — smart switch
     session_name=$(echo "$selected" | awk '{print $2}')
     [ -n "$session_name" ] && claude-smart-switch "$session_name" 2>/dev/null
   fi
