@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+# Query agent status for a tmux session (aggregated across all agents)
+# Reads pane-level JSON status files from all registered agent directories
+#
+# Usage: agent-status [--tmux] <session_name> [current_pane_id]
+#   --tmux  Output tmux-formatted status string (icon + badge)
+# Output (default): "<state> <waiting_count>"
+# Output (--tmux):  tmux format string with colors, or empty if idle
+#
+# States: waiting > completed > working > idle
+# "completed" decays to "idle" after COMPLETED_DECAY seconds
+# "working" decays to "stale" after WORKING_TIMEOUT seconds (counts as working for aggregation)
+
+. agent-status-lib
+
+TMUX_FORMAT=false
+if [ "${1:-}" = "--tmux" ]; then
+  TMUX_FORMAT=true
+  shift
+fi
+
+SESSION="${1:-$(tmux display-message -p '#{session_name}' 2>/dev/null)}"
+CURRENT_PANE="${2:-}"
+
+[ -z "$SESSION" ] && { $TMUX_FORMAT || echo "idle 0"; exit 0; }
+
+now=$(date +%s)
+most_urgent="idle"
+waiting_count=0
+
+while IFS= read -r dir; do
+  [ -d "$dir" ] || continue
+  for f in "$dir"/*.status; do
+    [ -f "$f" ] || continue
+
+    # Quick session filter before jq parse
+    grep -q "\"session\":\"$SESSION\"" "$f" || continue
+
+    state=$(jq -r '.state // "idle"' "$f" 2>/dev/null)
+    pane=$(jq -r '.pane // empty' "$f" 2>/dev/null)
+    ts=$(jq -r '.ts // 0' "$f" 2>/dev/null)
+
+    # Skip files that aren't valid JSON
+    [ -z "$state" ] && continue
+
+    # Verify pane still exists (stale cleanup)
+    if [ -n "$pane" ] && ! tmux display-message -t "$pane" -p '#{pane_id}' >/dev/null 2>&1; then
+      rm -f "$f"
+      continue
+    fi
+
+    # Compute effective state (handles decay + timeout)
+    state=$(agent_effective_state "$state" "${ts:-0}" "$now")
+
+    # Stale counts as working for aggregation purposes
+    [ "$state" = "stale" ] && state="working"
+
+    # Priority: waiting > completed > working > idle
+    case "$state" in
+      waiting)
+        waiting_count=$((waiting_count + 1))
+        most_urgent="waiting"
+        ;;
+      completed)
+        [ "$most_urgent" != "waiting" ] && most_urgent="completed"
+        ;;
+      working)
+        [ "$most_urgent" != "waiting" ] && [ "$most_urgent" != "completed" ] && most_urgent="working"
+        ;;
+    esac
+  done
+done < <(agent_status_dirs)
+
+if $TMUX_FORMAT; then
+  # Only show an icon when agents are waiting — nothing otherwise
+  [ "$most_urgent" = "waiting" ] && printf '#[fg=#f9e2af] ⏳ '
+else
+  echo "$most_urgent $waiting_count"
+fi

@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# Reconcile agent status files — remove orphans, fix state
+# Usage: claude-reconcile [--dry-run] [--prune-worktrees] [--verbose]
+#
+# Actions:
+#   - Remove status files for dead panes
+#   - Reset "working" state that's been stale > 3 minutes
+#   - Optionally prune abandoned git worktrees from dispatch
+
+. agent-status-lib
+
+DRY_RUN=false
+PRUNE_WORKTREES=false
+VERBOSE=false
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run)          DRY_RUN=true; shift ;;
+    --prune-worktrees)  PRUNE_WORKTREES=true; shift ;;
+    --verbose|-v)       VERBOSE=true; shift ;;
+    *) shift ;;
+  esac
+done
+
+NOW=$(date +%s)
+removed=0
+fixed=0
+pruned=0
+
+log() { $VERBOSE && echo "$@"; }
+
+while IFS= read -r dir; do
+  for f in "$dir"/*.status; do
+    [ -f "$f" ] || continue
+
+    # Check for corrupt JSON first
+    if ! jq empty "$f" >/dev/null 2>&1; then
+      log "CORRUPT: $f (invalid JSON)"
+      if ! $DRY_RUN; then
+        rm -f "$f"
+      fi
+      removed=$((removed + 1))
+      continue
+    fi
+
+    pane=$(jq -r '.pane // empty' "$f" 2>/dev/null)
+    session=$(jq -r '.session // empty' "$f" 2>/dev/null)
+    state=$(jq -r '.state // "idle"' "$f" 2>/dev/null)
+    ts=$(jq -r '.ts // 0' "$f" 2>/dev/null)
+
+    # Check: pane still exists? (display-message returns empty for dead panes)
+    if [ -n "$pane" ]; then
+      pane_check=$(tmux display-message -t "$pane" -p '#{pane_id}' 2>/dev/null)
+      if [ -z "$pane_check" ]; then
+        log "ORPHAN: $f (pane $pane dead)"
+        if ! $DRY_RUN; then
+          rm -f "$f"
+        fi
+        removed=$((removed + 1))
+        continue
+      fi
+    fi
+
+    # Check: stale working state?
+    if [ "$state" = "working" ]; then
+      age=0
+      [ "$ts" -gt 0 ] 2>/dev/null && age=$((NOW - ts))
+      if [ "$age" -ge "$AGENT_WORKING_TIMEOUT" ]; then
+        log "STALE: $f (working for ${age}s)"
+        if ! $DRY_RUN; then
+          jq '.state = "idle"' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+        fi
+        fixed=$((fixed + 1))
+      fi
+    fi
+  done
+done < <(agent_status_dirs)
+
+# Worktree pruning
+if $PRUNE_WORKTREES; then
+  for wt_dir in "$HOME"/Developer/*/.worktrees/*/; do
+    [ -d "$wt_dir" ] || continue
+    branch=$(git -C "$wt_dir" rev-parse --abbrev-ref HEAD 2>/dev/null)
+    [ -z "$branch" ] && continue
+
+    # Only target agent/* branches
+    if [[ "$branch" == agent/* ]]; then
+      in_use=false
+      while IFS= read -r pane_path; do
+        [ "$pane_path" = "$wt_dir" ] || [ "$pane_path" = "${wt_dir%/}" ] && { in_use=true; break; }
+      done < <(tmux list-panes -a -F '#{pane_current_path}' 2>/dev/null)
+
+      if ! $in_use; then
+        log "WORKTREE: $wt_dir (branch $branch, no active pane)"
+        if ! $DRY_RUN; then
+          git -C "$(dirname "$(dirname "$wt_dir")")" worktree remove "$wt_dir" 2>/dev/null && pruned=$((pruned + 1))
+        else
+          pruned=$((pruned + 1))
+        fi
+      fi
+    fi
+  done
+fi
+
+# Report
+PREFIX=""
+$DRY_RUN && PREFIX="[dry-run] "
+echo "${PREFIX}Reconcile complete: ${removed} orphans removed, ${fixed} stale fixed, ${pruned} worktrees pruned"

@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Agent status shared library — source with: . agent-status-lib
+
+AGENT_STATUS_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/agent-status/agents.conf"
+AGENT_WORKING_TIMEOUT=180   # 3 minutes
+AGENT_COMPLETED_DECAY=5     # 5 seconds
+
+# List all registered status directories (one per line)
+agent_status_dirs() {
+  if [ -f "$AGENT_STATUS_CONFIG" ]; then
+    while IFS='=' read -r name dir; do
+      [[ "$name" =~ ^[[:space:]]*# ]] && continue
+      [ -z "$name" ] && continue
+      dir="${dir/#\$HOME/$HOME}"
+      [ -d "$dir" ] && echo "$dir"
+    done < "$AGENT_STATUS_CONFIG"
+  else
+    [ -d "$HOME/.cache/claude-status" ] && echo "$HOME/.cache/claude-status"
+    [ -d "$HOME/.cache/pi-status" ] && echo "$HOME/.cache/pi-status"
+  fi
+}
+
+# Compute effective state after decay/timeout
+# Args: state ts now
+agent_effective_state() {
+  local state="$1" ts="$2" now="$3"
+  local age=0
+  [ "$ts" -gt 0 ] 2>/dev/null && age=$((now - ts))
+  case "$state" in
+    completed) [ "$age" -ge "$AGENT_COMPLETED_DECAY" ] && { echo "idle"; return; } ;;
+    working)   [ "$age" -ge "$AGENT_WORKING_TIMEOUT" ] && { echo "stale"; return; } ;;
+  esac
+  echo "$state"
+}
+
+# Check if a status file represents an unseen terminal state
+# Args: status_file
+# Returns: 0 if unseen, 1 if seen
+agent_is_unseen() {
+  local file="$1"
+  local state ts seen_ts
+  state=$(jq -r '.state // "idle"' "$file" 2>/dev/null)
+  ts=$(jq -r '.ts // 0' "$file" 2>/dev/null)
+  seen_ts=$(jq -r '.seen_ts // 0' "$file" 2>/dev/null)
+  case "$state" in
+    waiting|completed)
+      [ "$seen_ts" -lt "$ts" ] 2>/dev/null && return 0 ;;
+  esac
+  return 1
+}
+
+# Mark a status file as seen (write seen_ts)
+# Args: status_file
+agent_mark_seen() {
+  local file="$1"
+  [ -f "$file" ] || return
+  local now
+  now=$(date +%s)
+  local tmp
+  tmp=$(jq --argjson s "$now" '.seen_ts = $s' "$file" 2>/dev/null) || return
+  [ -n "$tmp" ] && printf '%s\n' "$tmp" > "$file"
+}
+
+# Find status file for a given pane ID across all dirs
+# Args: pane_id (e.g., %121)
+agent_find_status() {
+  local pane_id="$1"
+  local pane_num="${pane_id#%}"
+  local dir
+  while IFS= read -r dir; do
+    local f="$dir/${pane_num}.status"
+    [ -f "$f" ] && { echo "$f"; return 0; }
+  done < <(agent_status_dirs)
+  return 1
+}

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Notify when an agent needs attention
+# Usage: claude-notify <state> <session> <pane_id> [tool]
+#
+# Only notifies for: waiting, completed
+# Skips if the target pane is currently focused (no self-notification)
+
+STATE="$1"
+SESSION="$2"
+PANE_ID="$3"
+TOOL="${4:-}"
+
+# Only notify for attention-worthy states
+case "$STATE" in
+  waiting|completed) ;;
+  *) exit 0 ;;
+esac
+
+# Don't notify if the user is already looking at this pane
+CURRENT_PANE=$(tmux display-message -p '#{pane_id}' 2>/dev/null)
+[ "$CURRENT_PANE" = "$PANE_ID" ] && exit 0
+
+# Don't notify if the user is in the same session already
+CURRENT_SESSION=$(tmux display-message -p '#{session_name}' 2>/dev/null)
+
+# Build message
+ICON="⏳"
+[ "$STATE" = "completed" ] && ICON="✓"
+MSG="$ICON $SESSION"
+[ -n "$TOOL" ] && MSG="$MSG ($TOOL)"
+
+# tmux display-message (shown in status bar area briefly)
+tmux display-message -d 3000 "$MSG" 2>/dev/null
+
+# Terminal bell (triggers tmux visual/audio bell depending on config)
+# Only if user is in a different session
+if [ "$CURRENT_SESSION" != "$SESSION" ]; then
+  tmux run-shell -t "$PANE_ID" "printf '\\a'" 2>/dev/null
+fi

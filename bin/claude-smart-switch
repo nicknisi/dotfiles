@@ -5,26 +5,25 @@
 #
 # Usage: claude-smart-switch <session_name>
 # Switches client to session, targeting the highest-priority agent pane
+# Marks the target pane as seen (clears unseen ● marker)
+
+. agent-status-lib
 
 SESSION="$1"
 [ -z "$SESSION" ] && exit 1
 
-CLAUDE_DIR="$HOME/.cache/claude-status"
-PI_DIR="$HOME/.cache/pi-status"
-COMPLETED_DECAY=5
 now=$(date +%s)
 
 best_pane=""
 best_priority=99  # lower = more urgent
+best_file=""
 
-check_dir() {
-  local dir="$1"
-  [ -d "$dir" ] || return
+while IFS= read -r dir; do
+  [ -d "$dir" ] || continue
   for f in "$dir"/*.status; do
     [ -f "$f" ] || continue
     grep -q "\"session\":\"$SESSION\"" "$f" || continue
 
-    local state pane ts
     state=$(jq -r '.state // "idle"' "$f" 2>/dev/null)
     pane=$(jq -r '.pane // empty' "$f" 2>/dev/null)
     ts=$(jq -r '.ts // 0' "$f" 2>/dev/null)
@@ -33,12 +32,13 @@ check_dir() {
     # Verify pane exists
     tmux display-message -t "$pane" -p '#{pane_id}' >/dev/null 2>&1 || { rm -f "$f"; continue; }
 
-    # Decay completed
-    if [ "$state" = "completed" ]; then
-      [ "$((now - ${ts:-0}))" -ge "$COMPLETED_DECAY" ] && state="idle"
-    fi
+    # Compute effective state
+    state=$(agent_effective_state "$state" "${ts:-0}" "$now")
 
-    local priority=99
+    # Stale counts as working for priority
+    [ "$state" = "stale" ] && state="working"
+
+    priority=99
     case "$state" in
       waiting)   priority=0 ;;
       completed) priority=1 ;;
@@ -49,16 +49,16 @@ check_dir() {
     if [ "$priority" -lt "$best_priority" ]; then
       best_priority=$priority
       best_pane=$pane
+      best_file=$f
     fi
   done
-}
-
-check_dir "$CLAUDE_DIR"
-check_dir "$PI_DIR"
+done < <(agent_status_dirs)
 
 if [ -n "$best_pane" ]; then
   # Switch to the best agent pane directly
   tmux switch-client -t "$best_pane" 2>/dev/null
+  # Mark as seen (clears unseen ● marker in dashboard)
+  [ -n "$best_file" ] && agent_mark_seen "$best_file"
 else
   # No agent panes — plain session switch
   tmux switch-client -t "$SESSION" 2>/dev/null
