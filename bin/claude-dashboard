@@ -284,11 +284,12 @@ selected=$(generate_listing | fzf \
   --no-sort \
   --delimiter='\t' \
   --with-nth=2.. \
-  --header="enter: switch · ctrl-r: refresh · ctrl-n: next waiting · esc: cancel" \
+  --header="enter: switch · ctrl-p: preview · ctrl-r: refresh · ctrl-n: next waiting · esc: cancel" \
   --prompt="  " \
   --pointer="▶" \
   --preview="$SELF --preview {}" \
-  --preview-window="right:45%:wrap" \
+  --preview-window="right:45%:wrap:hidden" \
+  --bind="ctrl-p:toggle-preview" \
   --bind="ctrl-r:reload($SELF --generate)" \
   --bind="ctrl-n:execute-silent(claude-next)+abort" \
   --bind="j:down,k:up,q:cancel" \
