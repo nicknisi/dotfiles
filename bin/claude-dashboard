@@ -148,7 +148,7 @@ generate_listing() {
       local git_branch
       git_branch=$(pane_git_branch "$pane")
       if [ -n "$git_branch" ] && [ "$git_branch" != "main" ] && [ "$git_branch" != "master" ]; then
-        detail="${detail:+$detail · } ${git_branch:0:20}"
+        detail="${detail:+$detail · }${git_branch:0:20}"
       fi
 
       local ports="${_pane_ports[$pane]:-}"
@@ -158,68 +158,37 @@ generate_listing() {
         detail="${detail:+$detail · }$port_hint"
       fi
 
-      detail="${detail:0:32}"
-
-      local dot=" "
-      agent_is_unseen "$f" && dot="\033[1;33m●\033[0m"
+      detail="${detail:0:48}"
 
       local is_current=false
       [ "$pane" = "$CURRENT_PANE" ] && is_current=true
 
-      # Format line: pane_id<TAB>visible_content
-      # fzf --with-nth=2.. hides the pane_id, but it's still in the selected output
-      local line
+      # Uniform format: pane_id<TAB> ▌ session detail elapsed
+      # State = bar color + text color. No variable-width prefixes.
+      local bar_color detail_color elapsed_color
       case "$state" in
-        waiting)
-          w_count=$((w_count + 1))
-          if $is_current; then
-            line=$(printf "%s\t%b \033[1;33m▌\033[0m \033[1m%-14s\033[0m \033[33m%-32s\033[0m \033[1;33m%4s\033[0m" \
-              "$pane" "$dot" "$session" "$detail" "$elapsed")
-          else
-            line=$(printf "%s\t%b \033[1;33m▌\033[0m %-14s \033[33m%-32s\033[0m \033[1;33m%4s\033[0m" \
-              "$pane" "$dot" "$session" "$detail" "$elapsed")
-          fi
-          $is_current && current_line="$line" || waiting+=("$line")
-          ;;
-        completed)
-          c_count=$((c_count + 1))
-          if $is_current; then
-            line=$(printf "%s\t%b \033[1;32m▌\033[0m \033[1m%-14s\033[0m \033[32m%-32s\033[0m \033[32m%4s\033[0m" \
-              "$pane" "$dot" "$session" "${detail:-done}" "$elapsed")
-          else
-            line=$(printf "%s\t%b \033[1;32m▌\033[0m %-14s \033[32m%-32s\033[0m \033[32m%4s\033[0m" \
-              "$pane" "$dot" "$session" "${detail:-done}" "$elapsed")
-          fi
-          $is_current && current_line="$line" || completed+=("$line")
-          ;;
-        working)
-          a_count=$((a_count + 1))
-          if $is_current; then
-            line=$(printf "%s\t  \033[38;5;208m▌\033[0m \033[1m%-14s\033[0m %-32s %4s" \
-              "$pane" "$session" "$detail" "$elapsed")
-          else
-            line=$(printf "%s\t  \033[38;5;208m▌\033[0m %-14s \033[2m%-32s\033[0m \033[2m%4s\033[0m" \
-              "$pane" "$session" "$detail" "$elapsed")
-          fi
-          $is_current && current_line="$line" || working+=("$line")
-          ;;
-        stale)
-          s_count=$((s_count + 1))
-          line=$(printf "%s\t  \033[2;33m▌\033[0m %-14s \033[2;33m%-32s\033[0m \033[2;33m%4s\033[0m" \
-            "$pane" "$session" "${detail:-stale}" "$elapsed")
-          $is_current && current_line="$line" || stale_lines+=("$line")
-          ;;
-        *)
-          i_count=$((i_count + 1))
-          if $is_current; then
-            line=$(printf "%s\t  \033[2m▌\033[0m \033[1m%-14s\033[0m %-32s %4s" \
-              "$pane" "$session" "$detail" "$elapsed")
-          else
-            line=$(printf "%s\t  \033[2m▌\033[0m %-14s \033[2m%-32s\033[0m \033[2m%4s\033[0m" \
-              "$pane" "$session" "$detail" "$elapsed")
-          fi
-          $is_current && current_line="$line" || idle+=("$line")
-          ;;
+        waiting)   w_count=$((w_count + 1)); bar_color="1;33"; detail_color="33"; elapsed_color="1;33" ;;
+        completed) c_count=$((c_count + 1)); bar_color="1;32"; detail_color="32"; elapsed_color="32"; [ -z "$detail" ] && detail="done" ;;
+        working)   a_count=$((a_count + 1)); bar_color="38;5;208"; detail_color="2"; elapsed_color="2" ;;
+        stale)     s_count=$((s_count + 1)); bar_color="2;33"; detail_color="2;33"; elapsed_color="2;33"; [ -z "$detail" ] && detail="stale" ;;
+        *)         i_count=$((i_count + 1)); bar_color="2"; detail_color="2"; elapsed_color="2" ;;
+      esac
+
+      local line
+      if $is_current; then
+        line=$(printf "%s\t\033[${bar_color}m▌\033[0m \033[1m%-14s\033[0m %-48s %4s" \
+          "$pane" "$session" "$detail" "$elapsed")
+      else
+        line=$(printf "%s\t\033[${bar_color}m▌\033[0m %-14s \033[${detail_color}m%-48s\033[0m \033[${elapsed_color}m%4s\033[0m" \
+          "$pane" "$session" "$detail" "$elapsed")
+      fi
+
+      case "$state" in
+        waiting)   $is_current && current_line="$line" || waiting+=("$line") ;;
+        completed) $is_current && current_line="$line" || completed+=("$line") ;;
+        working)   $is_current && current_line="$line" || working+=("$line") ;;
+        stale)     $is_current && current_line="$line" || stale_lines+=("$line") ;;
+        *)         $is_current && current_line="$line" || idle+=("$line") ;;
       esac
     done
   done < <(agent_status_dirs)
@@ -233,7 +202,8 @@ generate_listing() {
   [ "$i_count" -gt 0 ] && summary+="\033[2m${i_count} idle\033[0m  "
   if [ -n "$summary" ]; then
     echo -e "\t$summary"
-    echo -e "\t\033[2m────────────────────────────────────────────────────────\033[0m"
+    printf '\t\033[2m  %-14s %-48s %4s\033[0m\n' "SESSION" "DETAIL" "AGE"
+    echo -e "\t\033[2m────────────────────────────────────────────────────────────────────────\033[0m"
   fi
 
   # Current pane first (bold session name = "you are here")
@@ -255,11 +225,11 @@ generate_listing() {
     done
     $has_agent && continue
 
-    no_agent+=("$(printf "\t\033[2m  ▌ %-14s %-32s %sw %s\033[0m" "$name" "" "$windows" "$attached")")
+    no_agent+=("$(printf "\t\033[2m▌ %-14s %-48s %4s\033[0m" "$name" "" "${windows}w")")
   done < <(tmux list-sessions -F "#{session_name}:#{session_windows}:#{?session_attached,(attached),}" 2>/dev/null)
 
   if [ ${#no_agent[@]} -gt 0 ]; then
-    [ "$((w_count + c_count + a_count + s_count + i_count))" -gt 0 ] && echo -e "\t\033[2m────────────────────────────────────────────────────────\033[0m"
+    [ "$((w_count + c_count + a_count + s_count + i_count))" -gt 0 ] && echo -e "\t\033[2m────────────────────────────────────────────────────────────────────────\033[0m"
     for l in "${no_agent[@]}"; do echo -e "$l"; done
   fi
 }
@@ -284,6 +254,7 @@ selected=$(generate_listing | fzf \
   --no-sort \
   --delimiter='\t' \
   --with-nth=2.. \
+  --header-lines=3 \
   --header="enter: switch · ctrl-p: preview · ctrl-r: refresh · ctrl-n: next waiting · esc: cancel" \
   --prompt="  " \
   --pointer="▶" \
