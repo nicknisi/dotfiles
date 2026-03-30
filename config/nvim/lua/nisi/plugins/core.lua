@@ -8,8 +8,11 @@ return {
   {
     "andymass/vim-matchup",
     cond = not vim.g.vscode,
-    config = function()
+    init = function()
       vim.g.matchup_matchparen_offscreen = { method = "popup" }
+      -- disable treesitter integration until vim-matchup supports nvim 0.12
+      -- (0.12 changed metadata.range → metadata.offset in treesitter directives)
+      vim.g.matchup_treesitter_enabled = false
     end,
   },
   {

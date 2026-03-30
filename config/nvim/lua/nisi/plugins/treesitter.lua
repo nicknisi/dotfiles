@@ -16,6 +16,63 @@ return {
       end
       require("lazy.core.loader").add_to_rtp(plugin)
       require("nvim-treesitter.query_predicates")
+
+      -- nvim 0.12: match[capture_id] is now always TSNode[] (list), not TSNode.
+      -- Re-register the directives that nvim-treesitter registers with the old
+      -- single-node assumption so they unwrap the list first.
+      if vim.fn.has("nvim-0.12") == 1 then
+        local tsquery = require("vim.treesitter.query")
+
+        local function unwrap(match, capture_id)
+          local node = match[capture_id]
+          if type(node) == "table" then
+            return node[1]
+          end
+          return node
+        end
+
+        local non_ft_aliases = {
+          ex = "elixir", pl = "perl", sh = "bash",
+          uxn = "uxntal", ts = "typescript",
+        }
+        local html_types = {
+          ["importmap"] = "json", ["module"] = "javascript",
+          ["application/ecmascript"] = "javascript",
+          ["text/ecmascript"] = "javascript",
+        }
+
+        local function info_string_to_lang(alias)
+          local match = vim.filetype.match({ filename = "a." .. alias })
+          return match or non_ft_aliases[alias] or alias
+        end
+
+        tsquery.add_directive("set-lang-from-info-string!", function(match, _, bufnr, pred, metadata)
+          local node = unwrap(match, pred[2])
+          if not node then return end
+          metadata["injection.language"] = info_string_to_lang(
+            vim.treesitter.get_node_text(node, bufnr):lower()
+          )
+        end, { force = true })
+
+        tsquery.add_directive("set-lang-from-mimetype!", function(match, _, bufnr, pred, metadata)
+          local node = unwrap(match, pred[2])
+          if not node then return end
+          local text = vim.treesitter.get_node_text(node, bufnr)
+          local configured = html_types[text]
+          if configured then
+            metadata["injection.language"] = configured
+          else
+            local parts = vim.split(text, "/", {})
+            metadata["injection.language"] = parts[#parts]
+          end
+        end, { force = true })
+
+        tsquery.add_directive("downcase!", function(match, _, bufnr, pred, metadata)
+          local node = unwrap(match, pred[2])
+          if not node then return end
+          metadata["injection.language"] = vim.treesitter.get_node_text(node, bufnr):lower()
+        end, { force = true })
+      end
       local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
       parser_config.blade = {
         install_info = {
