@@ -61,6 +61,46 @@ agent_mark_seen() {
   [ -n "$tmp" ] && printf '%s\n' "$tmp" > "$file"
 }
 
+# Cached tmux server PID (one lookup per script invocation)
+_AGENT_TMUX_SERVER_PID=""
+agent_tmux_server_pid() {
+  [ -n "$_AGENT_TMUX_SERVER_PID" ] && { echo "$_AGENT_TMUX_SERVER_PID"; return; }
+  _AGENT_TMUX_SERVER_PID=$(tmux display-message -p '#{pid}' 2>/dev/null)
+  echo "$_AGENT_TMUX_SERVER_PID"
+}
+
+# Validate a status file's pane is still the same pane (not a reused ID)
+# Returns 0 if valid, 1 if stale (removes the file as side effect)
+# Args: file pane session [tmux_pid_from_file]
+agent_validate_pane() {
+  local file="$1" pane="$2" session="$3" file_tmux_pid="${4:-}"
+
+  # Pane must still exist (check output, not exit code — tmux 3.6+ returns 0 for dead panes)
+  local pane_check
+  pane_check=$(tmux display-message -t "$pane" -p '#{pane_id}' 2>/dev/null)
+  if [ -z "$pane_check" ]; then
+    rm -f "$file"; return 1
+  fi
+
+  # If file stores the tmux server PID, compare it — catches reboot/restart
+  if [ -n "$file_tmux_pid" ]; then
+    local cur
+    cur=$(agent_tmux_server_pid)
+    if [ -n "$cur" ] && [ "$file_tmux_pid" != "$cur" ]; then
+      rm -f "$file"; return 1
+    fi
+    return 0
+  fi
+
+  # Fallback for old files without tmux_pid: session name must match
+  local actual
+  actual=$(tmux display-message -t "$pane" -p '#{session_name}' 2>/dev/null)
+  if [ -n "$actual" ] && [ "$actual" != "$session" ]; then
+    rm -f "$file"; return 1
+  fi
+  return 0
+}
+
 # Find status file for a given pane ID across all dirs
 # Args: pane_id (e.g., %121)
 agent_find_status() {

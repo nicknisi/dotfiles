@@ -30,6 +30,7 @@ SESSION=$(tmux display-message -p '#{session_name}' 2>/dev/null)
 
 STATUS_FILE="$STATUS_DIR/${PANE_NUM}.status"
 TS=$(date +%s)
+TMUX_PID=$(tmux display-message -p '#{pid}' 2>/dev/null)
 
 # Extract tool_name from JSON payload (PreToolUse only)
 TOOL=""
@@ -38,8 +39,8 @@ if [ "$1" = "PreToolUse" ]; then
 fi
 
 write_status() {
-  printf '{"state":"%s","pane":"%s","session":"%s","tool":"%s","ts":%s}\n' \
-    "$1" "$PANE_ID" "$SESSION" "${2:-}" "$TS" > "$STATUS_FILE"
+  printf '{"state":"%s","pane":"%s","session":"%s","tool":"%s","ts":%s,"tmux_pid":%s}\n' \
+    "$1" "$PANE_ID" "$SESSION" "${2:-}" "$TS" "${TMUX_PID:-0}" > "$STATUS_FILE"
 }
 
 case "$1" in

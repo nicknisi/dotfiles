@@ -47,17 +47,36 @@ while IFS= read -r dir; do
     session=$(jq -r '.session // empty' "$f" 2>/dev/null)
     state=$(jq -r '.state // "idle"' "$f" 2>/dev/null)
     ts=$(jq -r '.ts // 0' "$f" 2>/dev/null)
+    tmux_pid=$(jq -r '.tmux_pid // empty' "$f" 2>/dev/null)
 
-    # Check: pane still exists? (display-message returns empty for dead panes)
+    # Check: pane still valid? (existence + server PID + session match)
     if [ -n "$pane" ]; then
-      pane_check=$(tmux display-message -t "$pane" -p '#{pane_id}' 2>/dev/null)
-      if [ -z "$pane_check" ]; then
-        log "ORPHAN: $f (pane $pane dead)"
-        if ! $DRY_RUN; then
-          rm -f "$f"
+      if $DRY_RUN; then
+        # Dry-run: check without removing
+        pane_check=$(tmux display-message -t "$pane" -p '#{pane_id}' 2>/dev/null)
+        if [ -z "$pane_check" ]; then
+          log "ORPHAN: $f (pane $pane dead)"
+          removed=$((removed + 1)); continue
         fi
-        removed=$((removed + 1))
-        continue
+        if [ -n "$tmux_pid" ]; then
+          cur_pid=$(agent_tmux_server_pid)
+          if [ -n "$cur_pid" ] && [ "$tmux_pid" != "$cur_pid" ]; then
+            log "ORPHAN: $f (stale tmux server pid)"
+            removed=$((removed + 1)); continue
+          fi
+        else
+          # Fallback: session name check for old files without tmux_pid
+          actual_session=$(tmux display-message -t "$pane" -p '#{session_name}' 2>/dev/null)
+          if [ -n "$actual_session" ] && [ "$actual_session" != "$session" ]; then
+            log "ORPHAN: $f (session mismatch: $session vs $actual_session)"
+            removed=$((removed + 1)); continue
+          fi
+        fi
+      else
+        if ! agent_validate_pane "$f" "$pane" "$session" "$tmux_pid"; then
+          log "ORPHAN: $f (pane $pane invalid)"
+          removed=$((removed + 1)); continue
+        fi
       fi
     fi
 

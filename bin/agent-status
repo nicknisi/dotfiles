@@ -40,14 +40,17 @@ while IFS= read -r dir; do
     state=$(jq -r '.state // "idle"' "$f" 2>/dev/null)
     pane=$(jq -r '.pane // empty' "$f" 2>/dev/null)
     ts=$(jq -r '.ts // 0' "$f" 2>/dev/null)
+    local tmux_pid
+    tmux_pid=$(jq -r '.tmux_pid // empty' "$f" 2>/dev/null)
+    local file_session
+    file_session=$(jq -r '.session // empty' "$f" 2>/dev/null)
 
     # Skip files that aren't valid JSON
     [ -z "$state" ] && continue
 
-    # Verify pane still exists (stale cleanup)
-    if [ -n "$pane" ] && ! tmux display-message -t "$pane" -p '#{pane_id}' >/dev/null 2>&1; then
-      rm -f "$f"
-      continue
+    # Verify pane still valid (existence + server PID + session)
+    if [ -n "$pane" ]; then
+      agent_validate_pane "$f" "$pane" "$file_session" "$tmux_pid" || continue
     fi
 
     # Compute effective state (handles decay + timeout)

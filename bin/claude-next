@@ -23,14 +23,13 @@ while IFS= read -r dir; do
     state=$(jq -r '.state // empty' "$f" 2>/dev/null)
     pane=$(jq -r '.pane // empty' "$f" 2>/dev/null)
     ts=$(jq -r '.ts // 0' "$f" 2>/dev/null)
+    session=$(jq -r '.session // empty' "$f" 2>/dev/null)
+    tmux_pid=$(jq -r '.tmux_pid // empty' "$f" 2>/dev/null)
 
     [ -n "$pane" ] || continue
 
-    # Verify pane exists (stale cleanup)
-    if ! tmux display-message -t "$pane" -p '#{pane_id}' >/dev/null 2>&1; then
-      rm -f "$f"
-      continue
-    fi
+    # Verify pane still valid (existence + server PID + session)
+    agent_validate_pane "$f" "$pane" "$session" "$tmux_pid" || continue
 
     # Compute effective state (handles decay + timeout)
     state=$(agent_effective_state "$state" "${ts:-0}" "$now")
