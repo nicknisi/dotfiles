@@ -3,7 +3,8 @@
   "cleanupPeriodDays": 60,
   "env": {
     "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "1",
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_NO_FLICKER": "1"
   },
   "attribution": {
     "commit": "",
@@ -222,9 +223,26 @@
     "ralph-wiggum@claude-code-plugins": true,
     "security-guidance@claude-code-plugins": true,
     "skill-creator@claude-plugins-official": true,
-    "workos@workos": true
+    "workos@workos": true,
+    "obsidian@obsidian-skills": true,
+    "codex@openai-codex": true,
+    "superpowers@claude-plugins-official": true,
+    "nano-banana-pro@nicknisi": true
   },
-  "extraKnownMarketplaces": {},
+  "extraKnownMarketplaces": {
+    "obsidian-skills": {
+      "source": {
+        "source": "github",
+        "repo": "kepano/obsidian-skills"
+      }
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
+  },
   "spinnerVerbs": {
     "mode": "replace",
     "verbs": [
@@ -269,7 +287,6 @@
       "Destroying Isengard",
       "Detecting Multiple Signals",
       "Dilating",
-      "Dillon You Son of a Bitching",
       "Dingleberrying",
       "Doing Improv Badly",
       "Eating Green Berets for Breakfast",
@@ -314,7 +331,6 @@
       "Lying Through Teeth",
       "Macerating",
       "Making Chili",
-      "Making You One Ugly Motherfucker",
       "Making the Body Disappear",
       "Manscaping",
       "Microwaving Fish in the Break Room",
@@ -380,7 +396,6 @@
       "Tossing Gimli Across the Gap",
       "Trapping Gollum",
       "Turning It Off and On Again",
-      "Turning You Into a Goddamn Sexual Tyrannosaurus",
       "Twerking",
       "Waiting for Pretzel Day",
       "Waiting for You Cohaagen",
