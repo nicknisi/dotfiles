@@ -21,13 +21,6 @@
         }
       ]
     },
-    "openai-codex": {
-      "modelOverrides": {
-        "gpt-5.4": {
-          "name": "gpt 5.4"
-        }
-      }
-    },
     "anthropic": {
       "modelOverrides": {
         "claude-opus-4-6": {
