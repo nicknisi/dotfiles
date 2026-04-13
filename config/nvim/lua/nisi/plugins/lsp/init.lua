@@ -60,6 +60,9 @@ return {
         timeout_ms = 2000,
         lsp_fallback = false,
       },
+      default_format_opts = {
+        stop_after_first = true,
+      },
       formatters_by_ft = formatters,
       formatters = {
         vpfmt = {
