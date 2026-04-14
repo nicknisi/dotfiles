@@ -131,15 +131,6 @@
           }
         ]
       },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "TOKENBAR_PROVIDER=Claude TOKENBAR_EVENT=notification /Users/nicknisi/.tokenbar/agent-signals/tokenbar-notify.sh",
-            "timeout": 5
-          }
-        ]
-      }
     ],
     "PreToolUse": [
       {
@@ -182,15 +173,6 @@
           }
         ]
       },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "TOKENBAR_PROVIDER=Claude TOKENBAR_EVENT=stop /Users/nicknisi/.tokenbar/agent-signals/tokenbar-notify.sh",
-            "timeout": 5
-          }
-        ]
-      }
     ],
     "SubagentStop": [
       {
@@ -214,7 +196,6 @@
     "claude-md-management@claude-plugins-official": true,
     "claudit@quickstop": true,
     "code-review@claude-plugins-official": true,
-    "consultant@nicknisi": true,
     "content@nicknisi": true,
     "essentials@nicknisi": true,
     "frontend-design@claude-code-plugins": true,
