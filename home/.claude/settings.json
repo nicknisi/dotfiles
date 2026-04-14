@@ -106,7 +106,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook waiting",
+            "command": "claude-status-hook waiting",
             "timeout": 5000
           }
         ]
@@ -116,7 +116,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook waiting",
+            "command": "claude-status-hook waiting",
             "timeout": 5000
           }
         ]
@@ -126,18 +126,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook waiting",
+            "command": "claude-status-hook waiting",
             "timeout": 5000
           }
         ]
-      },
+      }
     ],
     "PreToolUse": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook PreToolUse",
+            "command": "claude-status-hook PreToolUse",
             "timeout": 5000
           }
         ]
@@ -148,7 +148,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook SessionEnd",
+            "command": "claude-status-hook SessionEnd",
             "timeout": 5000
           }
         ]
@@ -157,7 +157,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-tmux-cleanup",
+            "command": "claude-tmux-cleanup",
             "timeout": 5000
           }
         ]
@@ -168,18 +168,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook Stop",
+            "command": "claude-status-hook Stop",
             "timeout": 5000
           }
         ]
-      },
+      }
     ],
     "SubagentStop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/nicknisi/Developer/dotfiles/bin/claude-status-hook SubagentStop",
+            "command": "claude-status-hook SubagentStop",
             "timeout": 5000
           }
         ]
