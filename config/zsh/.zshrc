@@ -162,3 +162,11 @@ if command -v pyenv &>/dev/null; then
   [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
   eval "$(pyenv init -)"
 fi
+
+# mise: per-directory tool version switching (interactive shells)
+# For cron/scripts, set PATH=$HOME/.local/share/mise/shims:... in the crontab
+# or use `mise exec -- <cmd>` directly.
+[[ -x "$HOME/.local/bin/mise" ]] && eval "$(~/.local/bin/mise activate zsh)"
+
+# Vite+ bin (https://viteplus.dev)
+. "$HOME/.vite-plus/env"
