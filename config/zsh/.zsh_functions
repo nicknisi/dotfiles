@@ -79,10 +79,9 @@ case $1 in
       echo -e "Missing plugin ${Yel}${name}${Rst}"
       echo -e "  Cloning from ${Blu}${url}${Rst}..."
 
-      local clone_cmd="git clone --quiet"
-      [[ -z $ref ]] && clone_cmd+=" --depth 1"
-
-      if $clone_cmd $url $dest; then
+      local clone_cmd=(git clone --quiet)
+      [[ -z $ref ]] && clone_cmd+=(--depth 1)
+      if "${clone_cmd[@]}" $url $dest; then
         if [[ -n $ref ]]; then
           (cd $dest && git checkout --quiet $ref)
           echo -e "  Checked out branch ${ref}"
