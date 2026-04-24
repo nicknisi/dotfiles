@@ -8,8 +8,8 @@
     "inactiveShimmer": "rgb(170,168,205)",
     "subtle": "rgb(95,90,125)",
 
-    "claude": "rgb(241,209,223)",
-    "claudeShimmer": "rgb(251,223,234)",
+    "claude": "rgb(220,195,240)",
+    "claudeShimmer": "rgb(238,220,250)",
     "claudeBlue_FOR_SYSTEM_SPINNER": "rgb(188,195,230)",
     "claudeBlueShimmer_FOR_SYSTEM_SPINNER": "rgb(213,216,244)",
 
@@ -51,7 +51,7 @@
 
     "professionalBlue": "rgb(202,216,234)",
     "chromeYellow": "rgb(237,223,199)",
-    "clawd_body": "rgb(241,209,223)",
+    "clawd_body": "rgb(220,195,240)",
     "clawd_background": "rgb(30,28,48)",
 
     "userMessageBackground": "rgb(28,24,36)",
@@ -64,11 +64,11 @@
     "rate_limit_fill": "rgb(188,195,230)",
     "rate_limit_empty": "rgb(48,46,68)",
 
-    "fastMode": "rgb(248,213,227)",
-    "fastModeShimmer": "rgb(255,227,237)",
+    "fastMode": "rgb(228,200,245)",
+    "fastModeShimmer": "rgb(242,220,252)",
 
     "briefLabelYou": "rgb(188,195,230)",
-    "briefLabelClaude": "rgb(241,209,223)",
+    "briefLabelClaude": "rgb(220,195,240)",
 
     "rainbow_red": "rgb(244,202,220)",
     "rainbow_orange": "rgb(248,216,227)",
