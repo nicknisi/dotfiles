@@ -50,6 +50,7 @@ brew 'highlight'                       # code syntax highlighting
 brew 'btop'                            # a top alternative
 brew 'jq'                              # work with JSON files in shell scripts
 brew 'lazygit'                         # a better git UI
+brew 'mise'                            # mise-en-place dev env tool
 brew 'neovim'                          # A better vim
 brew 'python'                          # python (latest)
 brew 'ripgrep'                         # very fast file searcher
