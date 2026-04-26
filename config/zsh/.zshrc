@@ -167,6 +167,3 @@ fi
 # For cron/scripts, set PATH=$HOME/.local/share/mise/shims:... in the crontab
 # or use `mise exec -- <cmd>` directly.
 [[ -x "$HOME/.local/bin/mise" ]] && eval "$(~/.local/bin/mise activate zsh)"
-
-# Vite+ bin (https://viteplus.dev)
-[[ -f "$HOME/.vite-plus/env" ]] && . "$HOME/.vite-plus/env"
