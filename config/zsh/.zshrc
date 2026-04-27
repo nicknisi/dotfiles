@@ -104,8 +104,6 @@ zfetch zsh-users/zsh-autosuggestions
 zfetch grigorii-zander/zsh-npm-scripts-autocomplete
 zfetch Aloxaf/fzf-tab
 
-command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd)"
-
 [[ -e ~/.terminfo ]] && export TERMINFO_DIRS=~/.terminfo:/usr/share/terminfo
 
 ########################################################
@@ -157,13 +155,9 @@ if command -v pnpm &>/dev/null; then
   [[ ":$PATH:" != *":$PNPM_HOME:"* ]] && export PATH="$PNPM_HOME:$PATH"
 fi
 
-if command -v pyenv &>/dev/null; then
-  export PYENV_ROOT="$HOME/.pyenv"
-  [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-  eval "$(pyenv init -)"
-fi
-
 # mise: per-directory tool version switching (interactive shells)
 # For cron/scripts, set PATH=$HOME/.local/share/mise/shims:... in the crontab
 # or use `mise exec -- <cmd>` directly.
-[[ -x "$HOME/.local/bin/mise" ]] && eval "$(~/.local/bin/mise activate zsh)"
+if command -v mise &>/dev/null; then
+  eval "$(mise activate zsh)"
+fi
