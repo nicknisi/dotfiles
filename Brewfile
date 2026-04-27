@@ -38,7 +38,6 @@ brew 'cloc'                            # lines of code counter
 brew 'entr'                            # file watcher / command runner
 brew 'eza'                             # ls alternative
 brew 'fd'                              # find alternative
-brew 'fnm'                             # Fast Node version manager
 brew 'gum'                             # fancy UI utilities
 brew 'rbenv'                           # Ruby version manager
 brew 'fzf'                             # Fuzzy file searcher, used in scripts and in vim
