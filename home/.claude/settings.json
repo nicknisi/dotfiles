@@ -196,12 +196,14 @@
     "claude-md-management@claude-plugins-official": true,
     "claudit@quickstop": true,
     "code-review@claude-plugins-official": true,
+    "codex@openai-codex": true,
     "content@nicknisi": true,
     "essentials@nicknisi": true,
     "frontend-design@claude-code-plugins": true,
     "hookify@claude-plugins-official": true,
     "ideation@nicknisi": true,
     "learning-output-style@claude-code-plugins": true,
+    "obsidian@obsidian-skills": true,
     "plugin-dev@claude-code-plugins": true,
     "plugin-dev@claude-plugins-official": true,
     "pr-review-toolkit@claude-code-plugins": true,
@@ -209,11 +211,10 @@
     "ralph-wiggum@claude-code-plugins": true,
     "security-guidance@claude-code-plugins": true,
     "skill-creator@claude-plugins-official": true,
-    "workos@workos": true,
-    "obsidian@obsidian-skills": true,
-    "codex@openai-codex": true,
     "superpowers@claude-plugins-official": true,
-    "nano-banana-pro@nicknisi": true
+    "workos@workos": true,
+    "image-gen@nicknisi": true,
+    "sidequest@nicknisi": true
   },
   "extraKnownMarketplaces": {
     "obsidian-skills": {
@@ -390,10 +391,12 @@
     ]
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
-  "voiceEnabled": true,
+  "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,
+  "theme": "custom:seaglass",
+  "teammateMode": "tmux",
   "skipAutoPermissionPrompt": true,
+  "voiceEnabled": true,
   "defaultMode": "auto",
-  "teammateMode": "tmux"
+  "agentPushNotifEnabled": true
 }
