@@ -1,7 +1,7 @@
 ---
 name: synthesizer
-description: GPT 5.4 synthesizer that compares model outputs and recommends a path forward
-model: gpt-5.4
+description: GPT 5.5 Codex synthesizer that compares model outputs and recommends a path forward
+model: openai-codex/gpt-5.5
 thinking: high
 tools: read, grep, find, ls
 ---

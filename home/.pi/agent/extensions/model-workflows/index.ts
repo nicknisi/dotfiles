@@ -1076,8 +1076,8 @@ async function generateHandoffPrompt(target: "opus" | "gpt", goal: string, ctx: 
 	const conversationText = serializeConversation(llmMessages);
 	const targetModel =
 		target === "opus"
-			? ctx.modelRegistry.find("anthropic", "claude-opus-4-6")
-			: ctx.modelRegistry.find("openai-codex", "gpt-5.4");
+			? ctx.modelRegistry.find("anthropic", "claude-opus-4-7")
+			: ctx.modelRegistry.find("openai-codex", "gpt-5.5");
 	const model = targetModel;
 	if (!model) throw new Error(`Could not resolve ${target} model`);
 
@@ -1166,8 +1166,8 @@ async function runHandoffCommand(pi: ExtensionAPI, ctx: ExtensionCommandContext,
 
 	const model =
 		target === "opus"
-			? ctx.modelRegistry.find("anthropic", "claude-opus-4-6")
-			: ctx.modelRegistry.find("openai-codex", "gpt-5.4");
+			? ctx.modelRegistry.find("anthropic", "claude-opus-4-7")
+			: ctx.modelRegistry.find("openai-codex", "gpt-5.5");
 	if (model) {
 		const switched = await pi.setModel(model);
 		if (!switched) {
@@ -1260,7 +1260,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("ask-opus", {
-		description: "Ask Opus 4.6 in an isolated sub-session",
+		description: "Ask Opus 4.7 in an isolated sub-session",
 		handler: async (args, ctx) => {
 			if (!args.trim()) {
 				ctx.ui.notify("Usage: /ask-opus <task>", "error");
@@ -1271,7 +1271,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("ask-gpt", {
-		description: "Ask GPT 5.4 in an isolated sub-session",
+		description: "Ask GPT 5.5 Codex in an isolated sub-session",
 		handler: async (args, ctx) => {
 			if (!args.trim()) {
 				ctx.ui.notify("Usage: /ask-gpt <task>", "error");
@@ -1304,12 +1304,12 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.registerCommand("handoff-to-opus", {
-		description: "Create a fresh session and hand off the thread to Opus 4.6",
+		description: "Create a fresh session and hand off the thread to Opus 4.7",
 		handler: async (args, ctx) => runHandoffCommand(pi, ctx, "opus", args.trim()),
 	});
 
 	pi.registerCommand("handoff-to-gpt", {
-		description: "Create a fresh session and hand off the thread to GPT 5.4",
+		description: "Create a fresh session and hand off the thread to GPT 5.5 Codex",
 		handler: async (args, ctx) => runHandoffCommand(pi, ctx, "gpt", args.trim()),
 	});
 }

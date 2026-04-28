@@ -7,7 +7,7 @@
       "models": [
         {
           "id": "moonshotai/Kimi-K2.5",
-          "name": "kimi k2.5",
+          "name": "Kimi K2.5 (Baseten)",
           "reasoning": true,
           "input": ["text", "image"],
           "contextWindow": 262144,
@@ -23,8 +23,8 @@
     },
     "anthropic": {
       "modelOverrides": {
-        "claude-opus-4-6": {
-          "name": "opus 4.6"
+        "claude-opus-4-7": {
+          "name": "Opus 4.7"
         }
       }
     }

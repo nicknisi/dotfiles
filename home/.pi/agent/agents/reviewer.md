@@ -1,7 +1,7 @@
 ---
 name: reviewer
-description: Opus 4.6 reviewer for correctness, maintainability, and security checks
-model: claude-opus-4-6
+description: Opus 4.7 reviewer for correctness, maintainability, and security checks
+model: claude-opus-4-7
 thinking: high
 tools: read, grep, find, ls, bash
 ---

@@ -3,7 +3,7 @@
   "theme": "catppuccin-mocha",
   "quietStartup": true,
   "hideThinkingBlock": true,
-  "lastChangelogVersion": "0.65.2",
+  "lastChangelogVersion": "0.70.2",
   "skills": [
     "~/.claude/skills",
     "~/Developer/claude-plugins/plugins/consultant/skills",
@@ -13,8 +13,9 @@
   ],
   "defaultThinkingLevel": "high",
   "enabledModels": [
-    "claude-opus-4-6",
-    "gpt-5.4"
+    "openai-codex/gpt-5.5",
+    "baseten/moonshotai/Kimi-K2.5",
+    "anthropic/claude-opus-4-7"
   ],
   "packages": [
     "npm:pi-subagents",
@@ -22,5 +23,5 @@
     "npm:@nicknisi/pi-ideation",
     "npm:pi-prompt-template-model"
   ],
-  "defaultModel": "gpt-5.4"
+  "defaultModel": "gpt-5.5"
 }
