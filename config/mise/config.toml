@@ -2,3 +2,4 @@
 node = "24"
 python = "3.11.6"
 "npm:@mariozechner/pi-coding-agent" = "latest"
+"npm:wrangler" = "latest"
