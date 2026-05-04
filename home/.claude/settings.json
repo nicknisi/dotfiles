@@ -99,6 +99,7 @@
       "~/.claude/"
     ]
   },
+  "model": "claude-opus-4-6[1m]",
   "hooks": {
     "Notification": [
       {
@@ -214,7 +215,8 @@
     "superpowers@claude-plugins-official": true,
     "workos@workos": true,
     "image-gen@nicknisi": true,
-    "sidequest@nicknisi": true
+    "sidequest@nicknisi": true,
+    "ruby-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "obsidian-skills": {
@@ -227,7 +229,8 @@
       "source": {
         "source": "github",
         "repo": "openai/codex-plugin-cc"
-      }
+      },
+      "autoUpdate": true
     }
   },
   "spinnerVerbs": {
@@ -393,10 +396,10 @@
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,
-  "theme": "custom:seaglass",
+  "theme": "custom:moonstone",
   "teammateMode": "tmux",
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true,
-  "defaultMode": "auto",
-  "agentPushNotifEnabled": true
+  "defaultMode": "auto"
 }
