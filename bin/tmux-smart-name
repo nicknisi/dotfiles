@@ -20,13 +20,24 @@ get_smart_name() {
   # Check if we're in a git worktree (where .git is a file, not a directory)
   if [ -f "$path/.git" ]; then
     local parent_dir=$(dirname "$path")
+    local parent_name=$(basename "$parent_dir")
+    local branch=$(cd "$path" && git rev-parse --abbrev-ref HEAD 2>/dev/null)
 
-    # Check if parent has .bare directory (worktree pattern)
+    # claude --work-tree pattern: <project>/.claude/worktrees/<worktree>
+    local grandparent_dir=$(dirname "$parent_dir")
+    if [ "$parent_name" = "worktrees" ] && [ "$(basename "$grandparent_dir")" = ".claude" ]; then
+      local project=$(basename "$(dirname "$grandparent_dir")")
+      if [ -n "$branch" ] && [ "$branch" != "HEAD" ]; then
+        echo "$project ($branch)"
+      else
+        echo "$project ($dir_name)"
+      fi
+      return
+    fi
+
+    # Bare-repo worktree pattern: <project>/.bare + <project>/<worktree>
     if [ -d "$parent_dir/.bare" ]; then
-      # Get branch name
-      local branch=$(cd "$path" && git rev-parse --abbrev-ref HEAD 2>/dev/null)
       local project=$(basename "$parent_dir")
-
       if [ -n "$branch" ]; then
         echo "$project ($branch)"
         return
