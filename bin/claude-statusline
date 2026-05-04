@@ -189,8 +189,8 @@ fetch_usage() {
     -H "anthropic-beta: oauth-2025-04-20" \
     "https://api.anthropic.com/api/oauth/usage" 2>/dev/null) || return 1
 
-  # Validate response has expected fields
-  echo "$response" | jq -e '.five_hour.utilization' >/dev/null 2>&1 || return 1
+  # Validate response is well-formed (any known key present)
+  echo "$response" | jq -e 'has("five_hour")' >/dev/null 2>&1 || return 1
 
   echo "$response" > "${USAGE_CACHE_DIR}/usage.json"
   echo "$response"
@@ -250,6 +250,9 @@ build_usage_display() {
   seven_used=$(echo "$data" | jq -r '.seven_day.utilization // 0' | xargs printf "%.0f")
   five_reset=$(echo "$data" | jq -r '.five_hour.resets_at // empty')
   seven_reset=$(echo "$data" | jq -r '.seven_day.resets_at // empty')
+
+  # No active rate windows (e.g., enterprise billing) — nothing to show
+  [ -z "$five_reset" ] && [ -z "$seven_reset" ] && return
 
   local five_remaining=$((100 - five_used))
   local seven_remaining=$((100 - seven_used))
