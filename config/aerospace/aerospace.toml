@@ -130,6 +130,7 @@ alt-p = 'workspace S' # Productivity
 alt-s = 'workspace S' # Productivity
 alt-t = 'workspace T' # Terminal
 alt-w = 'workspace W' # Web
+alt-x = 'workspace X' # Web
 alt-z = 'workspace Z' # Screen-sharing/Zoom
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
@@ -152,6 +153,7 @@ alt-shift-p = 'move-node-to-workspace S'
 alt-shift-s = 'move-node-to-workspace S'
 alt-shift-t = 'move-node-to-workspace T'
 alt-shift-w = 'move-node-to-workspace W'
+alt-shift-x = 'move-node-to-workspace X'
 alt-shift-z = 'move-node-to-workspace Z'
 
 alt-shift-f = 'fullscreen'
@@ -264,7 +266,7 @@ run = 'move-node-to-workspace S'
 
 [[on-window-detected]]
 if.app-id = 'com.omnigroup.OmniFocus4'
-run = 'move-node-to-workspace S'
+run = 'move-node-to-workspace X'
 
 # Zoom
 
