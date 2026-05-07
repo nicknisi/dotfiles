@@ -1,9 +1,9 @@
 {
-  "defaultProvider": "openai-codex",
+  "defaultProvider": "anthropic",
   "theme": "catppuccin-mocha",
   "quietStartup": true,
   "hideThinkingBlock": true,
-  "lastChangelogVersion": "0.70.2",
+  "lastChangelogVersion": "0.73.0",
   "skills": [
     "~/.claude/skills",
     "~/Developer/claude-plugins/plugins/consultant/skills",
@@ -20,8 +20,8 @@
   "packages": [
     "npm:pi-subagents",
     "git:github.com/ghoseb/pi-askuserquestion",
-    "npm:@nicknisi/pi-ideation",
-    "npm:pi-prompt-template-model"
+    "npm:pi-prompt-template-model",
+    "../../Developer/claude-plugins"
   ],
-  "defaultModel": "gpt-5.5"
+  "defaultModel": "claude-opus-4-7"
 }
