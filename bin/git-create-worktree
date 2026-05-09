@@ -1,189 +1,262 @@
 #!/usr/bin/env bash
 
-# This script should help facilitate setting up a new worktree, including:
-
-# - creating a new worktree
-# - installing dependencies
-# - creating a new branch
-
 set -Eeuo pipefail
 trap cleanup SIGINT SIGTERM ERR EXIT
 
-# shellcheck disable=SC2034
-script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
-
-usage() {
-  cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-f] [-b] [-B] [-p] [-N] <path>
-
-Script the creation of a new worktree.
-
-Available options:
-
--h, --help                    Print this help and exit
--v, --verbose                 Print script debug info
--b, --branch                  The branch to create
--B, --base                    The branch to use as the base for the new worktree (default: main)
--p, --prefix                  The prefix to apply to the branch name (default: $(git config github.user)/)
--N, --no-create-upstream      Do not create an upstream branch
-
-
-This script performs the following steps:
-
-1. Create a new worktree, based off the base branch (default: main)
-2. Create a new upstream branch to track the work
-2. Install dependencies
-3. Run a build
-EOF
-  exit
-}
-
-cleanup() {
-  trap - SIGINT SIGTERM ERR EXIT
-  tput cnorm # enable cursor
-  # script cleanup here
-}
-
 setup_colors() {
   if [[ -t 2 ]] && [[ -z "${NO_COLOR-}" ]] && [[ "${TERM-}" != "dumb" ]]; then
-    # shellcheck disable=SC2034
-    NOFORMAT='\033[0m' GRAY='\033[0;90m' RED='\033[0;31m' GREEN='\033[0;32m' ORANGE='\033[0;33m' BLUE='\033[0;34m' PURPLE='\033[0;35m' CYAN='\033[0;36m' YELLOW='\033[1;33m'
+    NOFORMAT='\033[0m' GRAY='\033[0;90m' RED='\033[0;31m' GREEN='\033[0;32m' ORANGE='\033[0;33m' BLUE='\033[0;34m' PURPLE='\033[0;35m' CYAN='\033[0;36m' YELLOW='\033[1;33m' BOLD='\033[1m' DIM='\033[2m'
   else
-    # shellcheck disable=SC2034
-    NOFORMAT='' GRAY='' RED='' GREEN='' ORANGE='' BLUE='' PURPLE='' CYAN='' YELLOW=''
+    NOFORMAT='' GRAY='' RED='' GREEN='' ORANGE='' BLUE='' PURPLE='' CYAN='' YELLOW='' BOLD='' DIM=''
   fi
 }
 
-msg() {
-  echo >&2 -e "${1-}"
+msg() { echo >&2 -e "${1-}"; }
+die() { msg "${RED}error:${NOFORMAT} $1"; exit "${2-1}"; }
+
+cleanup() {
+  trap - SIGINT SIGTERM ERR EXIT
+  tput cnorm 2>/dev/null || true
 }
 
-# log() {
-#   echo >&2 -ne "${1-}"
-# }
-
-info() {
-  msg "${GRAY}[INFO]${NOFORMAT} ${1-}"
-}
-
-die() {
-  local msg=$1
-  local code=${2-1} # default exit status 1
-  msg "$msg"
-  exit "$code"
-}
-
-function spinner() {
-  # make sure we use non-unicode character type locale 
-  # (that way it works for any locale as long as the font supports the characters)
+spinner() {
   local LC_CTYPE=C
-  local pid=$1 # Process Id of the previous running command
+  local pid=$1
   local spin='⣾⣽⣻⢿⡿⣟⣯⣷'
   local charwidth=3
-
   local i=0
-  tput civis # cursor invisible
+  tput civis 2>/dev/null || true
   while kill -0 "$pid" 2>/dev/null; do
     local i=$(((i + charwidth) % ${#spin}))
     printf >&2 "%s" "${spin:$i:$charwidth}"
-
     printf >&2 "\b"
     sleep .1
   done
-  tput cnorm
-
+  tput cnorm 2>/dev/null || true
   local exit_status=0
-  wait "$pid" || exit_status=$? # capture exit code
+  wait "$pid" || exit_status=$?
   return $exit_status
 }
 
-run_command() {
-  local message=$1
-  shift
-  echo >&2 -ne "$message "
+run() {
+  local message=$1; shift
+  echo >&2 -ne "  ${GRAY}${message}${NOFORMAT} "
   "$@" &>/dev/null &
-  
   if spinner $!; then
-    echo >&2 -e " ${GREEN}Done.${NOFORMAT}"
+    echo >&2 -e "${GREEN}✓${NOFORMAT}"
   else
-    echo >&2 -e " ${RED}FAILED.${NOFORMAT}"
+    echo >&2 -e "${RED}✗${NOFORMAT}"
     exit 1
   fi
 }
 
-parse_params() {
-  # default values of variables set from params
-  create_upstream=1
-  prefix="$(git config github.user)/"
-  base='origin/main'
-  branch=''
+usage() {
+  cat <<EOF
+${BOLD}Usage:${NOFORMAT} git create-worktree [options] <name>
+       git create-worktree --pr <number>
 
-  while :; do
-    case "${1-}" in
-    -h | --help) usage ;;
-    -v | --verbose) set -x ;;
-    --no-color) NO_COLOR=1 ;;
-    -N | --no-create-upstream) create_upstream=0 ;;
-    -b | --branch)
-      branch="$2"
-      shift
-      ;;
-    -B | --base)
-      base="${2-}"
-      shift
-      ;;
-    -?*) die "Unknown option: $1" ;;
-    *) break ;;
-    esac
-    shift
-  done
+Create a worktree with smart branch resolution.
 
-  args=("$@")
+${BOLD}Arguments:${NOFORMAT}
+  <name>    Worktree directory name. Also used to resolve branches.
 
-  # check required params and arguments
-  # [[ -z "${param-}" ]] && die "Missing required parameter: param"
-  [[ ${#args[@]} -eq 0 ]] && die "Missing script arguments"
+${BOLD}Options:${NOFORMAT}
+  -p, --pr <number>       Create worktree from a GitHub PR
+  -b, --branch <name>     Explicit branch name (skip auto-resolution)
+  -B, --base <ref>        Base ref for new branches (default: origin/main)
+  -P, --prefix <prefix>   Branch prefix for new branches (default: \$(git config github.user)/)
+  -N, --no-upstream       Don't push/track an upstream branch
+  -v, --verbose           Print debug info
+  -h, --help              Show this help
 
-  # if a branch was not specified, generate one based on the prefix and folder name
-  if [[ -z "$branch" ]]; then
-    branch="${prefix}${args[0]}"
-  fi
+${BOLD}Branch resolution order:${NOFORMAT}
+  When given a <name>, the script tries (in order):
+    1. Local branch matching <name> exactly
+    2. Local branch matching <prefix><name>
+    3. Remote branch matching <name> on origin
+    4. Remote branch matching <prefix><name> on origin
+    5. Creates a new branch <prefix><name> from --base
 
-  worktree="${args[0]}"
-
-  return 0
+${BOLD}Examples:${NOFORMAT}
+  git create-worktree my-feature          # new branch nicknisi/my-feature
+  git create-worktree my-feature -b main  # worktree from existing 'main' branch
+  git create-worktree --pr 143            # worktree from PR #143
+  git create-worktree fix -B origin/v2    # new branch from v2
+EOF
+  exit
 }
 
-parse_params "$@"
+resolve_pr() {
+  local pr_number=$1
+  command -v gh &>/dev/null || die "gh CLI required for --pr flag"
+
+  local pr_json
+  pr_json=$(gh pr view "$pr_number" --json headRefName,state,title 2>/dev/null) \
+    || die "could not find PR #${pr_number}"
+
+  local pr_branch pr_state pr_title
+  pr_branch=$(echo "$pr_json" | grep -o '"headRefName":"[^"]*"' | cut -d'"' -f4)
+  pr_state=$(echo "$pr_json" | grep -o '"state":"[^"]*"' | cut -d'"' -f4)
+  pr_title=$(echo "$pr_json" | grep -o '"title":"[^"]*"' | cut -d'"' -f4)
+
+  [[ -z "$pr_branch" ]] && die "could not resolve branch for PR #${pr_number}"
+
+  msg ""
+  msg "  ${BLUE}PR #${pr_number}${NOFORMAT} ${BOLD}${pr_title}${NOFORMAT}"
+  msg "  ${DIM}${pr_branch} · ${pr_state}${NOFORMAT}"
+  msg ""
+
+  echo "$pr_branch"
+}
+
+resolve_branch() {
+  local name=$1
+  local prefix=$2
+
+  # 1. exact local branch
+  if git show-ref --verify --quiet "refs/heads/${name}" 2>/dev/null; then
+    msg "  ${GRAY}found local branch:${NOFORMAT} ${name}"
+    echo "$name"
+    return
+  fi
+
+  # 2. prefixed local branch
+  if [[ "$name" != "${prefix}"* ]] && git show-ref --verify --quiet "refs/heads/${prefix}${name}" 2>/dev/null; then
+    msg "  ${GRAY}found local branch:${NOFORMAT} ${prefix}${name}"
+    echo "${prefix}${name}"
+    return
+  fi
+
+  # 3. exact remote branch
+  if git ls-remote --exit-code --heads origin "$name" &>/dev/null; then
+    msg "  ${GRAY}found remote branch:${NOFORMAT} ${name}"
+    run "fetching ${name}" git fetch origin "$name"
+    echo "$name"
+    return
+  fi
+
+  # 4. prefixed remote branch
+  if [[ "$name" != "${prefix}"* ]] && git ls-remote --exit-code --heads origin "${prefix}${name}" &>/dev/null; then
+    msg "  ${GRAY}found remote branch:${NOFORMAT} ${prefix}${name}"
+    run "fetching ${prefix}${name}" git fetch origin "${prefix}${name}"
+    echo "${prefix}${name}"
+    return
+  fi
+
+  # 5. nothing found — will create new
+  echo ""
+}
+
+dir_from_branch() {
+  local branch=$1
+  # strip common prefixes to get a clean directory name
+  echo "$branch" | sed -E 's|^[^/]+/||'
+}
+
+# -- parse args --
+create_upstream=1
+prefix="$(git config github.user 2>/dev/null || echo "")/"
+base='origin/main'
+branch=''
+pr_number=''
+worktree=''
+
+positional=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  -h | --help) setup_colors; usage ;;
+  -v | --verbose) set -x ;;
+  --no-color) NO_COLOR=1 ;;
+  -N | --no-upstream) create_upstream=0 ;;
+  -p | --pr)
+    pr_number="${2-}"
+    [[ -z "$pr_number" ]] && die "--pr requires a PR number"
+    shift
+    ;;
+  -b | --branch)
+    branch="${2-}"
+    [[ -z "$branch" ]] && die "--branch requires a branch name"
+    shift
+    ;;
+  -B | --base)
+    base="${2-}"
+    shift
+    ;;
+  -P | --prefix)
+    prefix="${2-}"
+    shift
+    ;;
+  --)
+    shift
+    positional+=("$@")
+    break
+    ;;
+  -?*) die "unknown option: $1" ;;
+  *) positional+=("$1") ;;
+  esac
+  shift
+done
+set -- "${positional[@]}"
+
 setup_colors
 
-update_remote() {
-  local branch="$1"
+msg ""
+msg "${BOLD}Creating worktree${NOFORMAT}"
 
-  # do nothing if create_upstream is disabled
-  [ $create_upstream -eq 0 ] && return 0
-
-  if [[ -z "$(git ls-remote --heads origin "$branch")" ]]; then
-    # create remote branch
-    msg "${GRAY}Branch '$branch' does not exist on remote. Creating."
-    run_command "Creating remote branch ${branch}..." git push -u origin "$branch"
+# -- resolve what we're checking out --
+if [[ -n "$pr_number" ]]; then
+  branch=$(resolve_pr "$pr_number")
+  worktree="${1:-$(dir_from_branch "$branch")}"
+elif [[ -n "$branch" ]]; then
+  worktree="${1:-$(dir_from_branch "$branch")}"
+  # -b means "use this exact branch" — check local, then remote, then it's new
+  if git show-ref --verify --quiet "refs/heads/${branch}" 2>/dev/null; then
+    msg "  ${GRAY}found local branch:${NOFORMAT} ${branch}"
+  elif git ls-remote --exit-code --heads origin "$branch" &>/dev/null; then
+    msg "  ${GRAY}found remote branch:${NOFORMAT} ${branch}"
+    run "fetching ${branch}" git fetch origin "$branch"
   else
-    msg "${GRAY}Branch '$branch' exists. Setting upstream."
-    run_command "Setting upstream branch to 'origin/$branch'" git branch --set-upstream-to="origin/$branch"
+    msg "  ${GRAY}creating new branch:${NOFORMAT} ${branch}"
   fi
-}
-
-# check if branch already exists
-if [[ -n "$(git branch --list "$branch")" ]]; then
-  run_command "Generating new worktree from existing branch: $branch" git worktree add "$worktree" "$branch"
 else
-  run_command "Generating new worktree: $worktree" git worktree add -b "$branch" "$worktree" "$base"
+  [[ $# -eq 0 ]] && die "missing argument: <name> or --pr <number>\n\n  Run 'git create-worktree --help' for usage."
+  worktree="$1"
+
+  resolved=$(resolve_branch "$worktree" "$prefix")
+  if [[ -n "$resolved" ]]; then
+    branch="$resolved"
+  else
+    branch="${prefix}${worktree}"
+    msg "  ${GRAY}creating new branch:${NOFORMAT} ${branch}"
+  fi
 fi
 
-msg "${GRAY}Moving into worktree: $worktree${NOFORMAT}"
-cd "$worktree"
-update_remote "$branch"
-# run_command "Setting Node version" fnm use < .nvmrc
-# run_command "Installing dependencies" npm --no-progress --silent install
-# run_command "Building App" npm run --silent build
-msg "${GREEN}Success.${NOFORMAT}"
+# -- check for conflicts --
+if [[ -d "$worktree" ]]; then
+  die "directory '${worktree}' already exists"
+fi
+
+# -- create worktree --
+if git show-ref --verify --quiet "refs/heads/${branch}" 2>/dev/null; then
+  run "creating worktree from ${branch}" git worktree add "$worktree" "$branch"
+else
+  git fetch origin "$branch" 2>/dev/null && \
+    run "creating worktree from origin/${branch}" git worktree add "$worktree" -b "$branch" "origin/${branch}" || \
+    run "creating worktree (new branch from ${base})" git worktree add -b "$branch" "$worktree" "$base"
+fi
+
+# -- set up upstream --
+if [[ $create_upstream -eq 1 ]]; then
+  cd "$worktree"
+  if git ls-remote --exit-code --heads origin "$branch" &>/dev/null; then
+    run "tracking origin/${branch}" git branch --set-upstream-to="origin/$branch"
+  else
+    run "pushing ${branch} to origin" git push -u origin "$branch"
+  fi
+  cd ..
+fi
+
+msg ""
+msg "  ${GREEN}✓${NOFORMAT} ${BOLD}${worktree}${NOFORMAT} → ${CYAN}${branch}${NOFORMAT}"
+msg "  ${DIM}cd ${worktree}${NOFORMAT}"
+msg ""

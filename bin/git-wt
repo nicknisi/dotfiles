@@ -1,0 +1,702 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+trap cleanup SIGINT SIGTERM ERR EXIT
+
+# ── shared utilities ─────────────────────────────────────────────────────────
+
+NOFORMAT='' GRAY='' RED='' GREEN='' ORANGE='' BLUE='' PURPLE='' CYAN='' YELLOW='' BOLD='' DIM='' REVERSE=''
+
+setup_colors() {
+  if [[ -t 2 ]] && [[ -z "${NO_COLOR-}" ]] && [[ "${TERM-}" != "dumb" ]]; then
+    NOFORMAT=$'\033[0m' GRAY=$'\033[0;90m' RED=$'\033[0;31m' GREEN=$'\033[0;32m' ORANGE=$'\033[0;33m' BLUE=$'\033[0;34m' PURPLE=$'\033[0;35m' CYAN=$'\033[0;36m' YELLOW=$'\033[1;33m' BOLD=$'\033[1m' DIM=$'\033[2m' REVERSE=$'\033[7m'
+  fi
+}
+
+msg() { printf >&2 '%s\n' "${1-}"; }
+die() { printf >&2 '%s\n' "${RED}error:${NOFORMAT} $1"; exit "${2-1}"; }
+
+cleanup() {
+  trap - SIGINT SIGTERM ERR EXIT
+  tput cnorm 2>/dev/null || true
+}
+
+spinner() {
+  local LC_CTYPE=C pid=$1
+  local spin='⣾⣽⣻⢿⡿⣟⣯⣷' charwidth=3 i=0
+  tput civis 2>/dev/null || true
+  while kill -0 "$pid" 2>/dev/null; do
+    i=$(((i + charwidth) % ${#spin}))
+    printf >&2 "%s\b" "${spin:$i:$charwidth}"
+    sleep .1
+  done
+  tput cnorm 2>/dev/null || true
+  local exit_status=0
+  wait "$pid" || exit_status=$?
+  return $exit_status
+}
+
+run() {
+  local message=$1; shift
+  printf >&2 '  %s ' "${GRAY}${message}${NOFORMAT}"
+  "$@" &>/dev/null &
+  if spinner $!; then
+    printf >&2 '%s\n' "${GREEN}✓${NOFORMAT}"
+  else
+    printf >&2 '%s\n' "${RED}✗${NOFORMAT}"
+    exit 1
+  fi
+}
+
+# resolve current worktree path (if we're inside one)
+current_worktree_path() {
+  git rev-parse --show-toplevel 2>/dev/null || echo ""
+}
+
+# parse porcelain into parallel arrays, filtering bare and .claude agent worktrees
+# sets: _wt_paths, _wt_branches, _wt_hashes, _wt_prunable
+parse_worktrees() {
+  _wt_paths=() _wt_branches=() _wt_hashes=() _wt_prunable=()
+  local cur_path="" cur_branch="" cur_hash="" cur_prunable=0 cur_bare=0
+
+  _flush_wt() {
+    if [[ -n "$cur_path" ]] && [[ $cur_bare -eq 0 ]] && [[ "$cur_path" != *".claude/worktrees"* ]]; then
+      _wt_paths+=("$cur_path")
+      _wt_branches+=("$cur_branch")
+      _wt_hashes+=("$cur_hash")
+      _wt_prunable+=("$cur_prunable")
+    fi
+    cur_path="" cur_branch="" cur_hash="" cur_prunable=0 cur_bare=0
+  }
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    case "$line" in
+      worktree\ *) _flush_wt; cur_path="${line#worktree }" ;;
+      bare)        cur_bare=1 ;;
+      branch\ *)   cur_branch="${line#branch refs/heads/}" ;;
+      HEAD\ *)     cur_hash="${line#HEAD }"; cur_hash="${cur_hash:0:7}" ;;
+      prunable*)   cur_prunable=1 ;;
+    esac
+  done < <(git worktree list --porcelain 2>/dev/null)
+  _flush_wt
+}
+
+# ── main usage ───────────────────────────────────────────────────────────────
+
+usage() {
+  setup_colors
+  cat >&2 <<EOF
+${BOLD}git wt${NOFORMAT} — worktree manager
+
+${BOLD}Commands:${NOFORMAT}
+  ${BOLD}create${NOFORMAT} <name>              Create a new worktree (aliases: ${DIM}new, add${NOFORMAT})
+  ${BOLD}create${NOFORMAT} --pr <number>       Create worktree from a GitHub PR
+  ${BOLD}status${NOFORMAT}                     Show all worktrees with status (aliases: ${DIM}st, s${NOFORMAT})
+  ${BOLD}go${NOFORMAT}                         Fuzzy-select a worktree (requires fzf)
+  ${BOLD}list${NOFORMAT}                       Quick worktree listing (alias: ${DIM}ls${NOFORMAT})
+  ${BOLD}prune${NOFORMAT}                      Interactively remove completed worktrees
+  ${BOLD}clean${NOFORMAT}                      Remove all completed worktrees (with confirmation)
+
+${BOLD}Examples:${NOFORMAT}
+  git wt create my-feature          ${DIM}New branch nicknisi/my-feature${NOFORMAT}
+  git wt create --pr 143            ${DIM}Worktree from PR #143${NOFORMAT}
+  git wt create fix -b other/branch ${DIM}Worktree from existing branch${NOFORMAT}
+  git wt status                     ${DIM}Dashboard of all worktrees${NOFORMAT}
+  git wt go                         ${DIM}Pick a worktree with fzf${NOFORMAT}
+  git wt prune                      ${DIM}Clean up finished work${NOFORMAT}
+
+Run ${BOLD}git wt <command> --help${NOFORMAT} for command-specific options.
+EOF
+  exit
+}
+
+# ── create ───────────────────────────────────────────────────────────────────
+
+resolve_pr() {
+  local pr_number=$1
+  command -v gh &>/dev/null || die "gh CLI required for --pr flag"
+
+  local pr_json
+  pr_json=$(gh pr view "$pr_number" --json headRefName,state,title 2>/dev/null) \
+    || die "could not find PR #${pr_number}"
+
+  local pr_branch pr_state pr_title
+  pr_branch=$(echo "$pr_json" | grep -o '"headRefName":"[^"]*"' | cut -d'"' -f4)
+  pr_state=$(echo "$pr_json" | grep -o '"state":"[^"]*"' | cut -d'"' -f4)
+  pr_title=$(echo "$pr_json" | grep -o '"title":"[^"]*"' | cut -d'"' -f4)
+
+  [[ -z "$pr_branch" ]] && die "could not resolve branch for PR #${pr_number}"
+
+  msg ""
+  msg "  ${BLUE}PR #${pr_number}${NOFORMAT} ${BOLD}${pr_title}${NOFORMAT}"
+  msg "  ${DIM}${pr_branch} · ${pr_state}${NOFORMAT}"
+  msg ""
+
+  echo "$pr_branch"
+}
+
+resolve_branch() {
+  local name=$1 prefix=$2
+
+  if git show-ref --verify --quiet "refs/heads/${name}" 2>/dev/null; then
+    msg "  ${GRAY}found local branch:${NOFORMAT} ${name}"
+    echo "$name"; return
+  fi
+
+  if [[ "$name" != "${prefix}"* ]] && git show-ref --verify --quiet "refs/heads/${prefix}${name}" 2>/dev/null; then
+    msg "  ${GRAY}found local branch:${NOFORMAT} ${prefix}${name}"
+    echo "${prefix}${name}"; return
+  fi
+
+  if git ls-remote --exit-code --heads origin "$name" &>/dev/null; then
+    msg "  ${GRAY}found remote branch:${NOFORMAT} ${name}"
+    run "fetching ${name}" git fetch origin "$name"
+    echo "$name"; return
+  fi
+
+  if [[ "$name" != "${prefix}"* ]] && git ls-remote --exit-code --heads origin "${prefix}${name}" &>/dev/null; then
+    msg "  ${GRAY}found remote branch:${NOFORMAT} ${prefix}${name}"
+    run "fetching ${prefix}${name}" git fetch origin "${prefix}${name}"
+    echo "${prefix}${name}"; return
+  fi
+
+  echo ""
+}
+
+dir_from_branch() {
+  echo "$1" | sed -E 's|^[^/]+/||'
+}
+
+create_usage() {
+  setup_colors
+  cat >&2 <<EOF
+${BOLD}Usage:${NOFORMAT} git wt create [options] <name>
+       git wt create --pr <number>
+
+Create a worktree with smart branch resolution.
+If a worktree already exists for the branch, points you to it.
+
+${BOLD}Options:${NOFORMAT}
+  --pr <number>           Create worktree from a GitHub PR
+  -b, --branch <name>     Use this exact branch (local or remote)
+  -B, --base <ref>        Base ref for new branches (default: origin/main)
+  -P, --prefix <prefix>   Branch prefix (default: \$(git config github.user)/)
+  -N, --no-upstream       Don't push/track an upstream branch
+  -h, --help              Show this help
+
+${BOLD}Branch resolution (when given just a name):${NOFORMAT}
+  1. Local branch matching <name>
+  2. Local branch matching <prefix><name>
+  3. Remote branch matching <name>
+  4. Remote branch matching <prefix><name>
+  5. Creates new branch <prefix><name> from --base
+EOF
+  exit
+}
+
+cmd_create() {
+  local create_upstream=1
+  local prefix
+  prefix="$(git config github.user 2>/dev/null || echo "")/"
+  local base='origin/main' branch='' pr_number='' worktree=''
+
+  local positional=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -h | --help) create_usage ;;
+    -v | --verbose) set -x ;;
+    --no-color) NO_COLOR=1 ;;
+    -N | --no-upstream) create_upstream=0 ;;
+    --pr)
+      pr_number="${2-}"
+      [[ -z "$pr_number" ]] && die "--pr requires a PR number"
+      shift ;;
+    -b | --branch)
+      branch="${2-}"
+      [[ -z "$branch" ]] && die "--branch requires a branch name"
+      shift ;;
+    -B | --base) base="${2-}"; shift ;;
+    -P | --prefix) prefix="${2-}"; shift ;;
+    --) shift; positional+=("$@"); break ;;
+    -*) die "unknown option: $1. Run 'git wt create --help' for usage." ;;
+    *) positional+=("$1") ;;
+    esac
+    shift
+  done
+  set -- "${positional[@]+"${positional[@]}"}"
+
+  setup_colors
+  msg ""
+  msg "${BOLD}Creating worktree${NOFORMAT}"
+
+  if [[ -n "$pr_number" ]]; then
+    branch=$(resolve_pr "$pr_number")
+    worktree="${1:-$(dir_from_branch "$branch")}"
+  elif [[ -n "$branch" ]]; then
+    worktree="${1:-$(dir_from_branch "$branch")}"
+    if git show-ref --verify --quiet "refs/heads/${branch}" 2>/dev/null; then
+      msg "  ${GRAY}found local branch:${NOFORMAT} ${branch}"
+    elif git ls-remote --exit-code --heads origin "$branch" &>/dev/null; then
+      msg "  ${GRAY}found remote branch:${NOFORMAT} ${branch}"
+      run "fetching ${branch}" git fetch origin "$branch"
+    else
+      msg "  ${GRAY}creating new branch:${NOFORMAT} ${branch}"
+    fi
+  else
+    [[ $# -eq 0 ]] && die "missing argument: <name> or --pr <number>. Run 'git wt create --help' for usage."
+    worktree="$1"
+    local resolved
+    resolved=$(resolve_branch "$worktree" "$prefix")
+    if [[ -n "$resolved" ]]; then
+      branch="$resolved"
+    else
+      branch="${prefix}${worktree}"
+      msg "  ${GRAY}creating new branch:${NOFORMAT} ${branch}"
+    fi
+  fi
+
+  # check if a worktree already exists for this branch
+  local existing_path=""
+  existing_path=$(git worktree list --porcelain 2>/dev/null | awk -v b="refs/heads/${branch}" '
+    /^worktree / { path = substr($0, 10) }
+    /^branch /   { if ($2 == b) print path }
+  ')
+  if [[ -n "$existing_path" ]]; then
+    local existing_dir
+    existing_dir=$(basename "$existing_path")
+    msg ""
+    msg "  ${BLUE}↪${NOFORMAT} worktree for ${CYAN}${branch}${NOFORMAT} already exists"
+    msg "  ${DIM}cd ${existing_dir}${NOFORMAT}"
+    msg ""
+    return 0
+  fi
+
+  [[ -d "$worktree" ]] && die "directory '${worktree}' already exists"
+
+  if git show-ref --verify --quiet "refs/heads/${branch}" 2>/dev/null; then
+    run "creating worktree from ${branch}" git worktree add "$worktree" "$branch"
+  else
+    git fetch origin "$branch" 2>/dev/null && \
+      run "creating worktree from origin/${branch}" git worktree add "$worktree" -b "$branch" "origin/${branch}" || \
+      run "creating worktree (new branch from ${base})" git worktree add -b "$branch" "$worktree" "$base"
+  fi
+
+  if [[ $create_upstream -eq 1 ]]; then
+    cd "$worktree"
+    if git ls-remote --exit-code --heads origin "$branch" &>/dev/null; then
+      run "tracking origin/${branch}" git branch --set-upstream-to="origin/$branch"
+    else
+      run "pushing ${branch} to origin" git push -u origin "$branch"
+    fi
+    cd ..
+  fi
+
+  msg ""
+  msg "  ${GREEN}✓${NOFORMAT} ${BOLD}${worktree}${NOFORMAT} → ${CYAN}${branch}${NOFORMAT}"
+  msg "  ${DIM}cd ${worktree}${NOFORMAT}"
+  msg ""
+}
+
+# ── go (fuzzy select) ────────────────────────────────────────────────────────
+
+cmd_go() {
+  setup_colors
+  command -v fzf &>/dev/null || die "fzf is required for 'git wt go'"
+
+  parse_worktrees
+  local count=${#_wt_paths[@]}
+  [[ $count -eq 0 ]] && { msg "${DIM}No worktrees found.${NOFORMAT}"; return; }
+
+  local current
+  current=$(current_worktree_path)
+
+  # build fzf input: "dir  branch  hash"
+  local -a lines=()
+  for ((i=0; i<count; i++)); do
+    local dir
+    dir=$(basename "${_wt_paths[i]}")
+    local branch="${_wt_branches[i]}"
+    local hash="${_wt_hashes[i]}"
+    local marker="  "
+    [[ "${_wt_paths[i]}" == "$current" ]] && marker="* "
+    [[ -z "$branch" ]] && branch="(detached)"
+    lines+=("${marker}${dir}|${branch}|${hash}|${_wt_paths[i]}")
+  done
+
+  local selection
+  selection=$(printf '%s\n' "${lines[@]}" | \
+    column -t -s'|' | \
+    fzf --ansi \
+        --header="Select worktree" \
+        --reverse \
+        --height=~40% \
+        --no-info) || return 0
+
+  # extract the path (last field after the last whitespace run — use the stored path)
+  local selected_dir
+  selected_dir=$(echo "$selection" | awk '{print $1}' | tr -d '* ')
+
+  # find the matching path
+  for ((i=0; i<count; i++)); do
+    if [[ "$(basename "${_wt_paths[i]}")" == "$selected_dir" ]]; then
+      msg "${DIM}cd ${selected_dir}${NOFORMAT}"
+      return 0
+    fi
+  done
+}
+
+# ── status / prune / clean ──────────────────────────────────────────────────
+
+status_usage() {
+  setup_colors
+  cat >&2 <<EOF
+${BOLD}Usage:${NOFORMAT} git wt status [options]
+
+Show all worktrees with branch, PR, and merge info.
+
+${BOLD}Options:${NOFORMAT}
+  --no-pr    Skip GitHub PR lookups (faster)
+  -h         Show this help
+
+${BOLD}Status indicators:${NOFORMAT}
+  ${YELLOW}▸${NOFORMAT}  Can be safely removed (merged + clean + pushed)
+  ${GREEN}merged${NOFORMAT}      Branch is merged into main (squash or true merge)
+  ${RED}closed${NOFORMAT}      PR was closed without merging
+  ${YELLOW}dirty${NOFORMAT}       Has uncommitted changes
+  ${ORANGE}unpushed${NOFORMAT}    Has local commits not on remote
+  ${RED}prunable${NOFORMAT}    Directory is missing, needs cleanup
+  ${DIM}active${NOFORMAT}      Work in progress
+EOF
+  exit
+}
+
+cmd_status() {
+  local mode="${1:-status}"
+  shift 2>/dev/null || true
+  local skip_pr=0
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -h | --help) status_usage ;;
+    --no-pr) skip_pr=1 ;;
+    --no-color) NO_COLOR=1 ;;
+    -*) die "unknown option: $1" ;;
+    *) break ;;
+    esac
+    shift
+  done
+
+  setup_colors
+
+  local has_gh=0
+  command -v gh &>/dev/null && [[ $skip_pr -eq 0 ]] && has_gh=1
+
+  local main_branch="main"
+  git show-ref --verify --quiet "refs/remotes/origin/main" 2>/dev/null || main_branch="master"
+
+  local current
+  current=$(current_worktree_path)
+
+  parse_worktrees
+  local count=${#_wt_paths[@]}
+  if [[ $count -eq 0 ]]; then
+    msg "${DIM}No worktrees found.${NOFORMAT}"
+    return
+  fi
+
+  # progress for PR lookups
+  [[ $has_gh -eq 1 ]] && [[ $count -gt 3 ]] && printf >&2 '%s' "${DIM}  fetching PR status...${NOFORMAT}"
+
+  # enrich
+  local -a wt_dirs=() wt_ages=() wt_pr_nums=() wt_pr_states=() wt_merged=() wt_dirty=() wt_unpushed=() wt_removable=()
+
+  for ((i=0; i<count; i++)); do
+    local path="${_wt_paths[i]}" branch="${_wt_branches[i]}" prunable=${_wt_prunable[i]}
+    wt_dirs+=("$(basename "$path")")
+
+    # age
+    if [[ -d "$path" ]] && [[ $prunable -eq 0 ]]; then
+      wt_ages+=("$(git -C "$path" log -1 --format='%cr' 2>/dev/null || echo "?")")
+    else
+      wt_ages+=("${DIM}gone${NOFORMAT}")
+    fi
+
+    # PR (do this first — PR state is the source of truth for squash merges)
+    local pr_num="" pr_state=""
+    if [[ $has_gh -eq 1 ]] && [[ $prunable -eq 0 ]] && [[ -n "$branch" ]] && [[ "$branch" != "$main_branch" ]]; then
+      local pr_json
+      pr_json=$(gh pr list --head "$branch" --state all --json number,state --limit 1 2>/dev/null || echo "")
+      if [[ -n "$pr_json" ]] && [[ "$pr_json" != "[]" ]]; then
+        pr_num=$(echo "$pr_json" | grep -o '"number":[0-9]*' | head -1 | cut -d: -f2)
+        pr_state=$(echo "$pr_json" | grep -o '"state":"[^"]*"' | head -1 | cut -d'"' -f4)
+      fi
+    fi
+    wt_pr_nums+=("$pr_num")
+    wt_pr_states+=("$pr_state")
+
+    # merged? PR state wins (handles squash merges), fall back to git ancestry
+    local merged=0
+    if [[ "$pr_state" == "MERGED" ]]; then
+      merged=1
+    elif [[ $prunable -eq 0 ]] && [[ -n "$branch" ]]; then
+      git merge-base --is-ancestor "$branch" "origin/${main_branch}" 2>/dev/null && merged=1
+    fi
+    wt_merged+=("$merged")
+
+    # dirty?
+    local dirty=0
+    if [[ -d "$path" ]] && [[ $prunable -eq 0 ]]; then
+      [[ -n "$(git -C "$path" status --porcelain 2>/dev/null)" ]] && dirty=1
+    fi
+    wt_dirty+=("$dirty")
+
+    # unpushed commits?
+    local unpushed=0
+    if [[ -d "$path" ]] && [[ $prunable -eq 0 ]] && [[ -n "$branch" ]]; then
+      local up
+      up=$(git -C "$path" rev-list --count "origin/${branch}..${branch}" 2>/dev/null || echo "0")
+      [[ "$up" -gt 0 ]] 2>/dev/null && unpushed=$up
+    fi
+    wt_unpushed+=("$unpushed")
+
+    # removable? conservative
+    local removable=0
+    if [[ $prunable -eq 1 ]]; then
+      removable=1
+    elif [[ $merged -eq 1 ]] && [[ $dirty -eq 0 ]] && [[ $unpushed -eq 0 ]]; then
+      removable=1
+    fi
+    wt_removable+=("$removable")
+  done
+
+  # clear progress
+  [[ $has_gh -eq 1 ]] && [[ $count -gt 3 ]] && printf >&2 '\r\033[K'
+
+  # column widths
+  local max_dir=3 max_branch=6
+  for ((i=0; i<count; i++)); do
+    [[ ${#wt_dirs[i]} -gt $max_dir ]] && max_dir=${#wt_dirs[i]}
+    local b="${_wt_branches[i]}"
+    [[ -n "$b" ]] && [[ ${#b} -gt $max_branch ]] && max_branch=${#b}
+  done
+  max_dir=$((max_dir + 2))
+  max_branch=$((max_branch + 2))
+
+  # header
+  msg ""
+  printf >&2 "  ${BOLD}  %-${max_dir}s %-${max_branch}s %-16s %-10s %s${NOFORMAT}\n" "DIR" "BRANCH" "AGE" "PR" "STATUS"
+  printf >&2 "  ${DIM}"
+  printf >&2 '─%.0s' $(seq 1 $((max_dir + max_branch + 40)))
+  printf >&2 "${NOFORMAT}\n"
+
+  # rows
+  local removable_count=0
+  local -a removable_display_indices=()
+
+  for ((i=0; i<count; i++)); do
+    local dir="${wt_dirs[i]}" branch="${_wt_branches[i]}" path="${_wt_paths[i]}"
+    local age="${wt_ages[i]}" pr_num="${wt_pr_nums[i]}" pr_state="${wt_pr_states[i]}"
+    local merged="${wt_merged[i]}" dirty="${wt_dirty[i]}"
+    local prunable="${_wt_prunable[i]}" removable="${wt_removable[i]}"
+    local unpushed="${wt_unpushed[i]}"
+    local is_current=0
+    [[ "$path" == "$current" ]] && is_current=1
+
+    [[ -z "$branch" ]] && branch="${DIM}(detached)${NOFORMAT}"
+
+    local -a status_parts=()
+    [[ $prunable -eq 1 ]] && status_parts+=("${RED}prunable${NOFORMAT}")
+    [[ $merged -eq 1 ]] && status_parts+=("${GREEN}merged${NOFORMAT}")
+    [[ "$pr_state" == "CLOSED" ]] && [[ $merged -eq 0 ]] && status_parts+=("${RED}closed${NOFORMAT}")
+    [[ $dirty -eq 1 ]] && status_parts+=("${YELLOW}dirty${NOFORMAT}")
+    [[ $unpushed -gt 0 ]] && status_parts+=("${ORANGE}${unpushed} unpushed${NOFORMAT}")
+    [[ ${#status_parts[@]} -eq 0 ]] && status_parts+=("${DIM}active${NOFORMAT}")
+    local status
+    status=$(IFS=', '; echo "${status_parts[*]}")
+
+    local pr_display="${DIM}—${NOFORMAT}"
+    if [[ -n "$pr_num" ]]; then
+      case "$pr_state" in
+        OPEN)   pr_display="${GREEN}#${pr_num}${NOFORMAT}" ;;
+        MERGED) pr_display="${PURPLE}#${pr_num}${NOFORMAT}" ;;
+        CLOSED) pr_display="${RED}#${pr_num}${NOFORMAT}" ;;
+        *)      pr_display="#${pr_num}" ;;
+      esac
+    fi
+
+    # current worktree marker
+    local marker="  "
+    [[ $is_current -eq 1 ]] && marker="${GREEN}* ${NOFORMAT}"
+
+    local indicator="  "
+    if [[ $removable -eq 1 ]]; then
+      indicator="${YELLOW}▸ ${NOFORMAT}"
+      removable_count=$((removable_count + 1))
+      removable_display_indices+=("$i")
+    fi
+
+    local age_plain
+    age_plain=$(printf '%s' "$age" | sed 's/\x1B\[[0-9;]*m//g')
+    local age_pad=$((16 - ${#age_plain}))
+    [[ $age_pad -lt 0 ]] && age_pad=0
+
+    printf >&2 "  %b%b%-${max_dir}s ${CYAN}%-${max_branch}s${NOFORMAT} %b%*s %-10b %b\n" \
+      "$marker" "$indicator" "$dir" "$branch" "$age" "$age_pad" "" "$pr_display" "$status"
+  done
+
+  msg ""
+
+  if [[ $removable_count -gt 0 ]]; then
+    msg "  ${YELLOW}▸${NOFORMAT} ${BOLD}${removable_count}${NOFORMAT} worktree(s) can be removed"
+    if [[ "$mode" == "status" ]]; then
+      msg "  ${DIM}Run 'git wt prune' to clean up${NOFORMAT}"
+    fi
+    msg ""
+  fi
+
+  # prune/clean
+  if [[ "$mode" == "prune" || "$mode" == "clean" ]] && [[ $removable_count -gt 0 ]]; then
+    if [[ "$mode" == "clean" ]]; then
+      # show summary and require one confirmation
+      msg "  ${BOLD}The following worktrees will be removed:${NOFORMAT}"
+      for di in "${removable_display_indices[@]}"; do
+        local dir="${wt_dirs[di]}" branch="${_wt_branches[di]}"
+        msg "    ${YELLOW}▸${NOFORMAT} ${dir} ${DIM}(${branch})${NOFORMAT}"
+      done
+      msg ""
+      printf >&2 '  Remove all %d worktrees? [y/N] ' "$removable_count"
+      local confirm
+      read -r confirm </dev/tty
+      [[ "$confirm" != [yY]* ]] && { msg "  ${DIM}Cancelled.${NOFORMAT}"; msg ""; return; }
+      msg ""
+    fi
+
+    for di in "${removable_display_indices[@]}"; do
+      local dir="${wt_dirs[di]}" branch="${_wt_branches[di]}"
+      local prunable="${_wt_prunable[di]}" path="${_wt_paths[di]}"
+
+      if [[ "$mode" == "prune" ]]; then
+        msg ""
+        msg "  ${BOLD}${dir}${NOFORMAT} ${DIM}→${NOFORMAT} ${CYAN}${branch}${NOFORMAT}"
+        if [[ $prunable -eq 1 ]]; then
+          msg "  ${DIM}directory already gone, cleaning up metadata${NOFORMAT}"
+        else
+          local last_msg
+          last_msg=$(git -C "$path" log -1 --format='%s' 2>/dev/null || echo "?")
+          local last_age
+          last_age=$(git -C "$path" log -1 --format='%cr' 2>/dev/null || echo "?")
+          msg "  ${DIM}last commit: ${last_msg} (${last_age})${NOFORMAT}"
+          local up
+          up=$(git -C "$path" rev-list --count "origin/${branch}..${branch}" 2>/dev/null || echo "0")
+          [[ "$up" -gt 0 ]] 2>/dev/null && msg "  ${ORANGE}⚠ ${up} unpushed commit(s)${NOFORMAT}"
+          local d
+          d=$(git -C "$path" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+          [[ "$d" -gt 0 ]] && msg "  ${YELLOW}⚠ ${d} uncommitted change(s)${NOFORMAT}"
+        fi
+        printf >&2 '  Remove? [y/N] '
+        local answer
+        read -r answer </dev/tty
+        [[ "$answer" != [yY]* ]] && continue
+      fi
+
+      if [[ $prunable -eq 1 ]]; then
+        git worktree prune 2>/dev/null
+        msg "  ${GREEN}✓${NOFORMAT} pruned ${dir}"
+      else
+        if git worktree remove "$path" 2>/dev/null; then
+          msg "  ${GREEN}✓${NOFORMAT} removed ${dir}"
+        else
+          msg "  ${RED}✗${NOFORMAT} failed to remove ${dir}"
+        fi
+      fi
+    done
+    msg ""
+  fi
+}
+
+# ── list ─────────────────────────────────────────────────────────────────────
+
+cmd_list() {
+  setup_colors
+  parse_worktrees
+
+  local count=${#_wt_paths[@]}
+  [[ $count -eq 0 ]] && { msg "${DIM}No worktrees found.${NOFORMAT}"; return; }
+
+  local current
+  current=$(current_worktree_path)
+
+  local -a rel_paths=()
+  # use the common parent of the worktrees (typically the bare repo root)
+  local base_dir
+  base_dir=$(dirname "${_wt_paths[0]}")
+  local max_path=4 max_branch=6
+
+  for ((i=0; i<count; i++)); do
+    local rel="${_wt_paths[i]#"$base_dir"/}"
+    [[ "$rel" == "${_wt_paths[i]}" ]] && rel=$(basename "${_wt_paths[i]}")
+    rel_paths+=("$rel")
+    [[ ${#rel} -gt $max_path ]] && max_path=${#rel}
+    local b="${_wt_branches[i]}"
+    [[ -n "$b" ]] && [[ ${#b} -gt $max_branch ]] && max_branch=${#b}
+  done
+  max_path=$((max_path + 2))
+  max_branch=$((max_branch + 2))
+
+  msg ""
+  for ((i=0; i<count; i++)); do
+    local rel="${rel_paths[i]}"
+    local branch="${_wt_branches[i]}"
+    local hash="${_wt_hashes[i]}"
+    local prunable=${_wt_prunable[i]}
+    local is_current=0
+    [[ "${_wt_paths[i]}" == "$current" ]] && is_current=1
+
+    [[ -z "$branch" ]] && branch="${DIM}(detached)${NOFORMAT}"
+
+    local marker="  "
+    [[ $is_current -eq 1 ]] && marker="${GREEN}* ${NOFORMAT}"
+
+    local tag=""
+    [[ $prunable -eq 1 ]] && tag="${RED}prunable${NOFORMAT}"
+
+    printf >&2 "  %b${BOLD}%-${max_path}s${NOFORMAT} ${DIM}%s${NOFORMAT}  ${CYAN}%-${max_branch}s${NOFORMAT} %s\n" \
+      "$marker" "$rel" "$hash" "$branch" "$tag"
+  done
+  msg ""
+}
+
+# ── dispatch ─────────────────────────────────────────────────────────────────
+
+setup_colors
+[[ $# -eq 0 ]] && { cmd_status "status"; exit; }
+
+command="$1"
+shift
+
+case "$command" in
+  create | new | add)
+    cmd_create "$@"
+    ;;
+  status | st | s)
+    cmd_status "status" "$@"
+    ;;
+  go)
+    cmd_go "$@"
+    ;;
+  prune | rm)
+    cmd_status "prune" "$@"
+    ;;
+  clean)
+    cmd_status "clean" "$@"
+    ;;
+  list | ls)
+    cmd_list "$@"
+    ;;
+  help | --help | -h)
+    usage
+    ;;
+  *)
+    die "unknown command: ${command}. Run 'git wt help' for usage."
+    ;;
+esac

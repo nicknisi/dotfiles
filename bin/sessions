@@ -1,0 +1,393 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+NOFORMAT='' GRAY='' RED='' GREEN='' BLUE='' PURPLE='' CYAN='' YELLOW='' BOLD='' DIM=''
+
+setup_colors() {
+  if [[ -t 2 ]] && [[ -z "${NO_COLOR-}" ]] && [[ "${TERM-}" != "dumb" ]]; then
+    NOFORMAT=$'\033[0m' GRAY=$'\033[0;90m' RED=$'\033[0;31m' GREEN=$'\033[0;32m' BLUE=$'\033[0;34m' PURPLE=$'\033[0;35m' CYAN=$'\033[0;36m' YELLOW=$'\033[1;33m' BOLD=$'\033[1m' DIM=$'\033[2m'
+  fi
+}
+
+msg() { printf >&2 '%s\n' "${1-}"; }
+die() { printf >&2 '%s\n' "${RED}error:${NOFORMAT} $1"; exit "${2-1}"; }
+
+usage() {
+  setup_colors
+  cat >&2 <<EOF
+${BOLD}sessions${NOFORMAT} — find and resume AI coding sessions
+
+Browse sessions from Claude Code, Codex, and Pi with fuzzy search.
+Scoped to the current git repo.
+
+${BOLD}Usage:${NOFORMAT}
+  sessions                    Browse all sessions with fzf
+  sessions <query>            Search session content for a phrase
+  sessions --tool claude      Filter by tool
+
+${BOLD}Options:${NOFORMAT}
+  --tool <name>    Filter: claude, codex, pi
+  -h, --help       Show this help
+
+${BOLD}Search:${NOFORMAT}
+  With no argument, opens fzf with session summaries.
+  With an argument, greps across session content for matching
+  sessions, then opens fzf with the results.
+EOF
+  exit
+}
+
+tool_filter="" search_query=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  -h | --help) setup_colors; usage ;;
+  --tool) tool_filter="${2-}"; shift ;;
+  --no-color) NO_COLOR=1 ;;
+  -*) die "unknown option: $1" ;;
+  *) search_query="$1" ;;
+  esac
+  shift
+done
+
+setup_colors
+command -v fzf &>/dev/null || die "fzf is required"
+command -v python3 &>/dev/null || die "python3 is required"
+
+# determine repo root
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+if [[ -f "${repo_root}/../.git" ]] && grep -q "gitdir.*\.bare" "${repo_root}/../.git" 2>/dev/null; then
+  repo_root=$(cd "${repo_root}/.." && pwd)
+fi
+
+[[ -n "$search_query" ]] && printf >&2 '%s' "${DIM}  searching sessions...${NOFORMAT}"
+
+selection=$(python3 -c '
+import json, os, sys, glob, re
+
+repo_root = sys.argv[1]
+tool_filter = sys.argv[2]
+search_query = sys.argv[3].lower()
+
+claude_prefix = repo_root.replace("/", "-")
+pi_prefix = "-" + claude_prefix + "-"
+
+claude_dir = os.path.expanduser("~/.claude/projects")
+pi_dir = os.path.expanduser("~/.pi/agent/sessions")
+codex_dir = os.path.expanduser("~/.codex/sessions")
+
+def get_cwd_from_session(filepath, tool):
+    """Read actual cwd from session file — only reliable source."""
+    try:
+        with open(filepath) as f:
+            for line in f:
+                try:
+                    d = json.loads(line)
+                except:
+                    continue
+                if tool == "claude":
+                    cwd = d.get("cwd", "")
+                    if cwd:
+                        return cwd
+                elif tool == "pi":
+                    if d.get("type") == "session":
+                        cwd = d.get("cwd", "")
+                        if cwd:
+                            return cwd
+                elif tool == "codex":
+                    if d.get("type") == "session_meta":
+                        cwd = d.get("payload", {}).get("cwd", "")
+                        if cwd:
+                            return cwd
+    except:
+        pass
+    return ""
+
+def clean(text):
+    text = re.sub(r"<[^>]+>", "", text)
+    return re.sub(r"\s+", " ", text).strip()[:100]
+
+def first_prompt(path, tool):
+    try:
+        with open(path) as f:
+            for line in f:
+                try:
+                    d = json.loads(line)
+                except:
+                    continue
+                if tool == "claude" and d.get("type") == "user":
+                    msg = d.get("message", {})
+                    c = msg.get("content", "") if isinstance(msg, dict) else ""
+                    if isinstance(c, list):
+                        for x in c:
+                            if isinstance(x, dict) and x.get("type") == "text":
+                                return clean(x["text"])
+                    elif isinstance(c, str):
+                        return clean(c)
+                elif tool in ("pi", "codex") and d.get("type") == "message":
+                    msg = d.get("message", {})
+                    if isinstance(msg, dict) and msg.get("role") == "user":
+                        c = msg.get("content", "")
+                        if isinstance(c, list):
+                            for x in c:
+                                if isinstance(x, dict) and x.get("type") in ("text", "input_text"):
+                                    return clean(x.get("text", ""))
+                        elif isinstance(c, str):
+                            return clean(c)
+    except:
+        pass
+    return ""
+
+def last_ts(path):
+    try:
+        with open(path, "rb") as f:
+            f.seek(0, 2)
+            pos = max(0, f.tell() - 32768)
+            f.seek(pos)
+            lines = f.read().decode("utf-8", errors="replace").strip().split("\n")
+        for line in reversed(lines):
+            try:
+                ts = json.loads(line).get("timestamp", "")
+                if ts and ts[0] == "2":
+                    return ts[:10]
+            except:
+                continue
+        with open(path) as f:
+            for line in f:
+                try:
+                    ts = json.loads(line).get("timestamp", "")
+                    if ts and ts[0] == "2":
+                        return ts[:10]
+                except:
+                    continue
+    except:
+        pass
+    return "?"
+
+def strip_injected(text):
+    """Remove system-injected blocks from user message text."""
+    text = re.sub(r"<system-reminder>.*?</system-reminder>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<local-command-caveat>.*?</local-command-caveat>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<local-command-stdout>.*?</local-command-stdout>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<command-name>.*?</command-name>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<command-message>.*?</command-message>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<command-args>.*?</command-args>", "", text, flags=re.DOTALL)
+    return text
+
+def extract_user_text(d):
+    """Extract cleaned user message text from a session entry."""
+    msg = d.get("message", {})
+    if not isinstance(msg, dict):
+        return ""
+    content = msg.get("content", "")
+    texts = []
+    if isinstance(content, list):
+        for c in content:
+            if isinstance(c, dict) and c.get("type") in ("text", "input_text"):
+                texts.append(c.get("text", ""))
+    elif isinstance(content, str):
+        texts.append(content)
+    return strip_injected(" ".join(texts))
+
+def content_matches(path, query):
+    """Search only what the user typed — strips system-injected blocks."""
+    try:
+        with open(path) as f:
+            for line in f:
+                try:
+                    d = json.loads(line)
+                except:
+                    continue
+                dtype = d.get("type", "")
+                msg = d.get("message", {})
+                is_user = (dtype == "user") or \
+                    (dtype == "message" and isinstance(msg, dict) and msg.get("role") == "user")
+                if not is_user:
+                    continue
+                text = extract_user_text(d)
+                if query in text.lower():
+                    return True
+    except:
+        pass
+    return False
+
+results = []
+
+def find_match_context(path, query):
+    """Find the first user message containing query and return surrounding text."""
+    try:
+        with open(path) as f:
+            for line in f:
+                try:
+                    d = json.loads(line)
+                except:
+                    continue
+                dtype = d.get("type", "")
+                msg = d.get("message", {})
+                is_user = (dtype == "user") or \
+                    (dtype == "message" and isinstance(msg, dict) and msg.get("role") == "user")
+                if not is_user:
+                    continue
+                text = extract_user_text(d)
+                pos = text.lower().find(query)
+                if pos >= 0:
+                    start = max(0, pos - 30)
+                    end = min(len(text), pos + len(query) + 70)
+                    snippet = text[start:end].replace("\n", " ").strip()
+                    if start > 0:
+                        snippet = "…" + snippet
+                    if end < len(text):
+                        snippet = snippet + "…"
+                    return snippet
+    except:
+        pass
+    return ""
+
+def process_session(sf, tool):
+    cwd = get_cwd_from_session(sf, tool)
+    if not cwd or not cwd.startswith(repo_root):
+        return
+    if ".claude/worktrees" in cwd or "/.bare" in cwd:
+        return
+    sid = os.path.basename(sf).replace(".jsonl", "")
+    if search_query:
+        if not content_matches(sf, search_query):
+            return
+        display_text = find_match_context(sf, search_query)
+    else:
+        display_text = first_prompt(sf, tool)
+    date = last_ts(sf)
+    results.append((date, cwd, tool, sid, display_text, sf))
+
+def add_sessions_dir(session_dir, prefix, tool):
+    if not os.path.isdir(session_dir):
+        return
+    if tool == "codex":
+        for sf in glob.glob(os.path.join(session_dir, "**/*.jsonl"), recursive=True):
+            process_session(sf, tool)
+    else:
+        for dirname in os.listdir(session_dir):
+            if not dirname.startswith(prefix):
+                continue
+            dirpath = os.path.join(session_dir, dirname)
+            for sf in glob.glob(os.path.join(dirpath, "*.jsonl")):
+                process_session(sf, tool)
+
+if tool_filter in ("", "claude"):
+    add_sessions_dir(claude_dir, claude_prefix, "claude")
+if tool_filter in ("", "pi"):
+    add_sessions_dir(pi_dir, pi_prefix, "pi")
+if tool_filter in ("", "codex"):
+    add_sessions_dir(codex_dir, "", "codex")
+
+results.sort(key=lambda r: r[0], reverse=True)
+
+cols = int(os.environ.get("COLUMNS", "80"))
+
+# ansi helpers
+C_RESET = "\033[0m"
+C_BOLD  = "\033[1m"
+C_DIM   = "\033[2m"
+C_GREEN = "\033[0;32m"
+C_RED   = "\033[0;31m"
+C_CYAN  = "\033[0;36m"
+C_PURPLE= "\033[0;35m"
+C_BLUE  = "\033[0;34m"
+
+tool_colors = {"claude": C_PURPLE, "pi": C_GREEN, "codex": C_BLUE}
+
+from datetime import datetime, timedelta
+today = datetime.now().date()
+
+def relative_date(iso_date):
+    try:
+        d = datetime.strptime(iso_date[:10], "%Y-%m-%d").date()
+    except:
+        return iso_date
+    delta = (today - d).days
+    if delta <= 0:
+        return "today"
+    if delta == 1:
+        return "yesterday"
+    if delta < 7:
+        return f"{delta}d"
+    if delta < 30:
+        weeks = delta // 7
+        return f"{weeks}w"
+    return iso_date[:10]
+
+for date, cwd, tool, sid, prompt, sf in results:
+    dir_name = os.path.basename(cwd) or "(root)"
+    exists = "exists" if os.path.isdir(cwd) else "deleted"
+    if not prompt:
+        prompt = "(no prompt)"
+
+    dot_c = C_GREEN if exists == "exists" else C_RED
+    dot = f"{dot_c}●{C_RESET}" if exists == "exists" else f"{dot_c}○{C_RESET}"
+    tc = tool_colors.get(tool, "")
+    tool_badge = f"{tc}{tool}{C_RESET}"
+    rel = relative_date(date)
+
+    max_prompt = max(20, cols - 40)
+    if len(prompt) > max_prompt:
+        prompt = prompt[:max_prompt - 1] + "…"
+
+    display = f"{dot} {C_BOLD}{dir_name}{C_RESET}  {tool_badge}  {C_DIM}{rel}{C_RESET}  {prompt}"
+    print(f"{cwd}\t{tool}\t{sid}\t{exists}\t{prompt}\t{display}")
+' "$repo_root" "$tool_filter" "$search_query" 2>/dev/null | \
+  fzf --exact \
+      --ansi \
+      --header="Select a session  ● exists  ○ deleted" \
+      --with-nth=6.. \
+      --delimiter=$'\t' \
+      --reverse \
+      --height=~60% \
+      --no-info \
+      --preview-window=hidden) || { [[ -n "$search_query" ]] && printf >&2 '\r\033[K'; exit 0; }
+
+[[ -n "$search_query" ]] && printf >&2 '\r\033[K'
+
+# parse tab-separated selection
+full_path=$(echo "$selection" | cut -f1)
+tool=$(echo "$selection" | cut -f2)
+session_id=$(echo "$selection" | cut -f3)
+exists=$(echo "$selection" | cut -f4)
+prompt=$(echo "$selection" | cut -f5)
+dir_name=$(basename "$full_path")
+
+msg ""
+
+# show session context
+msg "  ${BOLD}${dir_name}${NOFORMAT} ${DIM}(${tool})${NOFORMAT}"
+[[ -n "$prompt" ]] && msg "  ${DIM}${prompt}${NOFORMAT}"
+msg ""
+
+# build the resume command
+resume_cmd=""
+if [[ "$tool" == "claude" ]]; then
+  resume_cmd="cd ${full_path} && claude --resume ${session_id}"
+elif [[ "$tool" == "pi" ]]; then
+  resume_cmd="cd ${full_path}"
+elif [[ "$tool" == "codex" ]]; then
+  resume_cmd="cd ${full_path}"
+fi
+
+if [[ "$exists" == "deleted" ]]; then
+  msg "  ${RED}○${NOFORMAT} ${BOLD}${full_path}${NOFORMAT} no longer exists"
+  msg "  ${DIM}Recreate the directory first, then resume:${NOFORMAT}"
+  msg ""
+fi
+
+msg "  ${CYAN}${resume_cmd}${NOFORMAT}"
+
+# copy to clipboard
+if command -v pbcopy &>/dev/null; then
+  printf '%s' "$resume_cmd" | pbcopy
+  msg "  ${DIM}(copied to clipboard)${NOFORMAT}"
+elif command -v xclip &>/dev/null; then
+  printf '%s' "$resume_cmd" | xclip -selection clipboard
+  msg "  ${DIM}(copied to clipboard)${NOFORMAT}"
+fi
+
+msg ""

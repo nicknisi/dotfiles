@@ -1,0 +1,292 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+setup_colors() {
+  if [[ -t 2 ]] && [[ -z "${NO_COLOR-}" ]] && [[ "${TERM-}" != "dumb" ]]; then
+    NOFORMAT='\033[0m' GRAY='\033[0;90m' RED='\033[0;31m' GREEN='\033[0;32m' ORANGE='\033[0;33m' BLUE='\033[0;34m' PURPLE='\033[0;35m' CYAN='\033[0;36m' YELLOW='\033[1;33m' BOLD='\033[1m' DIM='\033[2m'
+  else
+    NOFORMAT='' GRAY='' RED='' GREEN='' ORANGE='' BLUE='' PURPLE='' CYAN='' YELLOW='' BOLD='' DIM=''
+  fi
+}
+
+msg() { echo -e "${1-}"; }
+die() { msg "${RED}error:${NOFORMAT} $1" >&2; exit "${2-1}"; }
+
+usage() {
+  cat <<EOF
+${BOLD}Usage:${NOFORMAT} git worktree-status [options]
+
+Show status of all worktrees with branch, PR, and merge info.
+
+${BOLD}Options:${NOFORMAT}
+  --prune           Interactively remove completed worktrees
+  --clean           Remove all merged/closed worktrees (no prompt)
+  --no-pr           Skip GitHub PR lookups (faster)
+  -h, --help        Show this help
+
+${BOLD}Status indicators:${NOFORMAT}
+  ${YELLOW}▸${NOFORMAT}  Can be safely removed
+  ${GREEN}merged${NOFORMAT}    Branch is merged into main
+  ${YELLOW}dirty${NOFORMAT}     Has uncommitted changes
+  ${RED}prunable${NOFORMAT}  Directory is missing, needs cleanup
+  ${DIM}active${NOFORMAT}    Work in progress
+EOF
+  exit
+}
+
+mode='status'
+skip_pr=0
+
+while :; do
+  case "${1-}" in
+  -h | --help) setup_colors; usage ;;
+  --prune) mode='prune' ;;
+  --clean) mode='clean' ;;
+  --no-pr) skip_pr=1 ;;
+  --no-color) NO_COLOR=1 ;;
+  -?*) die "unknown option: $1" ;;
+  *) break ;;
+  esac
+  shift
+done
+
+setup_colors
+
+has_gh=0
+if command -v gh &>/dev/null && [[ $skip_pr -eq 0 ]]; then
+  has_gh=1
+fi
+
+main_branch="main"
+git show-ref --verify --quiet "refs/remotes/origin/main" 2>/dev/null || main_branch="master"
+
+# -- parse porcelain output --
+declare -a wt_paths=()
+declare -a wt_branches=()
+declare -a wt_prunable=()
+declare -a wt_bare=()
+
+cur_path="" cur_branch="" cur_prunable=0 cur_bare=0
+
+flush_entry() {
+  if [[ -n "$cur_path" ]]; then
+    wt_paths+=("$cur_path")
+    wt_branches+=("$cur_branch")
+    wt_prunable+=("$cur_prunable")
+    wt_bare+=("$cur_bare")
+  fi
+  cur_path="" cur_branch="" cur_prunable=0 cur_bare=0
+}
+
+while IFS= read -r line || [[ -n "$line" ]]; do
+  if [[ "$line" == worktree\ * ]]; then
+    flush_entry
+    cur_path="${line#worktree }"
+  elif [[ "$line" == "bare" ]]; then
+    cur_bare=1
+  elif [[ "$line" == branch\ * ]]; then
+    cur_branch="${line#branch refs/heads/}"
+  elif [[ "$line" == prunable* ]]; then
+    cur_prunable=1
+  fi
+done < <(git worktree list --porcelain 2>/dev/null)
+flush_entry
+
+# -- enrich each worktree --
+declare -a wt_dirs=()
+declare -a wt_ages=()
+declare -a wt_pr_nums=()
+declare -a wt_pr_states=()
+declare -a wt_merged=()
+declare -a wt_dirty=()
+declare -a wt_removable=()
+
+# filter indices — skip bare and .claude/worktrees
+declare -a indices=()
+for ((i=0; i<${#wt_paths[@]}; i++)); do
+  [[ ${wt_bare[i]} -eq 1 ]] && continue
+  echo "${wt_paths[i]}" | grep -q '\.claude/worktrees' && continue
+  indices+=("$i")
+done
+
+count=${#indices[@]}
+
+if [[ $count -eq 0 ]]; then
+  msg "${DIM}No worktrees found.${NOFORMAT}"
+  exit
+fi
+
+# show a progress indicator for PR lookups
+if [[ $has_gh -eq 1 ]] && [[ $count -gt 3 ]]; then
+  echo >&2 -ne "${DIM}  fetching PR status...${NOFORMAT}"
+fi
+
+for idx in "${indices[@]}"; do
+  path="${wt_paths[idx]}"
+  branch="${wt_branches[idx]}"
+  prunable=${wt_prunable[idx]}
+
+  dir=$(basename "$path")
+  wt_dirs+=("$dir")
+
+  # age
+  if [[ -d "$path" ]] && [[ $prunable -eq 0 ]]; then
+    wt_ages+=("$(git -C "$path" log -1 --format='%cr' 2>/dev/null || echo "?")")
+  else
+    wt_ages+=("${DIM}gone${NOFORMAT}")
+  fi
+
+  # merged into main?
+  merged=0
+  if [[ $prunable -eq 0 ]] && [[ -n "$branch" ]]; then
+    git merge-base --is-ancestor "$branch" "origin/${main_branch}" 2>/dev/null && merged=1
+  fi
+  wt_merged+=("$merged")
+
+  # PR
+  pr_num="" pr_state=""
+  if [[ $has_gh -eq 1 ]] && [[ $prunable -eq 0 ]] && [[ -n "$branch" ]] && [[ "$branch" != "$main_branch" ]]; then
+    pr_json=$(gh pr list --head "$branch" --state all --json number,state --limit 1 2>/dev/null || echo "")
+    if [[ -n "$pr_json" ]] && [[ "$pr_json" != "[]" ]]; then
+      pr_num=$(echo "$pr_json" | grep -o '"number":[0-9]*' | head -1 | cut -d: -f2)
+      pr_state=$(echo "$pr_json" | grep -o '"state":"[^"]*"' | head -1 | cut -d'"' -f4)
+    fi
+  fi
+  wt_pr_nums+=("$pr_num")
+  wt_pr_states+=("$pr_state")
+
+  # dirty?
+  dirty=0
+  if [[ -d "$path" ]] && [[ $prunable -eq 0 ]]; then
+    [[ -n "$(git -C "$path" status --porcelain 2>/dev/null)" ]] && dirty=1
+  fi
+  wt_dirty+=("$dirty")
+
+  # removable?
+  removable=0
+  if [[ $prunable -eq 1 ]]; then
+    removable=1
+  elif [[ $dirty -eq 0 ]]; then
+    if [[ $merged -eq 1 ]]; then
+      removable=1
+    elif [[ "$pr_state" == "MERGED" || "$pr_state" == "CLOSED" ]]; then
+      removable=1
+    fi
+  fi
+  wt_removable+=("$removable")
+done
+
+# clear progress indicator
+if [[ $has_gh -eq 1 ]] && [[ $count -gt 3 ]]; then
+  echo >&2 -e "\r\033[K"
+fi
+
+# -- display --
+max_dir=3
+max_branch=6
+for ((i=0; i<count; i++)); do
+  [[ ${#wt_dirs[i]} -gt $max_dir ]] && max_dir=${#wt_dirs[i]}
+  b="${wt_branches[${indices[i]}]}"
+  [[ -n "$b" ]] && [[ ${#b} -gt $max_branch ]] && max_branch=${#b}
+done
+((max_dir+=2))
+((max_branch+=2))
+
+msg ""
+printf "  ${BOLD}%-${max_dir}s %-${max_branch}s %-16s %-10s %s${NOFORMAT}\n" "DIR" "BRANCH" "AGE" "PR" "STATUS"
+printf "  ${DIM}"
+printf '─%.0s' $(seq 1 $((max_dir + max_branch + 38)))
+printf "${NOFORMAT}\n"
+
+removable_count=0
+removable_display_indices=()
+
+for ((i=0; i<count; i++)); do
+  src_idx="${indices[i]}"
+  dir="${wt_dirs[i]}"
+  branch="${wt_branches[src_idx]}"
+  age="${wt_ages[i]}"
+  pr_num="${wt_pr_nums[i]}"
+  pr_state="${wt_pr_states[i]}"
+  merged="${wt_merged[i]}"
+  dirty="${wt_dirty[i]}"
+  prunable="${wt_prunable[src_idx]}"
+  removable="${wt_removable[i]}"
+
+  [[ -z "$branch" ]] && branch="${DIM}(detached)${NOFORMAT}"
+
+  # status
+  status_parts=()
+  [[ $prunable -eq 1 ]] && status_parts+=("${RED}prunable${NOFORMAT}")
+  [[ $merged -eq 1 ]] && status_parts+=("${GREEN}merged${NOFORMAT}")
+  [[ $dirty -eq 1 ]] && status_parts+=("${YELLOW}dirty${NOFORMAT}")
+  [[ ${#status_parts[@]} -eq 0 ]] && status_parts+=("${DIM}active${NOFORMAT}")
+  status=$(IFS=', '; echo "${status_parts[*]}")
+
+  # PR display
+  pr_display="${DIM}—${NOFORMAT}"
+  if [[ -n "$pr_num" ]]; then
+    case "$pr_state" in
+      OPEN)   pr_display="${GREEN}#${pr_num}${NOFORMAT}" ;;
+      MERGED) pr_display="${PURPLE}#${pr_num}${NOFORMAT}" ;;
+      CLOSED) pr_display="${RED}#${pr_num}${NOFORMAT}" ;;
+      *)      pr_display="#${pr_num}" ;;
+    esac
+  fi
+
+  # row indicator
+  indicator="  "
+  if [[ $removable -eq 1 ]]; then
+    indicator="${YELLOW}▸ ${NOFORMAT}"
+    removable_count=$((removable_count + 1))
+    removable_display_indices+=("$i")
+  fi
+
+  # age padding (strip ANSI for width calc)
+  age_plain=$(echo -e "$age" | sed 's/\x1B\[[0-9;]*m//g')
+  age_pad=$((16 - ${#age_plain}))
+  [[ $age_pad -lt 0 ]] && age_pad=0
+
+  printf "  %b%-${max_dir}s ${CYAN}%-${max_branch}s${NOFORMAT} %b%*s %-10b %b\n" \
+    "$indicator" "$dir" "$branch" "$age" "$age_pad" "" "$pr_display" "$status"
+done
+
+msg ""
+
+if [[ $removable_count -gt 0 ]]; then
+  msg "  ${YELLOW}▸${NOFORMAT} ${BOLD}${removable_count}${NOFORMAT} worktree(s) can be removed"
+  if [[ "$mode" == "status" ]]; then
+    msg "  ${DIM}Run 'git worktree-status --prune' to clean up${NOFORMAT}"
+  fi
+  msg ""
+fi
+
+# -- prune/clean --
+if [[ "$mode" == "prune" || "$mode" == "clean" ]] && [[ $removable_count -gt 0 ]]; then
+  for di in "${removable_display_indices[@]}"; do
+    src_idx="${indices[di]}"
+    dir="${wt_dirs[di]}"
+    branch="${wt_branches[src_idx]}"
+    prunable="${wt_prunable[src_idx]}"
+    path="${wt_paths[src_idx]}"
+
+    if [[ "$mode" == "prune" ]]; then
+      echo -ne "  Remove ${BOLD}${dir}${NOFORMAT} (${CYAN}${branch}${NOFORMAT})? [y/N] "
+      read -r answer </dev/tty
+      [[ "$answer" != [yY]* ]] && continue
+    fi
+
+    if [[ $prunable -eq 1 ]]; then
+      git worktree prune 2>/dev/null
+      msg "  ${GREEN}✓${NOFORMAT} pruned ${dir}"
+    else
+      if git worktree remove "$path" 2>/dev/null; then
+        msg "  ${GREEN}✓${NOFORMAT} removed ${dir}"
+      else
+        msg "  ${RED}✗${NOFORMAT} failed to remove ${dir}"
+      fi
+    fi
+  done
+  msg ""
+fi
