@@ -24,9 +24,10 @@ Scoped to the current git repo.
 ${BOLD}Usage:${NOFORMAT}
   sessions                    Browse all sessions with fzf
   sessions <query>            Search session content for a phrase
-  sessions --tool claude      Filter by tool
+  sessions --here              Scope to current repo only
 
 ${BOLD}Options:${NOFORMAT}
+  --here           Scope to current git repo (default: all projects)
   --tool <name>    Filter: claude, codex, pi
   -h, --help       Show this help
 
@@ -38,12 +39,13 @@ EOF
   exit
 }
 
-tool_filter="" search_query=""
+tool_filter="" search_query="" scope_here=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
   -h | --help) setup_colors; usage ;;
   --tool) tool_filter="${2-}"; shift ;;
+  --here) scope_here=1 ;;
   --no-color) NO_COLOR=1 ;;
   -*) die "unknown option: $1" ;;
   *) search_query="$1" ;;
@@ -56,9 +58,13 @@ command -v fzf &>/dev/null || die "fzf is required"
 command -v python3 &>/dev/null || die "python3 is required"
 
 # determine repo root
-repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-if [[ -f "${repo_root}/../.git" ]] && grep -q "gitdir.*\.bare" "${repo_root}/../.git" 2>/dev/null; then
-  repo_root=$(cd "${repo_root}/.." && pwd)
+if [[ $scope_here -eq 1 ]]; then
+  repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+  if [[ -f "${repo_root}/../.git" ]] && grep -q "gitdir.*\.bare" "${repo_root}/../.git" 2>/dev/null; then
+    repo_root=$(cd "${repo_root}/.." && pwd)
+  fi
+else
+  repo_root=""
 fi
 
 [[ -n "$search_query" ]] && printf >&2 '%s' "${DIM}  searching sessions...${NOFORMAT}"
@@ -69,9 +75,10 @@ import json, os, sys, glob, re
 repo_root = sys.argv[1]
 tool_filter = sys.argv[2]
 search_query = sys.argv[3].lower()
+search_all = repo_root == ""
 
-claude_prefix = repo_root.replace("/", "-")
-pi_prefix = "-" + claude_prefix + "-"
+claude_prefix = repo_root.replace("/", "-") if repo_root else ""
+pi_prefix = ("-" + claude_prefix + "-") if repo_root else "--"
 
 claude_dir = os.path.expanduser("~/.claude/projects")
 pi_dir = os.path.expanduser("~/.pi/agent/sessions")
@@ -246,7 +253,9 @@ def find_match_context(path, query):
 
 def process_session(sf, tool):
     cwd = get_cwd_from_session(sf, tool)
-    if not cwd or not cwd.startswith(repo_root):
+    if not cwd:
+        return
+    if not search_all and not cwd.startswith(repo_root):
         return
     if ".claude/worktrees" in cwd or "/.bare" in cwd:
         return
@@ -268,9 +277,11 @@ def add_sessions_dir(session_dir, prefix, tool):
             process_session(sf, tool)
     else:
         for dirname in os.listdir(session_dir):
-            if not dirname.startswith(prefix):
+            if not search_all and not dirname.startswith(prefix):
                 continue
             dirpath = os.path.join(session_dir, dirname)
+            if not os.path.isdir(dirpath):
+                continue
             for sf in glob.glob(os.path.join(dirpath, "*.jsonl")):
                 process_session(sf, tool)
 
