@@ -1,5 +1,5 @@
 {
-  "defaultProvider": "anthropic",
+  "defaultProvider": "openai-codex",
   "theme": "catppuccin-mocha",
   "quietStartup": true,
   "hideThinkingBlock": true,
@@ -23,5 +23,5 @@
     "npm:pi-prompt-template-model",
     "../../Developer/claude-plugins"
   ],
-  "defaultModel": "claude-opus-4-7"
+  "defaultModel": "gpt-5.5"
 }
