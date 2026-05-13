@@ -459,3 +459,8 @@ keybinding:
     bulkMenu: b
   commitMessage:
     commitMenu: <c-o>
+customCommands:
+  - key: "<c-b>"
+    context: "localBranches"
+    command: "gh pr view --web {{.SelectedLocalBranch.Name}}"
+    description: "Open PR in browser"
