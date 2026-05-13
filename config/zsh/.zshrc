@@ -9,9 +9,17 @@ source "$ZDOTDIR/.zsh_functions"
 # Configuration
 ########################################################
 
-# initialize autocomplete
+# initialize autocomplete (rebuild dump once per day)
 autoload -U compinit add-zsh-hook
-compinit
+if [[ -n ~/.zcompdump(#qN.mh+24) ]]; then
+  compinit
+else
+  compinit -C
+fi
+
+# register completions for directory nav functions (defined in .zsh_functions)
+compdef _c c
+compdef _h h
 
 # setup PATH
 for dir in $HOME/.bun/bin $HOME/.cargo/bin $HOME/.local/bin /usr/local/opt/grep/libexec/gnubin /usr/local/sbin $DOTFILES/bin $HOME/bin; do

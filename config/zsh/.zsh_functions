@@ -1,14 +1,10 @@
 #!/usr/bin/env zsh
 
-autoload -Uz compinit
-compinit
-
-# directory navigation functions with completion
+# directory navigation functions (completions registered after compinit in .zshrc)
 for func dir in c '$CODE_DIR' h '$HOME'; do
   eval "
   $func() { cd $dir/\$1 }
   _$func() { _files -W $dir -/ }
-  compdef _$func $func
   "
 done
 
