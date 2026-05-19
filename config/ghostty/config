@@ -45,6 +45,10 @@ clipboard-read = allow
 clipboard-write = allow
 clipboard-trim-trailing-spaces = true
 
+# Terminal input keybindings
+keybind = shift+enter=csi:13;2u
+keybind = shift+space=text:\x20
+
 # Split keybindings
 # These are similar to tmux, but with the prefix being cmd+s
 keybind = cmd+s>\=new_split:right
