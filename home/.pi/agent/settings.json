@@ -3,7 +3,7 @@
   "theme": "catppuccin-mocha",
   "quietStartup": true,
   "hideThinkingBlock": true,
-  "lastChangelogVersion": "0.74.0",
+  "lastChangelogVersion": "0.75.3",
   "skills": [
     "~/.claude/skills",
     "~/Developer/claude-plugins/plugins/consultant/skills",
@@ -23,5 +23,8 @@
     "npm:pi-prompt-template-model",
     "../../Developer/claude-plugins"
   ],
-  "defaultModel": "gpt-5.5"
+  "defaultModel": "gpt-5.5",
+  "warnings": {
+    "anthropicExtraUsage": false
+  }
 }
