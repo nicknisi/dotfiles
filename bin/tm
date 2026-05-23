@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# Prefer the compiled TUI binary if installed (brew install nicknisi/formulae/tm)
+HOMEBREW_TM="$(brew --prefix 2>/dev/null)/bin/tm"
+if [[ -x "$HOMEBREW_TM" ]]; then
+  exec "$HOMEBREW_TM" "$@"
+fi
+
 # Interactive tmux session switcher using fzf
 # Lists all tmux sessions except the current one, shows window count and status,
 # allows switching with Enter, refreshing with Ctrl-R, and deleting with Ctrl-D

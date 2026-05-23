@@ -1,6 +1,7 @@
 # vim:ft=ruby
 
 tap 'homebrew/bundle'
+tap 'nicknisi/formulae'
 
 if OS.mac?
   tap 'FelixKratz/formulae' # For janky borders
@@ -55,6 +56,7 @@ brew 'python'                          # python (latest)
 brew 'ripgrep'                         # very fast file searcher
 brew 'shellcheck'                      # diagnostics for shell sripts
 brew 'stylua'                          # lua code formatter
+brew 'tm'                              # grid-based tmux session switcher
 brew 'tmux'                            # terminal multiplexer
 brew 'tree'                            # pretty-print directory contents
 brew 'wdiff'                           # word differences in text files
