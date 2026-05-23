@@ -1,53 +1,158 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
+# Universal package manager proxy.
+# Detects npm/pnpm/bun/yarn from lock files or packageManager field,
+# then forwards commands with the right invocation style.
+
+# ── Built-in commands that every PM understands (never prefix with "run") ──
+readonly BUILTINS="add|create|exec|init|install|link|ls|outdated|pack|publish|remove|rm|run|start|test|uninstall|unlink|update|upgrade|why|cache|config|info|view|audit|fund|dedupe|prune|rebuild|login|logout|whoami|dlx|patch|store|setup|pm|bin|completions|self-update|x"
+
+# ── Detection ──
+
+find_lockfile_up() {
+  local dir="$PWD"
+  while [[ "$dir" != "/" ]]; do
+    [[ -f "$dir/bun.lock" || -f "$dir/bun.lockb" ]] && echo "bun:$dir" && return
+    [[ -f "$dir/yarn.lock" ]]       && echo "yarn:$dir" && return
+    [[ -f "$dir/pnpm-lock.yaml" ]]  && echo "pnpm:$dir" && return
+    [[ -f "$dir/package-lock.json" ]] && echo "npm:$dir" && return
+    dir=$(dirname "$dir")
+  done
+}
+
+read_corepack_field() {
+  local dir="$PWD"
+  while [[ "$dir" != "/" ]]; do
+    if [[ -f "$dir/package.json" ]] && command -v jq >/dev/null 2>&1; then
+      local pm
+      pm=$(jq -r '.packageManager // empty' "$dir/package.json" 2>/dev/null | cut -d'@' -f1)
+      if [[ -n "$pm" ]]; then
+        echo "$pm:$dir"
+        return
+      fi
+    fi
+    dir=$(dirname "$dir")
+  done
+}
 
 detect_pm() {
-  # 1. Lock files (most reliable)
-  [[ -f "bun.lock" || -f "bun.lockb" ]] && echo "bun" && return
-  [[ -f "yarn.lock" ]] && echo "yarn" && return
-  [[ -f "pnpm-lock.yaml" ]] && echo "pnpm" && return
-  [[ -f "package-lock.json" ]] && echo "npm" && return
+  local result
+  result=$(find_lockfile_up)
+  [[ -n "$result" ]] && echo "$result" && return
 
-  # 2. packageManager field in package.json (corepack)
-  if [[ -f "package.json" ]] && command -v jq >/dev/null 2>&1; then
-    local pm
-    pm=$(jq -r '.packageManager // empty' package.json 2>/dev/null | cut -d'@' -f1)
-    [[ -n "$pm" ]] && echo "$pm" && return
-  fi
+  result=$(read_corepack_field)
+  [[ -n "$result" ]] && echo "$result" && return
 
-  # 3. Default to npm
-  echo "npm"
+  echo ""
 }
 
-is_npm_script() {
-  [[ -f "package.json" ]] || return 1
+# ── Script detection ──
+
+has_script() {
+  local name="$1" dir="$2"
+  local pkg="$dir/package.json"
+  [[ -f "$pkg" ]] || return 1
   if command -v jq >/dev/null 2>&1; then
-    jq -e ".scripts[\"$1\"]" package.json >/dev/null 2>&1
+    jq -e ".scripts[\"$name\"]" "$pkg" >/dev/null 2>&1
   else
-    grep -q "\"$1\"" package.json 2>/dev/null
+    grep -q "\"$name\"" "$pkg" 2>/dev/null
   fi
 }
 
-p() {
+is_builtin() {
+  [[ "$1" =~ ^($BUILTINS)$ ]]
+}
+
+# ── Prompt when ambiguous ──
+
+ask_pm() {
+  if [[ ! -t 0 ]]; then
+    echo "p: cannot detect package manager and stdin is not a terminal" >&2
+    exit 1
+  fi
+  echo "p: no lock file or packageManager field found." >&2
+  echo "   Which package manager should I use?" >&2
+  echo "" >&2
+  local options=("npm" "pnpm" "bun" "yarn")
+  select pm in "${options[@]}"; do
+    if [[ -n "$pm" ]]; then
+      echo "$pm"
+      return
+    fi
+  done
+}
+
+# ── Main ──
+
+main() {
+  # p -w: show detected PM and exit
+  if [[ "${1:-}" == "-w" ]]; then
+    local result
+    result=$(detect_pm)
+    if [[ -n "$result" ]]; then
+      local pm="${result%%:*}"
+      local dir="${result#*:}"
+      echo "$pm (from $dir)"
+    else
+      echo "none detected"
+    fi
+    return 0
+  fi
+
+  local result
+  result=$(detect_pm)
+  local pm dir
+
+  if [[ -n "$result" ]]; then
+    pm="${result%%:*}"
+    dir="${result#*:}"
+  else
+    pm=$(ask_pm)
+    dir="$PWD"
+  fi
+
+  if ! command -v "$pm" >/dev/null 2>&1; then
+    echo "p: $pm is not installed" >&2
+    exit 1
+  fi
+
+  # No args → install
   if [[ $# -eq 0 ]]; then
-    echo "Usage: p <command> [args...]" >&2
-    return 1
+    exec "$pm" install
   fi
 
   local cmd="$1"
   shift
 
-  local pm
-  pm=$(detect_pm)
-
-  if [[ "$pm" == "npm" ]] && is_npm_script "$cmd"; then
-    if [[ $# -gt 0 ]]; then
-      npm run "$cmd" -- "$@"
-    else
-      npm run "$cmd"
-    fi
-  else
-    "$pm" "$cmd" "$@"
-  fi
+  # TODO: User implements run_command — decides how to dispatch the command
+  run_command "$pm" "$dir" "$cmd" "$@"
 }
 
-p "$@"
+run_command() {
+  local pm="$1" dir="$2" cmd="$3"
+  shift 3
+
+  if is_builtin "$cmd"; then
+    exec "$pm" "$cmd" "$@"
+  fi
+
+  if has_script "$cmd" "$dir"; then
+    case "$pm" in
+      npm)
+        if [[ $# -gt 0 ]]; then
+          exec npm run "$cmd" -- "$@"
+        else
+          exec npm run "$cmd"
+        fi
+        ;;
+      *)
+        exec "$pm" "$cmd" "$@"
+        ;;
+    esac
+  fi
+
+  exec "$pm" "$cmd" "$@"
+}
+
+main "$@"
