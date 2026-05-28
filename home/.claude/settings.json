@@ -99,88 +99,13 @@
       "~/.claude/"
     ]
   },
-  "model": "claude-opus-4-6[1m]",
   "hooks": {
-    "Notification": [
-      {
-        "matcher": "idle_prompt",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "claude-status-hook waiting",
-            "timeout": 5000
-          }
-        ]
-      },
-      {
-        "matcher": "permission_prompt",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "claude-status-hook waiting",
-            "timeout": 5000
-          }
-        ]
-      },
-      {
-        "matcher": "elicitation_dialog",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "claude-status-hook waiting",
-            "timeout": 5000
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "claude-status-hook PreToolUse",
-            "timeout": 5000
-          }
-        ]
-      }
-    ],
     "SessionEnd": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "claude-status-hook SessionEnd",
-            "timeout": 5000
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
             "command": "claude-tmux-cleanup",
-            "timeout": 5000
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "claude-status-hook Stop",
-            "timeout": 5000
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "claude-status-hook SubagentStop",
             "timeout": 5000
           }
         ]
@@ -198,11 +123,7 @@
     "claudit@quickstop": true,
     "code-review@claude-plugins-official": true,
     "codex@openai-codex": true,
-    "content@nicknisi": true,
-    "essentials@nicknisi": true,
     "frontend-design@claude-code-plugins": true,
-    "hookify@claude-plugins-official": true,
-    "ideation@nicknisi": true,
     "learning-output-style@claude-code-plugins": true,
     "obsidian@obsidian-skills": true,
     "plugin-dev@claude-code-plugins": true,
@@ -214,9 +135,14 @@
     "skill-creator@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
     "workos@workos": true,
+    "ruby-lsp@claude-plugins-official": true,
+    "content@nicknisi": true,
+    "essentials@nicknisi": true,
+    "ideation@nicknisi": true,
     "image-gen@nicknisi": true,
-    "sidequest@nicknisi": true,
-    "ruby-lsp@claude-plugins-official": true
+    "code-review@claude-code-plugins": true,
+    "explanatory-output-style@claude-code-plugins": true,
+    "fleet@fleet-local": true
   },
   "extraKnownMarketplaces": {
     "obsidian-skills": {
@@ -231,6 +157,18 @@
         "repo": "openai/codex-plugin-cc"
       },
       "autoUpdate": true
+    },
+    "nicknisi": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/nicknisi/Developer/claude-plugins"
+      }
+    },
+    "fleet-local": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/nicknisi/.local/share/fleet-marketplace"
+      }
     }
   },
   "spinnerVerbs": {
@@ -396,7 +334,7 @@
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,
-  "theme": "custom:moonstone",
+  "theme": "custom:seaglass",
   "teammateMode": "tmux",
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,

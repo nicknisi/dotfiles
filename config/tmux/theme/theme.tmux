@@ -123,7 +123,7 @@ tm_tunes_display="#(song=\$(current-song); if [[ -n \"\$song\" ]]; then echo \"#
 
 # Status line components
 session="$(create_section "left" "$tm_icon" "#S" "${thm_purple}" "${thm_bg}" "no-start")"
-tm_agent_display="#(agent-status --tmux #{session_name} #{pane_id})"
+tm_agent_display="#(fleet status --tmux #{session_name})"
 tm_git_status="$(create_section "right" "" "#(tmux-git-status '#{pane_current_path}')" "${thm_bg}" "${thm_fg}" "no-end")"
 
 # Status left and right - using the exact original syntax
