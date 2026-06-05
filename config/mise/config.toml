@@ -3,6 +3,7 @@ node = "24"
 python = "3.14.4"
 "npm:@mariozechner/pi-coding-agent" = "latest"
 "npm:wrangler" = "latest"
+"npm:greptile" = "latest"
 
 [settings]
 idiomatic_version_file_enable_tools = ["terraform", "node"]
