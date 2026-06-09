@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+# Launch Claude Code under a separate "personal" account/profile (cc personal).
+#
+# The default ~/.claude profile stays the work account. This points
+# CLAUDE_CONFIG_DIR at ~/.claude-personal, which gets its own credentials,
+# history, projects, and sessions (macOS keys creds per config dir, so /login
+# here does NOT touch the work account). On first run it seeds the personal
+# dir by symlinking the SHARED config + plugins back to ~/.claude so the
+# statusline, theme, hooks, and installed plugins all match — without
+# duplicating the multi-hundred-MB plugins/ tree or copying work history.
+#
+# Usage: ccp [claude args...]
+
+set -euo pipefail
+
+WORK_DIR="$HOME/.claude"
+PERSONAL_DIR="$HOME/.claude-personal"
+
+# Config that should be IDENTICAL across both profiles. Everything not listed
+# here (projects, history, todos, sessions, credentials, telemetry, caches)
+# stays isolated to the personal profile. Edit this list to share more/less.
+SHARED=(
+  settings.json
+  CLAUDE.md
+  plugins
+  themes
+)
+
+if ! command -v claude >/dev/null 2>&1; then
+  echo "ccp: 'claude' not found on PATH" >&2
+  exit 1
+fi
+
+first_run=0
+if [[ ! -d "$PERSONAL_DIR" ]]; then
+  first_run=1
+  mkdir -p "$PERSONAL_DIR"
+fi
+
+# (Re)link the shared config. Idempotent: -f replaces a stale link, -n avoids
+# descending into an existing symlinked dir. Skips anything missing in ~/.claude.
+for item in "${SHARED[@]}"; do
+  src="$WORK_DIR/$item"
+  [[ -e "$src" ]] || continue
+  ln -sfn "$src" "$PERSONAL_DIR/$item"
+done
+
+if [[ "$first_run" -eq 1 ]]; then
+  echo "Seeded personal profile at $PERSONAL_DIR (shared: ${SHARED[*]})."
+  echo "Run /login inside this session once to sign into your personal account."
+fi
+
+export CLAUDE_CONFIG_DIR="$PERSONAL_DIR"
+exec claude "$@"
