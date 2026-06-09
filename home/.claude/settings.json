@@ -65,9 +65,7 @@
       "Bash(which *)",
       "ExitPlanMode(*)",
       "WebFetch(domain:*)",
-      "WebSearch",
-      "mcp__plugin_*",
-      "mcp__claude_ai_*"
+      "WebSearch"
     ],
     "deny": [
       "Read(./.env)",
@@ -134,7 +132,6 @@
     "security-guidance@claude-code-plugins": true,
     "skill-creator@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
-    "workos@workos": true,
     "ruby-lsp@claude-plugins-official": true,
     "content@nicknisi": true,
     "essentials@nicknisi": true,
@@ -334,6 +331,7 @@
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
   "theme": "custom:seaglass",
   "teammateMode": "tmux",
   "agentPushNotifEnabled": true,
