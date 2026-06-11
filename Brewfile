@@ -36,7 +36,6 @@ tap "homebrew/core"
 brew "fd" # find alternative
 brew "fzf" # Fuzzy file searcher, used in scripts and in vim
 brew "git" # Git version control (latest version)
-brew "glow" # markdown viewer
 brew "grep" # grep (latest)
 brew "lazygit" # a better git UI
 brew "neofetch" # pretty system info
@@ -46,7 +45,6 @@ brew "ripgrep" # very fast file searcher
 brew "tmux" # terminal multiplexer
 brew "tpm" # the plugins manager of tmux
 brew "tree" # pretty-print directory contents
-brew "vim" # Vim (latest)
 brew "wget" # internet file retriever
 brew "zsh" # zsh (latest)
 brew "tldr" # simplified man pages
@@ -54,9 +52,8 @@ brew "unzip"
 brew "cmake"
 brew "tree-sitter"
 brew "node"
-brew "make"
-brew "gcc"
 brew "repo"
-brew "llvm"
 brew "htop"
-brew "hstr"
+brew "gemini-cli"
+brew "copilot-cli"
+brew "git-delta"

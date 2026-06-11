@@ -26,3 +26,7 @@ export EDITOR='nvim'
 export GIT_EDITOR='nvim'
 export HOMEBREW_NO_AUTO_UPDATE=1
 export COLORTERM=truecolor
+
+if [[ -n "$HOMEBREW_PREFIX" ]]; then
+  export FZF_BASE="$HOMEBREW_PREFIX/bin"
+fi

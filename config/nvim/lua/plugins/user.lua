@@ -1,31 +1,72 @@
 -- You can also add or configure plugins by creating files in this `plugins/` folder
+-- PLEASE REMOVE THE EXAMPLES YOU HAVE NO INTEREST IN BEFORE ENABLING THIS FILE
 -- Here are some examples:
 
 ---@type LazySpec
 return {
     {
-        "goolord/alpha-nvim",
-        opts = function(_, opts)
-            -- customize the dashboard header
-            opts.section.header.val = {
-                " █████  ███████ ████████ ██████   ██████",
-                "██   ██ ██         ██    ██   ██ ██    ██",
-                "███████ ███████    ██    ██████  ██    ██",
-                "██   ██      ██    ██    ██   ██ ██    ██",
-                "██   ██ ███████    ██    ██   ██  ██████",
-                " ",
-                "    ███    ██ ██    ██ ██ ███    ███",
-                "    ████   ██ ██    ██ ██ ████  ████",
-                "    ██ ██  ██ ██    ██ ██ ██ ████ ██",
-                "    ██  ██ ██  ██  ██  ██ ██  ██  ██",
-                "    ██   ████   ████   ██ ██      ██",
-            }
-            return opts
-        end,
-    },
+        "folke/snacks.nvim",
+        optional = true,
+        opts = {
+            dashboard = {
+                preset = {
+                    header = table.concat({
+                        " █████  ███████ ████████ ██████   ██████ ",
+                        "██   ██ ██         ██    ██   ██ ██    ██",
+                        "███████ ███████    ██    ██████  ██    ██",
+                        "██   ██      ██    ██    ██   ██ ██    ██",
+                        "██   ██ ███████    ██    ██   ██  ██████ ",
+                        "",
+                        "███    ██ ██    ██ ██ ███    ███",
+                        "████   ██ ██    ██ ██ ████  ████",
+                        "██ ██  ██ ██    ██ ██ ██ ████ ██",
+                        "██  ██ ██  ██  ██  ██ ██  ██  ██",
+                        "██   ████   ████   ██ ██      ██",
+                    }, "\n"),
+                },
+            },
 
-    -- You can disable default plugins as follows:
-    { "max397574/better-escape.nvim", enabled = true },
+            notifier = {
+                -- used for noice.nvim for notify view
+                timeout = 2500,
+                top_down = false,
+            },
+
+            picker = {
+                -- layout = {preset = "vscode"},
+                win = {
+                    -- internal keymaps
+                    input = {
+                        keys = {
+                            ["<c-v>"] = false,
+                            ["<c-q>"] = { "edit_vsplit", mode = { "i", "n" } },
+                        },
+                    },
+
+                    -- internal keymaps
+                    list = {
+                        keys = {
+                            ["<c-v>"] = false,
+                            ["<c-q>"] = "edit_vsplit",
+                        },
+                    },
+                },
+            },
+
+            terminal = {
+                win = {
+                    style = "terminal",
+                },
+            },
+        },
+        keys = {
+            {
+                "<leader>gg",
+                function() require("snacks").lazygit { cwd = vim.fn.expand "%:p:h" } end,
+                desc = "Lazygit (Current File Dir)",
+            },
+        },
+    },
 
     -- You can also easily customize additional setup of plugins that is outside of the plugin's setup call
     {
@@ -88,27 +129,26 @@ return {
             },
         },
     },
+
     {
         "AstroNvim/astrotheme",
         lazy = false,
     },
+
     {
         "folke/noice.nvim",
-        dependencies = {
-            "rcarriga/nvim-notify",
-            opts = {
-                timeout = 1500,
-                top_down = false,
-            },
-        },
         opts = {
             presets = {
                 bottom_search = false, -- use a classic bottom cmdline for search
                 command_palette = true, -- position the cmdline and popupmenu together
                 long_message_to_split = true, -- long messages will be sent to a split
                 inc_rename = false, -- enables an input dialog for inc-rename.nvim
-                lsp_doc_border = false, -- add a border to hover docs and signature help
             },
+
+            messages = { view_search = false },
+
+            popupmenu = { enabled = false },
+
             lsp = {
                 hover = {
                     enabled = false,
@@ -117,48 +157,38 @@ return {
                     enabled = false,
                 },
             },
-        },
-    },
-    {
-        "nvimdev/lspsaga.nvim",
-        dependencies = {
-            {
-                -- AstroCore is always loaded on startup, so making it a dependency doesn't matter
-                "AstroNvim/astrolsp",
-                opts = {
-                    mappings = { -- define a mapping to load the plugin module
-                        n = {
-                            ["grr"] = false,
-                            ["gra"] = false,
-                            ["grn"] = false,
-                            ["gr"] = { "<cmd>Lspsaga rename<cr>" },
-                            ["gD"] = { "<cmd>Lspsaga peek_definition<cr>" },
-                            ["<Leader>fu"] = {
-                                function()
-                                    local astro = require "astrocore"
-                                    local is_available = astro.is_available
 
-                                    if is_available "aerial.nvim" then
-                                        require("telescope").extensions.aerial.aerial()
-                                    else
-                                        require("telescope.builtin").lsp_document_symbols()
-                                    end
-                                end,
-                                desc = "Search symbols",
-                            },
-                            ["<Leader>fi"] = {
-                                '<cmd>Telescope lsp_dynamic_workspace_symbols path_display="hidden"<cr>',
-                            },
-                            ["gh"] = { "<cmd>Lspsaga finder<cr>" },
-                        },
+            routes = {
+                {
+                    -- skip lsp progress from null-ls server
+                    filter = {
+                        event = "lsp",
+                        kind = "progress",
+                        cond = function(message)
+                            local client = vim.tbl_get(message.opts, "progress", "client")
+                            return client == "null-ls"
+                        end,
                     },
+                    opts = { skip = true },
+                },
+
+                {
+                    -- Add shell output and error notification
+                    filter = {
+                        event = "msg_show",
+                        kind = { "shell_out", "shell_err" },
+                    },
+                    view = "notify",
+                    opts = { title = "Shell" },
                 },
             },
         },
+    },
+
+    {
+        "folke/which-key.nvim",
         opts = {
-            lightbulb = {
-                debounce = 500,
-            },
+            delay = 800,
         },
     },
     {
@@ -175,52 +205,152 @@ return {
             },
         },
     },
+
     {
-        "nvim-telescope/telescope.nvim",
+        "nvimdev/lspsaga.nvim",
+        -- enabled = false,
         opts = {
-            defaults = {
-                mappings = {
-                    i = {
-                        ["<C-q>"] = require("telescope.actions").file_vsplit,
+            code_action = {
+                show_server_name = true,
+            },
+        },
+    },
+
+    {
+        "akinsho/toggleterm.nvim",
+        lazy = false,
+        opts = function(plugin, opts)
+            opts.size = function(term)
+                if term.direction == "vertical" then return 80 end
+                return 20 -- default size for horizontal and float
+            end
+
+            opts.on_create = function(t)
+                vim.opt_local.foldcolumn = "0"
+                vim.opt_local.signcolumn = "no"
+            end
+
+            -- change direction for terminal
+            local direction = "float"
+            local function term_toggle(dir)
+                direction = dir
+                vim.cmd(vim.v.count .. "ToggleTerm" .. " direction=" .. direction)
+            end
+            vim.keymap.set(
+                "n",
+                "<Leader>tv",
+                function() term_toggle "vertical" end,
+                { noremap = true, silent = true, desc = "Open vertical terminal" }
+            )
+            vim.keymap.set(
+                "n",
+                "<Leader>th",
+                function() term_toggle "horizontal" end,
+                { noremap = true, silent = true, desc = "Open horizontal terminal" }
+            )
+            vim.keymap.set(
+                "n",
+                "<Leader>tf",
+                function() term_toggle "float" end,
+                { noremap = true, silent = true, desc = "Open floating terminal" }
+            )
+            vim.keymap.set(
+                { "n", "i" },
+                "<F2>",
+                function() term_toggle(direction) end,
+                { noremap = true, silent = true, desc = "Toggle term" }
+            )
+            vim.keymap.set("t", "<F2>", "<Cmd>ToggleTerm<CR>", { noremap = true, silent = true, desc = "Toggle term" })
+        end,
+    },
+
+    {
+        "rebelot/heirline.nvim",
+        opts = function(_, opts)
+            -- remove lsp progress
+            local status = require "astroui.status"
+            opts.statusline = {
+                status.component.mode(),
+                status.component.git_branch(),
+                status.component.file_info(),
+                status.component.git_diff(),
+                status.component.diagnostics(),
+                status.component.fill(),
+                status.component.cmd_info(),
+                status.component.fill(),
+                status.component.lsp { lsp_progress = false }, --https://github.com/AstroNvim/astroui/blob/525a900e55c86bdf81c52deacfb9407ae1240fae/lua/astroui/status/component.lua#L157
+                status.component.virtual_env(),
+                status.component.treesitter(),
+                status.component.nav(),
+                status.component.mode { surround = { separator = "right" } },
+            }
+        end,
+    },
+
+    {
+        "saghen/blink.cmp",
+        optional = true,
+        opts = {
+            completion = {
+                menu = {
+                    draw = {
+                        columns = {
+                            { "kind_icon" },
+                            { "label", "label_description", gap = 1 },
+                            { "source_name" },
+                        },
+                    },
+                },
+            },
+
+            keymap = {
+                ["<Tab>"] = {
+                    "select_next",
+                    "snippet_forward",
+                    "fallback",
+                },
+                ["<S-Tab>"] = {
+                    "select_prev",
+                    "snippet_backward",
+                    "fallback",
+                },
+            },
+
+            -- sources = {
+            --     providers = {
+            --         cmdline = {
+            --             -- ignores cmdline completions when executing shell commands
+            --             -- refer to:https://github.com/Saghen/blink.cmp/issues/795
+            --             -- I select another ways to fix these issue
+            --             enabled = function()
+            --                 return vim.fn.getcmdline():sub(1, 1) ~= "!"
+            --             end,
+            --         },
+            --     },
+            -- },
+
+            cmdline = {
+                completion = {
+                    menu = {
+                        auto_show = true,
+                    },
+
+                    list = {
+                        selection = {
+                            preselect = false,
+                        },
                     },
                 },
             },
         },
     },
     {
-        "akinsho/toggleterm.nvim",
-        dependencies = {
-            {
-                -- AstroCore is always loaded on startup, so making it a dependency doesn't matter
-                "AstroNvim/astrocore",
-                opts = {
-                    mappings = { -- define a mapping to load the plugin module
-                        n = {
-                            ["<c-\\>"] = { '<Cmd>execute v:count . "ToggleTerm"<CR>', desc = "Toggle terminal" },
-                            ["<Leader>tl"] = false,
-                        },
-                        t = {
-                            ["<ESC><ESC>"] = { "<C-\\><C-N>", desc = "return to normal mode" },
-                            ["<c-\\>"] = { "<Cmd>ToggleTerm<CR>", desc = "Toggle terminal" },
-                        },
-                        i = {
-                            ["<c-\\>"] = { "<Esc><Cmd>ToggleTerm<CR>", desc = "Toggle terminl" },
-                        },
-                    },
-                },
-            },
-        },
+
+        "MeanderingProgrammer/render-markdown.nvim",
+        dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.icons" },
         opts = {
-            open_mapping = [[<c-\>]],
-            size = 20,
-            on_create = function(t)
-                vim.opt_local.foldcolumn = "0"
-                vim.opt_local.signcolumn = "no"
-                if t.hidden then
-                    local toggle = function() t:toggle() end
-                    vim.keymap.set({ "n", "t", "i" }, "<c-\\>", toggle, { desc = "Toggle terminal", buffer = t.bufnr })
-                end
-            end,
+            file_types = { "markdown", "copilot-chat" },
+            completions = { blink = { enabled = true } },
         },
     },
 }

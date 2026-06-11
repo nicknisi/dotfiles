@@ -13,8 +13,10 @@ return {
         -- AstroUI allows you to easily modify highlight groups easily for any and all colorschemes
         highlights = {
             init = { -- this table overrides highlights in all themes
+                -- Normal = { bg = "#000000" },
             },
             astrodark = { -- a table of overrides/changes when applying the astrotheme theme
+                -- Normal = { bg = "#000000" },
             },
             onedark = {
                 ["@markup.link"] = { link = "@text.reference" },

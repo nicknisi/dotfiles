@@ -1,6 +1,5 @@
 return {
     "aserowy/tmux.nvim",
-    -- enabled = true,
     dependencies = {
         {
             -- AstroCore is always loaded on startup, so making it a dependency doesn't matter
