@@ -8,9 +8,6 @@ return {
     "AstroNvim/astrolsp",
     ---@type AstroLSPOpts
     opts = {
-        --NOTE:_EXPERIMENTAL_ Use the native `vim.lsp.config` for LSP configuration
-        native_lsp_config = true,
-
         -- Configuration table of features provided by AstroLSP
         features = {
             codelens = true, -- enable/disable codelens refresh on start
@@ -45,7 +42,7 @@ return {
         servers = {
             -- "pyright"
         },
-        -- customize language server configuration options passed to `lspconfig`
+        -- customize language server configuration passed to `vim.lsp.config`
         ---@diagnostic disable: missing-fields
         config = {
             clangd = {
@@ -81,6 +78,10 @@ return {
                             globals = { "vim" },
                         },
 
+                        format = {
+                            enable = false,
+                        },
+
                         -- Make the server aware of Neovim runtime files
                         -- workspace = {
                         --     checkThirdParty = false,
@@ -113,29 +114,32 @@ return {
         },
         -- customize how language servers are attached
         handlers = {
-            -- a function without a key is simply the default handler, functions take two parameters, the server name and the configured options table for that server
-            -- function(server, opts) require("lspconfig")[server].setup(opts) end
+            -- a function with the key `*` modifies the default handler, functions take the server name as the parameter
+            -- ["*"] = function(server) vim.lsp.enable(server) end
 
-            -- the key is the server that is being setup with `lspconfig`
+            -- the key is the server that is being set up with `vim.lsp.config`
             -- rust_analyzer = false, -- setting a handler to false will disable the set up of that language server
-            -- pyright = function(_, opts) require("lspconfig").pyright.setup(opts) end -- or a custom handler function can be passed
-            clangd = function(_, opts)
+            clangd = function(server)
+                local opts = vim.deepcopy(vim.lsp.config[server] or {})
                 local file = vim.uv.cwd() .. "/" .. ".clangd"
                 if vim.uv.fs_stat(file) then
                     local fd = io.open(file, "r")
-                    if not fd then
-                        error "Could not open .clangd file"
-                        return
-                    end
+                    if not fd then return end
 
                     local content = fd:read "*a"
                     fd:close()
-                    if content == "" then return end
 
                     local dir = string.match(content, "CompilationDatabase:%s*(%S+)")
-                    if dir then table.insert(opts.cmd, "--compile-commands-dir=" .. vim.fn.fnamemodify(dir, ":p")) end
+                    if dir then
+                        opts.cmd = opts.cmd or { "clangd" }
+                        local compile_commands_dir = "--compile-commands-dir=" .. vim.fn.fnamemodify(dir, ":p")
+                        if not vim.tbl_contains(opts.cmd, compile_commands_dir) then
+                            table.insert(opts.cmd, compile_commands_dir)
+                        end
+                    end
                 end
-                require("lspconfig").clangd.setup(opts)
+                vim.lsp.config(server, opts)
+                vim.lsp.enable(server)
             end,
         },
         -- Configure buffer local auto commands to add when attaching a language server
@@ -170,7 +174,7 @@ return {
                     function() require("astrolsp.toggles").buffer_semantic_tokens() end,
                     desc = "Toggle LSP semantic highlight (buffer)",
                     cond = function(client)
-                        return client.supports_method "textDocument/semanticTokens/full"
+                        return client:supports_method "textDocument/semanticTokens/full"
                             and vim.lsp.semantic_tokens ~= nil
                     end,
                 },
@@ -186,7 +190,7 @@ return {
         },
 
         -- A custom `on_attach` function to be run after the default `on_attach` function
-        -- takes two parameters `client` and `bufnr`  (`:h lspconfig-setup`)
+        -- takes two parameters `client` and `bufnr`  (`:h lsp-attach`)
         on_attach = function(client, bufnr)
             -- this would disable semanticTokensProvider for all clients
             -- client.server_capabilities.semanticTokensProvider = nil

@@ -1,5 +1,11 @@
 ---@type LazySpec
 return {
+    {
+        "mason-org/mason.nvim",
+        opts = {
+            PATH = "append",
+        },
+    },
     -- use mason-tool-installer for automatically installing Mason packages
     {
         "WhoIsSethDaniel/mason-tool-installer.nvim",
@@ -27,7 +33,6 @@ return {
                 -- install any other package
                 "shellcheck",
                 "checkmake",
-                "tree-sitter-cli",
             },
         },
     },

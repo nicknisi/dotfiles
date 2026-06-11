@@ -192,16 +192,6 @@ return {
         },
     },
     {
-        "JoosepAlviste/nvim-ts-context-commentstring",
-        opts = {
-            -- adujst default configuration: https://github.com/JoosepAlviste/nvim-ts-context-commentstring/blob/9c74db656c3d0b1c4392fc89a016b1910539e7c0/lua/ts_context_commentstring/config.lua#L66
-            languages = {
-                c = { __default = "// %s", __multiline = "/* %s */" },
-            },
-        },
-    },
-
-    {
         "folke/flash.nvim",
         event = "VeryLazy",
         opts = {
@@ -298,7 +288,7 @@ return {
     },
 
     {
-        "Saghen/blink.cmp",
+        "saghen/blink.cmp",
         optional = true,
         opts = {
             completion = {
@@ -357,7 +347,7 @@ return {
     {
 
         "MeanderingProgrammer/render-markdown.nvim",
-        dependencies = { "nvim-treesitter/nvim-treesitter", "echasnovski/mini.icons" },
+        dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.icons" },
         opts = {
             file_types = { "markdown", "copilot-chat" },
             completions = { blink = { enabled = true } },

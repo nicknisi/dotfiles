@@ -22,6 +22,29 @@ return {
             virtual_text = true,
             underline = true,
         },
+        treesitter = {
+            highlight = true,
+            indent = true,
+            auto_install = true,
+            ensure_installed = {
+                "cpp",
+                "c",
+                "python",
+                "lua",
+                "cmake",
+                "json",
+                "vim",
+                "vimdoc",
+                "query",
+                "markdown",
+                "markdown_inline",
+                "regex",
+                "bash",
+                "systemverilog",
+                "html",
+                "latex",
+            },
+        },
         -- passed to `vim.filetype.add`
         filetypes = {
             -- see `:h vim.filetype.add` for usage
@@ -107,6 +130,17 @@ return {
                         vim.opt_local.number = false
                         vim.opt_local.conceallevel = 0
                         vim.opt_local.foldcolumn = "0"
+                    end,
+                },
+            },
+
+            c_commentstring = {
+                {
+                    event = "FileType",
+                    pattern = { "c", "cpp" },
+                    desc = "Prefer line comments for C-family files",
+                    callback = function(args)
+                        vim.bo[args.buf].commentstring = "// %s"
                     end,
                 },
             },
