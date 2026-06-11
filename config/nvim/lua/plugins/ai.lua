@@ -1,6 +1,6 @@
 local function filter_ai_trigger()
     local filename = vim.fn.expand "%:t"
-    if filename:match "%.localrc" or filename:match "%.env" then return false end
+    if filename:match "%.localrc" or filename:match "%.env" or filename:match "%.json" then return false end
     return true
 end
 
@@ -176,19 +176,19 @@ return {
             -- Recommended/example keymaps.
             vim.keymap.set(
                 { "n", "x" },
-                "<C-a>",
+                "<Leader>aa",
                 function() require("opencode").ask("@this: ", { submit = true }) end,
                 { desc = "Ask opencode…" }
             )
             vim.keymap.set(
                 { "n", "x" },
-                "<C-x>",
+                "<Leader>ax",
                 function() require("opencode").select() end,
                 { desc = "Execute opencode action…" }
             )
             vim.keymap.set(
                 { "n" },
-                "<leader>o",
+                "<leader>ao",
                 function() require("opencode").toggle() end,
                 { desc = "Toggle opencode" }
             )
