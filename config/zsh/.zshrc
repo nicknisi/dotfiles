@@ -138,7 +138,7 @@ typeset -A man_colors=(
   mr "$(tput rev)"
   mh "$(tput dim)"
 )
-for key val in ${(kv)man_colors}; do
+for key val in "${(@kv)man_colors}"; do
   export LESS_TERMCAP_$key=$val
 done
 
