@@ -86,8 +86,6 @@
       "Bash(sudo rm -rf /* *)"
     ],
     "ask": [
-      "Bash(git commit *)",
-      "Bash(git push *)",
       "Bash(gh pr merge *)",
       "Bash(docker push *)",
       "Bash(npm publish *)"
@@ -97,6 +95,7 @@
       "~/.claude/"
     ]
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "SessionEnd": [
       {

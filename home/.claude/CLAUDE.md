@@ -4,10 +4,6 @@ Challenge my assumptions and reasoning. Offer skeptical viewpoints. Correct me p
 
 Be extremely concise.
 
-## Plugin Config
-
-ideation-output: /Users/nicknisi/Notes/!Ideation
-
 ## Source Accuracy & Drafting Protocol
 
 NEVER fabricate statistics, data points, or claims not explicitly present in source documents. If a fact cannot be verified from provided sources, flag it as [NEEDS SOURCE] rather than including it. Cross-reference all data attributions to ensure they match the correct source document and author.
