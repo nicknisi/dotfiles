@@ -14,15 +14,18 @@ RESET='\033[0m'
 # Separator (minimal style)
 SEP="${DIM}│${RESET}"
 
-# Nerd font icons (colorized)
-ICON_PROJECT="${BLUE}$(printf '\ue5ff')${RESET}"
-ICON_BRANCH="${GREEN}$(printf '\ue725')${RESET}"
-ICON_CONTEXT="${MAGENTA}$(printf '\U000f09d1')${RESET}"
-ICON_COST="${GREEN}$(printf '\uf155')${RESET}"
-ICON_STYLE="${CYAN}$(printf '\U000f03d8')${RESET}"
-ICON_USAGE="${YELLOW}$(printf '\U000f0241')${RESET}"
-ICON_LINES="${CYAN}$(printf '\uf440')${RESET}"
-ICON_AGENT="${DIM}$(printf '\U000f06a9')${RESET}"
+# Nerd font icons (colorized).
+# macOS ships bash 3.2 whose printf does not interpret \u / \U escapes \u2014
+# it emits them as literal text. Use UTF-8 byte sequences (\xHH) instead,
+# which bash 3.2 printf does support.
+ICON_PROJECT="${BLUE}$(printf '\xee\x97\xbf')${RESET}"          # nf-md-folder      U+E5FF
+ICON_BRANCH="${GREEN}$(printf '\xee\x9c\xa5')${RESET}"          # nf-dev-git_branch U+E725
+ICON_CONTEXT="${MAGENTA}$(printf '\xf3\xb0\xa7\x91')${RESET}"   # nf-md-brain       U+F09D1
+ICON_COST="${GREEN}$(printf '\xef\x85\x95')${RESET}"            # nf-fa-dollar      U+F155
+ICON_STYLE="${CYAN}$(printf '\xf3\xb0\x8f\x98')${RESET}"        # nf-md-palette     U+F03D8
+ICON_USAGE="${YELLOW}$(printf '\xf3\xb0\x89\x81')${RESET}"      # nf-md-gauge       U+F0241
+ICON_LINES="${CYAN}$(printf '\xef\x91\x80')${RESET}"            # nf-fa-file_text   U+F440
+ICON_AGENT="${DIM}$(printf '\xf3\xb0\x9a\xa9')${RESET}"         # nf-md-robot       U+F06A9
 
 # Feature flags (set env vars to 0 to disable)
 SHOW_CONTEXT_TOKENS="${CLAUDE_STATUSLINE_TOKENS:-1}"
@@ -42,10 +45,10 @@ get_model_name() { echo "$input" | jq -r '.model.display_name // "Unknown Model"
 get_model_icon() {
   local model_name=$(get_model_name)
   case "$model_name" in
-  *[Oo]pus*) printf "${MAGENTA}\U000f01e5${RESET}" ;;
-  *[Ss]onnet*) printf "${CYAN}\U000f075a${RESET}" ;;
-  *[Hh]aiku*) printf "${GREEN}\U000f0735${RESET}" ;;
-  *) printf "${DIM}\U000f06a9${RESET}" ;;
+  *[Oo]pus*) printf "${MAGENTA}\xf3\xb0\x87\xa5${RESET}" ;;   # nf-md-brain_freeze U+F01E5
+  *[Ss]onnet*) printf "${CYAN}\xf3\xb0\x9d\x9a${RESET}" ;;    # nf-md-music_note   U+F075A
+  *[Hh]aiku*) printf "${GREEN}\xf3\xb0\x9c\xb5${RESET}" ;;    # nf-md-leaf         U+F0735
+  *) printf "${DIM}\xf3\xb0\x9a\xa9${RESET}" ;;               # nf-md-robot        U+F06A9
   esac
 }
 get_output_style() { echo "$input" | jq -r '.output_style.name // "default"'; }
