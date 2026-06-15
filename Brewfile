@@ -56,10 +56,15 @@ brew 'python'                          # python (latest)
 brew 'ripgrep'                         # very fast file searcher
 brew 'shellcheck'                      # diagnostics for shell sripts
 brew 'stylua'                          # lua code formatter
-brew 'tm'                              # grid-based tmux session switcher
 brew 'tmux'                            # terminal multiplexer
 brew 'tree'                            # pretty-print directory contents
 brew 'wdiff'                           # word differences in text files
 brew 'wget'                            # internet file retriever
 brew 'zoxide'                          # switch between most used directories
 brew 'sesh' # terminal session manager
+
+# My tools (nicknisi/formulae)
+brew 'nicknisi/formulae/dad'       # GitHub PRs as narrated stories — AI semantic diff review
+brew 'nicknisi/formulae/fleet'     # agent dashboard TUI for managing AI sessions in tmux
+brew 'nicknisi/formulae/tm'        # grid-based tmux session switcher with live pane previews
+brew 'nicknisi/formulae/sessions'  # find and resume AI coding sessions (Claude Code, Codex, Pi)
