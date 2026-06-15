@@ -120,20 +120,6 @@ return {
                 },
             },
 
-            copilot_chat = {
-                {
-                    event = "BufEnter",
-                    pattern = "copilot-*",
-                    callback = function()
-                        -- Set buffer-local options
-                        vim.opt_local.relativenumber = false
-                        vim.opt_local.number = false
-                        vim.opt_local.conceallevel = 0
-                        vim.opt_local.foldcolumn = "0"
-                    end,
-                },
-            },
-
             c_commentstring = {
                 {
                     event = "FileType",
