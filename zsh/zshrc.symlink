@@ -124,3 +124,12 @@ done
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 # If a ~/.localrc zshrc exists, source it
 [[ -a ~/.localrc ]] && source ~/.localrc
+
+# Load OpenCode Go API key from opencode CLI's auth.json (avante.nvim consumes it)
+if [[ -f "$HOME/.local/share/opencode/auth.json" ]] && command -v jq >/dev/null 2>&1; then
+  _opencode_key=$(jq -r '."opencode-go".key // empty' "$HOME/.local/share/opencode/auth.json" 2>/dev/null)
+  if [[ -n "$_opencode_key" && "$_opencode_key" != "null" ]]; then
+    export OPENCODE_GO_API_KEY="$_opencode_key"
+  fi
+  unset _opencode_key
+fi

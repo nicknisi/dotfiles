@@ -349,7 +349,7 @@ return {
         "MeanderingProgrammer/render-markdown.nvim",
         dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.icons" },
         opts = {
-            file_types = { "markdown", "copilot-chat" },
+            file_types = { "markdown", "Avante" },
             completions = { blink = { enabled = true } },
         },
     },
