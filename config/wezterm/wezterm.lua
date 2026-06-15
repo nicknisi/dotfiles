@@ -3,6 +3,7 @@
 
 -- Pull in the wezterm API
 local wezterm = require("wezterm")
+local mux = wezterm.mux
 
 -- This will hold the configuration.
 local config = wezterm.config_builder()
@@ -17,6 +18,7 @@ config.font_size = 14.0
 -- window padding
 config.window_padding = { left = 6, right = 6, top = 6, bottom = 6 }
 
+-- window initial size
 config.initial_cols = 120
 config.initial_rows = 28
 
@@ -24,6 +26,22 @@ config.window_decorations = "RESIZE"
 
 -- tab bar
 config.tab_max_width = 20
+
+-- key bingding
+config.mouse_bindings = {
+	-- Ctrl + Left trigger opening URL
+	{
+		event = { Up = { streak = 1, button = "Left" } },
+		mods = "CTRL",
+		action = wezterm.action.OpenLinkAtMouseCursor,
+	},
+	-- Meanwhile forbidden down event
+	{
+		event = { Down = { streak = 1, button = "Left" } },
+		mods = "CTRL",
+		action = wezterm.action.Nop,
+	},
+}
 
 -- launch_menu
 config.launch_menu = {
@@ -34,7 +52,6 @@ config.launch_menu = {
 
 config.default_prog = { "powershell.exe" }
 
--- local mux = wezterm.mux
 -- wezterm.on("gui-startup", function(cmd)
 --   local tab, pane, window = mux.spawn_window(cmd or {})
 --   window:gui_window():maximize()
