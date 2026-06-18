@@ -138,7 +138,9 @@
     "image-gen@nicknisi": true,
     "code-review@claude-code-plugins": true,
     "explanatory-output-style@claude-code-plugins": true,
-    "fleet@fleet-local": true
+    "fleet@fleet-local": true,
+    "tmux@nicknisi": true,
+    "sessions@sessions": true
   },
   "extraKnownMarketplaces": {
     "obsidian-skills": {
@@ -164,6 +166,12 @@
       "source": {
         "source": "directory",
         "path": "/Users/nicknisi/.local/share/fleet-marketplace"
+      }
+    },
+    "sessions": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/nicknisi/.local/share/sessions"
       }
     }
   },
@@ -331,7 +339,7 @@
   "effortLevel": "max",
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
-  "theme": "custom:seaglass",
+  "theme": "custom:moonstone",
   "teammateMode": "tmux",
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
