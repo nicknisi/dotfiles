@@ -1,0 +1,12 @@
+# keymap.toml — additions layered on top of keymap-default.toml
+# Docs: https://yazi-rs.github.io/docs/configuration/keymap
+# Symlinked to ~/.config/yazi/keymap.toml by `install.sh link`.
+# `prepend_keymap` prepends these bindings; all defaults remain
+# available unless explicitly overridden.
+
+[mgr]
+prepend_keymap = [
+  # `,g` — spawn lazygit in the current directory (block until exit).
+  # `,` is already a chord prefix for sort options; `,g` is free.
+  { on = [ ",", "g" ], run = "shell 'lazygit' --block", desc = "Open lazygit in CWD" },
+]

@@ -53,3 +53,5 @@ brew "gemini-cli"
 brew "copilot-cli"
 brew "git-delta"
 brew "atuin" # magical shell history (replaces fzf Ctrl-R history search)
+brew "yazi" # terminal file manager (image preview, async I/O); launch with `y` / `yc`
+brew "chafa" # terminal image renderer; yazi image-preview fallback on WSL2/tmux

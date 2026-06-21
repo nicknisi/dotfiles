@@ -1,0 +1,11 @@
+# yazi.toml — practical overrides on top of yazi-default.toml
+# Docs: https://yazi-rs.github.io/docs/configuration/yazi
+# Symlinked to ~/.config/yazi/yazi.toml by `install.sh link`.
+# Only values that diverge from defaults are listed here; everything
+# else falls through to the shipped preset.
+
+[mgr]
+show_hidden  = true    # show dotfiles (matches fzf / ripgrep default behavior)
+linemode     = "size"  # show file size in the list (default: "none")
+sort_by      = "mtime" # most-recent-first (default: "alphabetical")
+sort_reverse = true    # newest on top (default: false; dirs still first via sort_dir_first)

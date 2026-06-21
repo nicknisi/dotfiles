@@ -257,6 +257,56 @@ This setup is local-only. To enable cross-machine encrypted sync later:
 
 See the [Atuin docs](https://docs.atuin.sh/) for full reference.
 
+## Yazi (file manager)
+
+[Yazi](https://github.com/sxyazi/yazi) is a fast terminal file manager with async I/O and image preview. It complements `fzf` — use **fzf for known targets** (`Ctrl-T` / `Alt-C`) and **yazi for browsing** and image previews.
+
+### Installation
+
+Yazi and `chafa` (image-preview fallback for WSL2/tmux) are listed in the [Brewfile](./Brewfile) and installed by `./install.sh homebrew`. The config is symlinked to `~/.config/yazi/` by `./install.sh link`, and the shell integration (`zsh/yazi.zsh`) is auto-sourced by `zshrc.symlink`.
+
+### Shell commands
+
+| Command | Action |
+| --- | --- |
+| `y` | Launch yazi in the current directory |
+| `yc` | Launch yazi and **cd to the directory it was in on quit** (replaces the former nnn `cdn`) |
+
+### Keybindings (yazi defaults + one override)
+
+| Key | Action |
+| --- | --- |
+| `h` / `l` | Go to parent / enter child directory |
+| `j` / `k` | Move down / up |
+| `Enter` / `o` | Open selected file (text → `$EDITOR` = nvim, images → `xdg-open`) |
+| `z` | Jump to a file/directory via fzf |
+| `Z` | Jump to a directory via zoxide |
+| `s` / `S` | Search by name (fd) / by content (ripgrep) |
+| `Space` | Toggle selection |
+| `cc` / `cd` / `cf` | Copy path / dirname / filename |
+| `,g` | **Spawn lazygit in CWD** (custom override in `keymap.toml`) |
+| `q` | Quit (writes CWD for `yc`) |
+
+### Configuration
+
+Only values that diverge from yazi's shipped defaults are committed:
+
+- `config/yazi/yazi.toml` — `show_hidden = true`, `linemode = "size"`, `sort_by = "mtime"` (newest first).
+- `config/yazi/keymap.toml` — `prepend_keymap` adds `,g` → `lazygit`; all defaults preserved.
+
+No `theme.toml` is shipped (yazi's built-in dark theme matches wezterm).
+
+### Practical usage
+
+1. **`yc`** — open yazi, browse with `hjkl`, `q` to exit back into the cwd you left. The single most useful thing: yazi as a "where did I put that file" tool that leaves you positioned correctly when you quit.
+2. **Image previews** — yazi's killer feature. On WSL2 + wezterm + tmux, the `chafa` fallback renders images as ANSI block art. Scan a folder of screenshots without leaving the terminal.
+3. **Code previews** — press `K` / `J` to scroll the preview pane; yazi renders files with syntax highlighting and the directory tree on the right.
+4. **Open in nvim from yazi** — `Enter` / `o` opens the highlighted file in nvim (text files only; images open via `xdg-open`).
+5. **`,g` from inside yazi** — spawns lazygit in the current pane's dir, without leaving yazi.
+6. **Use alongside fzf** — `Ctrl-T` (fzf file) and `Alt-C` (fzf dir) stay as the "I know the name" path; yazi is the "I need to look around" path.
+
+**Rule of thumb:** fzf for *known targets*, yazi for *browsing* and *images*.
+
 ## Docker Setup
 
 A Dockerfile exists in the repository as a testing ground for linux support. To set up the image, make sure you have Docker installed and then run the following command.
@@ -278,6 +328,7 @@ This will open a bash shell in the container which can then be used to manually 
 - [WezTerm](https://wezfurlong.org/wezterm/) - A GPU-accelerated terminal emulator with good tmux and WSL2 support
 - [tmux](https://github.com/tmux/tmux) - Terminal multiplexer
 - [Neovim](https://neovim.io/) - Hyper-extensible Vim-based text editor
+- [Yazi](https://github.com/sxyazi/yazi) - Terminal file manager with image preview
 
 ## Questions
 
