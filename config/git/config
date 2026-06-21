@@ -169,8 +169,6 @@
 [grep]
     extendRegexp = true
     lineNumber = true
-[credential]
-    helper = osxkeychain
 [rebase]
     instructionFormat = "[%an - %ar] %s"
     autoStash = true

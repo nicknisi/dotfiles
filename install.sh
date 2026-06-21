@@ -146,12 +146,6 @@ setup_homebrew() {
     "$(brew --prefix)"/opt/fzf/install --key-bindings --completion --no-update-rc --no-bash --no-fish
 }
 
-fetch_catppuccin_theme() {
-    for palette in frappe latte macchiato mocha; do
-        curl -o "$DOTFILES/config/kitty/themes/catppuccin-$palette.conf" "https://raw.githubusercontent.com/catppuccin/kitty/main/$palette.conf"
-    done
-}
-
 setup_shell() {
     title "Configuring shell"
 
@@ -164,73 +158,6 @@ setup_shell() {
     if [[ "$SHELL" != "$zsh_path" ]]; then
         chsh -s "$zsh_path"
         info "default shell changed to $zsh_path"
-    fi
-}
-
-function setup_terminfo() {
-    title "Configuring terminfo"
-
-    info "adding tmux.terminfo"
-    tic -x "$DOTFILES/resources/tmux.terminfo"
-
-    info "adding xterm-256color-italic.terminfo"
-    tic -x "$DOTFILES/resources/xterm-256color-italic.terminfo"
-}
-
-setup_macos() {
-    title "Configuring macOS"
-    if [[ "$(uname)" == "Darwin" ]]; then
-
-        echo "Finder: show all filename extensions"
-        defaults write NSGlobalDomain AppleShowAllExtensions -bool true
-
-        echo "show hidden files by default"
-        defaults write com.apple.Finder AppleShowAllFiles -bool false
-
-        echo "only use UTF-8 in Terminal.app"
-        defaults write com.apple.terminal StringEncodings -array 4
-
-        echo "expand save dialog by default"
-        defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
-
-        echo "show the ~/Library folder in Finder"
-        chflags nohidden ~/Library
-
-        echo "Enable full keyboard access for all controls (e.g. enable Tab in modal dialogs)"
-        defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
-
-        echo "Enable subpixel font rendering on non-Apple LCDs"
-        defaults write NSGlobalDomain AppleFontSmoothing -int 2
-
-        echo "Use current directory as default search scope in Finder"
-        defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
-
-        echo "Show Path bar in Finder"
-        defaults write com.apple.finder ShowPathbar -bool true
-
-        echo "Show Status bar in Finder"
-        defaults write com.apple.finder ShowStatusBar -bool true
-
-        echo "Disable press-and-hold for keys in favor of key repeat"
-        defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
-
-        echo "Set a blazingly fast keyboard repeat rate"
-        defaults write NSGlobalDomain KeyRepeat -int 1
-
-        echo "Set a shorter Delay until key repeat"
-        defaults write NSGlobalDomain InitialKeyRepeat -int 15
-
-        echo "Enable tap to click (Trackpad)"
-        defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
-
-        echo "Enable Safari’s debug menu"
-        defaults write com.apple.Safari IncludeInternalDebugMenu -bool true
-
-        echo "Kill affected applications"
-
-        for app in Safari Finder Dock Mail SystemUIServer; do killall "$app" >/dev/null 2>&1; done
-    else
-        warning "macOS not detected. Skipping."
     fi
 }
 
@@ -277,15 +204,6 @@ case "$1" in
     shell)
         setup_shell
         ;;
-    terminfo)
-        setup_terminfo
-        ;;
-    macos)
-        setup_macos
-        ;;
-    catppuccin)
-        fetch_catppuccin_theme
-        ;;
     all)
         setup_symlinks
         setup_homebrew
@@ -294,7 +212,7 @@ case "$1" in
         setup_shell
         ;;
     *)
-        echo -e $"\nUsage: $(basename "$0") {backup|link|git|homebrew|shell|terminfo|macos|all}\n"
+        echo -e $"\nUsage: $(basename "$0") {backup|link|git|homebrew|ohmyzsh|shell|all}\n"
         exit 1
         ;;
 esac
