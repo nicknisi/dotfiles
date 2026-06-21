@@ -9,3 +9,8 @@ lazy-lock.json
 config/kitty/kitty-overrides.conf
 config/tmux/plugins
 zsh/.oh-my-zsh
+# Atuin local data (history db, encryption key, session) — never commit
+config/atuin/key
+config/atuin/session
+config/atuin/*.db
+config/atuin/history.db*

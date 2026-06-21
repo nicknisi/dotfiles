@@ -57,3 +57,4 @@ brew "htop"
 brew "gemini-cli"
 brew "copilot-cli"
 brew "git-delta"
+brew "atuin" # magical shell history (replaces fzf Ctrl-R history search)

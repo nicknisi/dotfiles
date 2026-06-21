@@ -260,6 +260,56 @@ work. To set this, you can use the `~/.localrc` file to set it in the following 
 export TMUX_MINIMAL=1
 ```
 
+## Atuin (shell history)
+
+[Atuin](https://github.com/atuinsh/atuin) replaces shell history with a searchable, syncable SQLite database. This setup runs **local-only** (no cloud account); search uses fzf-style fuzzy matching to match the existing fzf workflow.
+
+### Installation
+
+Atuin is listed in the [Brewfile](./Brewfile) and installed by `./install.sh homebrew`. The config is symlinked to `~/.config/atuin/config.toml` by `./install.sh link`, and the zsh integration (`zsh/atuin.zsh`) is auto-sourced by `zshrc.symlink`.
+
+### Keybindings
+
+| Key | Action |
+| --- | --- |
+| `Ctrl-R` | Open Atuin fuzzy search UI (replaces fzf history search) |
+| `Up` | Cycle history filtered to the current directory |
+| `Ctrl-R` (inside UI) | Cycle filter modes: global → host → session → directory → workspace |
+| `Tab` | Copy selected command to the command line for editing |
+| `Enter` | Execute the selected command immediately (`enter_accept = true`) |
+| `Esc` | Restore the original command line |
+| `Ctrl-A` then `D` | Delete the selected history entry (prefix mode) |
+| `Ctrl-T` / `Alt-C` | Still fzf file / directory search (unaffected by Atuin) |
+
+Prefix a command with a space to keep it out of history (ignorespace).
+
+### Common CLI
+
+```bash
+atuin search <query>      # search history from the command line
+atuin history list        # list recorded history
+atuin stats               # show shell usage statistics
+atuin doctor              # diagnose shell integration
+atuin import auto         # import existing shell history (run once)
+atuin history prune       # remove entries matching history_filter / cwd_filter
+```
+
+### Enabling cloud sync later (optional)
+
+This setup is local-only. To enable cross-machine encrypted sync later:
+
+1. Add to `~/.config/atuin/config.toml`:
+   ```toml
+   auto_sync = true
+   [sync]
+   records = true
+   ```
+2. `atuin register -u <username> -e <email>`
+3. Save the encryption key printed by `atuin key` to a safe location.
+4. `atuin sync`
+
+See the [Atuin docs](https://docs.atuin.sh/) for full reference.
+
 ## Docker Setup
 
 A Dockerfile exists in the repository as a testing ground for linux support. To set up the image, make sure you have Docker installed and then run the following command.

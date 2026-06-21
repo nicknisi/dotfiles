@@ -1,0 +1,43 @@
+# Atuin config — local-only history (no cloud sync)
+# Docs: https://docs.atuin.sh/cli/configuration/config/
+# Symlinked to ~/.config/atuin/config.toml by `install.sh link`.
+
+# --- Sync ---
+auto_sync = false          # local-only mode, do not connect to api.atuin.sh
+update_check = false       # version managed by Homebrew
+
+# --- Search ---
+search_mode = "fuzzy"                         # fzf-style fuzzy match
+filter_mode = "global"                        # default: search full history; cycle with Ctrl-R in UI
+search_mode_shell_up_key_binding = "fuzzy"    # Up arrow uses fuzzy
+filter_mode_shell_up_key_binding = "directory"# Up arrow defaults to current-directory filter
+inline_height_shell_up_key_binding = 10
+
+# --- UI ---
+style = "auto"             # full when room allows, compact otherwise
+inline_height = 20         # max lines in compact mode
+show_preview = true        # preview commands longer than terminal width
+max_preview_height = 4
+show_help = true
+show_tabs = true
+
+# --- Behavior ---
+enter_accept = true        # Enter executes the selected command; Tab returns it for editing
+exit_mode = "return-original"  # Esc restores the pre-search command line
+keymap_mode = "auto"       # follow the shell's current keymap (vim/emacs)
+store_failed = true        # record commands with non-zero exit status
+secrets_filter = true      # block AWS/GH/Slack/etc keys from being stored
+
+# --- History filter (these commands are never recorded) ---
+# Patterns are unanchored regex; use ^...$ for exact matches.
+history_filter = [
+    "^ls$",
+    "^cd $",
+    "^pwd$",
+    "^clear$",
+    "^exit$",
+]
+
+# --- Dotfiles sync (requires sync v2 + account; disabled for local-only) ---
+[dotfiles]
+enabled = false
