@@ -1,31 +1,16 @@
 # vim:ft=ruby
+#
+# Linux-only Brewfile. macOS-specific entries (cask taps, noti, trash,
+# imageoptim, wezterm/1password casks, font casks, koekeishiya tap)
+# have been removed — target environment is WSL2 Ubuntu per AGENTS.md.
+# To re-add mac entries, fork the upstream nicknisi/dotfiles or restore
+# them from git history.
 
-if OS.mac?
-    # taps
-    tap "homebrew/cask"
-    tap "homebrew/cask-fonts"
-    tap "koekeishiya/formulae"
-
-    brew "noti" # utility to display notifications from scripts
-    brew "trash" # rm, but put in the trash rather than completely delete
-
-    # Applications
-    cask "imageoptim" # a tool to optimize images
-    cask "1password/tap/1password-cli"
-    cask "wezterm" # a better terminal emulator
-
-    # Fonts
-    cask "font-fira-code"
-    cask "font-jetbrains-mono"
-    cask "font-cascadia-mono"
-    cask "font-symbols-only-nerd-font"
-    cask "font-recursive-code"
-elsif OS.linux?
-    brew "xclip" # access to clipboard (similar to pbcopy/pbpaste)
-end
+# Linux clipboard helper (was inside the removed elsif OS.linux? block)
+brew "xclip" # access to clipboard (similar to pbcopy/pbpaste)
 
 tap "homebrew/bundle"
-tap "homebrew/core"
+# tap "homebrew/core" removed — homebrew/core is auto-tapped since ~2021
 
 # packages
 brew "fd" # find alternative
@@ -50,7 +35,11 @@ brew "node"
 brew "repo"
 brew "htop"
 brew "gemini-cli"
-brew "copilot-cli"
+# copilot-cli removed — the formula no longer exists in homebrew-core (the
+# "copilot" formula there is Amazon ECS Copilot, not GitHub's). GitHub's
+# Copilot CLI is now a cask: install manually with
+# `brew install --cask copilot-cli` if needed. Existing Caskroom installs
+# are preserved (brew bundle does not uninstall entries missing from the Brewfile).
 brew "git-delta"
 brew "atuin" # magical shell history (replaces fzf Ctrl-R history search)
 brew "yazi" # terminal file manager (image preview, async I/O); launch with `y` / `yc`
