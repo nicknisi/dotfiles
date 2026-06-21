@@ -7,8 +7,11 @@ and have been fixed, but always verify against the source.
 ## Repo shape
 - Personal dotfiles (forked from nicknisi/dotfiles). No build/test/lint/CI,
   no package manifest. Verification is manual: run `install.sh`, open zsh/nvim/tmux.
-- Default branch `main`. Conventional commits (`feat(scope):`, `fix(scope):`,
-  `chore(scope):`, `refactor(scope):`); merged via PRs.
+- Default branch `main` (protected — never push directly). Workflow is GitHub
+  Flow: create a feature branch (`feat/<scope>` or `fix/<scope>`), push it,
+  open a PR with `gh pr create`. Merges on GitHub squash into one commit titled
+  `<PR title> (#N)`. Conventional commits (`feat(scope):`, `fix(scope):`,
+  `chore(scope):`, `refactor(scope):`).
 - Target environment: WSL2 (Ubuntu) + WezTerm + tmux + Neovim.
 
 ## Symlink install model (core mechanism)
