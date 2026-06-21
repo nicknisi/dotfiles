@@ -12,7 +12,7 @@ and have been fixed, but always verify against the source.
   open a PR with `gh pr create`. Merges on GitHub squash into one commit titled
   `<PR title> (#N)`. Conventional commits (`feat(scope):`, `fix(scope):`,
   `chore(scope):`, `refactor(scope):`).
-- Target environment: WSL2 (Ubuntu) + WezTerm + tmux + Neovim.
+- Target environment: WSL2 (Ubuntu) + Alacritty (primary) / WezTerm (backup) + tmux + Neovim.
 
 ## Symlink install model (core mechanism)
 `install.sh link` symlinks config into `$HOME`:
@@ -66,13 +66,28 @@ login and `jq`. Add/change models in `ai.lua`'s `list_models`.
 
 ## tmux
 - Prefix is `M-s` (Alt+s). `prefix + I` installs TPM plugins.
-- TrueColor override: `terminal-overrides ",xterm-256color:Tc,wezterm:Tc"` —
-  covers both TERM values Wezterm may set.
+- TrueColor override: `terminal-overrides ",xterm-256color:Tc,wezterm:Tc,alacritty:Tc"` —
+  covers the TERM values each terminal may set.
 - TPM init `run '$HOMEBREW_PREFIX/opt/tpm/share/tpm/tpm'` requires
   `$HOMEBREW_PREFIX` (set by `zprofile.symlink` on macOS/Linuxbrew).
 - tmux-resurrect restores `~gemini copilot opencode`. Plugins live in
   `config/tmux/plugins/` (gitignored).
 - Pane navigation: `M-h/j/k/l` (no prefix) via tmux.nvim, seamless with neovim.
+
+## Alacritty (primary terminal)
+- Config at `config/alacritty/alacritty.toml` -> `~/.config/alacritty/` via `install.sh link`
+  (WSLg fallback path). Windows build reads `%APPDATA%\alacritty\alacritty.toml`; soft-link
+  that to the repo file via `\\wsl.localhost\<distro>\home\<user>\dotfiles\config\alacritty\alacritty.toml`
+  so the repo stays the single source of truth.
+- Default shell launches `wsl.exe ~ -d Ubuntu-22.04` directly (no launch_menu like WezTerm).
+- `TERM=xterm-256color` is overridden in `[env]` because WSL lacks the alacritty terminfo
+  by default; tmux's `xterm-256color:Tc` override already handles TrueColor. Switch to
+  `alacritty:Tc` once `infocmp alacritty` succeeds in WSL.
+- OSC52 clipboard works natively — `"+y` in nvim reaches the Windows clipboard through
+  tmux `set-clipboard external`. Zero config, same path as WezTerm.
+- No tab support by design — use tmux. URL hints: `Ctrl+Click` opens in Windows default
+  browser via `cmd.exe /c start`.
+- WezTerm config (`config/wezterm/wezterm.lua`) retained as backup terminal.
 
 ## git config
 - `config/git/config` -> `~/.gitconfig`. `pull.rebase = true`,

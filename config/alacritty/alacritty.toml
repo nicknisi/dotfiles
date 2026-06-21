@@ -1,0 +1,82 @@
+# alacritty.toml — 对应 config/wezterm/wezterm.lua
+# 源文件在 dotfiles 仓库；Windows 侧软链到 %APPDATA%\alacritty\（见安装步骤）
+# install.sh link 也会软链到 ~/.config/alacritty/（供 WSLg 备用）
+
+# ── Shell (WSL) ──────────────────────────────────────────────
+# wezterm.lua: default_prog = { "powershell.exe" }, launch_menu 含 WSL
+# Alacritty 无 launch_menu，默认直接进 WSL（贴合 dotfiles 工作流）
+[terminal]
+shell = { program = "wsl.exe", args = ["~", "-d", "Ubuntu-22.04"] }
+
+# ── 环境变量 ─────────────────────────────────────────────────
+# Alacritty 默认 TERM=alacritty；WSL 内可能缺 alacritty terminfo，
+# 故覆写为 xterm-256color（tmux 已有 xterm-256color:Tc 处理 TrueColor）。
+# 若在 WSL 内 `infocmp alacritty` 成功，可删掉此段改用 alacritty:Tc。
+[env]
+TERM = "xterm-256color"
+
+# ── 字体 ─────────────────────────────────────────────────────
+# wezterm.lua: font = JetBrainsMono Nerd Font, font_size = 14.0
+[font]
+size = 14.0
+
+[font.normal]
+family = "JetBrainsMono Nerd Font"
+
+# ── 窗口 ─────────────────────────────────────────────────────
+# wezterm.lua: window_padding=6, initial_cols=120, initial_rows=28,
+#              window_decorations="RESIZE"
+[window]
+padding = { x = 2, y = 2 }
+dimensions = { columns = 120, lines = 28 }
+# Windows 上 Alacritty 只有 Full / None。"Full" = 完整标题栏 + 可拖拽缩放边框。
+decorations = "Full"
+
+# one dark
+[colors.primary]
+background = "#282c34"
+foreground = "#abb2bf"
+
+[colors.cursor]
+cursor = "#528bff"
+text   = "#282c34"
+
+[colors.normal]
+black   = "#5c6370"
+red     = "#e06c75"
+green   = "#98c379"
+yellow  = "#e5c07b"
+blue    = "#61afef"
+magenta = "#c678dd"
+cyan    = "#56b6c2"
+white   = "#abb2bf"
+
+[colors.bright]
+black   = "#5c6370"
+red     = "#e06c75"
+green   = "#98c379"
+yellow  = "#e5c07b"
+blue    = "#61afef"
+magenta = "#c678dd"
+cyan    = "#56b6c2"
+white   = "#ffffff"
+
+# ── URL hints: Ctrl+点击打开链接 (wezterm.lua: Ctrl+Left OpenLink) ──
+[[hints.enabled]]
+regex = '(ipfs:|ipns:|magnet:|mailto:|gemini:|gopher:|https:|http:|news:|file:|git:|ssh:|ftp:)[^\u{0000}-\u{001F}\u{007F}-\u{009F}<>"\s\-]+'
+hyperlinks = true
+post_processing = true
+persist = false
+mouse.enabled = true
+mouse.mods = "Control"
+# Alacritty 是 Windows 进程，hint command 在 Windows 侧执行 → 默认浏览器打开
+command = { program = "cmd.exe", args = ["/c", "start", ""] }
+
+# ── 实时重载 ────────────────────────────────────────────────
+[general]
+live_config_reload = true
+
+[keyboard]
+bindings = [
+{ key = "N", mods = "Control|Shift", action = "CreateNewWindow" },
+]

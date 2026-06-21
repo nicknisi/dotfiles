@@ -156,6 +156,34 @@ All plugins are listed in [plugins.lua](./config/nvim/lua/plugins.lua). When a p
 > **Note**
 > Plugins can be synced headlessly with `nvim --headless "+Lazy! sync" +qa`, or interactively via `:Lazy` inside Neovim.
 
+## Terminal emulator
+
+[Alacritty](https://alacritty.org/) is the primary terminal; [WezTerm](https://wezfurlong.org/wezterm/) is retained as a backup. Both run on the Windows side and launch WSL via `wsl.exe`.
+
+### Alacritty (primary)
+
+Config lives at `config/alacritty/alacritty.toml` (TOML). It mirrors the WezTerm setup: GitHub Dark colors (inlined), JetBrainsMono Nerd Font at 14pt, 120×28 initial window, 6px padding, `Ctrl+Click` URL hints.
+
+`install.sh link` symlinks `config/alacritty` to `~/.config/alacritty/` (used by the WSLg Linux build). The Windows build reads `%APPDATA%\alacritty\alacritty.toml` instead, so soft-link that to the repo file to keep a single source of truth:
+
+```powershell
+winget install Alacritty.Alacritty
+mkdir "$env:APPDATA\alacritty" -Force
+New-Item -ItemType SymbolicLink `
+  -Path "$env:APPDATA\alacritty\alacritty.toml" `
+  -Target "\\wsl.localhost\Ubuntu-22.04\home\<user>\dotfiles\config\alacritty\alacritty.toml"
+```
+
+Notes:
+- Default shell is `wsl.exe ~ -d Ubuntu-22.04` (no launch_menu — Alacritty has no GUI launcher).
+- `TERM` is overridden to `xterm-256color` because WSL lacks the alacritty terminfo; TrueColor is handled by tmux's `xterm-256color:Tc` override. Switch back to `alacritty:Tc` once `infocmp alacritty` resolves in WSL.
+- OSC52 clipboard works natively — `"+y` in nvim reaches the Windows clipboard through tmux `set-clipboard external`, with zero config.
+- No tab support by design — use tmux.
+
+### WezTerm (backup)
+
+Config at `config/wezterm/wezterm.lua`. Kept as a fallback terminal; default program is PowerShell with a WSL entry in the launch menu.
+
 ## tmux configuration
 
 I prefer to run everything inside of [tmux](https://github.com/tmux/tmux). I typically use a large pane on the top for neovim and then multiple panes along the bottom or right side for various commands I may need to run. There are no pre-configured layouts in this repository, as I tend to create them on-the-fly and as needed.
@@ -294,12 +322,12 @@ Only values that diverge from yazi's shipped defaults are committed:
 - `config/yazi/yazi.toml` — `show_hidden = true`, `linemode = "size"`, `sort_by = "mtime"` (newest first).
 - `config/yazi/keymap.toml` — `prepend_keymap` adds `,g` → `lazygit`; all defaults preserved.
 
-No `theme.toml` is shipped (yazi's built-in dark theme matches wezterm).
+No `theme.toml` is shipped (yazi's built-in dark theme matches the terminal).
 
 ### Practical usage
 
 1. **`yc`** — open yazi, browse with `hjkl`, `q` to exit back into the cwd you left. The single most useful thing: yazi as a "where did I put that file" tool that leaves you positioned correctly when you quit.
-2. **Image previews** — yazi's killer feature. On WSL2 + wezterm + tmux, the `chafa` fallback renders images as ANSI block art. Scan a folder of screenshots without leaving the terminal.
+2. **Image previews** — yazi's killer feature. On WSL2 + Alacritty (or wezterm) + tmux, the `chafa` fallback renders images as ANSI block art. Scan a folder of screenshots without leaving the terminal.
 3. **Code previews** — press `K` / `J` to scroll the preview pane; yazi renders files with syntax highlighting and the directory tree on the right.
 4. **Open in nvim from yazi** — `Enter` / `o` opens the highlighted file in nvim (text files only; images open via `xdg-open`).
 5. **`,g` from inside yazi** — spawns lazygit in the current pane's dir, without leaving yazi.
@@ -325,7 +353,8 @@ This will open a bash shell in the container which can then be used to manually 
 
 ## Preferred software
 
-- [WezTerm](https://wezfurlong.org/wezterm/) - A GPU-accelerated terminal emulator with good tmux and WSL2 support
+- [Alacritty](https://alacritty.org/) - GPU-accelerated terminal emulator (primary); cross-platform, TOML config, native OSC52 clipboard for WSL2
+- [WezTerm](https://wezfurlong.org/wezterm/) - GPU-accelerated terminal emulator (backup); good tmux and WSL2 support
 - [tmux](https://github.com/tmux/tmux) - Terminal multiplexer
 - [Neovim](https://neovim.io/) - Hyper-extensible Vim-based text editor
 - [Yazi](https://github.com/sxyazi/yazi) - Terminal file manager with image preview
