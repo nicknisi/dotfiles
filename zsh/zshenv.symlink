@@ -16,11 +16,14 @@ export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
 
 fpath=(
     $DOTFILES/zsh/functions
+    ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/share/zsh/functions}
+    ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/share/zsh/site-functions}
     /usr/local/share/zsh/site-functions
     $fpath
 )
 
 typeset -aU path
+typeset -aU fpath
 
 export EDITOR='nvim'
 export GIT_EDITOR='nvim'
@@ -28,5 +31,5 @@ export HOMEBREW_NO_AUTO_UPDATE=1
 export COLORTERM=truecolor
 
 if [[ -n "$HOMEBREW_PREFIX" ]]; then
-  export FZF_BASE="$HOMEBREW_PREFIX/bin"
+  export FZF_BASE="$HOMEBREW_PREFIX/opt/fzf"
 fi
