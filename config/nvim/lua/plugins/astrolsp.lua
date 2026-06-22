@@ -106,7 +106,26 @@ return {
                 },
             },
             bashls = {},
-            cmake = {},
+            neocmake = {
+                single_file_support = true,
+                capabilities = {
+                    textDocument = {
+                        completion = { completionItem = { snippetSupport = true } },
+                    },
+                    workspace = {
+                        didChangeWatchedFiles = {
+                            dynamicRegistration = true,
+                            relative_pattern_support = true,
+                        },
+                    },
+                },
+                init_options = {
+                    format = { enable = false },
+                    lint = { enable = true },
+                    scan_cmake_in_package = true,
+                    semantic_token = false,
+                },
+            },
             verible = {
                 cmd = { "verible-verilog-ls", "--rules=-no-tabs" },
                 root_markers = { "verible.filelist" },

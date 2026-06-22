@@ -16,7 +16,7 @@ return {
             ensure_installed = {
                 -- install language servers
                 "clangd",
-                "cmake-language-server",
+                "neocmakelsp",
                 "bash-language-server",
                 "verible",
 
