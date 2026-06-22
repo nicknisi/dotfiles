@@ -9,11 +9,11 @@
 shell = { program = "wsl.exe", args = ["~", "-d", "Ubuntu-22.04"] }
 
 # ── 环境变量 ─────────────────────────────────────────────────
-# Alacritty 默认 TERM=alacritty；WSL 内可能缺 alacritty terminfo，
-# 故覆写为 xterm-256color（tmux 已有 xterm-256color:Tc 处理 TrueColor）。
-# 若在 WSL 内 `infocmp alacritty` 成功，可删掉此段改用 alacritty:Tc。
+# TERM=alacritty 经验证可用（infocmp alacritty 成功，Linuxbrew ncurses 6.6）。
+# TrueColor 由 COLORTERM=truecolor (zshenv) + tmux alacritty:Tc override 双重保证，
+# 不依赖 terminfo 内建的 Tc（alacritty 条目仅含 initc，256 色）。
 [env]
-TERM = "xterm-256color"
+TERM = "alacritty"
 
 # ── 字体 ─────────────────────────────────────────────────────
 # wezterm.lua: font = JetBrainsMono Nerd Font, font_size = 14.0
