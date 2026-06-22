@@ -76,6 +76,31 @@ The key env var `OPENCODE_GO_API_KEY` is auto-exported by `zshrc.symlink`
 (from `~/.local/share/opencode/auth.json` via `jq`) — requires an opencode CLI
 login and `jq`. Add/change models in `ai.lua`'s `list_models`.
 
+## OpenCode (opencode CLI config)
+`config/opencode/` -> `~/.config/opencode/` via `install.sh link` (same
+`config/<tool>` convention as atuin/yazi/alacritty). Two managed files:
+- `opencode.json` — providers (`google` antigravity models), MCP servers
+  (`context7`), formatters (`clang-format`), plugins
+  (`@franlol/opencode-md-table-formatter`). **No secrets here** — the former
+  `bailian-coding-plan-test` provider with a hardcoded `apiKey` was removed;
+  provider credentials live in `~/.local/share/opencode/auth.json` (never in
+  repo).
+- `commands/commit.md` — the `/commit` custom command (Conventional Commits
+  message generator, reads staged diff + recent history + AGENTS.md).
+
+Runtime files opencode regenerates inside the symlinked dir are gitignored at
+repo root: `node_modules/`, `package.json`, `package-lock.json`, `bun.lock`,
+`antigravity-accounts.json*`, `antigravity-signature-cache.json`,
+`antigravity-logs/`. The `oh-my-opencode` plugin was uninstalled (its config
+file is not managed); `package.json` is regenerated from `opencode.json`'s
+`plugin` array on next launch.
+
+`occm` (`zsh/functions/occm`) is a shell function that runs
+`opencode run --command commit "$@"` — i.e. it invokes the `/commit` command
+defined in `config/opencode/commands/commit.md` headlessly. To add a new
+custom command, drop `config/opencode/commands/<name>.md` (frontmatter +
+template, per https://opencode.ai/docs/commands).
+
 ## tmux
 - Prefix is `M-s` (Alt+s). `prefix + I` installs TPM plugins.
 - TrueColor override: `terminal-overrides ",xterm-256color:Tc,wezterm:Tc,alacritty:Tc"` —

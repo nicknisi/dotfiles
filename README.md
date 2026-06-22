@@ -333,6 +333,43 @@ No `theme.toml` is shipped (yazi's built-in dark theme matches the terminal).
 
 **Rule of thumb:** fzf for *known targets*, yazi for *browsing* and *images*.
 
+## OpenCode (AI coding agent)
+
+[OpenCode](https://opencode.ai) is an open-source AI coding agent CLI/TUI. This repo manages its global config so providers, MCP servers, and the `/commit` command are version-controlled and portable.
+
+### Installation
+
+OpenCode is installed via `./install.sh homebrew` (see [Brewfile](./Brewfile)). The config is symlinked to `~/.config/opencode/` by `./install.sh link` — the same `config/<tool>` convention as atuin/yazi/alacritty.
+
+### Managed files
+
+| File | Purpose |
+| --- | --- |
+| `config/opencode/opencode.json` | Providers (`google` antigravity models), MCP servers (`context7`), formatters (`clang-format`), plugins (`@franlol/opencode-md-table-formatter`) |
+| `config/opencode/commands/commit.md` | The `/commit` custom command — a Conventional Commits message generator that reads the staged diff, recent history, and `AGENTS.md` |
+
+**No secrets live in the repo.** Provider credentials are stored in `~/.local/share/opencode/auth.json` (never committed) and loaded by opencode at startup. The `OPENCODE_GO_API_KEY` env var (consumed by avante.nvim) is auto-exported from `auth.json` by `zshrc.symlink` via `jq`.
+
+### Runtime files (gitignored)
+
+OpenCode regenerates several files inside the symlinked `~/.config/opencode/` dir at runtime; these are gitignored at repo root and must not be committed:
+
+- `node_modules/`, `package.json`, `package-lock.json`, `bun.lock` — plugin install state (regenerated from `opencode.json`'s `plugin` array)
+- `antigravity-accounts.json*`, `antigravity-signature-cache.json`, `antigravity-logs/` — antigravity provider session state
+
+### Shell commands
+
+| Command | Action |
+| --- | --- |
+| `occm` | Generate a conventional commit message via `opencode run --command commit` (pass `-m <provider/model>` to select a model; extra args become instructions) |
+| `opencode` | Launch the TUI |
+| `opencode pr <N>` | Fetch & checkout GitHub PR `#N`, then launch opencode |
+| `opencode models` | List available models from configured providers |
+
+### Adding a custom command
+
+Drop a markdown file in `config/opencode/commands/<name>.md` with frontmatter (`description`, optional `agent`/`model`) and a prompt template. It becomes `/name` in the TUI and `opencode run --command name` on the CLI. See [the commands docs](https://opencode.ai/docs/commands) and the existing `commit.md` for a reference template.
+
 ## Docker Setup
 
 A Dockerfile exists in the repository as a testing ground for linux support. To set up the image, make sure you have Docker installed and then run the following command.
@@ -356,6 +393,7 @@ This will open a bash shell in the container which can then be used to manually 
 - [tmux](https://github.com/tmux/tmux) - Terminal multiplexer
 - [Neovim](https://neovim.io/) - Hyper-extensible Vim-based text editor
 - [Yazi](https://github.com/sxyazi/yazi) - Terminal file manager with image preview
+- [OpenCode](https://opencode.ai) - Open-source AI coding agent CLI/TUI
 
 ## Questions
 
