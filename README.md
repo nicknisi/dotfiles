@@ -124,9 +124,7 @@ These files are sourced if present but never committed:
 
 `zsh/functions/` is on `fpath`, providing these autoloadable functions:
 
-- `g` — `git <args>` if args given, otherwise `git status`
-- `md` — `mkdir -p <dir> && cd <dir>`
-- `prepend_path` — prepend a directory to `$path` if it exists
+- `occm` — generate a conventional commit message via `opencode run --command commit` (pass `-m <provider/model>` to select a model; extra args become instructions)
 
 ## Neovim setup
 

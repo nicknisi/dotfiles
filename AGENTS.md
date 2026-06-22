@@ -8,10 +8,23 @@ and have been fixed, but always verify against the source.
 - Personal dotfiles (forked from nicknisi/dotfiles). No build/test/lint/CI,
   no package manifest. Verification is manual: run `install.sh`, open zsh/nvim/tmux.
 - Default branch `main` (protected — never push directly). Workflow is GitHub
-  Flow: create a feature branch (`feat/<scope>` or `fix/<scope>`), push it,
-  open a PR with `gh pr create`. Merges on GitHub squash into one commit titled
-  `<PR title> (#N)`. Conventional commits (`feat(scope):`, `fix(scope):`,
-  `chore(scope):`, `refactor(scope):`).
+  Flow: create a feature branch
+  (`{feat|fix|docs|refactor|chore|perf|test|build|ci|revert}/<scope>`), push
+  it, open a PR with `gh pr create`. Merges on GitHub squash into one commit
+  titled `<PR title> (#N)`.
+- Conventional Commits is required for **both PR titles and commit messages**
+  — squash makes the PR title the permanent main-history entry. Format:
+  `type(scope): <lowercase imperative subject, ≤72 chars>`.
+  - type: `feat fix docs style refactor perf test build ci chore revert`.
+    Breaking change: `type(scope)!:` or `BREAKING CHANGE:` footer.
+  - scope: tool/module name (`zsh nvim tmux git alacritty wezterm brew install
+    agents yazi ai`); multiple scopes comma-separated, e.g. `feat(zsh,config):`.
+  - body: `feat/fix/refactor/perf` recommended — write "why" not "what" (the
+    diff shows what), use `-` bullets, ≤72 chars/line, blank line after subject.
+    `chore/style/revert` and simple single-file changes may omit.
+    `BREAKING CHANGE:`/`Co-authored-by:` go in the footer.
+  - squash merge copies the PR description into the commit body — a good PR
+    description is a readable main history.
 - Target environment: WSL2 (Ubuntu) + Alacritty (primary) / WezTerm (backup) + tmux + Neovim.
 
 ## Symlink install model (core mechanism)
@@ -36,8 +49,7 @@ it under `config/<tool>/` and re-run `./install.sh link`.
 - `$DOTFILES` (set in `zsh/zshenv.symlink` via readlink resolution) = repo root.
   Many configs depend on it.
 - `zshrc.symlink` sources every `$DOTFILES/**/*.zsh` — a new `*.zsh` file
-  auto-loads. `zsh/functions/` is on `fpath` (autoloadable: `g`, `md`,
-  `prepend_path`).
+  auto-loads. `zsh/functions/` is on `fpath` (autoloadable: `occm`).
 - Shell is oh-my-zsh + powerlevel10k (installed to `$DOTFILES/zsh/.oh-my-zsh`,
   gitignored).
 - Machine-local overrides (sourced if present, not in repo): `~/.localrc`,
