@@ -32,34 +32,34 @@ dimensions = { columns = 120, lines = 28 }
 # Windows 上 Alacritty 只有 Full / None。"Full" = 完整标题栏 + 可拖拽缩放边框。
 decorations = "Full"
 
-# one dark
+# Campbell: https://github.com/alacritty/alacritty-theme/blob/master/themes/campbell.toml
 [colors.primary]
-background = "#282c34"
-foreground = "#abb2bf"
+background = '#0c0c0c'
+foreground = '#cccccc'
 
-[colors.cursor]
-cursor = "#528bff"
-text   = "#282c34"
 
+# Normal colors
 [colors.normal]
-black   = "#5c6370"
-red     = "#e06c75"
-green   = "#98c379"
-yellow  = "#e5c07b"
-blue    = "#61afef"
-magenta = "#c678dd"
-cyan    = "#56b6c2"
-white   = "#abb2bf"
+black      = '#0c0c0c'
+red        = '#c50f1f'
+green      = '#13a10e'
+yellow     = '#c19c00'
+blue       = '#0037da'
 
+magenta    = '#881798'
+cyan       = '#3a96dd'
+white      = '#cccccc'
+
+# Bright colors
 [colors.bright]
-black   = "#5c6370"
-red     = "#e06c75"
-green   = "#98c379"
-yellow  = "#e5c07b"
-blue    = "#61afef"
-magenta = "#c678dd"
-cyan    = "#56b6c2"
-white   = "#ffffff"
+black      = '#767676'
+red        = '#e74856'
+green      = '#16c60c'
+yellow     = '#f9f1a5'
+blue       = '#3b78ff'
+magenta    = '#b4009e'
+cyan       = '#61d6d6'
+white      = '#f2f2f2'
 
 # ── URL hints: Ctrl+点击打开链接 (wezterm.lua: Ctrl+Left OpenLink) ──
 [[hints.enabled]]
