@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
+  "discoveryMode": "auto",
+  "disabledServers": [],
+  "mcpServers": {
+    "sessions": {
+      "type": "stdio",
+      "command": "/Users/nicknisi/Developer/sessions/dist/sessions",
+      "args": [
+        "--mcp"
+      ],
+      "cwd": "/Users/nicknisi/Developer/sessions"
+    }
+  },
+  "importConfigs": [
+    "~/.claude.json"
+  ]
+}

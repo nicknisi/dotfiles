@@ -1,0 +1,26 @@
+{
+  "name": "pi-mcp-bridge",
+  "version": "0.1.0",
+  "description": "Pi extension that bridges Model Context Protocol servers into Pi tools.",
+  "main": "index.ts",
+  "scripts": {
+    "typecheck": "tsc index.ts --noEmit --skipLibCheck --moduleResolution NodeNext --module NodeNext --target ES2022 --types node --noImplicitAny false"
+  },
+  "keywords": [
+    "pi-extension",
+    "mcp",
+    "model-context-protocol"
+  ],
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "typebox": "^1.3.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "jiti": "^2.7.0",
+    "typescript": "^6.0.3"
+  }
+}
