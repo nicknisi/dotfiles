@@ -9,7 +9,7 @@ and have been fixed, but always verify against the source.
   no package manifest. Verification is manual: run `install.sh`, open zsh/nvim/tmux.
 - Default branch `main` (protected — never push directly). Workflow is GitHub
   Flow: create a feature branch
-  (`{feat|fix|docs|refactor|chore|perf|test|build|ci|revert}/<scope>`), push
+  (`{feat|fix|docs|refactor|chore|perf|test|build|ci|revert|style}/<scope>`), push
   it, open a PR with `gh pr create`. Merges on GitHub squash into one commit
   titled `<PR title> (#N)`.
 - Conventional Commits is required for **both PR titles and commit messages**
