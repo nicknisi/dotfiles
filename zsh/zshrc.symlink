@@ -84,6 +84,14 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
+# Autoload every function in $DOTFILES/zsh/functions (occm, ocpr, ...).
+# fpath is set in zshenv; this declares them callable as commands. Files
+# beginning with _ or . are skipped — _-prefixed are completion functions
+# handled by compinit, and .-prefixed are internal helpers.
+if [[ -d "$DOTFILES/zsh/functions" ]]; then
+  autoload -Uz $DOTFILES/zsh/functions/[^_.]*(:t)
+fi
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
