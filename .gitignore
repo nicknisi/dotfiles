@@ -2,6 +2,7 @@
 npm-debug.log
 config/nvim/spell
 config/nvim/shada
+config/nvim/lua/local.lua
 vim/vim.symlink/spell/
 vim/vim.symlink/plugged/
 Brewfile.lock.json

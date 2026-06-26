@@ -26,10 +26,9 @@
   "formatter": {
     "clang-format": {
       "command": [
-        "clang-format",
-        "--style=file:/home/wl_ubuntu/.config/nvim/.clang-format",
-        "-i",
-        "$FILE"
+        "sh",
+        "-c",
+        "clang-format --style=file:\"$HOME/.config/nvim/.clang-format\" -i \"$FILE\""
       ],
       "extensions": ["c", "cpp", "h", "hpp", "cc", "cxx"]
     }

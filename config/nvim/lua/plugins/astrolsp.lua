@@ -47,16 +47,31 @@ return {
         config = {
             clangd = {
                 capabilities = { offsetEncoding = "utf-8" },
-                cmd = {
-                    "clangd",
-                    "--query-driver=/home/linuxbrew/.linuxbrew/bin/gcc-13,/usr/bin/gcc,/usr/bin/gcc-11,/home/wl_ubuntu/.vcpkg/downloads/artifacts/2139c4c6/compilers.arm.arm.none.eabi.gcc/14.2.1/bin/arm-none-eabi-gcc,/usr/bin/arm-none-eabi-gcc,/usr/bin/arm-none-eabi-gcc",
-                    "--limit-references=0",
-                    "--limit-results=1000",
-                    "--pch-storage=memory",
-                    "-j=2",
-                    "--header-insertion=iwyu",
-                    -- "--log=verbose",
-                },
+                cmd = (function()
+                    -- Portable query-driver list; machine-specific cross-compile
+                    -- paths (e.g. arm-none-eabi-gcc under vcpkg) are merged in from
+                    -- an optional local override at config/nvim/lua/local.lua
+                    -- (gitignored). See local.lua.example for a template.
+                    local drivers = {
+                        "/home/linuxbrew/.linuxbrew/bin/gcc-13",
+                        "/usr/bin/gcc",
+                        "/usr/bin/gcc-11",
+                    }
+                    local ok, local_cfg = pcall(require, "local")
+                    if ok and local_cfg then
+                        vim.list_extend(drivers, local_cfg.clangd_query_drivers or {})
+                    end
+                    return {
+                        "clangd",
+                        "--query-driver=" .. table.concat(drivers, ","),
+                        "--limit-references=0",
+                        "--limit-results=1000",
+                        "--pch-storage=memory",
+                        "-j=2",
+                        "--header-insertion=iwyu",
+                        -- "--log=verbose",
+                    }
+                end)(),
             },
             lua_ls = {
                 settings = {
