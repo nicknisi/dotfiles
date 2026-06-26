@@ -32,15 +32,16 @@ and have been fixed, but always verify against the source.
 - `**/*.symlink` -> `~/.<basename>` (`.symlink` stripped). E.g. `zsh/zshrc.symlink`
   -> `~/.zshrc`, `zsh/p10k.zsh.symlink` -> `~/.p10k.zsh`.
 - Each top-level entry in `config/` -> `~/.config/<entry>`. E.g. `config/nvim`
-  -> `~/.config/nvim`; `config/git/config` is the source of `~/.gitconfig`.
+  -> `~/.config/nvim`; `config/git/config` is the XDG global gitconfig at
+  `~/.config/git/config` (git reads it via XDG, not `~/.gitconfig`).
 
 Editing these files edits the live linked config. To add a new tool config, drop
 it under `config/<tool>/` and re-run `./install.sh link`.
 
 ## install.sh subcommands
-`{backup|link|git|homebrew|ohmyzsh|shell|all}`.
-- `all` runs only `link`, `homebrew`, `git`, `ohmyzsh`, `shell`. It does **not**
-  run `backup` — run that manually if needed.
+`{backup|link|git|homebrew|ohmyzsh|shell|codegraph|all}`.
+- `all` runs `link`, `homebrew`, `git`, `ohmyzsh`, `shell`, `codegraph`. It
+  does **not** run `backup` — run that manually if needed.
 - The brew subcommand is `homebrew` (not `brew`). It runs `brew bundle` against
   `Brewfile`, then installs fzf keybindings.
 - `git` writes `~/.gitconfig-local` (machine-specific, not in repo).
@@ -49,7 +50,7 @@ it under `config/<tool>/` and re-run `./install.sh link`.
 - `$DOTFILES` (set in `zsh/zshenv.symlink` via readlink resolution) = repo root.
   Many configs depend on it.
 - `zshrc.symlink` sources every `$DOTFILES/**/*.zsh` — a new `*.zsh` file
-  auto-loads. `zsh/functions/` is on `fpath` (autoloadable: `occm`).
+  auto-loads. `zsh/functions/` is on `fpath` (autoloadable: `occm`, `ocpr`).
 - Shell is oh-my-zsh + powerlevel10k (installed to `$DOTFILES/zsh/.oh-my-zsh`,
   gitignored).
 - Machine-local overrides (sourced if present, not in repo): `~/.localrc`,
@@ -78,7 +79,7 @@ login and `jq`. Add/change models in `ai.lua`'s `list_models`.
 
 ## OpenCode (opencode CLI config)
 `config/opencode/` -> `~/.config/opencode/` via `install.sh link` (same
-`config/<tool>` convention as atuin/yazi/alacritty). Three managed files:
+`config/<tool>` convention as atuin/yazi/alacritty). Four managed files:
 - `opencode.json` — providers (`google` antigravity models), MCP servers
   (`context7` remote, `codegraph` local), `lsp: true` (diagnostic feedback),
   `permission` (safety gates: `rm`/force-push ask, rest allow), formatters
@@ -93,6 +94,8 @@ login and `jq`. Add/change models in `ai.lua`'s `list_models`.
   project's own `AGENTS.md` layers on top and takes precedence.
 - `commands/commit.md` — the `/commit` custom command (Conventional Commits
   message generator, reads staged diff + recent history + AGENTS.md).
+- `commands/pr.md` — the `/pr` custom command (full GitHub Flow: branch,
+  commit, push, `gh pr create`).
 
 Built-in `websearch` (Exa, free, no API key) is enabled globally via
 `OPENCODE_ENABLE_EXA=1` in `zsh/zshenv.symlink` — required when not on the
@@ -153,9 +156,8 @@ changes. Repo: https://github.com/colbymchenry/codegraph
   that to the repo file via `\\wsl.localhost\<distro>\home\<user>\dotfiles\config\alacritty\alacritty.toml`
   so the repo stays the single source of truth.
 - Default shell launches `wsl.exe ~ -d Ubuntu-22.04` directly (no launch_menu like WezTerm).
-- `TERM=xterm-256color` is overridden in `[env]` because WSL lacks the alacritty terminfo
-  by default; tmux's `xterm-256color:Tc` override already handles TrueColor. Switch to
-  `alacritty:Tc` once `infocmp alacritty` succeeds in WSL.
+- `TERM=alacritty` is set in `[env]` (the alacritty terminfo is available
+  via Linuxbrew ncurses 6.6); tmux's `alacritty:Tc` override handles TrueColor.
 - OSC52 clipboard works natively — `"+y` in nvim reaches the Windows clipboard through
   tmux `set-clipboard external`. Zero config, same path as WezTerm.
 - No tab support by design — use tmux. URL hints: `Ctrl+Click` opens in Windows default

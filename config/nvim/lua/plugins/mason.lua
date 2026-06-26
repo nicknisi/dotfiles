@@ -32,7 +32,6 @@ return {
 
                 -- install any other package
                 "shellcheck",
-                "checkmake",
             },
         },
     },

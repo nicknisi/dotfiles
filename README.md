@@ -41,9 +41,9 @@ git clone https://github.com/qq123538/dotfiles.git
 The script, `install.sh` is the one-stop for all things setup, backup, and installation.
 
 ```bash
-> ./install.sh help
+> ./install.sh
 
-Usage: install.sh {backup|link|git|homebrew|ohmyzsh|shell|all}
+Usage: install.sh {backup|link|git|homebrew|ohmyzsh|shell|codegraph|all}
 ```
 
 ### `backup`
@@ -52,7 +52,7 @@ Usage: install.sh {backup|link|git|homebrew|ohmyzsh|shell|all}
 ./install.sh backup
 ```
 
-Create a backup of the current dotfiles (if any) into `~/.dotfiles-backup/`. This will scan for the existence of every file that is to be symlinked and will move them over to the backup directory. It will also do the same for vim setups, moving some files in the [XDG base directory](http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html), (`~/.config`).
+Create a backup of the current dotfiles (if any) into `~/dotfiles-backup/`. This will scan for the existence of every file that is to be symlinked and will move them over to the backup directory. It will also do the same for vim setups, moving some files in the [XDG base directory](http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html), (`~/.config`).
 
 - `~/.config/nvim/` - The home of [neovim](https://neovim.io/) configuration
 - `~/.vim/` - The home of vim configuration
@@ -90,7 +90,7 @@ The `shell` command sets up the recommended shell configuration for the dotfiles
 ./install.sh all
 ```
 
-This command runs `link`, `homebrew`, `git`, `ohmyzsh`, and `shell`. It does **not** run `backup` — you must run that one manually.
+This command runs `link`, `homebrew`, `git`, `ohmyzsh`, `shell`, and `codegraph`. It does **not** run `backup` — you must run that one manually.
 
 ## ZSH Configuration
 
@@ -129,7 +129,7 @@ These files are sourced if present but never committed:
 ## Neovim setup
 
 > **Note**
-> This is no longer a vim setup. The configuration has been moved to be Neovim-specific and (mostly) written in [Lua](https://www.lua.org/). `vim` is also set up as an alias to `nvim` to help with muscle memory.
+> This is no longer a vim setup. The configuration has been moved to be Neovim-specific and (mostly) written in [Lua](https://www.lua.org/).
 
 The simplest way to install Neovim is to install it from homebrew.
 
@@ -149,7 +149,7 @@ All of the configuration for Neovim starts at `config/nvim/init.lua`, which is s
 On the first run, all required plugins should automaticaly by installed by
 [lazy.nvim](https://github.com/folke/lazy.nvim), a plugin manager for neovim.
 
-All plugins are listed in [plugins.lua](./config/nvim/lua/plugins.lua). When a plugin is added, it will automatically be installed by lazy.nvim. To interface with lazy.nvim, simply run `:Lazy` from within vim.
+All plugins are listed in the [lua/plugins/ directory](./config/nvim/lua/plugins/). When a plugin is added, it will automatically be installed by lazy.nvim. To interface with lazy.nvim, simply run `:Lazy` from within vim.
 
 > **Note**
 > Plugins can be synced headlessly with `nvim --headless "+Lazy! sync" +qa`, or interactively via `:Lazy` inside Neovim.
@@ -160,7 +160,7 @@ All plugins are listed in [plugins.lua](./config/nvim/lua/plugins.lua). When a p
 
 ### Alacritty (primary)
 
-Config lives at `config/alacritty/alacritty.toml` (TOML). It mirrors the WezTerm setup: GitHub Dark colors (inlined), JetBrainsMono Nerd Font at 14pt, 120×28 initial window, 6px padding, `Ctrl+Click` URL hints.
+Config lives at `config/alacritty/alacritty.toml` (TOML). Campbell colors (inlined), JetBrainsMono Nerd Font at 14pt, 120×28 initial window, 2px padding, `Ctrl+Click` URL hints.
 
 `install.sh link` symlinks `config/alacritty` to `~/.config/alacritty/` (used by the WSLg Linux build). The Windows build reads `%APPDATA%\alacritty\alacritty.toml` instead, so soft-link that to the repo file to keep a single source of truth:
 
@@ -174,7 +174,7 @@ New-Item -ItemType SymbolicLink `
 
 Notes:
 - Default shell is `wsl.exe ~ -d Ubuntu-22.04` (no launch_menu — Alacritty has no GUI launcher).
-- `TERM` is overridden to `xterm-256color` because WSL lacks the alacritty terminfo; TrueColor is handled by tmux's `xterm-256color:Tc` override. Switch back to `alacritty:Tc` once `infocmp alacritty` resolves in WSL.
+- `TERM` is set to `alacritty` (the terminfo is available via Linuxbrew ncurses 6.6); tmux's `alacritty:Tc` override handles TrueColor.
 - OSC52 clipboard works natively — `"+y` in nvim reaches the Windows clipboard through tmux `set-clipboard external`, with zero config.
 - No tab support by design — use tmux.
 
@@ -186,19 +186,7 @@ Config at `config/wezterm/wezterm.lua`. Kept as a fallback terminal; default pro
 
 I prefer to run everything inside of [tmux](https://github.com/tmux/tmux). I typically use a large pane on the top for neovim and then multiple panes along the bottom or right side for various commands I may need to run. There are no pre-configured layouts in this repository, as I tend to create them on-the-fly and as needed.
 
-This repo ships with a `tm` command which provides a list of active session, or provides prompts to create a new one.
-
-```bash
-> tm
-Available sessions
-------------------
-
-1) New Session
-Please choose your session: 1
-Enter new session name: open-source
-```
-
-This configuration provides a bit of style to the tmux bar, along with some additional data such as the currently playing song (from Apple Music or Spotify), the system name, the session name, and the current time.
+This configuration provides a bit of style to the tmux bar, along with some additional data such as the system name, the session name, and the current time.
 
 > **Note**
 > It also changes the prefix from `⌃-b` to `M-s` (Alt+s).
@@ -347,6 +335,8 @@ OpenCode is installed via `./install.sh homebrew` (see [Brewfile](./Brewfile)). 
 | --- | --- |
 | `config/opencode/opencode.json` | Providers (`google` antigravity models), MCP servers (`context7`), formatters (`clang-format`), plugins (`@franlol/opencode-md-table-formatter`) |
 | `config/opencode/commands/commit.md` | The `/commit` custom command — a Conventional Commits message generator that reads the staged diff, recent history, and `AGENTS.md` |
+| `config/opencode/AGENTS.md` | Global rules (web-fetching strategy + MCP priority) — symlinked to `~/.config/opencode/AGENTS.md`, applied to every opencode session |
+| `config/opencode/commands/pr.md` | The `/pr` custom command — full GitHub Flow (branch, commit, push, `gh pr create`) |
 
 **No secrets live in the repo.** Provider credentials are stored in `~/.local/share/opencode/auth.json` (never committed) and loaded by opencode at startup. The `OPENCODE_GO_API_KEY` env var (consumed by avante.nvim) is auto-exported from `auth.json` by `zshrc.symlink` via `jq`.
 
@@ -362,9 +352,8 @@ OpenCode regenerates several files inside the symlinked `~/.config/opencode/` di
 | Command | Action |
 | --- | --- |
 | `occm` | Generate a conventional commit message via `opencode run --command commit` (pass `-m <provider/model>` to select a model; extra args become instructions) |
+| `ocpr` | Run the `/pr` custom command headlessly via `opencode run --command pr` |
 | `opencode` | Launch the TUI |
-| `opencode pr <N>` | Fetch & checkout GitHub PR `#N`, then launch opencode |
-| `opencode models` | List available models from configured providers |
 
 ### Adding a custom command
 

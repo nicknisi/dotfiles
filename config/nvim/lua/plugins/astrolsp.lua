@@ -217,7 +217,7 @@ return {
                 ["<Leader>lG"] = {
                     -- Enable all filter for c language, also can configure it by c = { "Class", Other symbol kind(refer to:https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#symbolKind) }
                     function() require("snacks").picker.lsp_workspace_symbols { filter = { lua = true, c = true } } end,
-                    desc = "Search wokespace symbols",
+                    desc = "Search workspace symbols",
                     cond = "workspace/symbol",
                 },
             },

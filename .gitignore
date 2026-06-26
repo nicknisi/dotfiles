@@ -1,5 +1,8 @@
 .netrwhist
 npm-debug.log
+*.swp
+*.swo
+.mypy_cache/
 config/nvim/spell
 config/nvim/shada
 config/nvim/lua/local.lua
@@ -7,7 +10,6 @@ vim/vim.symlink/spell/
 vim/vim.symlink/plugged/
 Brewfile.lock.json
 lazy-lock.json
-config/kitty/kitty-overrides.conf
 config/tmux/plugins
 zsh/.oh-my-zsh
 # Atuin local data (history db, encryption key, session) — never commit

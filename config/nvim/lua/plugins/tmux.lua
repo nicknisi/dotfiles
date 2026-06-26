@@ -14,19 +14,19 @@ return {
                         ["<C-L>"] = false,
                         ["<A-h>"] = {
                             '<cmd>lua require("tmux").move_left()<cr>',
-                            desc = "navigate windows including the windows of tmxu",
+                            desc = "navigate windows including the windows of tmux",
                         },
                         ["<A-l>"] = {
                             '<cmd>lua require("tmux").move_right()<cr>',
-                            desc = "navigate windows including the windows of tmxu",
+                            desc = "navigate windows including the windows of tmux",
                         },
                         ["<A-k>"] = {
                             '<cmd>lua require("tmux").move_top()<cr>',
-                            desc = "navigate windows including the windows of tmxu",
+                            desc = "navigate windows including the windows of tmux",
                         },
                         ["<A-j>"] = {
                             '<cmd>lua require("tmux").move_bottom()<cr>',
-                            desc = "navigate windows including the windows of tmxu",
+                            desc = "navigate windows including the windows of tmux",
                         },
 
                         -- resize windows
@@ -42,19 +42,19 @@ return {
                     t = {
                         ["<A-h>"] = {
                             '<cmd>lua require("tmux").move_left()<cr>',
-                            desc = "navigate windows including the windows of tmxu",
+                            desc = "navigate windows including the windows of tmux",
                         },
                         ["<A-l>"] = {
                             '<cmd>lua require("tmux").move_right()<cr>',
-                            desc = "navigate windows including the windows of tmxu",
+                            desc = "navigate windows including the windows of tmux",
                         },
                         ["<A-k>"] = {
                             '<cmd>lua require("tmux").move_top()<cr>',
-                            desc = "navigate windows including the windows of tmxu",
+                            desc = "navigate windows including the windows of tmux",
                         },
                         ["<A-j>"] = {
                             '<cmd>lua require("tmux").move_bottom()<cr>',
-                            desc = "navigate windows including the windows of tmxu",
+                            desc = "navigate windows including the windows of tmux",
                         },
                     },
                 },
