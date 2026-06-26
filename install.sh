@@ -161,6 +161,23 @@ setup_shell() {
     fi
 }
 
+# CodeGraph — pre-indexed code knowledge graph for AI agents (opencode, etc.).
+# Not on Homebrew; the official installer bundles its own Node runtime and
+# places `codegraph` on a user-level bin already on PATH (~/.local/bin, see
+# zshenv.symlink). Idempotent: skips if `codegraph` is already on PATH.
+# Per-project indexing (`codegraph init`) is NOT done here — only the global
+# CLI. The opencode MCP wiring lives in config/opencode/opencode.json.
+setup_codegraph() {
+    title "Setting up CodeGraph"
+
+    if command -v codegraph >/dev/null 2>&1; then
+        info "codegraph already installed ($(codegraph --version 2>/dev/null || echo present)), skipping."
+    else
+        info "Installing CodeGraph via official installer (bundles its own Node runtime)."
+        curl -fsSL https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.sh | sh
+    fi
+}
+
 setup_ohmyzsh() {
     title "Configuring ohmyzsh"
 
@@ -204,15 +221,19 @@ case "$1" in
     shell)
         setup_shell
         ;;
+    codegraph)
+        setup_codegraph
+        ;;
     all)
         setup_symlinks
         setup_homebrew
         setup_git
         setup_ohmyzsh
         setup_shell
+        setup_codegraph
         ;;
     *)
-        echo -e $"\nUsage: $(basename "$0") {backup|link|git|homebrew|ohmyzsh|shell|all}\n"
+        echo -e $"\nUsage: $(basename "$0") {backup|link|git|homebrew|ohmyzsh|shell|codegraph|all}\n"
         exit 1
         ;;
 esac

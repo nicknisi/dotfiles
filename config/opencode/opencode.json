@@ -5,6 +5,11 @@
       "type": "remote",
       "url": "https://mcp.context7.com/mcp",
       "enabled": true
+    },
+    "codegraph": {
+      "type": "local",
+      "command": ["codegraph", "serve", "--mcp"],
+      "enabled": true
     }
   },
   "plugin": ["@franlol/opencode-md-table-formatter@latest"],

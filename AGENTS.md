@@ -18,7 +18,7 @@ and have been fixed, but always verify against the source.
   - type: `feat fix docs style refactor perf test build ci chore revert`.
     Breaking change: `type(scope)!:` or `BREAKING CHANGE:` footer.
   - scope: tool/module name (`zsh nvim tmux git alacritty wezterm brew install
-    agents yazi ai`); multiple scopes comma-separated, e.g. `feat(zsh,config):`.
+    agents yazi ai codegraph`); multiple scopes comma-separated, e.g. `feat(zsh,config):`.
   - body: `feat/fix/refactor/perf` recommended — write "why" not "what" (the
     diff shows what), use `-` bullets, ≤72 chars/line, blank line after subject.
     `chore/style/revert` and simple single-file changes may omit.
@@ -100,6 +100,30 @@ file is not managed); `package.json` is regenerated from `opencode.json`'s
 defined in `config/opencode/commands/commit.md` headlessly. To add a new
 custom command, drop `config/opencode/commands/<name>.md` (frontmatter +
 template, per https://opencode.ai/docs/commands).
+
+## CodeGraph (global code-knowledge MCP)
+CodeGraph is a pre-indexed, 100% local knowledge graph of symbols/calls/deps
+for AI coding agents (opencode, Claude Code, Cursor, etc.). Exposes one MCP
+tool — `codegraph_explore` — that returns surgical context + call paths in a
+single call instead of a grep/Read crawl. 20+ languages, auto-syncs on file
+changes. Repo: https://github.com/colbymchenry/codegraph
+- **CLI install**: `./install.sh codegraph` (idempotent). Not on Homebrew; the
+  official installer bundles its own Node runtime and places `codegraph` on a
+  user bin already on PATH (`~/.local/bin` via `zsh/zshenv.symlink`). Also run
+  by `./install.sh all`. No Node dependency on the brew-managed `node`.
+- **opencode MCP wiring**: `config/opencode/opencode.json` has a `codegraph`
+  local MCP server (`["codegraph", "serve", "--mcp"]`, `enabled: true`).
+  Configured manually — **do not** run `codegraph install` (it would rewrite
+  agent configs and AGENTS.md out of band).
+- **Per-project indexing is manual and NOT in this repo**: run `codegraph init`
+  in each *code* project to build its `.codegraph/` graph. This dotfiles repo
+  only does the *global* wiring (CLI + MCP config). Projects without a
+  `.codegraph/` index degrade gracefully — CodeGraph tells the agent to use
+  built-in tools.
+- `.codegraph/` is gitignored at repo root as a safety net.
+- Scope is **opencode only** here — this repo does not manage `~/.claude.json`
+  or other agents' configs, so CodeGraph's Claude Code/Cursor wiring is out of
+  scope for this dotfiles.
 
 ## tmux
 - Prefix is `M-s` (Alt+s). `prefix + I` installs TPM plugins.
