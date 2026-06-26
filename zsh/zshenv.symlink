@@ -29,6 +29,9 @@ export EDITOR='nvim'
 export GIT_EDITOR='nvim'
 export HOMEBREW_NO_AUTO_UPDATE=1
 export COLORTERM=truecolor
+# Enable opencode's built-in websearch (Exa, free, no API key). Required when
+# not using the opencode provider; without it only webfetch is available.
+export OPENCODE_ENABLE_EXA=1
 
 if [[ -n "$HOMEBREW_PREFIX" ]]; then
   export FZF_BASE="$HOMEBREW_PREFIX/opt/fzf"

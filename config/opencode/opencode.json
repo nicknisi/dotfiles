@@ -12,6 +12,16 @@
       "enabled": true
     }
   },
+  "lsp": true,
+  "permission": {
+    "bash": {
+      "*": "allow",
+      "rm *": "ask",
+      "git push --force*": "ask",
+      "git push -f *": "ask"
+    },
+    "codegraph_*": "allow"
+  },
   "plugin": ["@franlol/opencode-md-table-formatter@latest"],
   "formatter": {
     "clang-format": {

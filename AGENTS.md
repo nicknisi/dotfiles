@@ -78,15 +78,27 @@ login and `jq`. Add/change models in `ai.lua`'s `list_models`.
 
 ## OpenCode (opencode CLI config)
 `config/opencode/` -> `~/.config/opencode/` via `install.sh link` (same
-`config/<tool>` convention as atuin/yazi/alacritty). Two managed files:
+`config/<tool>` convention as atuin/yazi/alacritty). Three managed files:
 - `opencode.json` — providers (`google` antigravity models), MCP servers
-  (`context7`), formatters (`clang-format`), plugins
-  (`@franlol/opencode-md-table-formatter`). **No secrets here** — the former
-  `bailian-coding-plan-test` provider with a hardcoded `apiKey` was removed;
-  provider credentials live in `~/.local/share/opencode/auth.json` (never in
-  repo).
+  (`context7` remote, `codegraph` local), `lsp: true` (diagnostic feedback),
+  `permission` (safety gates: `rm`/force-push ask, rest allow), formatters
+  (`clang-format`), plugins (`@franlol/opencode-md-table-formatter`). **No
+  secrets here** — the former `bailian-coding-plan-test` provider with a
+  hardcoded `apiKey` was removed; provider credentials live in
+  `~/.local/share/opencode/auth.json` (never in repo).
+- `AGENTS.md` — **global rules**, symlinked to
+  `~/.config/opencode/AGENTS.md`, applied to every opencode session. Holds the
+  web-fetching fallback strategy (context7 / Jina Reader / gh) and MCP usage
+  priority rules (context7 for lib docs, codegraph for code structure). A
+  project's own `AGENTS.md` layers on top and takes precedence.
 - `commands/commit.md` — the `/commit` custom command (Conventional Commits
   message generator, reads staged diff + recent history + AGENTS.md).
+
+Built-in `websearch` (Exa, free, no API key) is enabled globally via
+`OPENCODE_ENABLE_EXA=1` in `zsh/zshenv.symlink` — required when not on the
+opencode provider. LSP is on (`lsp: true`); lua-ls and clangd auto-install,
+Python needs a manual `npm install -g pyright`. Disable a single server
+per-project with `lsp.<name>.disabled: true`.
 
 Runtime files opencode regenerates inside the symlinked dir are gitignored at
 repo root: `node_modules/`, `package.json`, `package-lock.json`, `bun.lock`,
