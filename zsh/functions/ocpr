@@ -1,3 +1,1 @@
-ocpr() {
-  opencode run --command pr "$@"
-}
+opencode run --command pr "$@"

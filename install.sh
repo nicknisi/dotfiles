@@ -83,7 +83,7 @@ setup_symlinks() {
         mkdir -p "$HOME/.config"
     fi
 
-    config_files=$(find "$DOTFILES/config" -maxdepth 1 2>/dev/null)
+    config_files=$(find "$DOTFILES/config" -mindepth 1 -maxdepth 1 2>/dev/null)
     for config in $config_files; do
         target="$HOME/.config/$(basename "$config")"
         if [ -e "$target" ]; then
@@ -110,15 +110,11 @@ setup_git() {
     git config -f ~/.gitconfig-local user.email "${email:-$defaultEmail}"
     git config -f ~/.gitconfig-local github.user "${github:-$defaultGithub}"
 
-    if [[ "$(uname)" == "Darwin" ]]; then
-        git config --global credential.helper "osxkeychain"
+    read -rn 1 -p "Save user and password to an unencrypted file to avoid writing? [y/N] " save
+    if [[ $save =~ ^([Yy])$ ]]; then
+        git config --global credential.helper "store"
     else
-        read -rn 1 -p "Save user and password to an unencrypted file to avoid writing? [y/N] " save
-        if [[ $save =~ ^([Yy])$ ]]; then
-            git config --global credential.helper "store"
-        else
-            git config --global credential.helper "cache --timeout 3600"
-        fi
+        git config --global credential.helper "cache --timeout 3600"
     fi
 }
 
@@ -134,7 +130,6 @@ setup_homebrew() {
     if [ "$(uname)" == "Linux" ]; then
         test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
         test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-        test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.bash_profile
     fi
 
     # install brew dependencies from Brewfile
@@ -180,6 +175,11 @@ setup_codegraph() {
 
 setup_ohmyzsh() {
     title "Configuring ohmyzsh"
+
+    # Set defaults so the guards below work under bash (install.sh's shebang),
+    # where $ZSH/$ZSH_CUSTOM are normally only set by zshrc in an interactive zsh.
+    ZSH="${ZSH:-$DOTFILES/zsh/.oh-my-zsh}"
+    ZSH_CUSTOM="${ZSH_CUSTOM:-$ZSH/custom}"
 
     if ! [[ -d "$ZSH" ]]; then
         info "install ohmyzsh"
