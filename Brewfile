@@ -9,7 +9,8 @@
 # Linux clipboard helper (was inside the removed elsif OS.linux? block)
 brew "xclip" # access to clipboard (similar to pbcopy/pbpaste)
 
-tap "homebrew/bundle"
+# tap "homebrew/bundle" removed — brew bundle is a built-in command since
+# Homebrew 4.0; the tap was deprecated and is now empty.
 # tap "homebrew/core" removed — homebrew/core is auto-tapped since ~2021
 
 # packages
@@ -18,7 +19,7 @@ brew "fzf" # Fuzzy file searcher, used in scripts and in vim
 brew "git" # Git version control (latest version)
 brew "grep" # grep (latest)
 brew "lazygit" # a better git UI
-brew "neofetch" # pretty system info
+brew "fastfetch" # pretty system info (neofetch successor; neofetch archived 2024-04)
 brew "neovim" # A better vim
 brew "python" # python (latest)
 brew "ripgrep" # very fast file searcher
