@@ -5,11 +5,22 @@ First, clone it from github to local machine.
 ```bash
 git clone https://github.com/qq123538/dotfiles.git
 ```
+Optionally, on a minimal/fresh Ubuntu image, install prerequisites:
+```bash
+sudo apt update && sudo apt install -y git curl
+```
 Secondly, install all.
 ```bash
 ./install.sh all
 ```
 Finally, run tmux, and install tmux plugins with `M-s I` (prefix + Shift+I).
+
+> **Note**
+> Homebrew installs to `/home/linuxbrew/.linuxbrew`; on a fresh machine this
+> requires `sudo` (the installer prompts for the password interactively). A
+> user without `sudo` can still run `./install.sh all` if Homebrew was
+> already installed by another user — `setup_homebrew` then skips
+> `brew bundle` and reuses the existing binaries read-only.
 
 # (original README)Dotfiles
 

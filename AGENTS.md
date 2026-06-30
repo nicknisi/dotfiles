@@ -45,6 +45,17 @@ it under `config/<tool>/` and re-run `./install.sh link`.
 - The brew subcommand is `homebrew` (not `brew`). It runs `brew bundle` against
   `Brewfile`, then installs fzf keybindings.
 - `git` writes `~/.gitconfig-local` (machine-specific, not in repo).
+- **Fresh-machine prerequisite**: `homebrew` (and thus `all`) needs `sudo` to
+  create `/home/linuxbrew/.linuxbrew` when brew isn't yet installed. The
+  installer downloads-then-runs (not piped) so it keeps a TTY and can prompt
+  for the password. `git` + `curl` must be pre-installed.
+- **Multi-user behavior** (`setup_homebrew` three states): (1) brew absent →
+  installs via official script (needs sudo); (2) brew present + prefix
+  writable by `$USER` → runs `brew bundle` (owner); (3) brew present + prefix
+  not writable → skips `brew bundle`, warns, returns 0 (read-only reuse of
+  another user's binaries via PATH). This is Homebrew's supported multi-user
+  model — one owner installs, others consume. `setup_shell` similarly probes
+  `sudo -n` before writing `/etc/shells` and degrades gracefully without sudo.
 
 ## zsh wiring
 - `$DOTFILES` (set in `zsh/zshenv.symlink` via readlink resolution) = repo root.
