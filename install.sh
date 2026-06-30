@@ -230,15 +230,14 @@ setup_ohmyzsh() {
         info  "ohmyzsh have already installed"
     fi
 
-    if ! [[ -d "$ZSH_CUSTOM" ]]; then
+    if ! [[ -d "$ZSH_CUSTOM/themes/powerlevel10k" ]]; then
         info "install the theme of ohmyzsh"
-        ZSH_CUSTOM="$DOTFILES/zsh/.oh-my-zsh/custom"
 
         # install theme
-        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
 
         # install custom plugins
-        git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+        git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
     else
         info "p10k have already installed"
     fi
