@@ -121,15 +121,47 @@ setup_git() {
 setup_homebrew() {
     title "Setting up Homebrew"
 
-    if test ! "$(command -v brew)"; then
-        info "Homebrew not installed. Installing."
-        # Run as a login shell (non-interactive) so that the script doesn't pause for user input
-        curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh | bash --login
-    fi
-
+    # Put any existing brew on PATH before deciding what to do. shellenv only
+    # reads the prefix, so this is safe for non-owner users too.
     if [ "$(uname)" == "Linux" ]; then
         test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
         test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    fi
+
+    if test ! "$(command -v brew)"; then
+        # brew absent (fresh machine). Download-then-run instead of piping so
+        # bash keeps a TTY stdin: the Homebrew installer then stays interactive
+        # and can prompt for the sudo password it needs to create the supported
+        # /home/linuxbrew/.linuxbrew prefix. Piping (curl | bash) forces
+        # NONINTERACTIVE=1 -> sudo -n -> "a password is required" abort even
+        # for users who do have sudo.
+        info "Homebrew not installed. Installing."
+        local brew_installer="/tmp/brew-install-$$.sh"
+        if ! curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh -o "$brew_installer"; then
+            rm -f "$brew_installer"
+            error "Failed to download Homebrew installer."
+        fi
+        bash --login "$brew_installer"; local rc=$?
+        rm -f "$brew_installer"
+        [ $rc -ne 0 ] && error "Homebrew installation failed (exit $rc)."
+        if [ "$(uname)" == "Linux" ]; then
+            test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
+            test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        fi
+    fi
+
+    local prefix
+    prefix="$(brew --prefix 2>/dev/null)"
+    if [ ! -w "$prefix" ]; then
+        # Homebrew exists but is owned by another user (e.g. test5 reusing an
+        # install done by wl_ubuntu). Skip brew bundle / fzf install: those
+        # write to the prefix (Cellar, locks, opt) and would fail with
+        # "Permission denied @ rb_sysopen .../locks/...". Pre-installed
+        # binaries stay usable via PATH. Homebrew is designed for single-user
+        # ownership; this read-only reuse is the supported multi-user pattern.
+        warning "Homebrew prefix ($prefix) is not writable by $USER; skipping 'brew bundle'."
+        warning "Installed binaries remain usable on PATH. Ask the prefix owner to run './install.sh homebrew' to install or update packages."
+        return 0
     fi
 
     # install brew dependencies from Brewfile
@@ -145,14 +177,24 @@ setup_shell() {
     title "Configuring shell"
 
     [[ -n "$(command -v brew)" ]] && zsh_path="$(brew --prefix)/bin/zsh" || zsh_path="$(which zsh)"
-    if ! grep "$zsh_path" /etc/shells; then
+    if ! grep -q "$zsh_path" /etc/shells 2>/dev/null; then
         info "adding $zsh_path to /etc/shells"
-        echo "$zsh_path" | sudo tee -a /etc/shells
+        if sudo -n true 2>/dev/null; then
+            echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+        else
+            warning "Cannot write to /etc/shells without sudo. Run this manually as an admin:"
+            warning "  echo '$zsh_path' | sudo tee -a /etc/shells"
+            warning "Then re-run './install.sh shell', or run 'chsh -s $zsh_path' directly if the path is already listed."
+        fi
     fi
 
     if [[ "$SHELL" != "$zsh_path" ]]; then
-        chsh -s "$zsh_path"
-        info "default shell changed to $zsh_path"
+        if grep -q "$zsh_path" /etc/shells 2>/dev/null; then
+            chsh -s "$zsh_path"
+            info "default shell changed to $zsh_path"
+        else
+            warning "Skipped chsh: $zsh_path is not in /etc/shells. Add it first (see above)."
+        fi
     fi
 }
 

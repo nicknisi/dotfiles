@@ -53,7 +53,7 @@ return {
                     -- an optional local override at config/nvim/lua/local.lua
                     -- (gitignored). See local.lua.example for a template.
                     local drivers = {
-                        "/home/linuxbrew/.linuxbrew/bin/gcc-13",
+                        (vim.env.HOMEBREW_PREFIX or "/home/linuxbrew/.linuxbrew") .. "/bin/gcc-13",
                         "/usr/bin/gcc",
                         "/usr/bin/gcc-11",
                     }
