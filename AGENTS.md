@@ -56,6 +56,13 @@ it under `config/<tool>/` and re-run `./install.sh link`.
   another user's binaries via PATH). This is Homebrew's supported multi-user
   model — one owner installs, others consume. `setup_shell` similarly probes
   `sudo -n` before writing `/etc/shells` and degrades gracefully without sudo.
+- **`uninstall.sh`** reverses `install.sh`: removes symlinks (verifying each
+  points into `$DOTFILES` via readlink), repo artifacts (`$DOTFILES/zsh/.oh-my-zsh`,
+  `$DOTFILES/config/tmux/plugins`), machine-local files (`~/.gitconfig-local`,
+  `~/.git-credentials`, `~/.gitconfig` credential.helper, `~/.fzf.zsh`,
+  `~/.codegraph/`), and restores the shell to `/bin/bash`. `--data` also
+  removes nvim/atuin/opencode runtime data with a `yes` confirmation gate.
+  Does NOT uninstall Homebrew (multi-user safety) or delete the repo.
 
 ## zsh wiring
 - `$DOTFILES` (set in `zsh/zshenv.symlink` via readlink resolution) = repo root.
