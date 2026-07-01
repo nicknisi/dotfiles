@@ -12,6 +12,7 @@ brew "xclip" # access to clipboard (similar to pbcopy/pbpaste)
 # tap "homebrew/bundle" removed — brew bundle is a built-in command since
 # Homebrew 4.0; the tap was deprecated and is now empty.
 # tap "homebrew/core" removed — homebrew/core is auto-tapped since ~2021
+tap "anomalyco/tap" # opencode official tap; homebrew-core's opencode lags and depends on brew node
 
 # packages
 brew "fd" # find alternative
@@ -31,11 +32,14 @@ brew "zsh" # zsh (latest)
 brew "tldr" # simplified man pages
 brew "unzip"
 brew "cmake"
+brew "bear" # generate compile_commands.json for clangd (Mason); runtime deps only gcc+glibc, no llvm; requires a compiler on PATH (build-essential/cc/gcc)
 brew "tree-sitter"
+brew "tree-sitter-cli" # nvim-treesitter calls the tree-sitter CLI; brew version links system glibc 2.35, avoids pulling a prebuilt CLI needing 2.38+ on Ubuntu 22.04
 brew "node"
 brew "repo"
 brew "htop"
 brew "gemini-cli"
+brew "anomalyco/tap/opencode" # AI coding agent CLI/TUI; config in config/opencode/ symlinked by install.sh link
 # copilot-cli removed — the formula no longer exists in homebrew-core (the
 # "copilot" formula there is Amazon ECS Copilot, not GitHub's). GitHub's
 # Copilot CLI is now a cask: install manually with
