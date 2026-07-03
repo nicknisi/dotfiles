@@ -92,9 +92,7 @@
       "Bash(npm publish *)"
     ],
     "defaultMode": "auto",
-    "additionalDirectories": [
-      "~/.claude/"
-    ]
+    "additionalDirectories": ["~/.claude/"]
   },
   "hooks": {
     "SessionEnd": [

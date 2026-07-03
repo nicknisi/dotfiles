@@ -173,3 +173,6 @@ fi
 if command -v jj &>/dev/null; then
   source <(jj util completion zsh)
 fi
+
+# bun completions
+[ -s "/Users/nicknisi/.bun/_bun" ] && source "/Users/nicknisi/.bun/_bun"
