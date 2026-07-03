@@ -9,6 +9,7 @@ return {
     opts = {
       bigfile = { enabled = true },
       dashboard = { enabled = true },
+      image = { enabled = true },
       input = { enabled = true },
       notifier = {
         enabled = true,
@@ -152,6 +153,17 @@ return {
       },
     },
     init = function()
+      -- snacks.image can't identify the outer terminal from inside tmux when
+      -- extended-keys is "always": its detection workaround only matches "on"
+      -- (folke/snacks.nvim#2332), so the ghostty query times out. Resolve the
+      -- client terminal via tmux and use snacks' documented env override.
+      if vim.env.TMUX and not vim.env.SNACKS_GHOSTTY then
+        local out = vim.fn.system({ "tmux", "display-message", "-p", "#{client_termname}" })
+        if vim.v.shell_error == 0 and out:find("ghostty") then
+          vim.env.SNACKS_GHOSTTY = "true"
+        end
+      end
+
       vim.api.nvim_create_autocmd("User", {
         pattern = "VeryLazy",
         callback = function()
