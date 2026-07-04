@@ -41,3 +41,24 @@ history_filter = [
 # --- Dotfiles sync (requires sync v2 + account; disabled for local-only) ---
 [dotfiles]
 enabled = false
+
+# --- Stats ---
+# Commands whose subcommands are counted separately in `atuin stats`.
+# Must include the full default list (setting overrides, not appends).
+[stats]
+common_subcommands = [
+    # --- Atuin defaults (v18) ---
+    "apt", "cargo", "composer", "dnf", "docker", "git", "go", "ip",
+    "jj", "kubectl", "nix", "nmcli", "npm", "pecl", "pnpm", "podman",
+    "port", "systemctl", "tmux", "yarn",
+    # --- User additions (high-frequency in this workflow) ---
+    "brew",       # split brew install / brew uninstall / brew info
+    "opencode",   # split opencode run / opencode serve
+    "gh",         # split gh pr / gh repo / gh issue
+    "atuin",      # split atuin search / atuin history / atuin sync
+]
+
+# --- UI columns (v18.5+) ---
+# Show working directory alongside command for context.
+[ui]
+columns = ["duration", "time", { type = "directory", width = 25 }, "command"]
