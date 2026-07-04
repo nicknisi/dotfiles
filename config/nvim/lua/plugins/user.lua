@@ -301,19 +301,21 @@ return {
                         },
                     },
                 },
+                documentation = {
+                    auto_show = true,
+                    auto_show_delay_ms = 300,
+                },
             },
 
             keymap = {
-                ["<Tab>"] = {
-                    "select_next",
-                    "snippet_forward",
-                    "fallback",
-                },
-                ["<S-Tab>"] = {
-                    "select_prev",
-                    "snippet_backward",
-                    "fallback",
-                },
+                preset = "super-tab",
+                ["<C-Space>"] = false,
+                ["<C-\\>"] = { "show", "show_documentation", "hide_documentation" },
+                ["<C-b>"] = { "scroll_documentation_up", "fallback" },
+                ["<C-f>"] = { "scroll_documentation_down", "fallback" },
+                ["<C-U>"] = false,
+                ["<C-D>"] = false,
+                ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
             },
 
             -- sources = {

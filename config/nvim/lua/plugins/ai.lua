@@ -2,6 +2,7 @@
 return {
     {
         "yetone/avante.nvim",
+        enabled = false,
         opts = {
             provider = "opencode-go",
             providers = {

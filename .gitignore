@@ -6,6 +6,9 @@ npm-debug.log
 config/nvim/spell
 config/nvim/shada
 config/nvim/lua/local.lua
+config/nvim/lua/plugins/local.lua
+# Git local cache (mirrors gitconfig, contains machine-local user email)
+config/git/.repo_config.json
 vim/vim.symlink/spell/
 vim/vim.symlink/plugged/
 Brewfile.lock.json

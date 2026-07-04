@@ -1,10 +1,11 @@
 # .zprofile is sourced on login shells and before .zshrc. As a general rule, it should not change the
 # shell environment at all.
 
-# Linuxbrew shellenv (WSL2 target). macOS Homebrew paths removed — this repo
-# is Linux/WSL-only per AGENTS.md.
-if [[ -d ~/.linuxbrew ]]; then
-    eval "$(~/.linuxbrew/bin/brew shellenv)"
-elif [[ -d /home/linuxbrew/.linuxbrew ]]; then
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-fi
+# .zprofile — login-shell one-shot setup, sourced before .zshrc.
+#
+# brew shellenv used to live here, but .zprofile is only read by login shells.
+# Non-login shells (nvim :terminal, scripts, cron, `$(cmd)` subshells) never see
+# it, which made `which opencode` diverge between tmux windows and nvim
+# terminals. The block has moved to ~/.zshenv so every shell mode gets the
+# linuxbrew PATH. Keep this file for future login-only init: ssh-agent,
+# gpg-agent, keychain tokens, etc.

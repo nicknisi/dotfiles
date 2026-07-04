@@ -5,7 +5,36 @@
 export DOTFILES="$(dirname "$(dirname "$(readlink "${(%):-%N}")")")"
 export CACHEDIR="$HOME/.local/share"
 export VIM_TMP="$HOME/.vim-tmp"
-export PATH=$HOME/bin:/usr/local/bin:$HOME/.local/bin:$PATH
+# Homebrew/Linuxbrew shellenv — belongs in .zshenv (not .zprofile) because every
+# shell mode (non-login interactive, scripts, nvim :terminal, cron) needs the
+# linuxbrew PATH on PATH. The outer guard on HOMEBREW_PREFIX makes it idempotent:
+# subshells inherit the var and skip the re-eval. The inner if/elif mirrors
+# .zprofile's two standard install locations (user-home vs multi-user).
+if [[ -z "$HOMEBREW_PREFIX" ]]; then
+  if [[ -d ~/.linuxbrew ]]; then
+    eval "$(~/.linuxbrew/bin/brew shellenv)"
+  elif [[ -d /home/linuxbrew/.linuxbrew ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  fi
+fi
+
+# PATH precedence (idempotent via zsh `path` array + `typeset -aU` which keeps
+# first occurrence and dedupes). Order: ~/bin > ~/.local/bin > linuxbrew >
+# /usr/local/bin > system. linuxbrew is now in PATH for all shell modes because
+# brew shellenv runs above in .zshenv, not .zprofile.
+# NOTE: each ${HOMEBREW_PREFIX:+...} must be its own line. zsh does not word-split
+# parameter expansions by default, so combining two paths in one ${...:+...}
+# yields a single array element containing a space (corrupting PATH). This
+# mirrors the fpath block below.
+path=(
+  $HOME/bin
+  $HOME/.local/bin
+  ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/bin}
+  ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/sbin}
+  /usr/local/bin
+  $path
+)
+typeset -aU path
 # add a config file for ripgrep
 export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
 
@@ -22,7 +51,6 @@ fpath=(
     $fpath
 )
 
-typeset -aU path
 typeset -aU fpath
 
 export EDITOR='nvim'
