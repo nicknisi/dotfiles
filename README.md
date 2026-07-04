@@ -151,6 +151,97 @@ These files are sourced if present but never committed:
 
 - `occm` — generate a conventional commit message via `opencode run --command commit` (pass `-m <provider/model>` to select a model; extra args become instructions)
 
+## Git & SSH: multi-account setup
+
+Per-machine, manual setup. Structure lives in repo; identity (keys, emails,
+host names) stays in `$HOME` and is never committed.
+
+### Setup steps
+
+1. **Generate two SSH keys**:
+   ```bash
+   ssh-keygen -t ed25519 -C "<personal-email>" -f ~/.ssh/id_ed25519_personal
+   ssh-keygen -t ed25519 -C "<work-email>"      -f ~/.ssh/id_ed25519_work
+   ```
+
+2. **Register public keys**:
+   - `~/.ssh/id_ed25519_personal.pub` → GitHub Settings → SSH keys
+   - `~/.ssh/id_ed25519_work.pub`     → GitLab (or work host) → SSH keys
+
+3. **Write `~/.ssh/config`** (per-machine, not managed by dotfiles):
+   ```ssh-config
+   Host github.com
+     HostName github.com
+     User git
+     IdentityFile ~/.ssh/id_ed25519_personal
+     IdentitiesOnly yes
+
+   Host <work-host>
+     HostName <work-host>
+     User git
+     IdentityFile ~/.ssh/id_ed25519_work
+     IdentitiesOnly yes
+
+   Host *
+     AddKeysToAgent yes
+     IdentitiesOnly yes
+   ```
+
+4. **Set default identity** via `./install.sh git` (writes `~/.gitconfig-local`).
+
+5. **Per repo, after clone** (stored in `.git/config`, never committed):
+   ```bash
+   git config user.name  "<name>"
+   git config user.email "<email>"
+   ```
+
+### repo (multi-repo manifest) workflow
+
+For `repo init -u ...` workflows (Android, AOSP, embedded manifests) where
+`repo sync` checks out dozens of projects — setting `user.email` per project
+is impractical. Use `repo init --config-name` instead: it prompts for
+`user.name` / `user.email` once and writes them to `.repo/config`, inherited
+by every project under that manifest.
+
+1. **Init manifest with identity** (run once per manifest checkout):
+   ```bash
+   repo init -u git@<work-host>:<org>/manifest.git --config-name
+   # prompts:
+   #   Your Name  [Feng Li]:
+   #   Your Email [feng.li37.o@nio.com]:
+   ```
+   Identity is stored in `.repo/manifests.git/config` (under the manifest
+   checkout dir, never committed).
+
+2. **Sync** — all projects inherit the identity from step 1:
+   ```bash
+   repo sync
+   ```
+
+3. **Different manifest, different identity** — each manifest checkout gets
+   its own `repo init --config-name`. Personal manifest → personal email;
+   work manifest → work email. No cross-contamination.
+
+4. **Already-synced projects missing identity** (e.g. manifest added new
+   projects after a sync, or `--config-name` was forgotten) — fix in bulk:
+   ```bash
+   repo forall -c 'git config user.email "<email>"; git config user.name "<name>"'
+   ```
+
+SSH routing is unaffected: each project's remote URL (`git@<host>:...`) is
+matched against `~/.ssh/config` independently, so mixed GitHub + work-host
+manifests route the right key per project automatically.
+
+### Verify
+
+```bash
+ssh -T git@github.com        # → Hi <username>!
+ssh -T git@<work-host>       # → Welcome to GitLab, @<username>!
+cd <repo> && git config user.email                       # single repo
+cd <manifest-root>/.repo/manifests.git && git config user.email  # repo manifest
+cd <manifest-root>/<project> && git config user.email            # inherited
+```
+
 ## Neovim setup
 
 > **Note**
