@@ -5,7 +5,7 @@
     "CLAUDE_CODE_DISABLE_1M_CONTEXT": "0",
     "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1",
     "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "0",
-    "CLAUDE_CODE_EFFORT_LEVEL": "max",
+    "xCLAUDE_CODE_EFFORT_LEVEL": "max",
     "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_NO_FLICKER": "1",
@@ -94,6 +94,7 @@
     "defaultMode": "auto",
     "additionalDirectories": ["~/.claude/"]
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "SessionEnd": [
       {
@@ -125,9 +126,9 @@
     "ideation@nicknisi": true,
     "image-gen@nicknisi": true,
     "explanatory-output-style@claude-code-plugins": true,
-    "fleet@fleet-local": true,
     "tmux@nicknisi": true,
-    "sessions@sessions": true
+    "sessions@sessions": true,
+    "fleet@fleet-local": true
   },
   "extraKnownMarketplaces": {
     "obsidian-skills": {
@@ -149,16 +150,16 @@
         "path": "/Users/nicknisi/Developer/claude-plugins"
       }
     },
-    "fleet-local": {
-      "source": {
-        "source": "directory",
-        "path": "/Users/nicknisi/.local/share/fleet-marketplace"
-      }
-    },
     "sessions": {
       "source": {
         "source": "directory",
         "path": "/Users/nicknisi/.local/share/sessions"
+      }
+    },
+    "fleet-local": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/nicknisi/.local/share/fleet-marketplace"
       }
     }
   },
@@ -330,5 +331,6 @@
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true,
-  "defaultMode": "auto"
+  "defaultMode": "auto",
+  "effortLevel": "high"
 }
