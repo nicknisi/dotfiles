@@ -131,9 +131,10 @@ tmux set -g status-left "$session"
 # tmux set -g status-right "${tm_claude_display}#{?$tm_tunes,${tm_tunes_display},}${tm_git_status}"
 tmux set -g status-right "${tm_agent_display}${tm_tunes_display}${tm_git_status}"
 
-# Window status formats
-tmux setw -g window-status-format "#[fg=${thm_black4}]#{?#{window_name},#W,#{b:pane_current_path}}"
-tmux setw -g window-status-current-format "#[fg=${thm_magenta},bold]#{?#{window_name},#W,#{b:pane_current_path}}"
+# Window status formats — names capped at 32 cells so app-set titles
+# (Claude tasks, fleet status) can't flood the status bar
+tmux setw -g window-status-format "#[fg=${thm_black4}]#{?#{window_name},#{=/32/…:window_name},#{b:pane_current_path}}"
+tmux setw -g window-status-current-format "#[fg=${thm_magenta},bold]#{?#{window_name},#{=/32/…:window_name},#{b:pane_current_path}}"
 
 # Clock mode
 tmux setw -g clock-mode-colour "${thm_blue0}"

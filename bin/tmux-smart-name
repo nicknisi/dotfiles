@@ -3,6 +3,23 @@
 
 COMMAND="$1"
 CURRENT_PATH="$2"
+PANE_ID="$3"
+
+# Some apps set a pane title via OSC 0/2 (tmux stores it as #{pane_title}).
+# Prefer it only for apps that use the title as a window *name* — fleet
+# emits "fleet …" status. Task-sentence titles (Claude Code) fall through
+# to project naming below; fleet shows those in its sidebar instead.
+# Queried by pane id rather than interpolated into the format string so
+# quotes in titles can't break shell parsing.
+if [ -n "$PANE_ID" ]; then
+  TITLE=$(tmux display-message -p -t "$PANE_ID" '#{pane_title}' 2>/dev/null)
+  case "$TITLE" in
+  fleet*)
+    echo "$TITLE"
+    exit 0
+    ;;
+  esac
+fi
 
 # Claude sets its process title to its version number (e.g. 2.1.197 or
 # 2_1_197 depending on version), map it back to "claude"
