@@ -1,6 +1,9 @@
 # Place a copy of this config to ~/.aerospace.toml
 # After that, you can edit ~/.aerospace.toml to your liking
 
+# See: https://nikitabobko.github.io/AeroSpace/guide#config-version
+config-version = 2
+
 # You can use it to add commands that run after login to macOS user session.
 # 'start-at-login' needs to be 'true' for 'after-login-command' to work
 # Available commands: https://nikitabobko.github.io/AeroSpace/commands
@@ -36,6 +39,11 @@ default-root-container-orientation = 'auto'
 # Possible values: (qwerty|dvorak)
 # See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
 key-mapping.preset = 'qwerty'
+
+# Workspaces that stay alive even when empty and invisible.
+# config-version = 2 no longer infers these from keybindings, so this list
+# mirrors every workspace referenced in [mode.main.binding] below.
+persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'C', 'D', 'M', 'N', 'S', 'T', 'W', 'X', 'Z']
 
 # Mouse follows focus when focused monitor changes
 # Drop it from your config, if you don't like this behavior
