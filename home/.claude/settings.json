@@ -8,8 +8,7 @@
     "xCLAUDE_CODE_EFFORT_LEVEL": "max",
     "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_NO_FLICKER": "1",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
+    "CLAUDE_CODE_NO_FLICKER": "1"
   },
   "attribution": {
     "commit": "",
@@ -54,6 +53,9 @@
       "Bash(brew info *)",
       "Bash(brew list *)",
       "Bash(npm *)",
+      "Bash(pnpm *)",
+      "Bash(bun *)",
+      "Bash(bunx *)",
       "Bash(pip list *)",
       "Bash(pip show *)",
       "Bash(node *)",
@@ -92,7 +94,9 @@
       "Bash(npm publish *)"
     ],
     "defaultMode": "auto",
-    "additionalDirectories": ["~/.claude/"]
+    "additionalDirectories": [
+      "~/.claude/"
+    ]
   },
   "model": "claude-fable-5[1m]",
   "hooks": {
@@ -114,21 +118,19 @@
   },
   "enabledPlugins": {
     "codex@openai-codex": true,
-    "learning-output-style@claude-code-plugins": true,
     "obsidian@obsidian-skills": true,
-    "plugin-dev@claude-code-plugins": true,
     "ralph-wiggum@claude-code-plugins": true,
-    "security-guidance@claude-code-plugins": true,
     "skill-creator@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
     "content@nicknisi": true,
     "essentials@nicknisi": true,
     "ideation@nicknisi": true,
     "image-gen@nicknisi": true,
-    "explanatory-output-style@claude-code-plugins": true,
     "tmux@nicknisi": true,
     "sessions@sessions": true,
-    "fleet@fleet-local": true
+    "fleet@fleet-local": true,
+    "plugin-dev@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "explanatory-output-style@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "obsidian-skills": {
@@ -324,13 +326,14 @@
     ]
   },
   "alwaysThinkingEnabled": true,
+  "effortLevel": "xhigh",
+  "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "custom:moonstone",
-  "teammateMode": "tmux",
+  "teammateMode": "auto",
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true,
-  "defaultMode": "auto",
-  "effortLevel": "high"
+  "defaultMode": "auto"
 }
