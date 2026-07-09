@@ -283,6 +283,25 @@ Setting a `$TMUX_MINIMAL` environment variable will do some extra work to hide t
 export TMUX_MINIMAL=1
 ```
 
+## Agent Orchestration (fleet)
+
+Multi-agent tmux orchestration (status badges, jump-to-waiting-agent, the dashboard TUI, prompt injection) is handled by [fleet](https://github.com/nicknisi/fleet), which lives in its own repo and is **not** part of these dotfiles:
+
+```bash
+brew install nicknisi/formulae/fleet
+```
+
+The tmux config here calls `fleet status`, `fleet next`, and `fleet reconcile`, and fleet also registers itself as a Claude Code plugin via a local marketplace (`~/.local/share/fleet-marketplace`). The only agent-related scripts still shipped in `bin/` are:
+
+- `claude-statusline` — Claude Code in-pane status line (wired via `statusLine` in `home/.claude/settings.json`)
+- `claude-tmux-cleanup` — resets pane borders after agent sessions (SessionEnd hook)
+- `claude-notify` — tmux notification helper, still used by the Pi statusline extension
+
+An earlier generation of orchestration scripts (`claude-dashboard`, `claude-next`, `agent-status`, etc.) was superseded by fleet and removed; see git history if you need them.
+
+> [!Note]
+> MCP server config (raindrop, omnifocus, devin, etc.) lives in `~/.claude.json` user scope and is not tracked here — reconfigure those by hand on a new machine.
+
 ## Docker Setup
 
 A Dockerfile exists in the repository as a testing ground for Linux support. To set up the image, make sure you have Docker installed and then run the following command:

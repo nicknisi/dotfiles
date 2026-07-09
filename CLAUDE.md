@@ -6,7 +6,7 @@ Nick Nisi's dotfiles repo. Manages configs for zsh, neovim, tmux, ghostty, git, 
 
 - `home/` — Files symlinked to `~/` (dotfiles like `.zshenv`, `.claude/`)
 - `config/` — App configs symlinked into `~/.config/` (nvim, tmux, zsh, git, etc.)
-- `bin/` — Scripts added to `$PATH` (dot, claude-status-hook, etc.)
+- `bin/` — Scripts added to `$PATH` (dot, claude-statusline, etc.)
 - `resources/` — Fonts, themes, static assets
 - `tools/` — Tooling and helpers
 

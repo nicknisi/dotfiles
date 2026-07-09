@@ -176,3 +176,11 @@ fi
 
 # bun completions
 [ -s "/Users/nicknisi/.bun/_bun" ] && source "/Users/nicknisi/.bun/_bun"
+
+# pnpm
+export PNPM_HOME="/Users/nicknisi/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME/bin:"*) ;;
+  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+esac
+# pnpm end
