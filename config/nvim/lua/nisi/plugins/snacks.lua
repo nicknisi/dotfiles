@@ -152,6 +152,16 @@ return {
         end,
       },
     },
+    config = function(_, opts)
+      -- The SNACKS_GHOSTTY override set in init only fixes env classification;
+      -- terminal.env() still runs detect() first, whose XTVERSION query reply
+      -- leaks into the buffer as keystrokes under extended-keys "always"
+      -- (folke/snacks.nvim#2332). Pre-seed the result so no query is sent.
+      if vim.env.SNACKS_GHOSTTY == "true" then
+        require("snacks.image.terminal")._terminal = { terminal = "ghostty", version = "" }
+      end
+      require("snacks").setup(opts)
+    end,
     init = function()
       -- snacks.image can't identify the outer terminal from inside tmux when
       -- extended-keys is "always": its detection workaround only matches "on"
