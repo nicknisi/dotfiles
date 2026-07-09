@@ -21,16 +21,10 @@ Rankings, higher = better. Intelligence = how hard a problem the model can handl
 - Anything user-facing (UI, copy, API design) needs taste ≥ 7.
 - Reviews of plans/implementations: fable-5 or opus-4.8, optionally gpt-5.5 as an extra independent perspective.
 - Never use Haiku.
-- Mechanics: gpt-5.5 runs through the codex plugin — delegate via its slash commands (`/codex:review`, `/codex:adversarial-review`, `/codex:rescue`; `/codex:status`/`result`/`cancel` for `--background` jobs) or its `codex-cli-runtime` skill from subagents/workflows, never hand-rolled CLI wrappers. Claude models run via the Agent/Workflow `model` parameter.
+- Mechanics: gpt-5.5 runs through the codex plugin — delegate via its slash commands (`/codex:review`, `/codex:adversarial-review`, `/codex:rescue`; `/codex:status`/`result`/`cancel` for `--background` jobs), never hand-rolled CLI wrappers. Claude models run via the Agent/Workflow `model` parameter, which accepts Claude models only — to use gpt-5.5 inside a workflow/subagent, spawn the `codex:codex-rescue` agent (Agent `subagent_type` / Workflow `agentType`) with a self-contained prompt (codex can't see the conversation; say "read-only" for analysis-only tasks, since it defaults to write-capable runs).
 
 ## Source Accuracy & Drafting Protocol
 
 NEVER fabricate statistics, data points, or claims not explicitly present in source documents. If a fact cannot be verified from provided sources, flag it as [NEEDS SOURCE] rather than including it. Cross-reference all data attributions to ensure they match the correct source document and author.
 
-### When drafting documents or conducting research from source materials:
-
-1. **Read first, write second.** Read all provided source documents fully before drafting. Do not begin writing until all sources are loaded.
-2. **Maintain a source map.** Track every factual claim, metric, name, or date back to its source. Present the draft clean (no inline tags), with a "Source Map" appendix listing each claim and its origin (document name, section/heading).
-3. **Verify before delivering.** For substantive documents (strategy docs, external-facing reports, review comments, posts, presentations), spawn a verification agent that re-reads each source and checks every claim in the source map. Mark any unverifiable claim as [UNVERIFIED].
-4. **Separate verified from unverified.** Present the clean draft with unverified claims removed, plus a separate list of removed claims so I can decide whether to add them back with proper sourcing.
-5. **No invention.** Never generate statistics, percentages, quotes, or specific details not found in the sources - even if they seem plausible or "directionally correct."
+The full drafting workflow (source map, verification pass) lives in the `source-drafting` skill.
