@@ -11,7 +11,10 @@
 #
 # One-time setup:
 #   brew install cliproxyapi
-#   cli-proxy-api --codex-login     # ChatGPT OAuth in browser
+#   cliproxyapi --codex-login       # ChatGPT OAuth in browser
+#   Replace the "your-api-key-*" template values in
+#   $(brew --prefix)/etc/cliproxyapi.conf api-keys with "sk-local-proxy"
+#   (the proxy 403s all requests while templates are present), then:
 #   brew services start cliproxyapi
 #
 # Usage: ccg [claude args...]
