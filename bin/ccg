@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+
+# Launch Claude Code with OpenAI's GPT-5.6 Sol as the model (cc gpt).
+#
+# Claude Code only speaks the Anthropic Messages API, so this routes it
+# through CLIProxyAPI — a local proxy that accepts Anthropic-format requests
+# on :8317 and fulfills them with your ChatGPT/Codex subscription (OAuth, no
+# OpenAI API key). Like ccp, it runs under its own CLAUDE_CONFIG_DIR
+# (~/.claude-gpt) so the work account's credentials and history are untouched,
+# while settings, plugins, and themes are shared back to ~/.claude.
+#
+# One-time setup:
+#   brew install cliproxyapi
+#   cli-proxy-api --codex-login     # ChatGPT OAuth in browser
+#   brew services start cliproxyapi
+#
+# Usage: ccg [claude args...]
+#   CCG_MODEL=gpt-5.6-terra ccg     # override model (sol/terra/luna)
+
+set -euo pipefail
+
+WORK_DIR="$HOME/.claude"
+GPT_DIR="$HOME/.claude-gpt"
+PROXY_AUTH_DIR="$HOME/.cli-proxy-api"
+
+MODEL="${CCG_MODEL:-gpt-5.6-sol}"
+PORT="${CCG_PORT:-8317}"
+# CLIProxyAPI ignores the token unless api-keys are set in its config.yaml,
+# but Claude Code refuses to skip login without one.
+TOKEN="${CCG_AUTH_TOKEN:-sk-local-proxy}"
+
+# Same share list as ccp — everything else stays isolated to this profile.
+SHARED=(
+  settings.json
+  CLAUDE.md
+  plugins
+  themes
+)
+
+die() {
+  echo "ccg: $1" >&2
+  exit 1
+}
+
+command -v claude >/dev/null 2>&1 || die "'claude' not found on PATH"
+
+proxy_bin=""
+for candidate in cli-proxy-api cliproxyapi; do
+  if command -v "$candidate" >/dev/null 2>&1; then
+    proxy_bin="$candidate"
+    break
+  fi
+done
+[[ -n "$proxy_bin" ]] || die "CLIProxyAPI not installed. Run: brew install cliproxyapi"
+
+# Codex OAuth tokens land as JSON in the proxy's auth dir after --codex-login.
+if ! grep -sil codex "$PROXY_AUTH_DIR"/*.json >/dev/null 2>&1; then
+  die "no Codex auth found. Run: $proxy_bin --codex-login"
+fi
+
+proxy_up() {
+  (exec 3<>"/dev/tcp/127.0.0.1/$PORT") 2>/dev/null
+}
+
+if ! proxy_up; then
+  if command -v brew >/dev/null 2>&1 && brew list --formula cliproxyapi >/dev/null 2>&1; then
+    echo "ccg: starting cliproxyapi service..." >&2
+    brew services start cliproxyapi >/dev/null
+    for _ in $(seq 1 10); do
+      proxy_up && break
+      sleep 0.5
+    done
+  fi
+  proxy_up || die "proxy not reachable on :$PORT. Start it: brew services start cliproxyapi"
+fi
+
+first_run=0
+if [[ ! -d "$GPT_DIR" ]]; then
+  first_run=1
+  mkdir -p "$GPT_DIR"
+fi
+
+for item in "${SHARED[@]}"; do
+  src="$WORK_DIR/$item"
+  [[ -e "$src" ]] || continue
+  ln -sfn "$src" "$GPT_DIR/$item"
+done
+
+if [[ "$first_run" -eq 1 ]]; then
+  echo "Seeded GPT profile at $GPT_DIR (shared: ${SHARED[*]})."
+fi
+
+export CLAUDE_CONFIG_DIR="$GPT_DIR"
+export ANTHROPIC_BASE_URL="http://127.0.0.1:$PORT"
+export ANTHROPIC_AUTH_TOKEN="$TOKEN"
+# Keep every model slot on GPT: the proxy only has Codex auth, so any
+# claude-* request (subagents, background/small-model tasks) would 404.
+export CLAUDE_CODE_SUBAGENT_MODEL="$MODEL"
+export ANTHROPIC_SMALL_FAST_MODEL="$MODEL"
+# Effort controls for gateway models; tool search is unsupported off-API.
+export CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1
+export CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY=3
+export ENABLE_TOOL_SEARCH=false
+
+exec claude --model "$MODEL" "$@"
