@@ -12,9 +12,13 @@
 # One-time setup:
 #   brew install cliproxyapi
 #   cliproxyapi --codex-login       # ChatGPT OAuth in browser
-#   Replace the "your-api-key-*" template values in
-#   $(brew --prefix)/etc/cliproxyapi.conf api-keys with "sk-local-proxy"
-#   (the proxy 403s all requests while templates are present), then:
+#   Then edit $(brew --prefix)/etc/cliproxyapi.conf:
+#     - Replace the "your-api-key-*" template values in api-keys with
+#       "sk-local-proxy" (the proxy 403s everything while templates remain).
+#     - Add oauth-model-alias entries (codex channel, fork: true,
+#       force-mapping: true) mapping claude-haiku-4-5, claude-sonnet-5,
+#       claude-opus-4-8, claude-fable-5 -> gpt-5.6-sol, so stray claude-*
+#       requests don't 502 into "Please run /login" prompts.
 #   brew services start cliproxyapi
 #
 # Usage: ccg [claude args...]
@@ -97,9 +101,17 @@ export CLAUDE_CONFIG_DIR="$GPT_DIR"
 export ANTHROPIC_BASE_URL="http://127.0.0.1:$PORT"
 export ANTHROPIC_AUTH_TOKEN="$TOKEN"
 # Keep every model slot on GPT: the proxy only has Codex auth, so any
-# claude-* request (subagents, background/small-model tasks) would 404.
+# claude-* request (subagents, background/small-model tasks) would fail and
+# surface as a "Please run /login" prompt. The DEFAULT_*_MODEL vars control
+# what the opus/sonnet/haiku/fable aliases resolve to, including in agent
+# frontmatter. The proxy also aliases common claude-* IDs to $MODEL as a
+# catch-all (see oauth-model-alias in cliproxyapi.conf).
 export CLAUDE_CODE_SUBAGENT_MODEL="$MODEL"
 export ANTHROPIC_SMALL_FAST_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="$MODEL"
+export ANTHROPIC_DEFAULT_FABLE_MODEL="$MODEL"
 # Effort controls for gateway models; tool search is unsupported off-API.
 export CLAUDE_CODE_ALWAYS_ENABLE_EFFORT=1
 export CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY=3
