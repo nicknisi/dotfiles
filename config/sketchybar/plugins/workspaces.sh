@@ -72,7 +72,10 @@ case "$RAW" in
   "$(printf '\xe2\xa2')"* | "$(printf '\xe2\xa3')"*) # ⠂ working
   IS_AGENT=1 LED_COLOR="$GREEN" ;;
 esac
-TITLE=$(sed -E 's/^[^A-Za-z0-9]+ *//; s/󱙺 *//g' <<<"$RAW")
+# Strip the leading state glyph and ALL private-use-area chars (nerd font
+# icons like the tmux 󱙺 — Monaspace renders them as boxed ?). Codepoint
+# ranges instead of glyph literals: raw PUA bytes don't survive edits.
+TITLE=$(perl -CS -pe 's/^[^A-Za-z0-9]+ *//; s/[\x{E000}-\x{F8FF}\x{F0000}-\x{FFFFD}] *//g' <<<"$RAW")
 ROBOT=$(printf '\xf3\xb0\x9a\xa9') # nf-md-robot U+F06A9
 if [ -n "$TITLE" ]; then
   if [ "$IS_AGENT" -eq 1 ]; then
