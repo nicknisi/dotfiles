@@ -34,6 +34,19 @@ SHOW_USAGE="${CLAUDE_STATUSLINE_USAGE:-1}"
 # Read JSON input from stdin
 input=$(cat)
 
+# Tee rate_limits to a cache for sketchybar's usage pill (push, no polling
+# on the bar side). Writes atomically and only fires the trigger when the
+# payload actually changed, so most statusline refreshes cost one jq.
+tee_usage_cache() {
+  local cache="$HOME/.cache/claude-usage.json" limits
+  limits=$(echo "$input" | jq -c '.rate_limits // empty' 2>/dev/null)
+  [ -n "$limits" ] || return 0
+  [ "$limits" = "$(cat "$cache" 2>/dev/null)" ] && return 0
+  printf '%s' "$limits" >"${cache}.tmp" && mv "${cache}.tmp" "$cache"
+  command -v sketchybar >/dev/null 2>&1 && sketchybar --trigger claude_usage_update &
+}
+tee_usage_cache
+
 # Helper functions for extracting data
 get_model_name() { echo "$input" | jq -r '.model.display_name // "Unknown Model"' | sed 's/ (.*)//'; }
 
