@@ -19,6 +19,15 @@ after-login-command = []
 # Start AeroSpace at login
 start-at-login = true
 
+# Notify SketchyBar about workspace changes (see config/sketchybar/sketchybarrc)
+exec-on-workspace-change = ['/bin/bash', '-c',
+  'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE PREV_WORKSPACE=$AEROSPACE_PREV_WORKSPACE'
+]
+
+# Instant pill/app-icon refresh on any window focus change — catches new
+# windows of already-running apps that front_app_switched misses
+on-focus-changed = ['exec-and-forget sketchybar --trigger aerospace_focus_change']
+
 # Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
@@ -65,7 +74,8 @@ inner.horizontal = [ { monitor."Built-in Retina Display" = 15 }, 20  ]
 inner.vertical =   [ { monitor."Built-in Retina Display" = 15 }, 20  ]
 outer.left =       [ { monitor."Built-in Retina Display" = 20 }, 25  ]
 outer.bottom =     [ { monitor."Built-in Retina Display" = 20 }, 25  ]
-outer.top =        [ { monitor."Built-in Retina Display" = 20 }, 25  ]
+# outer.top clears the floating SketchyBar: y_offset 6 + height 36 + inner gap
+outer.top =        [ { monitor."Built-in Retina Display" = 57 }, 62  ]
 outer.right =      [ { monitor."Built-in Retina Display" = 20 }, 25  ]
 
 # 'main' binding mode declaration
@@ -172,7 +182,8 @@ alt-tab = 'workspace-back-and-forth'
 alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
-alt-shift-semicolon = 'mode service'
+# Mode changes also notify the SketchyBar badge (plugins/aerospace_mode.sh)
+alt-shift-semicolon = ['mode service', 'exec-and-forget sketchybar --trigger aerospace_mode_change MODE=service']
 
 # Note: this is extremely inflexible, locking specific workspaces to specific monitors.
 # [workspace-to-monitor-force-assignment]
@@ -184,19 +195,19 @@ alt-shift-semicolon = 'mode service'
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 [mode.service.binding]
-esc = ['reload-config', 'mode main']
-r = ['flatten-workspace-tree', 'mode main'] # reset layout
-f = ['layout floating tiling', 'mode main'] # Toggle between floating and tiling layout
-backspace = ['close-all-windows-but-current', 'mode main']
+esc = ['reload-config', 'mode main', 'exec-and-forget sketchybar --trigger aerospace_mode_change MODE=main']
+r = ['flatten-workspace-tree', 'mode main', 'exec-and-forget sketchybar --trigger aerospace_mode_change MODE=main'] # reset layout
+f = ['layout floating tiling', 'mode main', 'exec-and-forget sketchybar --trigger aerospace_mode_change MODE=main'] # Toggle between floating and tiling layout
+backspace = ['close-all-windows-but-current', 'mode main', 'exec-and-forget sketchybar --trigger aerospace_mode_change MODE=main']
 q = ['enable toggle'] # Disable window management
 
 # sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
 #s = ['layout sticky tiling', 'mode main']
 
-alt-shift-h = ['join-with left', 'mode main']
-alt-shift-j = ['join-with down', 'mode main']
-alt-shift-k = ['join-with up', 'mode main']
-alt-shift-l = ['join-with right', 'mode main']
+alt-shift-h = ['join-with left', 'mode main', 'exec-and-forget sketchybar --trigger aerospace_mode_change MODE=main']
+alt-shift-j = ['join-with down', 'mode main', 'exec-and-forget sketchybar --trigger aerospace_mode_change MODE=main']
+alt-shift-k = ['join-with up', 'mode main', 'exec-and-forget sketchybar --trigger aerospace_mode_change MODE=main']
+alt-shift-l = ['join-with right', 'mode main', 'exec-and-forget sketchybar --trigger aerospace_mode_change MODE=main']
 
 # Event listeners
 
