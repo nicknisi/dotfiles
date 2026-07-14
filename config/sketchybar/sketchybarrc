@@ -1,0 +1,196 @@
+#!/usr/bin/env bash
+# SketchyBar — https://felixkratz.github.io/SketchyBar/
+# Visual direction: "Phosphor" — dark frosted glass framed by the same
+# accent-blue hairline glow as the JankyBorders window borders; structure
+# drawn with 1px luminous strokes, not fills; Monaspace labels.
+#
+# Complements (never duplicates) the macOS menu bar OR the tmux statusline:
+# AeroSpace workspaces with per-app icons, focused window title + layout
+# glyph + now-playing in the center, fleet-driven agent state with an
+# attention chip, PRs awaiting review, Claude usage when running hot.
+#
+# Event flow (all push, polling only where no push exists):
+#   aerospace exec-on-workspace-change / on-focus-changed
+#     -> plugins/workspaces.sh (ONE batched render: pills, rings, center)
+#   fleet hook status files -> bin/sketchybar-fleet-watch (fswatch)
+#     -> fleet_state_change -> plugins/agents.sh (agents pill + chip)
+#   bin/claude-statusline tee -> claude_usage_update -> plugins/usage.sh
+#   music: 10s poll (AppleScript has no push surface)
+
+CONFIG_DIR="${CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/sketchybar}"
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+DOTFILES_BIN="$HOME/Developer/dotfiles/bin"
+source "$CONFIG_DIR/colors.sh"
+
+GAUGE=$(printf '\xf3\xb0\x89\x81')  # nf-md-gauge  U+F0241
+GITHUB=$(printf '\xef\x82\x9b')     # nf-fa-github U+F09B
+
+MONO="Monaspace Neon"
+
+# ── Bar: dark glass with a live edge ─────────────────────────────
+sketchybar --bar \
+  position=top \
+  height=36 \
+  margin=10 \
+  y_offset=6 \
+  corner_radius=10 \
+  blur_radius=30 \
+  color="$BAR_COLOR" \
+  border_width=1 \
+  border_color="$BAR_BORDER" \
+  shadow=on \
+  padding_left=12 \
+  padding_right=12 \
+  display=all
+
+sketchybar --hotload true
+
+# ── Defaults: every chip has a visible fill AND a resting hairline ─
+sketchybar --default \
+  icon.font="Symbols Nerd Font Mono:Regular:14.0" \
+  icon.color="$GREY" \
+  label.font="$MONO:Regular:12.0" \
+  label.color="$FG" \
+  icon.padding_left=8 \
+  icon.padding_right=4 \
+  label.padding_left=2 \
+  label.padding_right=8 \
+  padding_left=6 \
+  padding_right=6 \
+  background.corner_radius=4 \
+  background.height=24 \
+  background.color="$ITEM_BG" \
+  background.border_width=1 \
+  background.border_color="$HAIRLINE" \
+  popup.background.color="$POPUP_BG" \
+  popup.background.corner_radius=6 \
+  popup.background.border_width=1 \
+  popup.background.border_color="$POPUP_BORDER" \
+  popup.blur_radius=30
+
+# ── Events ───────────────────────────────────────────────────────
+sketchybar --add event aerospace_workspace_change \
+  --add event aerospace_focus_change \
+  --add event aerospace_mode_change \
+  --add event fleet_state_change \
+  --add event claude_usage_update
+
+# ── AeroSpace workspaces ─────────────────────────────────────────
+# Pills are dumb views (hover handler only); workspaces.sh renders all of
+# them in one batch. Each pill gets a personal bracket ring — the dim
+# outer stroke of the focused glow (bright inner border on the pill).
+for sid in $(aerospace list-workspaces --all); do
+  sketchybar --add item space."$sid" left \
+    --subscribe space."$sid" mouse.entered mouse.exited \
+    --set space."$sid" \
+    icon="$sid" \
+    icon.font="$MONO:Bold:11.0" \
+    label.font="Symbols Nerd Font Mono:Regular:13.0" \
+    label.drawing=off \
+    drawing=off \
+    updates=when_shown \
+    background.height=22 \
+    background.color="$PILL_BG" \
+    click_script="aerospace workspace $sid" \
+    script="$PLUGIN_DIR/space_hover.sh" \
+    --add bracket ring."$sid" space."$sid" \
+    --set ring."$sid" \
+    background.color="$TRANSPARENT" \
+    background.border_width=1 \
+    background.border_color="$TRANSPARENT" \
+    background.height=26 \
+    background.corner_radius=6
+done
+
+# Invisible controller: one batched render per event (pills+rings+center).
+# fleet_state_change is included so the title's robot LED recolors when the
+# focused agent's state flips, even with no window/pane switch.
+sketchybar --add item spaces_controller left \
+  --subscribe spaces_controller aerospace_workspace_change \
+  aerospace_focus_change fleet_state_change display_change \
+  --set spaces_controller drawing=off width=0 \
+  script="$PLUGIN_DIR/workspaces.sh"
+
+# Workspace shelf: a drawn outline, not a fill — visible structure at
+# near-zero luminance. Part of what makes the calm bar look designed.
+sketchybar --add bracket spaces '/space\..*/' \
+  --set spaces \
+  background.color="$TRANSPARENT" \
+  background.border_width=1 \
+  background.border_color="$GLOW_TRACE" \
+  background.corner_radius=6 \
+  background.height=28
+
+# AeroSpace binding-mode badge — the bar's one inverted chip
+sketchybar --add item aerospace_mode left \
+  --subscribe aerospace_mode aerospace_mode_change \
+  --set aerospace_mode \
+  icon=󰒓 \
+  label.font="$MONO:Bold:11.0" \
+  drawing=off \
+  script="$PLUGIN_DIR/aerospace_mode.sh"
+
+# ── Center: ❯ window title · layout glyph · now-playing ─────────
+# Title floats on the glass (no chip) — the calm center's anchor.
+# Rendered by workspaces.sh on the same aerospace events as the pills.
+sketchybar --add item title center \
+  --set title \
+  icon.font="Symbols Nerd Font Mono:Regular:13.0" \
+  icon.drawing=off \
+  label.color="$FG_DIM" \
+  label.max_chars=64 \
+  scroll_texts=on \
+  background.drawing=off \
+  drawing=off
+
+sketchybar --add item music center \
+  --set music \
+  icon="♪" \
+  icon.color="$MAGENTA" \
+  label.max_chars=28 \
+  scroll_texts=on \
+  update_freq=10 \
+  drawing=off \
+  script="$PLUGIN_DIR/music.sh"
+
+# ── Right: agents · attention chip · reviews · usage ─────────────
+# agents: calm = dim green robot (fleet healthy); alerts light the edge
+# in fleet tier hues. Left-click = fleet popup, right-click = fleet next.
+sketchybar --add item agents right \
+  --subscribe agents fleet_state_change aerospace_workspace_change \
+  --set agents \
+  update_freq=60 \
+  click_script="$PLUGIN_DIR/agents_click.sh" \
+  script="$PLUGIN_DIR/agents.sh"
+
+# attention chip: rendered by agents.sh in the same batched call.
+# The loudest neon element — one saturated 1px edge, not a shout.
+sketchybar --add item attention right \
+  --set attention \
+  drawing=off \
+  label.max_chars=30 \
+  scroll_texts=on
+
+sketchybar --add item github right \
+  --set github \
+  icon="$GITHUB" \
+  icon.color="$FG" \
+  update_freq=300 \
+  click_script="aerospace workspace W; open https://github.com/pulls/review-requested" \
+  script="$PLUGIN_DIR/github.sh"
+
+# usage: hidden until the 5h Claude window runs hot (>=70%)
+sketchybar --add item usage right \
+  --subscribe usage claude_usage_update \
+  --set usage \
+  icon="$GAUGE" \
+  update_freq=300 \
+  drawing=off \
+  script="$PLUGIN_DIR/usage.sh"
+
+# ── Fleet push watcher ───────────────────────────────────────────
+pkill -f 'fswatch.*claude-status' 2>/dev/null
+(nohup "$DOTFILES_BIN/sketchybar-fleet-watch" >/dev/null 2>&1 &)
+
+# Force every item to run its script once so the bar starts populated
+sketchybar --update

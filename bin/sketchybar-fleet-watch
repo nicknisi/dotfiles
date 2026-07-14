@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Description: push fleet agent-state changes to sketchybar
+#
+# Watches the status dirs that fleet's Claude Code/Codex/pi hooks write to
+# (the same files fleet's TUI fs.watch()es) and fires a sketchybar trigger.
+# Spawned by sketchybarrc; --latency batches bursts, and fleet's own 3s
+# Stop-debounce is inherited for free since we watch its output.
+
+command -v fswatch >/dev/null 2>&1 || exit 0
+command -v sketchybar >/dev/null 2>&1 || exit 0
+
+DIRS=("$HOME/.cache/claude-status" "$HOME/.cache/codex-status" "$HOME/.cache/pi-status")
+mkdir -p "${DIRS[@]}"
+
+fswatch -o --latency 0.3 "${DIRS[@]}" | while read -r _; do
+  sketchybar --trigger fleet_state_change
+done

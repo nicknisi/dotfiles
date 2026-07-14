@@ -10,6 +10,7 @@ if OS.mac?
   brew 'noti'                          # utility to display notifications from scripts
   brew 'trash'                         # rm, but put in the trash rather than completely delete
   brew 'borders'                       # add borders to windows
+  brew 'sketchybar'                    # custom menu bar with aerospace workspaces
 
   # Applications
   cask 'ghostty'                       # a better terminal emulator
@@ -37,6 +38,7 @@ brew 'grep'                            # grep
 brew 'bat'                             # better cat
 brew 'cloc'                            # lines of code counter
 brew 'entr'                            # file watcher / command runner
+brew 'fswatch'                         # fs event watcher (pushes fleet state to sketchybar)
 brew 'eza'                             # ls alternative
 brew 'fd'                              # find alternative
 brew 'gum'                             # fancy UI utilities
