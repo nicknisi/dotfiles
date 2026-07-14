@@ -188,6 +188,15 @@ sketchybar --add item usage right \
   drawing=off \
   script="$PLUGIN_DIR/usage.sh"
 
+# spend: running daily dollar total across claude/codex/pi via `sessions report`
+sketchybar --add item spend right \
+  --set spend \
+  icon="$" \
+  icon.font="$MONO:Bold:12.0" \
+  update_freq=900 \
+  drawing=off \
+  script="$PLUGIN_DIR/spend.sh"
+
 # ── Fleet push watcher ───────────────────────────────────────────
 pkill -f 'fswatch.*claude-status' 2>/dev/null
 (nohup "$DOTFILES_BIN/sketchybar-fleet-watch" >/dev/null 2>&1 &)
