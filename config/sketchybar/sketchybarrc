@@ -171,6 +171,26 @@ sketchybar --add item attention right \
   label.max_chars=30 \
   scroll_texts=on
 
+# spend: running daily dollar total across claude/codex/pi via
+# `sessions report` — placed beside the agents it measures
+sketchybar --add item spend right \
+  --set spend \
+  icon="$" \
+  icon.font="$MONO:Bold:12.0" \
+  update_freq=900 \
+  drawing=off \
+  script="$PLUGIN_DIR/spend.sh"
+
+# The agent instrument cluster shares one shelf outline, mirroring the
+# workspace shelf on the left
+sketchybar --add bracket agent_cluster spend attention agents \
+  --set agent_cluster \
+  background.color="$TRANSPARENT" \
+  background.border_width=1 \
+  background.border_color="$GLOW_TRACE" \
+  background.corner_radius=6 \
+  background.height=28
+
 sketchybar --add item github right \
   --set github \
   icon="$GITHUB" \
@@ -187,15 +207,6 @@ sketchybar --add item usage right \
   update_freq=300 \
   drawing=off \
   script="$PLUGIN_DIR/usage.sh"
-
-# spend: running daily dollar total across claude/codex/pi via `sessions report`
-sketchybar --add item spend right \
-  --set spend \
-  icon="$" \
-  icon.font="$MONO:Bold:12.0" \
-  update_freq=900 \
-  drawing=off \
-  script="$PLUGIN_DIR/spend.sh"
 
 # ── Fleet push watcher ───────────────────────────────────────────
 pkill -f 'fswatch.*claude-status' 2>/dev/null

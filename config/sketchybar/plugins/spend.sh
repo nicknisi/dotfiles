@@ -16,10 +16,11 @@ if [ -z "$TOTAL" ] || [ "$(printf '%.0f' "$TOTAL")" -eq 0 ]; then
   exit 0
 fi
 
+# The chip's $ icon carries the currency; the label is just the number
 if [ "$(printf '%.0f' "$TOTAL")" -ge 10 ]; then
-  LABEL=$(printf '$%.0f' "$TOTAL")
+  LABEL=$(printf '%.0f' "$TOTAL")
 else
-  LABEL=$(printf '$%.2f' "$TOTAL")
+  LABEL=$(printf '%.2f' "$TOTAL")
 fi
 
 sketchybar --animate tanh 15 --set "$NAME" drawing=on \
