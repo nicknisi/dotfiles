@@ -6,8 +6,8 @@
 #
 # Complements (never duplicates) the macOS menu bar OR the tmux statusline:
 # AeroSpace workspaces with per-app icons, focused window title + layout
-# glyph + now-playing in the center, fleet-driven agent state with an
-# attention chip, PRs awaiting review, Claude usage when running hot.
+# glyph in the center, fleet-driven agent state with an attention chip,
+# PRs awaiting review, Claude usage when running hot, now-playing.
 #
 # Event flow (all push, polling only where no push exists):
 #   aerospace exec-on-workspace-change / on-focus-changed
@@ -130,7 +130,7 @@ sketchybar --add item aerospace_mode left \
   drawing=off \
   script="$PLUGIN_DIR/aerospace_mode.sh"
 
-# ── Center: ❯ window title · layout glyph · now-playing ─────────
+# ── Center: ❯ window title · layout glyph ───────────────────────
 # Title floats on the glass (no chip) — the calm center's anchor.
 # Rendered by workspaces.sh on the same aerospace events as the pills.
 sketchybar --add item title center \
@@ -143,17 +143,7 @@ sketchybar --add item title center \
   background.drawing=off \
   drawing=off
 
-sketchybar --add item music center \
-  --set music \
-  icon="♪" \
-  icon.color="$MAGENTA" \
-  label.max_chars=28 \
-  scroll_texts=on \
-  update_freq=10 \
-  drawing=off \
-  script="$PLUGIN_DIR/music.sh"
-
-# ── Right: agents · attention chip · reviews · usage ─────────────
+# ── Right: agents · attention chip · reviews · usage · music ─────
 # agents: calm = dim green robot (fleet healthy); alerts light the edge
 # in fleet tier hues. Left-click = fleet popup, right-click = fleet next.
 sketchybar --add item agents right \
@@ -207,6 +197,17 @@ sketchybar --add item usage right \
   update_freq=300 \
   drawing=off \
   script="$PLUGIN_DIR/usage.sh"
+
+# now-playing: added last so it sits innermost, nearest the center
+sketchybar --add item music right \
+  --set music \
+  icon="♪" \
+  icon.color="$MAGENTA" \
+  label.max_chars=28 \
+  scroll_texts=on \
+  update_freq=10 \
+  drawing=off \
+  script="$PLUGIN_DIR/music.sh"
 
 # ── Fleet push watcher ───────────────────────────────────────────
 pkill -f 'fswatch.*claude-status' 2>/dev/null
