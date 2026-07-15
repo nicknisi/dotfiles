@@ -2,9 +2,12 @@
 # Agents pill + attention chip, rendered together in one batched call.
 #
 # WAITING comes from fleet's hook-written status files
-# (~/.cache/{claude,codex,pi}-status/<pane>.status — ~37ms via jq), the
-# same ground truth fleet's own TUI watches. TOTAL still comes from pane
-# process names (codex/pi don't write status files yet).
+# (~/.cache/{claude,codex,pi}-status/<pane>.status) FUSED with the tail of
+# each sibling <pane>.events.jsonl, mirroring fleet's own state engine
+# (fleet src/state/events.ts deriveStatusFromEvents): an AskUserQuestion
+# turn never reaches .status (it still says "working"), and a Stop often
+# lands in events before the debounced .status write. TOTAL still comes
+# from pane process names (codex/pi don't write status files yet).
 # Push updates: fleet_state_change (fswatch via bin/sketchybar-fleet-watch);
 # update_freq=60 on the item is only a reconcile backstop.
 #
@@ -26,16 +29,51 @@ if [ "${TOTAL:-0}" -eq 0 ]; then
   exit 0
 fi
 
-# Waiting rows as "state|pane|session|tool", priority-sorted, orphans dropped
-ROWS=$(cat "$HOME"/.cache/{claude,codex,pi}-status/*.status 2>/dev/null |
-  jq -r 'select(.state == "permit" or .state == "question" or .state == "done")
-    | "\(.state)|\(.pane)|\(.session)|\(.tool)"' 2>/dev/null |
+# Waiting rows as "state|pane|session|tool", priority-sorted, orphans dropped.
+# Event-derived state wins over the .status snapshot; a permission_prompt is
+# traced back to the PreToolUse that opened it — AskUserQuestion means the
+# prompt is a question for you, not a tool approval, and a Stop/SubagentStop
+# in between means the prompt belongs to a later, unrelated request.
+# Acknowledged maps to idle (never falls back to a stale .status "done").
+ROWS=$(
+  for sf in "$HOME"/.cache/{claude,codex,pi}-status/*.status; do
+    [ -e "$sf" ] || continue
+    tail -n 25 "${sf%.status}.events.jsonl" 2>/dev/null |
+      jq -crsR --slurpfile st "$sf" '
+        [splits("\n") | select(length > 0) | fromjson?] as $ev
+        | $st[0] as $s
+        | ($ev | last) as $l
+        | (if $l == null then null
+           elif $l.event == "Acknowledged" then "idle"
+           elif $l.event == "Stop" or $l.event == "SubagentStop" then
+             (if $l.background_tasks == true or $l.stop_reason == "tool_use"
+              then "working" else "done" end)
+           elif $l.event == "PreToolUse" then
+             (if $l.tool == "AskUserQuestion" then "question" else "working" end)
+           elif $l.event == "Notification" then
+             (if $l.notification_type == "elicitation_dialog" then "question"
+              elif $l.notification_type == "idle_prompt" then "done"
+              elif $l.notification_type == "permission_prompt" then
+                (($ev[0:-1] | reverse | map(select(
+                    .event == "Stop" or .event == "SubagentStop"
+                    or .event == "PreToolUse")) | first // null) as $t
+                 | if $t != null and $t.event == "PreToolUse"
+                     and $t.tool == "AskUserQuestion"
+                   then "question" else "permit" end)
+              else null end)
+           else null end) as $derived
+        | ($derived // {waiting: "permit", completed: "done"}[$s.state] // $s.state) as $state
+        | select($state == "permit" or $state == "question" or $state == "done")
+        | "\($state)|\($s.pane)|\($s.session)|\($s.tool)"
+      ' 2>/dev/null
+  done |
   while IFS= read -r row; do
     pane="${row#*|}" pane="${pane%%|*}"
     grep -qx -- "$pane" <<<"$PANES" && echo "$row"
   done |
   awk -F'|' '{p = ($1=="permit") ? 0 : ($1=="question") ? 1 : 2; print p "|" $0}' |
-  sort -t'|' -k1,1n | cut -d'|' -f2-)
+  sort -t'|' -k1,1n | cut -d'|' -f2-
+)
 
 WAITING=0
 [ -n "$ROWS" ] && WAITING=$(wc -l <<<"$ROWS" | tr -d ' ')
@@ -68,10 +106,11 @@ ROBOT=$(printf '\xf3\xb0\x9a\xa9') # nf-md-robot U+F06A9
 if [ "$WAITING" -gt 0 ] && [ "$SUPPRESS" -eq 0 ]; then
   TOP=$(head -1 <<<"$ROWS")
   IFS='|' read -r STATE PANE SESSION TOOL <<<"$TOP"
+  # Fleet's vocabulary: waiting / asking / ready
   case "$STATE" in
-  permit) GLYPH="⚠" COLOR="$YELLOW" EDGE="$YELLOW_BORDER" FILL="$YELLOW_FILL" ;;
-  question) GLYPH="?" COLOR="$MAGENTA" EDGE="$MAGENTA_BORDER" FILL="$MAGENTA_FILL" ;;
-  *) GLYPH="●" COLOR="$GREEN" EDGE="$GREEN_BORDER" FILL="$GREEN_FILL" ;;
+  permit) GLYPH="⚠" VERB="waiting" COLOR="$YELLOW" EDGE="$YELLOW_BORDER" FILL="$YELLOW_FILL" ;;
+  question) GLYPH="?" VERB="asking" COLOR="$MAGENTA" EDGE="$MAGENTA_BORDER" FILL="$MAGENTA_FILL" ;;
+  *) GLYPH="●" VERB="ready" COLOR="$GREEN" EDGE="$GREEN_BORDER" FILL="$GREEN_FILL" ;;
   esac
 
   # Task title from the pane title (leading ✳/spinner glyph = Claude's
@@ -85,7 +124,7 @@ if [ "$WAITING" -gt 0 ] && [ "$SUPPRESS" -eq 0 ]; then
     label="$WAITING/$TOTAL" label.color="$COLOR" \
     background.color="$FILL" background.border_color="$EDGE" \
     --set attention drawing=on icon="$GLYPH" icon.color="$COLOR" \
-    label="$SESSION: $TASK" label.color="$COLOR" \
+    label="$SESSION $VERB: $TASK" label.color="$COLOR" \
     background.color="$FILL" background.border_color="$EDGE" \
     click_script="aerospace workspace D; fleet switch $PANE"
 
