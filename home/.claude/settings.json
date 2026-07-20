@@ -8,7 +8,8 @@
     "xCLAUDE_CODE_EFFORT_LEVEL": "max",
     "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "1",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "CLAUDE_CODE_NO_FLICKER": "1"
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "CLAUDE_CODE_TMUX_TRUECOLOR": "1"
   },
   "attribution": {
     "commit": "",
@@ -330,7 +331,7 @@
   "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
-  "theme": "custom:moonstone",
+  "theme": "custom:phosphor",
   "teammateMode": "auto",
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
