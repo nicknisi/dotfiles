@@ -1,0 +1,17 @@
+diff --git i/src/display.c w/src/display.c
+index 73a5e93..23134b8 100644
+--- i/src/display.c
++++ w/src/display.c
+@@ -250,6 +250,12 @@ CGRect display_menu_bar_rect(uint32_t did) {
+   SLSGetRevealedMenuBarBounds(&bounds, g_connection, display_space_id(did));
+   #elif __arm64__
+   int top_inset = display_nsscreen_top_inset(did);
++  // Tahoe with "Displays have separate Spaces" disabled paints a menu bar on
++  // secondary displays but reserves no space for it (visibleFrame == frame).
++  // Fall back to the main display's inset so bars stack below it everywhere.
++  if (top_inset <= 0 && did != CGMainDisplayID()) {
++    top_inset = display_nsscreen_top_inset(CGMainDisplayID());
++  }
+   if (top_inset >= 0) {
+     bounds.size.height = top_inset;
+   } else {
