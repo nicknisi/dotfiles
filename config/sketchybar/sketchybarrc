@@ -209,6 +209,14 @@ sketchybar --add item music right \
   drawing=off \
   script="$PLUGIN_DIR/music.sh"
 
+# ── AeroSpace lifeline ───────────────────────────────────────────
+# The bar only exists alongside the WM: AeroSpace launches it
+# (after-startup-command in aerospace.toml) and this watchdog exits it
+# when AeroSpace quits. Process exit has no push surface, so a slow poll.
+sketchybar --add item aerospace_watchdog left \
+  --set aerospace_watchdog drawing=off width=0 update_freq=10 \
+  script="pgrep -xq AeroSpace || { pkill -f 'fswatch.*claude-status'; pkill -x sketchybar; }"
+
 # ── Fleet push watcher ───────────────────────────────────────────
 pkill -f 'fswatch.*claude-status' 2>/dev/null
 (nohup "$DOTFILES_BIN/sketchybar-fleet-watch" >/dev/null 2>&1 &)

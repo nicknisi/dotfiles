@@ -12,9 +12,9 @@ after-login-command = []
 # You can use it to add commands that run after AeroSpace startup.
 # 'after-startup-command' is run after 'after-login-command'
 # Available commands : https://nikitabobko.github.io/AeroSpace/commands
-# after-startup-command = [
-#   'exec-and-forget borders'
-# ]
+# SketchyBar's lifecycle is tied to AeroSpace: launched here, exited by the
+# aerospace_watchdog item in sketchybarrc when AeroSpace quits.
+after-startup-command = ['exec-and-forget sketchybar']
 
 # Start AeroSpace at login
 start-at-login = true
