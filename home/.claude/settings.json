@@ -17,57 +17,58 @@
   },
   "permissions": {
     "allow": [
-      "Read",
-      "Glob",
-      "Grep",
-      "Task",
       "Bash(basename *)",
-      "Bash(diff *)",
-      "Bash(dirname *)",
-      "Bash(file *)",
-      "Bash(ls *)",
-      "Bash(md5 *)",
-      "Bash(readlink *)",
-      "Bash(realpath *)",
-      "Bash(shasum *)",
-      "Bash(stat *)",
-      "Bash(tree *)",
-      "Bash(git *)",
-      "Bash(gh *)",
-      "Bash(docker *)",
-      "Bash(date *)",
-      "Bash(df *)",
-      "Bash(du *)",
-      "Bash(hostname *)",
-      "Bash(id *)",
-      "Bash(ps *)",
-      "Bash(pwd *)",
-      "Bash(uname *)",
-      "Bash(whoami *)",
-      "Bash(cut *)",
-      "Bash(jq *)",
-      "Bash(sort *)",
-      "Bash(tr *)",
-      "Bash(uniq *)",
-      "Bash(wc *)",
-      "Bash(yq *)",
       "Bash(brew info *)",
       "Bash(brew list *)",
-      "Bash(npm *)",
-      "Bash(pnpm *)",
       "Bash(bun *)",
       "Bash(bunx *)",
+      "Bash(curl *)",
+      "Bash(cut *)",
+      "Bash(date *)",
+      "Bash(df *)",
+      "Bash(diff *)",
+      "Bash(dirname *)",
+      "Bash(docker *)",
+      "Bash(du *)",
+      "Bash(echo *)",
+      "Bash(file *)",
+      "Bash(gh *)",
+      "Bash(git *)",
+      "Bash(hostname *)",
+      "Bash(id *)",
+      "Bash(jq *)",
+      "Bash(ls *)",
+      "Bash(md5 *)",
+      "Bash(mkdir *)",
+      "Bash(node *)",
+      "Bash(npm *)",
       "Bash(pip list *)",
       "Bash(pip show *)",
-      "Bash(node *)",
+      "Bash(pnpm *)",
+      "Bash(ps *)",
+      "Bash(pwd *)",
       "Bash(python --version *)",
+      "Bash(readlink *)",
+      "Bash(realpath *)",
       "Bash(ruby --version *)",
-      "Bash(curl *)",
-      "Bash(echo *)",
-      "Bash(mkdir *)",
+      "Bash(shasum *)",
+      "Bash(sort *)",
+      "Bash(stat *)",
+      "Bash(tr *)",
+      "Bash(tree *)",
+      "Bash(uname *)",
+      "Bash(uniq *)",
+      "Bash(wc *)",
       "Bash(wget *)",
       "Bash(which *)",
+      "Bash(whoami *)",
+      "Bash(yq *)",
       "ExitPlanMode(*)",
+      "Glob",
+      "Grep",
+      "Read",
+      "Read(./.env.example)",
+      "Task",
       "WebFetch(domain:*)",
       "WebSearch"
     ],
@@ -89,15 +90,9 @@
       "Bash(sudo rm -rf / *)",
       "Bash(sudo rm -rf /* *)"
     ],
-    "ask": [
-      "Bash(gh pr merge *)",
-      "Bash(docker push *)",
-      "Bash(npm publish *)"
-    ],
+    "ask": ["Bash(gh pr merge *)", "Bash(docker push *)", "Bash(npm publish *)"],
     "defaultMode": "auto",
-    "additionalDirectories": [
-      "~/.claude/"
-    ]
+    "additionalDirectories": ["~/.claude/"]
   },
   "model": "claude-fable-5[1m]",
   "hooks": {
@@ -108,6 +103,17 @@
             "type": "command",
             "command": "claude-tmux-cleanup",
             "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sessions context --hook",
+            "timeout": 10000
           }
         ]
       }
@@ -131,7 +137,8 @@
     "fleet@fleet-local": true,
     "plugin-dev@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
-    "explanatory-output-style@claude-plugins-official": true
+    "explanatory-output-style@claude-plugins-official": true,
+    "friction-proctor@workos-internal": true
   },
   "extraKnownMarketplaces": {
     "obsidian-skills": {
@@ -151,7 +158,8 @@
       "source": {
         "source": "directory",
         "path": "/Users/nicknisi/Developer/claude-plugins"
-      }
+      },
+      "autoUpdate": true
     },
     "sessions": {
       "source": {
@@ -163,6 +171,12 @@
       "source": {
         "source": "directory",
         "path": "/Users/nicknisi/.local/share/fleet-marketplace"
+      }
+    },
+    "workos-internal": {
+      "source": {
+        "source": "github",
+        "repo": "workos/claude-plugins-internal"
       }
     }
   },
