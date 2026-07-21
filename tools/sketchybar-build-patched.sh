@@ -23,7 +23,8 @@ make -C "$BUILD_DIR"
 
 echo "Installing over $CELLAR_BIN/sketchybar (backup: sketchybar.orig)..."
 [ -f "$CELLAR_BIN/sketchybar.orig" ] || cp "$CELLAR_BIN/sketchybar" "$CELLAR_BIN/sketchybar.orig"
-cp "$BUILD_DIR/bin/sketchybar" "$CELLAR_BIN/sketchybar"
+# -f: brew installs the binary read-only (555); unlink-and-recreate instead of open-for-write
+cp -f "$BUILD_DIR/bin/sketchybar" "$CELLAR_BIN/sketchybar"
 brew pin sketchybar
 
 # Lifecycle is tied to AeroSpace (after-startup-command + watchdog item),
