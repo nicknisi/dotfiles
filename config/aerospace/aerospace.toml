@@ -61,6 +61,11 @@ persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'C', 
 # Fallback value (if you omit the key): on-focused-monitor-changed = []
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 
+# AeroSpace is launched by launchd with the bare system PATH, so exec-* commands
+# can't find Homebrew binaries (sketchybar) without this.
+[exec.env-vars]
+PATH = '/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
+
 # Gaps between windows (inner-*) and between monitor edges (outer-*).
 # Possible values:
 # - Constant:     gaps.outer.top = 8
