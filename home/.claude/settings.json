@@ -90,11 +90,16 @@
       "Bash(sudo rm -rf / *)",
       "Bash(sudo rm -rf /* *)"
     ],
-    "ask": ["Bash(gh pr merge *)", "Bash(docker push *)", "Bash(npm publish *)"],
+    "ask": [
+      "Bash(gh pr merge *)",
+      "Bash(docker push *)",
+      "Bash(npm publish *)"
+    ],
     "defaultMode": "auto",
-    "additionalDirectories": ["~/.claude/"]
+    "additionalDirectories": [
+      "~/.claude/"
+    ]
   },
-  "model": "claude-fable-5[1m]",
   "hooks": {
     "SessionEnd": [
       {
@@ -106,17 +111,6 @@
           }
         ]
       }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sessions context --hook",
-            "timeout": 10000
-          }
-        ]
-      }
     ]
   },
   "statusLine": {
@@ -124,21 +118,18 @@
     "command": "claude-statusline"
   },
   "enabledPlugins": {
-    "codex@openai-codex": true,
     "obsidian@obsidian-skills": true,
     "ralph-wiggum@claude-code-plugins": true,
     "skill-creator@claude-plugins-official": true,
     "content@nicknisi": true,
     "essentials@nicknisi": true,
-    "ideation@nicknisi": true,
     "image-gen@nicknisi": true,
     "tmux@nicknisi": true,
-    "sessions@sessions": true,
     "fleet@fleet-local": true,
     "plugin-dev@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "explanatory-output-style@claude-plugins-official": true,
-    "friction-proctor@workos-internal": true
+    "ideation@ideation": true
   },
   "extraKnownMarketplaces": {
     "obsidian-skills": {
@@ -161,22 +152,16 @@
       },
       "autoUpdate": true
     },
-    "sessions": {
-      "source": {
-        "source": "directory",
-        "path": "/Users/nicknisi/.local/share/sessions"
-      }
-    },
     "fleet-local": {
       "source": {
         "source": "directory",
         "path": "/Users/nicknisi/.local/share/fleet-marketplace"
       }
     },
-    "workos-internal": {
+    "ideation": {
       "source": {
-        "source": "github",
-        "repo": "workos/claude-plugins-internal"
+        "source": "directory",
+        "path": "/Users/nicknisi/Developer/ideation"
       }
     }
   },
@@ -1315,7 +1300,6 @@
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
-  "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "custom:aurora",
