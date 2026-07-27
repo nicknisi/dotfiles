@@ -37,6 +37,9 @@ get_icon() {
   claude)
     echo "󱙺"
     ;;
+  fleet)
+    echo "☰"
+    ;;
   node)
     echo "󰎙"
     ;;
