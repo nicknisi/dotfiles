@@ -128,8 +128,7 @@ tm_git_status="$(create_section "right" "" "#(tmux-git-status '#{pane_current
 
 # Status left and right - using the exact original syntax
 tmux set -g status-left "$session"
-# tmux set -g status-right "${tm_claude_display}#{?$tm_tunes,${tm_tunes_display},}${tm_git_status}"
-tmux set -g status-right "${tm_agent_display}${tm_tunes_display}${tm_git_status}"
+tmux set -g status-right "${tm_agent_display}${tm_git_status}"
 
 # Window status formats — names capped at 32 cells so app-set titles
 # (Claude tasks, fleet status) can't flood the status bar
