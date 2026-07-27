@@ -45,6 +45,7 @@ $(fmt_key "Available Commands:")
         clean                     Remove broken symlinks
             -n, --dry-run         Preview without removing
     unlink [pkg]                  Unlink packages (default: all)
+    filters                       Register git clean filters (run after clone)
 EOF
 
   echo -e "\nExternal commands:"
@@ -53,6 +54,34 @@ EOF
     # Get the description from the script if available
     description=$(grep "^# Description:" "$(which "dot-$cmd")" 2>/dev/null | cut -d: -f2- | sed 's/^[[:space:]]*//' || echo "No description available")
     printf "    $(fmt_cmd "%-12s") %s\n" "$cmd" "$description"
+  done
+}
+
+# Git clean filters for config files that apps pollute with their own state.
+# .gitattributes maps a path to a filter name; the definition has to live in
+# .git/config, which isn't tracked — hence this command.
+#
+# Each entry is "<filter name>:<jq program>". The program runs on the working
+# tree copy before git compares or stages it, so stripped keys never reach a
+# commit while staying put on disk.
+cmd_filters() {
+  local filters=(
+    "pi-settings:del(.lastChangelogVersion)"
+  )
+
+  if ! command -v jq >/dev/null 2>&1; then
+    log_error "jq not found — install it before registering git filters"
+    return 1
+  fi
+
+  for entry in "${filters[@]}"; do
+    local name="${entry%%:*}"
+    local program="${entry#*:}"
+    git -C "$DOTFILES" config "filter.$name.clean" "jq '$program'"
+    # required=false: if jq ever fails, git stages the file unfiltered rather
+    # than aborting. Noisy diff beats a broken commit.
+    git -C "$DOTFILES" config "filter.$name.required" false
+    log_success "Registered clean filter: $name"
   done
 }
 
@@ -395,6 +424,10 @@ cmd_link() {
       done
       shopt -u dotglob
     fi
+
+    # A full link is the closest thing to a bootstrap, so register the git
+    # clean filters here too — they're per-clone and easy to forget otherwise.
+    [ "$operation" = "link" ] && cmd_filters
   else
     # Specific package — check config/ first, then home/
     if [ -d "$DOTFILES/config/$pkg" ]; then
@@ -443,6 +476,9 @@ main() {
     ;;
   link)
     cmd_link "link" "$@"
+    ;;
+  filters)
+    cmd_filters
     ;;
   unlink)
     cmd_link "unlink" "$@"
