@@ -33,7 +33,7 @@
 		"muted": "comment",
 		"dim": "dark5",
 		"text": "",
-		"thinkingText": "comment",
+		"thinkingText": "dark3",
 
 		"selectedBg": "bgHighlight",
 		"userMessageBg": "#1e1f2b",
@@ -43,10 +43,10 @@
 		"customMessageLabel": "blue",
 
 		"toolPendingBg": "#121318",
-		"toolSuccessBg": "#141c28",
+		"toolSuccessBg": "#121318",
 		"toolErrorBg": "#2d1b2e",
 		"toolTitle": "",
-		"toolOutput": "comment",
+		"toolOutput": "dark3",
 
 		"mdHeading": "blue",
 		"mdLink": "cyan",
@@ -78,7 +78,7 @@
 		"thinkingLow": "dark5",
 		"thinkingMedium": "blue",
 		"thinkingHigh": "magenta",
-		"thinkingXhigh": "red",
+		"thinkingXhigh": "orange",
 
 		"bashMode": "orange"
 	},
