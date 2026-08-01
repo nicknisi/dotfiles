@@ -129,7 +129,9 @@
     "plugin-dev@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
     "explanatory-output-style@claude-plugins-official": true,
-    "ideation@ideation": true
+    "ideation@ideation": true,
+    "sessions@sessions": true,
+    "sources@nicknisi": true
   },
   "extraKnownMarketplaces": {
     "obsidian-skills": {
@@ -162,6 +164,12 @@
       "source": {
         "source": "directory",
         "path": "/Users/nicknisi/Developer/ideation"
+      }
+    },
+    "sessions": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/nicknisi/.local/share/sessions"
       }
     }
   },
