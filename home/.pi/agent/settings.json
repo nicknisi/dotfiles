@@ -35,7 +35,8 @@
     "npm:pi-mcp-adapter",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@narumitw/pi-goal",
-    "npm:pi-agent-browser-native"
+    "npm:pi-agent-browser-native",
+    "npm:pi-web-access"
   ],
   "defaultModel": "z-ai/glm-5.2",
   "warnings": {
