@@ -4,99 +4,116 @@
  * Replaces pi's built-in header with an animated nicknisi sitting at the
  * top-left, Claude Code style, with session info beside him:
  *
- *  - "gif" mode (default): the nick-waiting.gif Sonic-style waiting
- *    animation, converted to truecolor half-block frames by gen-frames.mjs
- *    (waits 5s, taps its foot, loops — just like the GIF)
+ *  - "blink" mode (default): nicknisi-blink.gif — a close-up blink loop
+ *  - "waiting" mode: nick-waiting.gif — the Sonic-style waiting animation
+ *    (waits 5s, taps its foot, loops)
  *  - "full" mode: the nicknisi ASCII art from the Neovim dashboard
  *    (config/nvim/lua/nisi/assets.lua), with blinking eyes
  *  - "compact" mode: half-block version of the ASCII art (muddier)
+ *
+ * GIFs are converted to truecolor half-block frames by gen-frames.mjs:
+ *   node gen-frames.mjs <gif> <out.ts> <cols> <pxHeight>
+ * (square-ish px grid ≈ correct aspect for Monaspace Neon + adjust-cell-height=10%)
  *
  * Session info: pi version + model, cwd + git branch, and a random quote
  * typed out character-by-character. Shown only on fresh sessions; the
  * built-in header is restored when the first prompt is sent — like the
  * vim dashboard disappearing when you get to work.
  *
- * `/nicknisi-header` cycles gif → full → compact.
- * Regenerate frames: node gen-frames.mjs <gif> frames-waiting.ts 28 28
- * (square px grid ≈ correct aspect for Monaspace Neon + adjust-cell-height=10%)
+ * `/nicknisi-header` cycles blink → waiting → full → compact.
  */
 
 import { execFileSync } from "node:child_process";
 import { homedir } from "node:os";
 import { VERSION, type ExtensionAPI, type ExtensionContext, type Theme } from "@mariozechner/pi-coding-agent";
-import { CELLS, COLORS, FRAMES } from "./frames-waiting.ts";
+import * as blinkData from "./frames-blink.ts";
+import * as waitingData from "./frames-waiting.ts";
 
 const ANSI_RESET = "\x1b[0m";
 const ANSI_RE = /\x1b\[[0-9;]*m/g;
 const visibleLen = (s: string) => s.replace(ANSI_RE, "").length;
 
 // ---------------------------------------------------------------------------
-// GIF frame decoding (palette-indexed half-block cells)
+// GIF frame decoding (palette-indexed half-block cells, per source file)
 // ---------------------------------------------------------------------------
 
-const fgEscapes = new Map<number, string>();
-const bgEscapes = new Map<number, string>();
-function fgEscape(idx: number): string {
-	let esc = fgEscapes.get(idx);
-	if (!esc) {
-		const [r, g, b] = COLORS[idx];
-		esc = `\x1b[38;2;${r};${g};${b}m`;
-		fgEscapes.set(idx, esc);
-	}
-	return esc;
-}
-function bgEscape(idx: number): string {
-	let esc = bgEscapes.get(idx);
-	if (!esc) {
-		const [r, g, b] = COLORS[idx];
-		esc = `\x1b[48;2;${r};${g};${b}m`;
-		bgEscapes.set(idx, esc);
-	}
-	return esc;
+interface FrameData {
+	COLORS: [number, number, number][];
+	CELLS: [number, number][];
+	FRAMES: { delay: number; lines: string[][] }[];
 }
 
-const cellStrings = new Map<number, string>();
-function cellString(idx: number): string {
-	if (idx === 0) return " ";
-	let str = cellStrings.get(idx);
-	if (!str) {
-		const [top, bottom] = CELLS[idx];
-		if (top && bottom) str = `${fgEscape(top)}${bgEscape(bottom)}▀${ANSI_RESET}`;
-		else if (top) str = `${fgEscape(top)}▀${ANSI_RESET}`;
-		else str = `${fgEscape(bottom)}▄${ANSI_RESET}`;
-		cellStrings.set(idx, str);
-	}
-	return str;
-}
+function makeGifDecoder(data: FrameData) {
+	const fgEscapes = new Map<number, string>();
+	const bgEscapes = new Map<number, string>();
+	const cellStrings = new Map<number, string>();
+	const decodedFrames = new Map<number, string[]>();
+	let width: number | undefined;
 
-const decodedFrames = new Map<number, string[]>();
-function gifFrame(index: number): string[] {
-	let lines = decodedFrames.get(index);
-	if (!lines) {
-		lines = FRAMES[index].lines.map((tokens) =>
-			tokens
-				.map((token) => {
-					const star = token.indexOf("*");
-					if (star === -1) return cellString(Number(token));
-					return cellString(Number(token.slice(0, star))).repeat(Number(token.slice(star + 1)));
-				})
-				.join(""),
-		);
-		decodedFrames.set(index, lines);
-	}
-	return lines;
-}
-
-let gifWidth: number | undefined;
-function getGifWidth(): number {
-	if (gifWidth === undefined) {
-		gifWidth = 0;
-		for (let i = 0; i < FRAMES.length; i++) {
-			for (const line of gifFrame(i)) gifWidth = Math.max(gifWidth, visibleLen(line));
+	const fgEscape = (idx: number): string => {
+		let esc = fgEscapes.get(idx);
+		if (!esc) {
+			const [r, g, b] = data.COLORS[idx];
+			esc = `\x1b[38;2;${r};${g};${b}m`;
+			fgEscapes.set(idx, esc);
 		}
-	}
-	return gifWidth;
+		return esc;
+	};
+	const bgEscape = (idx: number): string => {
+		let esc = bgEscapes.get(idx);
+		if (!esc) {
+			const [r, g, b] = data.COLORS[idx];
+			esc = `\x1b[48;2;${r};${g};${b}m`;
+			bgEscapes.set(idx, esc);
+		}
+		return esc;
+	};
+	const cellString = (idx: number): string => {
+		if (idx === 0) return " ";
+		let str = cellStrings.get(idx);
+		if (!str) {
+			const [top, bottom] = data.CELLS[idx];
+			if (top && bottom) str = `${fgEscape(top)}${bgEscape(bottom)}▀${ANSI_RESET}`;
+			else if (top) str = `${fgEscape(top)}▀${ANSI_RESET}`;
+			else str = `${fgEscape(bottom)}▄${ANSI_RESET}`;
+			cellStrings.set(idx, str);
+		}
+		return str;
+	};
+
+	return {
+		count: data.FRAMES.length,
+		delay: (i: number) => data.FRAMES[i].delay,
+		frame(index: number): string[] {
+			let lines = decodedFrames.get(index);
+			if (!lines) {
+				lines = data.FRAMES[index].lines.map((tokens) =>
+					tokens
+						.map((token) => {
+							const star = token.indexOf("*");
+							if (star === -1) return cellString(Number(token));
+							return cellString(Number(token.slice(0, star))).repeat(Number(token.slice(star + 1)));
+						})
+						.join(""),
+				);
+				decodedFrames.set(index, lines);
+			}
+			return lines;
+		},
+		width(): number {
+			if (width === undefined) {
+				width = 0;
+				for (let i = 0; i < data.FRAMES.length; i++) {
+					for (const line of this.frame(i)) width = Math.max(width, visibleLen(line));
+				}
+			}
+			return width;
+		},
+	};
 }
+
+const blinkGif = makeGifDecoder(blinkData);
+const waitingGif = makeGifDecoder(waitingData);
 
 // ---------------------------------------------------------------------------
 // ASCII art (from config/nvim/lua/nisi/assets.lua — ascii.nicknisi)
@@ -228,7 +245,7 @@ const QUOTES = [
 	"keep calm and :wq",
 ];
 
-/** Waiting-themed quotes for gif mode (he's impatiently waiting on you). */
+/** Waiting-themed quotes for waiting mode (he's impatiently waiting on you). */
 const WAITING_QUOTES = [
 	"*taps foot*",
 	"any decade now…",
@@ -242,12 +259,24 @@ const WAITING_QUOTES = [
 	"did the wifi eat your prompt?",
 ];
 
+/** Blink-mode quotes (he's watching you). */
+const BLINK_QUOTES = [
+	"blink and you'll miss it",
+	"I see everything",
+	"did you catch that?",
+	"just watching you type",
+	"no, YOU'RE staring",
+	"always watching. in a fun way.",
+	"I blink so I don't miss anything",
+	"eyes on the prize. you're the prize.",
+];
+
 // ---------------------------------------------------------------------------
 // Extension
 // ---------------------------------------------------------------------------
 
-type Mode = "gif" | "full" | "compact";
-const MODES: Mode[] = ["gif", "full", "compact"];
+type Mode = "blink" | "waiting" | "full" | "compact";
+const MODES: Mode[] = ["blink", "waiting", "full", "compact"];
 
 const MARGIN = "  ";
 const INFO_GAP = "   ";
@@ -272,7 +301,7 @@ function gitBranch(cwd: string): string | undefined {
 }
 
 export default function (pi: ExtensionAPI) {
-	let mode: Mode = "gif";
+	let mode: Mode = "blink";
 	let timer: ReturnType<typeof setInterval> | undefined;
 	let shown = false;
 
@@ -284,7 +313,8 @@ export default function (pi: ExtensionAPI) {
 	};
 
 	const showDashboard = (ctx: ExtensionContext) => {
-		const pool = mode === "gif" ? WAITING_QUOTES : QUOTES;
+		const gif = mode === "blink" ? blinkGif : mode === "waiting" ? waitingGif : undefined;
+		const pool = mode === "waiting" ? WAITING_QUOTES : mode === "blink" ? BLINK_QUOTES : QUOTES;
 		const quote = pool[Math.floor(Math.random() * pool.length)];
 		let typed = 0;
 		let blink = false;
@@ -315,11 +345,11 @@ export default function (pi: ExtensionAPI) {
 						dirty = true;
 					}
 
-					if (mode === "gif") {
+					if (gif) {
 						frameElapsed += dt;
-						if (frameElapsed >= FRAMES[frameIndex].delay) {
+						if (frameElapsed >= gif.delay(frameIndex)) {
 							frameElapsed = 0;
-							frameIndex = (frameIndex + 1) % FRAMES.length;
+							frameIndex = (frameIndex + 1) % gif.count;
 							dirty = true;
 						}
 					} else {
@@ -346,9 +376,9 @@ export default function (pi: ExtensionAPI) {
 				render(_width: number): string[] {
 					let art: string[];
 					let artWidth: number;
-					if (mode === "gif") {
-						art = gifFrame(frameIndex);
-						artWidth = getGifWidth();
+					if (gif) {
+						art = gif.frame(frameIndex);
+						artWidth = gif.width();
 					} else if (mode === "compact") {
 						art = renderCompact(theme, blink);
 						artWidth = ART_WIDTH;
@@ -403,9 +433,9 @@ export default function (pi: ExtensionAPI) {
 		stopAnimation();
 	});
 
-	// Cycle gif → full → compact (re-renders live if the dashboard is up)
+	// Cycle blink → waiting → full → compact (re-renders live if the dashboard is up)
 	pi.registerCommand("nicknisi-header", {
-		description: "Cycle nicknisi header style (gif → full → compact)",
+		description: "Cycle nicknisi header style (blink → waiting → full → compact)",
 		handler: async (_args, ctx) => {
 			mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
 			if (shown && ctx.mode === "tui") {
