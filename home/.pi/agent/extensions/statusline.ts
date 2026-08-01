@@ -6,7 +6,7 @@
  *
  * Tmux status integration:
  *   - Writes state to ~/.cache/pi-status/<session>.status
- *   - States: working, waiting, idle
+ *   - States: working, done, idle
  *
  * Custom footer showing:
  *   - Model name with icon
@@ -60,7 +60,7 @@ function removeStatus() {
 	}
 }
 
-function writeStatus(status: "working" | "waiting" | "completed" | "idle", tool?: string) {
+function writeStatus(status: "working" | "done" | "completed" | "idle", tool?: string) {
 	const paneId = process.env.TMUX_PANE;
 	if (!paneId) return;
 	const session = getTmuxSession();
@@ -208,7 +208,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("agent_end", async () => {
-		writeStatus("waiting");
+		writeStatus("done");
 		const session = getTmuxSession();
 		const paneId = process.env.TMUX_PANE;
 		if (session && paneId) {
