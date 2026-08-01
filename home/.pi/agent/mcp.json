@@ -1,18 +1,32 @@
 {
-  "$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
-  "discoveryMode": "auto",
-  "disabledServers": [],
+  "settings": {
+    "autoAuth": true
+  },
   "mcpServers": {
     "sessions": {
-      "type": "stdio",
       "command": "/opt/homebrew/bin/sessions",
-      "args": [
-        "--mcp"
-      ],
+      "args": ["--mcp"],
       "cwd": "/Users/nicknisi/Developer/sessions"
+    },
+    "notion": {
+      "url": "https://mcp.notion.com/mcp",
+      "auth": "oauth"
+    },
+    "granola": {
+      "url": "https://mcp.granola.ai/mcp",
+      "auth": "oauth"
+    },
+    "linear": {
+      "url": "https://mcp.linear.app/sse",
+      "auth": "oauth"
+    },
+    "slack": {
+      "command": "npx",
+      "args": ["-y", "slack-mcp-server"],
+      "env": {
+        "SLACK_MCP_XOXP_TOKEN": "!cat ~/.slack/service-token"
+      },
+      "lifecycle": "lazy"
     }
-  },
-  "importConfigs": [
-    "~/.claude.json"
-  ]
+  }
 }
