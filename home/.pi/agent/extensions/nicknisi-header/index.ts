@@ -1,7 +1,8 @@
 /**
  * nicknisi Header Extension
  *
- * Replaces pi's built-in header with an animated nicknisi:
+ * Replaces pi's built-in header with an animated nicknisi sitting at the
+ * top-left, Claude Code style, with session info beside him:
  *
  *  - "gif" mode (default): the nick-waiting.gif Sonic-style waiting
  *    animation, converted to truecolor half-block frames by gen-frames.mjs
@@ -10,23 +11,28 @@
  *    (config/nvim/lua/nisi/assets.lua), with blinking eyes
  *  - "compact" mode: half-block version of the ASCII art (muddier)
  *
- * All modes get a cowsay-style speech bubble with a random quote typed
- * out character-by-character. Shown only on fresh sessions; the built-in
- * header is restored when the first prompt is sent — like the vim
- * dashboard disappearing when you get to work.
+ * Session info: pi version + model, cwd + git branch, and a random quote
+ * typed out character-by-character. Shown only on fresh sessions; the
+ * built-in header is restored when the first prompt is sent — like the
+ * vim dashboard disappearing when you get to work.
  *
  * `/nicknisi-header` cycles gif → full → compact.
- * Regenerate frames: node gen-frames.mjs <gif> frames-waiting.ts 40 44
+ * Regenerate frames: node gen-frames.mjs <gif> frames-waiting.ts 36 36
+ * (36x36 px ≈ correct aspect for Monaspace Neon + adjust-cell-height=10%)
  */
 
-import type { ExtensionAPI, ExtensionContext, Theme } from "@mariozechner/pi-coding-agent";
+import { execFileSync } from "node:child_process";
+import { homedir } from "node:os";
+import { VERSION, type ExtensionAPI, type ExtensionContext, type Theme } from "@mariozechner/pi-coding-agent";
 import { CELLS, COLORS, FRAMES } from "./frames-waiting.ts";
+
+const ANSI_RESET = "\x1b[0m";
+const ANSI_RE = /\x1b\[[0-9;]*m/g;
+const visibleLen = (s: string) => s.replace(ANSI_RE, "").length;
 
 // ---------------------------------------------------------------------------
 // GIF frame decoding (palette-indexed half-block cells)
 // ---------------------------------------------------------------------------
-
-const ANSI_RESET = "\x1b[0m";
 
 const fgEscapes = new Map<number, string>();
 const bgEscapes = new Map<number, string>();
@@ -79,6 +85,17 @@ function gifFrame(index: number): string[] {
 		decodedFrames.set(index, lines);
 	}
 	return lines;
+}
+
+let gifWidth: number | undefined;
+function getGifWidth(): number {
+	if (gifWidth === undefined) {
+		gifWidth = 0;
+		for (let i = 0; i < FRAMES.length; i++) {
+			for (const line of gifFrame(i)) gifWidth = Math.max(gifWidth, visibleLen(line));
+		}
+	}
+	return gifWidth;
 }
 
 // ---------------------------------------------------------------------------
@@ -225,26 +242,34 @@ const WAITING_QUOTES = [
 	"did the wifi eat your prompt?",
 ];
 
-/** cowsay-style bubble above the art; quote revealed up to `typed` chars. */
-function renderBubble(theme: Theme, quote: string, typed: number): string[] {
-	const w = quote.length + 2;
-	const shown = quote.slice(0, typed).padEnd(quote.length);
-	const border = theme.fg("borderMuted", "─");
-	const side = theme.fg("borderMuted", "│");
-	return [
-		theme.fg("borderMuted", `╭${border.repeat(w)}╮`),
-		`${side}${theme.italic(theme.fg("text", ` ${shown} `))}${side}`,
-		theme.fg("borderMuted", `╰──╮ ╭${border.repeat(w - 5)}╯`),
-		theme.fg("borderMuted", "   ╲╱"),
-	];
-}
-
 // ---------------------------------------------------------------------------
 // Extension
 // ---------------------------------------------------------------------------
 
 type Mode = "gif" | "full" | "compact";
 const MODES: Mode[] = ["gif", "full", "compact"];
+
+const MARGIN = "  ";
+const INFO_GAP = "   ";
+
+function shortenCwd(cwd: string): string {
+	const home = homedir();
+	return cwd.startsWith(home) ? `~${cwd.slice(home.length)}` : cwd;
+}
+
+function gitBranch(cwd: string): string | undefined {
+	try {
+		const branch = execFileSync("git", ["branch", "--show-current"], {
+			cwd,
+			encoding: "utf8",
+			stdio: ["ignore", "pipe", "ignore"],
+			timeout: 2000,
+		}).trim();
+		return branch || undefined;
+	} catch {
+		return undefined;
+	}
+}
 
 export default function (pi: ExtensionAPI) {
 	let mode: Mode = "gif";
@@ -270,6 +295,11 @@ export default function (pi: ExtensionAPI) {
 		let lastTick = Date.now();
 		let headerComp: { invalidate(): void } | undefined;
 
+		// Session info, resolved once
+		const modelName = ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : "no model";
+		const branch = gitBranch(ctx.cwd);
+		const location = branch ? `${shortenCwd(ctx.cwd)}  ·  ${branch}` : shortenCwd(ctx.cwd);
+
 		shown = true;
 		ctx.ui.setHeader((tui, theme) => {
 			const startAnimation = () => {
@@ -287,8 +317,7 @@ export default function (pi: ExtensionAPI) {
 
 					if (mode === "gif") {
 						frameElapsed += dt;
-						const delay = FRAMES[frameIndex].delay;
-						if (frameElapsed >= delay) {
+						if (frameElapsed >= FRAMES[frameIndex].delay) {
 							frameElapsed = 0;
 							frameIndex = (frameIndex + 1) % FRAMES.length;
 							dirty = true;
@@ -314,17 +343,35 @@ export default function (pi: ExtensionAPI) {
 			startAnimation();
 
 			headerComp = {
-				render(width: number): string[] {
+				render(_width: number): string[] {
 					let art: string[];
-					if (mode === "gif") art = gifFrame(frameIndex);
-					else if (mode === "compact") art = renderCompact(theme, blink);
-					else art = renderFull(theme, blink);
-					const content = ["", ...renderBubble(theme, quote, typed), ...art, ""];
-					// Center each line independently (bubble width differs from art width)
-					return content.map((line) => {
-						const visible = line.replace(/\x1b\[[0-9;]*m/g, "").length;
-						return " ".repeat(Math.max(0, Math.floor((width - visible) / 2))) + line;
+					let artWidth: number;
+					if (mode === "gif") {
+						art = gifFrame(frameIndex);
+						artWidth = getGifWidth();
+					} else if (mode === "compact") {
+						art = renderCompact(theme, blink);
+						artWidth = ART_WIDTH;
+					} else {
+						art = renderFull(theme, blink);
+						artWidth = ART_WIDTH;
+					}
+
+					// Info column, vertically centered against the art
+					const cursor = typed < quote.length ? theme.fg("dim", "▌") : "";
+					const info = [
+						`${theme.bold(theme.fg("accent", "pi"))} ${theme.fg("dim", `v${VERSION} · ${modelName}`)}`,
+						theme.fg("muted", location),
+						theme.italic(theme.fg("text", quote.slice(0, typed))) + cursor,
+					];
+					const infoOffset = Math.max(0, Math.floor((art.length - info.length) / 2));
+
+					const rows = art.map((artLine, i) => {
+						const left = MARGIN + artLine + " ".repeat(Math.max(0, artWidth - visibleLen(artLine)));
+						const infoIdx = i - infoOffset;
+						return infoIdx >= 0 && infoIdx < info.length ? left + INFO_GAP + info[infoIdx] : left;
 					});
+					return ["", ...rows, ""];
 				},
 				invalidate() {},
 			};
