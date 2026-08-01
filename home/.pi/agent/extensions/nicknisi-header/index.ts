@@ -127,7 +127,7 @@ function makeGifDecoder(data: FrameData) {
 type Size = "small" | "medium" | "large";
 const SIZES: Size[] = ["small", "medium", "large"];
 
-/** Rows per size: small ≈ 7, medium ≈ 13-14, large ≈ 15-18. */
+/** Rows per size: small ≈ 10, medium ≈ 13-14, large ≈ 15-18. */
 const GIFS: Record<"blink" | "waiting", Record<Size, ReturnType<typeof makeGifDecoder>>> = {
 	blink: {
 		small: makeGifDecoder(blinkDataSmall),
