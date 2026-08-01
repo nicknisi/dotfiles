@@ -12,6 +12,8 @@
   ],
   "defaultThinkingLevel": "xhigh",
   "enabledModels": [
+    "openai/gpt-5.6-sol",
+    "openai/gpt-5.6-terra",
     "openrouter/z-ai/glm-5.2",
     "fireworks/accounts/fireworks/models/glm-5p2",
     "openrouter/moonshotai/kimi-k3",
