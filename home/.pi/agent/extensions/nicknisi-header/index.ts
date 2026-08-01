@@ -24,9 +24,21 @@
  */
 
 import { execFileSync } from "node:child_process";
+import { readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { VERSION, type ExtensionAPI, type ExtensionContext, type Theme } from "@mariozechner/pi-coding-agent";
+import { join } from "node:path";
+import {
+	VERSION,
+	getAgentDir,
+	type ExtensionAPI,
+	type ExtensionContext,
+	type Theme,
+} from "@mariozechner/pi-coding-agent";
+import * as blinkDataLarge from "./frames-blink-large.ts";
+import * as blinkDataSmall from "./frames-blink-small.ts";
 import * as blinkData from "./frames-blink.ts";
+import * as waitingDataLarge from "./frames-waiting-large.ts";
+import * as waitingDataSmall from "./frames-waiting-small.ts";
 import * as waitingData from "./frames-waiting.ts";
 
 const ANSI_RESET = "\x1b[0m";
@@ -112,8 +124,44 @@ function makeGifDecoder(data: FrameData) {
 	};
 }
 
-const blinkGif = makeGifDecoder(blinkData);
-const waitingGif = makeGifDecoder(waitingData);
+type Size = "small" | "medium" | "large";
+const SIZES: Size[] = ["small", "medium", "large"];
+
+/** Rows per size: small ≈ 7, medium ≈ 13-14, large ≈ 15-18. */
+const GIFS: Record<"blink" | "waiting", Record<Size, ReturnType<typeof makeGifDecoder>>> = {
+	blink: {
+		small: makeGifDecoder(blinkDataSmall),
+		medium: makeGifDecoder(blinkData),
+		large: makeGifDecoder(blinkDataLarge),
+	},
+	waiting: {
+		small: makeGifDecoder(waitingDataSmall),
+		medium: makeGifDecoder(waitingData),
+		large: makeGifDecoder(waitingDataLarge),
+	},
+};
+
+// Persisted config (~/.pi/agent/nicknisi-header.json)
+interface HeaderConfig {
+	size?: Size;
+}
+const CONFIG_PATH = join(getAgentDir(), "nicknisi-header.json");
+
+function loadConfig(): HeaderConfig {
+	try {
+		return JSON.parse(readFileSync(CONFIG_PATH, "utf8")) as HeaderConfig;
+	} catch {
+		return {};
+	}
+}
+
+function saveConfig(config: HeaderConfig): void {
+	try {
+		writeFileSync(CONFIG_PATH, `${JSON.stringify(config, null, 2)}\n`);
+	} catch {
+		// non-fatal: size just won't persist across restarts
+	}
+}
 
 // ---------------------------------------------------------------------------
 // ASCII art (from config/nvim/lua/nisi/assets.lua — ascii.nicknisi)
@@ -302,6 +350,7 @@ function gitBranch(cwd: string): string | undefined {
 
 export default function (pi: ExtensionAPI) {
 	let mode: Mode = "blink";
+	let size: Size = loadConfig().size ?? "medium";
 	let timer: ReturnType<typeof setInterval> | undefined;
 	let shown = false;
 
@@ -313,7 +362,7 @@ export default function (pi: ExtensionAPI) {
 	};
 
 	const showDashboard = (ctx: ExtensionContext) => {
-		const gif = mode === "blink" ? blinkGif : mode === "waiting" ? waitingGif : undefined;
+		const gif = mode === "blink" || mode === "waiting" ? GIFS[mode][size] : undefined;
 		const pool = mode === "waiting" ? WAITING_QUOTES : mode === "blink" ? BLINK_QUOTES : QUOTES;
 		const quote = pool[Math.floor(Math.random() * pool.length)];
 		let typed = 0;
@@ -443,6 +492,22 @@ export default function (pi: ExtensionAPI) {
 				showDashboard(ctx);
 			}
 			ctx.ui.notify(`nicknisi header: ${mode}`, "info");
+		},
+	});
+
+	// Set or cycle gif size: /nicknisi-header-size [small|medium|large]
+	// Persisted to ~/.pi/agent/nicknisi-header.json. ASCII art modes are fixed-size.
+	pi.registerCommand("nicknisi-header-size", {
+		description: "Set nicknisi header size (small|medium|large, no arg cycles)",
+		handler: async (args, ctx) => {
+			const requested = args.trim() as Size;
+			size = SIZES.includes(requested) ? requested : SIZES[(SIZES.indexOf(size) + 1) % SIZES.length];
+			saveConfig({ ...loadConfig(), size });
+			if (shown && ctx.mode === "tui") {
+				stopAnimation();
+				showDashboard(ctx);
+			}
+			ctx.ui.notify(`nicknisi header size: ${size} (applies to gif modes)`, "info");
 		},
 	});
 }
