@@ -5,7 +5,7 @@
   "mcpServers": {
     "sessions": {
       "type": "stdio",
-      "command": "/Users/nicknisi/Developer/sessions/dist/sessions",
+      "command": "/opt/homebrew/bin/sessions",
       "args": [
         "--mcp"
       ],

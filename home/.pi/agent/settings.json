@@ -1,5 +1,5 @@
 {
-  "defaultProvider": "openai-codex",
+  "defaultProvider": "openrouter",
   "theme": "catppuccin-mocha",
   "quietStartup": true,
   "hideThinkingBlock": true,
@@ -10,11 +10,16 @@
     "~/Developer/claude-plugins/plugins/essentials/skills",
     "~/Developer/claude-plugins/plugins/meta/skills"
   ],
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "xhigh",
   "enabledModels": [
-    "openai-codex/gpt-5.5",
-    "baseten/moonshotai/Kimi-K2.5",
-    "anthropic/claude-opus-4-7"
+    "openrouter/z-ai/glm-5.2",
+    "fireworks/accounts/fireworks/models/glm-5p2",
+    "openrouter/moonshotai/kimi-k3",
+    "fireworks/accounts/fireworks/models/kimi-k3",
+    "openrouter/anthropic/claude-fable-5",
+    "anthropic/claude-fable-5",
+    "openrouter/anthropic/claude-opus-5",
+    "anthropic/claude-opus-5"
   ],
   "packages": [
     "npm:pi-subagents",
@@ -22,7 +27,7 @@
     "npm:pi-prompt-template-model",
     "../../Developer/claude-plugins"
   ],
-  "defaultModel": "gpt-5.5",
+  "defaultModel": "z-ai/glm-5.2",
   "warnings": {
     "anthropicExtraUsage": false
   }
