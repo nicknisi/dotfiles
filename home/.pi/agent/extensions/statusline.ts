@@ -203,6 +203,10 @@ export default function (pi: ExtensionAPI) {
 		writeStatus("idle");
 	});
 
+	pi.on("agent_start", async () => {
+		writeStatus("working");
+	});
+
 	pi.on("tool_execution_start", async (event) => {
 		writeStatus("working", (event as any).toolName);
 	});
@@ -234,6 +238,10 @@ export default function (pi: ExtensionAPI) {
 
 	pi.on("turn_start", async () => {
 		turnCount++;
+		// Keep the status-file timestamp fresh during long tool-less
+		// generations: fleet decays "working" to idle after 180s stale,
+		// and pi has no scrape/title fallback signal there.
+		writeStatus("working");
 	});
 
 	// ── Custom footer ──────────────────────────────────────────────────────
