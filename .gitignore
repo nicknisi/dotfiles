@@ -26,3 +26,9 @@ home/.pi/agent/sessions/
 home/.pi/agent/git/
 home/.pi/agent/run-history.jsonl
 home/.pi/agent/models-store.json
+home/.pi/agent/.pi-hermes-locks.sqlite*
+home/.pi/agent/mcp-cache.json
+home/.pi/agent/mcp-npx-cache.json
+home/.pi/agent/pi-hermes-memory/
+home/.pi/agent/projects-memory/
+home/.pi/agent/extensions/mcp.local.bak/
