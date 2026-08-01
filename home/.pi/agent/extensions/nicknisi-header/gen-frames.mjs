@@ -61,16 +61,25 @@ const cellIdx = (fg, bg) => {
 	return idx;
 };
 
+// One coalesced pass: partial (delta-optimized) GIF frames are composited
+// onto earlier ones, and all frames come back as a single concatenated buffer.
+const raw = execFileSync(
+	"magick",
+	[gif, "-coalesce", "-resize", `${COLS}x${PX_H}!`, "-depth", "8", "rgba:-"],
+	{ encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
+);
+const frameSize = COLS * PX_H * 4;
+if (raw.length !== frameCount * frameSize) {
+	console.error(`expected ${frameCount * frameSize} bytes, got ${raw.length}`);
+	process.exit(1);
+}
+
 const frames = [];
 for (let f = 0; f < frameCount; f++) {
-	const raw = execFileSync(
-		"magick",
-		[`${gif}[${f}]`, "-resize", `${COLS}x${PX_H}!`, "-depth", "8", "rgba:-"],
-		{ encoding: "buffer", maxBuffer: 64 * 1024 * 1024 },
-	);
+	const buf = raw.subarray(f * frameSize, (f + 1) * frameSize);
 	const px = (x, y) => {
 		const o = (y * COLS + x) * 4;
-		return raw[o + 3] < 128 ? 0 : colorIdx(raw[o], raw[o + 1], raw[o + 2]);
+		return buf[o + 3] < 128 ? 0 : colorIdx(buf[o], buf[o + 1], buf[o + 2]);
 	};
 
 	const lines = [];
