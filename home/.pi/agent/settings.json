@@ -1,6 +1,6 @@
 {
   "defaultProvider": "openrouter",
-  "theme": "catppuccin-mocha",
+  "theme": "tokyonight-night",
   "quietStartup": true,
   "hideThinkingBlock": true,
   "skills": [
@@ -23,9 +23,17 @@
   ],
   "packages": [
     "npm:pi-subagents",
-    "git:github.com/ghoseb/pi-askuserquestion",
+    "git:github.com/nicknisi/ideation",
     "npm:pi-prompt-template-model",
-    "../../Developer/claude-plugins"
+    "../../Developer/claude-plugins",
+    "git:github.com/code-yeongyu/pi-lsp-client",
+    "npm:@quintinshaw/pi-dynamic-workflows",
+    "npm:pi-hermes-memory",
+    "npm:pi-simplify",
+    "npm:pi-mcp-adapter",
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@narumitw/pi-goal",
+    "npm:pi-agent-browser-native"
   ],
   "defaultModel": "z-ai/glm-5.2",
   "warnings": {
