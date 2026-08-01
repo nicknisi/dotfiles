@@ -13,7 +13,10 @@
           "id": "firerouter",
           "name": "FireRouter",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 1048575,
           "maxTokens": 131072
         },
@@ -23,7 +26,9 @@
           "contextWindow": 1000000,
           "maxTokens": 384000,
           "reasoning": true,
-          "input": ["text"],
+          "input": [
+            "text"
+          ],
           "cost": {
             "input": 0.14,
             "output": 0.28,
@@ -37,7 +42,9 @@
           "contextWindow": 1000000,
           "maxTokens": 384000,
           "reasoning": true,
-          "input": ["text"],
+          "input": [
+            "text"
+          ],
           "cost": {
             "input": 1.74,
             "output": 3.48,
@@ -49,7 +56,9 @@
           "id": "glm-fast-latest",
           "name": "GLM 5.2 Fast (Latest)",
           "reasoning": true,
-          "input": ["text"],
+          "input": [
+            "text"
+          ],
           "contextWindow": 1048576,
           "maxTokens": 131072,
           "cost": {
@@ -63,7 +72,9 @@
           "id": "glm-latest",
           "name": "GLM 5.2 (Latest)",
           "reasoning": true,
-          "input": ["text"],
+          "input": [
+            "text"
+          ],
           "contextWindow": 1048576,
           "maxTokens": 131072,
           "cost": {
@@ -79,7 +90,9 @@
           "contextWindow": 131072,
           "maxTokens": 32768,
           "reasoning": true,
-          "input": ["text"],
+          "input": [
+            "text"
+          ],
           "cost": {
             "input": 0.15,
             "output": 0.6,
@@ -91,7 +104,10 @@
           "id": "kimi-fast-latest",
           "name": "Kimi K3 Fast (Latest)",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 1048576,
           "maxTokens": 262000,
           "cost": {
@@ -105,7 +121,10 @@
           "id": "kimi-k3",
           "name": "Kimi K3",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 1048576,
           "maxTokens": 262000,
           "cost": {
@@ -119,7 +138,10 @@
           "id": "kimi-k3-fast",
           "name": "Kimi K3 Fast",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 1048576,
           "maxTokens": 262000,
           "cost": {
@@ -133,7 +155,10 @@
           "id": "kimi-latest",
           "name": "Kimi K3 (Latest)",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 1048576,
           "maxTokens": 262000,
           "cost": {
@@ -147,7 +172,10 @@
           "id": "minimax-latest",
           "name": "Minimax M3 (Latest)",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 512000,
           "maxTokens": 512000,
           "cost": {
@@ -161,7 +189,10 @@
           "id": "qwen-plus-latest",
           "name": "Qwen3.7 Plus (Latest)",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 262144,
           "maxTokens": 65536,
           "cost": {
@@ -177,7 +208,7 @@
       },
       "headers": {
         "X-Title": "Pi",
-        "HTTP-Referer": "fireconnect/v0.9.0"
+        "HTTP-Referer": "fireconnect/v0.9.1"
       }
     }
   }
