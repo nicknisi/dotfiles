@@ -17,8 +17,8 @@
  * vim dashboard disappearing when you get to work.
  *
  * `/nicknisi-header` cycles gif → full → compact.
- * Regenerate frames: node gen-frames.mjs <gif> frames-waiting.ts 36 36
- * (36x36 px ≈ correct aspect for Monaspace Neon + adjust-cell-height=10%)
+ * Regenerate frames: node gen-frames.mjs <gif> frames-waiting.ts 28 28
+ * (square px grid ≈ correct aspect for Monaspace Neon + adjust-cell-height=10%)
  */
 
 import { execFileSync } from "node:child_process";
@@ -371,7 +371,7 @@ export default function (pi: ExtensionAPI) {
 						const infoIdx = i - infoOffset;
 						return infoIdx >= 0 && infoIdx < info.length ? left + INFO_GAP + info[infoIdx] : left;
 					});
-					return ["", ...rows, ""];
+					return ["", ...rows];
 				},
 				invalidate() {},
 			};
