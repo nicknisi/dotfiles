@@ -25,7 +25,7 @@
 
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { formatDirectory } from "../tui-utils.ts";
 import { join } from "node:path";
 import {
   VERSION,
@@ -329,11 +329,6 @@ const MODES: Mode[] = ["blink", "waiting", "full", "compact"];
 const MARGIN = "  ";
 const INFO_GAP = "   ";
 
-function shortenCwd(cwd: string): string {
-  const home = homedir();
-  return cwd.startsWith(home) ? `~${cwd.slice(home.length)}` : cwd;
-}
-
 function gitBranch(cwd: string): string | undefined {
   try {
     const branch = execFileSync("git", ["branch", "--show-current"], {
@@ -377,7 +372,7 @@ export default function (pi: ExtensionAPI) {
     // Session info, resolved once
     const modelName = ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : "no model";
     const branch = gitBranch(ctx.cwd);
-    const location = branch ? `${shortenCwd(ctx.cwd)}  ·  ${branch}` : shortenCwd(ctx.cwd);
+    const location = branch ? `${formatDirectory(ctx.cwd)}  ·  ${branch}` : formatDirectory(ctx.cwd);
 
     shown = true;
     ctx.ui.setHeader((tui, theme) => {

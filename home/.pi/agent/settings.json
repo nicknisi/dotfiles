@@ -1,5 +1,7 @@
 {
   "defaultProvider": "openrouter",
+  "editorPaddingX": 1,
+  "outputPad": 1,
   "theme": "tokyonight-night",
   "quietStartup": true,
   "hideThinkingBlock": true,

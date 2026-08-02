@@ -18,7 +18,7 @@
 
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { columns } from "./tui-utils.ts";
 import { writeFileSync, readFileSync, mkdirSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { execSync, spawn } from "node:child_process";
@@ -360,8 +360,8 @@ export default function (pi: ExtensionAPI) {
           const branch = footerData.getGitBranch();
           const right = branch ? theme.fg("dim", `${ICON_BRANCH} ${branch}`) : "";
 
-          const pad = " ".repeat(Math.max(1, width - visibleWidth(left) - visibleWidth(right)));
-          return [truncateToWidth(left + pad + right, width)];
+          const PAD = " ";
+          return [`${PAD}${columns(left, right, width - 2)}${PAD}`];
         },
       };
     });
