@@ -42,7 +42,7 @@
       "filePattern": ["~/.pi/agent/auth.json", "**/.pi/agent/auth.json", "**/auth.json"],
       "cloakPattern": [
         {
-          "pattern": "(\\\"(?:token|access|refresh|accessToken|refreshToken|apiKey|secret|password|clientSecret|idToken|sessionToken|authorization)\\\"\\s*:\\s*\\\")[^\\\"]+",
+          "pattern": "(\\\"(?:token|access|refresh|accessToken|refreshToken|apiKey|secret|password|clientSecret|idToken|sessionToken|authorization|api_key|key)\\\"\\s*:\\s*\\\")[^\\\"]+",
           "replace": "$1"
         }
       ]
