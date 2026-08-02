@@ -30,3 +30,4 @@ npm-debug.log
 
 .pi-glla/
 *.pid
+.pi-subagents/
