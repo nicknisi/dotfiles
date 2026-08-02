@@ -37,7 +37,8 @@
     "npm:@narumitw/pi-goal",
     "npm:pi-agent-browser-native",
     "npm:pi-web-access",
-    "npm:pi-intercom"
+    "npm:pi-intercom",
+    "npm:pi-goal-list-loop-audit"
   ],
   "defaultModel": "z-ai/glm-5.2",
   "warnings": {
