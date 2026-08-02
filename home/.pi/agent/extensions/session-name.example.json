@@ -1,0 +1,8 @@
+{
+  "autoName": "heuristic",
+  "heuristicMaxLength": 60,
+  "llmMaxWords": 6,
+  "notifyOnAutoName": true,
+  "setTitle": true,
+  "titleFormat": "{summary} — {dir}"
+}
