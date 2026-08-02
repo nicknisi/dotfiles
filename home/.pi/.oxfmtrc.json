@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": [
+    "node_modules/",
+    "agent/git/",
+    "agent/npm/",
+    "agent/sessions/",
+    "agent/pi-hermes-memory/",
+    "agent/projects-memory/",
+    "agent/extensions/mcp.local.bak/"
+  ]
+}

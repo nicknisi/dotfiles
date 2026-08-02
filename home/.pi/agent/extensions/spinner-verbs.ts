@@ -6,7 +6,7 @@
  * Arnold Schwarzenegger, and Predator references.
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const VERBS = [
   "1-up collecting",

@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {},
+  "env": {
+    "builtin": true
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "agent/git/",
+    "agent/npm/",
+    "agent/sessions/",
+    "agent/pi-hermes-memory/",
+    "agent/projects-memory/",
+    "agent/extensions/mcp.local.bak/"
+  ]
+}

@@ -10,7 +10,7 @@
     "~/Developer/claude-plugins/plugins/essentials/skills",
     "~/Developer/claude-plugins/plugins/meta/skills"
   ],
-  "defaultThinkingLevel": "xhigh",
+  "defaultThinkingLevel": "high",
   "enabledModels": [
     "openai/gpt-5.6-sol",
     "openai/gpt-5.6-terra",

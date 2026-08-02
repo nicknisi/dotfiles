@@ -38,16 +38,16 @@ Local extensions live in:
 
 Notable extensions:
 
-| Extension | Purpose |
-| --- | --- |
-| `mcp/` | Pi-native MCP bridge inspired by OMP MCP support. |
-| `agent-urls.ts` | OMP-style `agent://` and `history://` readers for `pi-subagents` runs. |
-| `handoff.ts` | Generate handoff prompts for new focused sessions. |
-| `review.ts` | Code-review workflow inspired by Codex review. |
-| `dynamic-skills.ts` | Claude-style dynamic `!\`command\`` expansion inside skills. |
-| `model-workflows/` | Multi-model workflow helpers. |
-| `statusline.ts` | Custom statusline. |
-| `auto-theme.ts` | Theme automation. |
+| Extension           | Purpose                                                                |
+| ------------------- | ---------------------------------------------------------------------- |
+| `mcp/`              | Pi-native MCP bridge inspired by OMP MCP support.                      |
+| `agent-urls.ts`     | OMP-style `agent://` and `history://` readers for `pi-subagents` runs. |
+| `handoff.ts`        | Generate handoff prompts for new focused sessions.                     |
+| `review.ts`         | Code-review workflow inspired by Codex review.                         |
+| `dynamic-skills.ts` | Claude-style dynamic `!\`command\`` expansion inside skills.           |
+| `model-workflows/`  | Multi-model workflow helpers.                                          |
+| `statusline.ts`     | Custom statusline.                                                     |
+| `auto-theme.ts`     | Theme automation.                                                      |
 
 After editing extensions, reload Pi:
 
@@ -80,12 +80,12 @@ Current behavior:
 
 Current expected servers:
 
-| Server | Source | Notes |
-| --- | --- | --- |
-| `sessions` | `~/.pi/agent/mcp.json` | Local sessions MCP server. |
-| `omnifocus-operator` | `~/.claude.json` | OmniFocus MCP tools. |
-| `devin` | `~/.claude.json` | Devin MCP tools. |
-| `raindrop` | `~/.claude.json` | Currently unauthorized unless auth is fixed or server is disabled. |
+| Server               | Source                 | Notes                                                              |
+| -------------------- | ---------------------- | ------------------------------------------------------------------ |
+| `sessions`           | `~/.pi/agent/mcp.json` | Local sessions MCP server.                                         |
+| `omnifocus-operator` | `~/.claude.json`       | OmniFocus MCP tools.                                               |
+| `devin`              | `~/.claude.json`       | Devin MCP tools.                                                   |
+| `raindrop`           | `~/.claude.json`       | Currently unauthorized unless auth is fixed or server is disabled. |
 
 Useful commands:
 
@@ -200,24 +200,24 @@ agent://3ad48d49/0/session
 
 What the schemes mean:
 
-| Scheme | Meaning |
-| --- | --- |
-| `agent://<runId>` | Summary of a subagent run and its children. |
-| `history://<runId>` | Rendered child transcript(s). |
-| `history://<runId>/<childIndex>` | Rendered transcript for one child. |
+| Scheme                           | Meaning                                                   |
+| -------------------------------- | --------------------------------------------------------- |
+| `agent://<runId>`                | Summary of a subagent run and its children.               |
+| `history://<runId>`              | Rendered child transcript(s).                             |
+| `history://<runId>/<childIndex>` | Rendered transcript for one child.                        |
 | `agent://<runId>/<child>/output` | Child output/log/final assistant response when available. |
 
 ## OMP ideas already ported or partially ported
 
-| OMP idea | Pi-native equivalent here |
-| --- | --- |
-| MCP discovery/config | `extensions/mcp/` bridge + `~/.pi/agent/mcp.json` |
-| Explicit imported MCP configs | `importConfigs` in `mcp.json` |
-| Gated large tool catalogs | `discoveryMode: "auto"` + `mcp_search_tools` |
-| `agent://` / `history://` | `extensions/agent-urls.ts` |
-| Subagents | `pi-subagents` package |
-| Handoff workflow | `handoff.ts` and handoff skill |
-| Review workflow | `review.ts`, `reviewer`, `/parallel-review`, `/review-loop` |
+| OMP idea                      | Pi-native equivalent here                                   |
+| ----------------------------- | ----------------------------------------------------------- |
+| MCP discovery/config          | `extensions/mcp/` bridge + `~/.pi/agent/mcp.json`           |
+| Explicit imported MCP configs | `importConfigs` in `mcp.json`                               |
+| Gated large tool catalogs     | `discoveryMode: "auto"` + `mcp_search_tools`                |
+| `agent://` / `history://`     | `extensions/agent-urls.ts`                                  |
+| Subagents                     | `pi-subagents` package                                      |
+| Handoff workflow              | `handoff.ts` and handoff skill                              |
+| Review workflow               | `review.ts`, `reviewer`, `/parallel-review`, `/review-loop` |
 
 ## OMP ideas worth stealing next
 

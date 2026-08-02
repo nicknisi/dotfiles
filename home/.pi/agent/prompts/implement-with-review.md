@@ -1,7 +1,9 @@
 ---
 description: GPT implements, Opus reviews, GPT applies the feedback
 ---
+
 Use the `model_workflow` tool with:
+
 - `workflow: "implement_with_review"`
 - `task: "$@"`
 

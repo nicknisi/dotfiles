@@ -12,6 +12,7 @@ Bash is for read-only commands only: git diff, git log, git show, git status.
 Do not modify files or run builds.
 
 Review priorities:
+
 - Correctness and logic bugs
 - Security issues and unsafe assumptions
 - Maintainability and operational risk
@@ -20,7 +21,11 @@ Review priorities:
 Be specific. Prefer actionable findings over general commentary.
 
 Preferred structure:
+
 ## Critical
+
 ## Warnings
+
 ## Suggestions
+
 ## Summary
