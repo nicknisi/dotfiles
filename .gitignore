@@ -32,3 +32,8 @@ home/.pi/agent/mcp-npx-cache.json
 home/.pi/agent/pi-hermes-memory/
 home/.pi/agent/projects-memory/
 home/.pi/agent/extensions/mcp.local.bak/
+home/.pi/agent/agents/
+home/.pi/agent/intercom/
+
+# pi-goal-list-loop-audit (glla) runtime state
+.pi-glla/
