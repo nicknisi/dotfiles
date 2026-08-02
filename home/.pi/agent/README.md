@@ -45,7 +45,6 @@ Notable extensions:
 | `handoff.ts`        | Generate handoff prompts for new focused sessions.                     |
 | `review.ts`         | Code-review workflow inspired by Codex review.                         |
 | `dynamic-skills.ts` | Claude-style dynamic `!\`command\`` expansion inside skills.           |
-| `model-workflows/`  | Multi-model workflow helpers.                                          |
 | `statusline.ts`     | Custom statusline.                                                     |
 | `auto-theme.ts`     | Theme automation.                                                      |
 

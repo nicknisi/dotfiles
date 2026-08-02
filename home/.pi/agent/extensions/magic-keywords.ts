@@ -35,7 +35,7 @@ const KEYWORDS = {
   },
   orchestrate: {
     instruction:
-      "Scope the full task first, then delegate substantial independent work in parallel to subagents. Verify each phase's output before continuing. Continue until the request is complete. Use the subagent or model_workflow tool for delegation — do not try to do everything sequentially yourself.",
+      "Scope the full task first, then delegate substantial independent work in parallel to subagents. Verify each phase's output before continuing. Continue until the request is complete. Use the subagent tool for delegation — do not try to do everything sequentially yourself.",
   },
 } as const;
 
