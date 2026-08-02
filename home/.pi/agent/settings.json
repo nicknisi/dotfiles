@@ -36,7 +36,8 @@
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@narumitw/pi-goal",
     "npm:pi-agent-browser-native",
-    "npm:pi-web-access"
+    "npm:pi-web-access",
+    "npm:pi-intercom"
   ],
   "defaultModel": "z-ai/glm-5.2",
   "warnings": {
