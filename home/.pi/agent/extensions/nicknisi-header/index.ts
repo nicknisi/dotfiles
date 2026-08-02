@@ -25,7 +25,7 @@
 
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
-import { formatDirectory } from "../tui-utils.ts";
+import { formatDirectory } from "../../lib/tui-utils.ts";
 import { join } from "node:path";
 import {
   VERSION,

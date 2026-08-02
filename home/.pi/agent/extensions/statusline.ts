@@ -18,7 +18,7 @@
 
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { columns } from "./tui-utils.ts";
+import { columns } from "../lib/tui-utils.ts";
 import { visibleWidth } from "@earendil-works/pi-tui";
 import { writeFileSync, readFileSync, mkdirSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";

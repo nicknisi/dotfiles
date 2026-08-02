@@ -30,7 +30,7 @@ import type {
 } from "@earendil-works/pi-coding-agent";
 import { CustomEditor } from "@earendil-works/pi-coding-agent";
 import { sliceByColumn, visibleWidth } from "@earendil-works/pi-tui";
-import { sanitizeTerminalLabel } from "./tui-utils.ts";
+import { sanitizeTerminalLabel } from "../lib/tui-utils.ts";
 
 // Strip ANSI so we can inspect a rendered line's visible characters.
 // Border lines are SGR-colored only, so the tui-utils sanitizer is more than
