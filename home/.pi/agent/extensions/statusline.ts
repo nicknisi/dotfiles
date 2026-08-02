@@ -186,8 +186,8 @@ function buildBar(
   const empty = width - filled;
   const color = percent > 50 ? "success" : percent > 20 ? "warning" : "error";
   let bar = "";
-  for (let i = 0; i < filled; i++) bar += "█";
-  for (let i = 0; i < empty; i++) bar += "░";
+  for (let i = 0; i < filled; i++) bar += "━";
+  for (let i = 0; i < empty; i++) bar += "╌";
   return theme.fg(color, bar);
 }
 
@@ -257,8 +257,7 @@ export default function (pi: ExtensionAPI) {
         dispose: unsub,
         invalidate() {},
         render(width: number): string[] {
-          const SEP = theme.fg("dim", " · ");
-          const border = theme.fg("dim", "─".repeat(width));
+          const SEP = theme.fg("dim", " │ ");
 
           // ── Model ────────────────────────────────────────────
           const modelId = ctx.model?.id || "no-model";
@@ -362,7 +361,7 @@ export default function (pi: ExtensionAPI) {
           const right = branch ? theme.fg("dim", `${ICON_BRANCH} ${branch}`) : "";
 
           const PAD = " ";
-          return [border, `${PAD}${columns(left, right, width - 2)}${PAD}`];
+          return [`${PAD}${columns(left, right, width - 2)}${PAD}`];
         },
       };
     });
