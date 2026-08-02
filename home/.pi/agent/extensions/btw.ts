@@ -9,7 +9,8 @@
  * agent's context in subsequent turns.
  */
 
-import { streamSimple, type Message, type ThinkingLevel } from "@earendil-works/pi-ai";
+import type { Message, ThinkingLevel } from "@earendil-works/pi-ai";
+import { getModelProvider } from "../lib/llm.ts";
 import type { ExtensionAPI, SessionEntry } from "@earendil-works/pi-coding-agent";
 import { BorderedLoader, convertToLlm } from "@earendil-works/pi-coding-agent";
 import { Box, Text } from "@earendil-works/pi-tui";
@@ -87,7 +88,10 @@ export default function (pi: ExtensionAPI) {
 
       const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
       if (!auth.ok) {
-        ctx.ui.notify(`No API key for ${ctx.model.provider}/${ctx.model.id}: ${auth.error}`, "error");
+        ctx.ui.notify(
+          `No API key for ${ctx.model.provider}/${ctx.model.id}: ${auth.error}`,
+          "error",
+        );
         return;
       }
       const { apiKey, headers } = auth;
@@ -101,7 +105,7 @@ export default function (pi: ExtensionAPI) {
 
         (async () => {
           try {
-            const stream = streamSimple(
+            const stream = getModelProvider(ctx, ctx.model!).streamSimple(
               ctx.model!,
               { systemPrompt: SYSTEM_PROMPT, messages: llmMessages },
               { apiKey, headers, reasoning, signal: loader.signal },

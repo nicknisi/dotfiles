@@ -63,7 +63,11 @@ export function sampleGradient(position: number, palette: Rgb[] = DEFAULT_PALETT
   const amount = scaled - index;
   const start = palette[index]!;
   const end = palette[nextIndex]!;
-  return [mix(start[0], end[0], amount), mix(start[1], end[1], amount), mix(start[2], end[2], amount)];
+  return [
+    mix(start[0], end[0], amount),
+    mix(start[1], end[1], amount),
+    mix(start[2], end[2], amount),
+  ];
 }
 
 function foreground([r, g, b]: Rgb, text: string) {
@@ -75,7 +79,11 @@ function foreground([r, g, b]: Rgb, text: string) {
  * (use a row index * small constant to stagger multi-line art). Spaces are
  * passed through uncolored so the gradient doesn't waste hues on whitespace.
  */
-export function gradientText(text: string, phase: number, palette: Rgb[] = DEFAULT_PALETTE): string {
+export function gradientText(
+  text: string,
+  phase: number,
+  palette: Rgb[] = DEFAULT_PALETTE,
+): string {
   const chars = [...text];
   const span = Math.max(chars.length - 1, 1);
   return chars
@@ -98,7 +106,9 @@ export function renderedText(node: RenderableNode, width = 200): string {
   }
 }
 
-function hasChildren(node: RenderableNode): node is RenderableNode & { children: RenderableNode[] } {
+function hasChildren(
+  node: RenderableNode,
+): node is RenderableNode & { children: RenderableNode[] } {
   return Array.isArray(node.children);
 }
 
@@ -177,14 +187,14 @@ export function columns(left: string, right: string, width: number): string {
 
 // ─── 4. terminal-label sanitization ───────────────────────────────────────
 
+/* eslint-disable no-control-regex -- matching ANSI/OSC escape sequences requires control chars */
 const ANSI_PATTERN =
   /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
-// eslint-disable-next-line no-control-regex
-const OSC_PATTERN = /(?:\u001b\]|\u009d)(?:[^\u0007\u001b\u009c]|\u001b(?!\\))*(?:\u0007|\u001b\\|\u009c)/g;
-// eslint-disable-next-line no-control-regex
+const OSC_PATTERN =
+  /(?:\u001b\]|\u009d)(?:[^\u0007\u001b\u009c]|\u001b(?!\\))*(?:\u0007|\u001b\\|\u009c)/g;
 const CSI_PATTERN = /(?:\u001b\[|\u009b)[0-?]*[ -/]*[@-~]/g;
-// eslint-disable-next-line no-control-regex
 const ESCAPE_PATTERN = /\u001b(?:[()][0-2A-Z]|[ -/]*[@-~])/g;
+/* eslint-enable no-control-regex */
 
 /**
  * Strip OSC, CSI, other escape sequences, and C0/C1 control chars from a
@@ -193,11 +203,14 @@ const ESCAPE_PATTERN = /\u001b(?:[()][0-2A-Z]|[ -/]*[@-~])/g;
  * breakage.
  */
 export function sanitizeTerminalLabel(text: string): string {
-  return text
-    .replace(OSC_PATTERN, "")
-    .replace(CSI_PATTERN, "")
-    .replace(ESCAPE_PATTERN, "")
-    .replace(/[\u0000-\u001f\u007f-\u009f]/g, "");
+  return (
+    text
+      .replace(OSC_PATTERN, "")
+      .replace(CSI_PATTERN, "")
+      .replace(ESCAPE_PATTERN, "")
+      // eslint-disable-next-line no-control-regex -- intentionally strips remaining C0/C1 control chars
+      .replace(/[\u0000-\u001f\u007f-\u009f]/g, "")
+  );
 }
 
 /** Collapse $HOME to ~ for display. Combined with sanitizeTerminalLabel. */

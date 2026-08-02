@@ -13,7 +13,8 @@
  * The generated prompt appears as a draft in the editor for review/editing.
  */
 
-import { complete, type Message } from "@earendil-works/pi-ai";
+import type { Message } from "@earendil-works/pi-ai";
+import { getModelProvider } from "../lib/llm.ts";
 import type { ExtensionAPI, SessionEntry } from "@earendil-works/pi-coding-agent";
 import {
   BorderedLoader,
@@ -104,7 +105,10 @@ export default function (pi: ExtensionAPI) {
           const doGenerate = async () => {
             const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model!);
             if (!auth.ok) {
-              return { text: null, error: `No API key for ${ctx.model!.provider}/${ctx.model!.id}: ${auth.error}` };
+              return {
+                text: null,
+                error: `No API key for ${ctx.model!.provider}/${ctx.model!.id}: ${auth.error}`,
+              };
             }
             const { apiKey, headers } = auth;
 
@@ -119,11 +123,13 @@ export default function (pi: ExtensionAPI) {
               timestamp: Date.now(),
             };
 
-            const response = await complete(
-              ctx.model!,
-              { systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
-              { apiKey, headers, signal: loader.signal },
-            );
+            const response = await getModelProvider(ctx, ctx.model!)
+              .stream(
+                ctx.model!,
+                { systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
+                { apiKey, headers, signal: loader.signal },
+              )
+              .result();
 
             if (response.stopReason === "aborted") {
               return { text: null };

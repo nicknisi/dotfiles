@@ -1,4 +1,5 @@
-import { complete, type Api, type Model, type UserMessage } from "@earendil-works/pi-ai";
+import type { Api, Model, UserMessage } from "@earendil-works/pi-ai";
+import { getModelProvider } from "../lib/llm.ts";
 import {
   BorderedLoader,
   Theme,
@@ -548,16 +549,18 @@ export default function (pi: ExtensionAPI) {
           timestamp: Date.now(),
         };
 
-        const response = await complete(
-          extractionModel,
-          { systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
-          {
-            apiKey: auth.apiKey,
-            headers: auth.headers,
-            signal: loader.signal,
-            // (no provider-specific reasoning override; both fallback models are Anthropic)
-          },
-        );
+        const response = await getModelProvider(ctx, extractionModel)
+          .stream(
+            extractionModel,
+            { systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
+            {
+              apiKey: auth.apiKey,
+              headers: auth.headers,
+              signal: loader.signal,
+              // (no provider-specific reasoning override; both fallback models are Anthropic)
+            },
+          )
+          .result();
 
         if (response.stopReason === "aborted") {
           return { type: "cancelled" } as ExtractionOutcome;

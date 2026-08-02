@@ -17,7 +17,7 @@
  */
 
 import type { AssistantMessage } from "@earendil-works/pi-ai";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent";
 import { columns } from "../lib/tui-utils.ts";
 import { visibleWidth } from "@earendil-works/pi-tui";
 import { writeFileSync, readFileSync, mkdirSync, existsSync, statSync } from "node:fs";
@@ -178,11 +178,7 @@ function formatTimeUntil(resetsAt: string): string {
 
 // ── Helper: build a progress bar ─────────────────────────────────────────────
 
-function buildBar(
-  percent: number,
-  width: number,
-  theme: { fg: (color: string, text: string) => string },
-): string {
+function buildBar(percent: number, width: number, theme: Pick<Theme, "fg">): string {
   const filled = Math.round((percent * width) / 100);
   const empty = width - filled;
   const color = percent > 50 ? "success" : percent > 20 ? "warning" : "error";
@@ -202,7 +198,6 @@ function formatTokens(n: number): string {
 // ── Extension ────────────────────────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
-
   // ── Tmux status hooks ──────────────────────────────────────────────────
 
   pi.on("session_start", async () => {
@@ -233,7 +228,7 @@ export default function (pi: ExtensionAPI) {
     removeStatus();
   });
 
-  pi.on("session_switch", async (event) => {
+  pi.on("session_start", async (event) => {
     if (event.reason === "new") {
       writeStatus("idle");
     }
@@ -329,7 +324,6 @@ export default function (pi: ExtensionAPI) {
             const lines = `${theme.fg("success", `+${linesAdded}`)}/${theme.fg("error", `-${linesRemoved}`)}`;
             segments.push(`${ICON_LINES} ${lines}`);
           }
-
 
           // Usage limits (5h / 7d windows) — only for Anthropic models
           // \U000f0241 = 󰉁 gauge

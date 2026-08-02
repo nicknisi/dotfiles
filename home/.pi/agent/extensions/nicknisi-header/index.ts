@@ -34,6 +34,7 @@ import {
   type ExtensionContext,
   type Theme,
 } from "@earendil-works/pi-coding-agent";
+import type { Component } from "@earendil-works/pi-tui";
 import * as blinkDataLarge from "./frames-blink-large.ts";
 import * as blinkDataSmall from "./frames-blink-small.ts";
 import * as blinkData from "./frames-blink.ts";
@@ -367,12 +368,14 @@ export default function (pi: ExtensionAPI) {
     let frameIndex = 0;
     let frameElapsed = 0;
     let lastTick = Date.now();
-    let headerComp: { invalidate(): void } | undefined;
+    let headerComp: Component | undefined;
 
     // Session info, resolved once
     const modelName = ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : "no model";
     const branch = gitBranch(ctx.cwd);
-    const location = branch ? `${formatDirectory(ctx.cwd)}  ·  ${branch}` : formatDirectory(ctx.cwd);
+    const location = branch
+      ? `${formatDirectory(ctx.cwd)}  ·  ${branch}`
+      : formatDirectory(ctx.cwd);
 
     shown = true;
     ctx.ui.setHeader((tui, theme) => {

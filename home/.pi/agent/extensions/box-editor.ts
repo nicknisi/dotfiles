@@ -24,10 +24,7 @@
  * borderColor) is wired up by pi when setEditorComponent creates the editor.
  */
 
-import type {
-  ExtensionAPI,
-  ExtensionContext,
-} from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { CustomEditor } from "@earendil-works/pi-coding-agent";
 import { sliceByColumn, visibleWidth } from "@earendil-works/pi-tui";
 import { sanitizeTerminalLabel } from "../lib/tui-utils.ts";

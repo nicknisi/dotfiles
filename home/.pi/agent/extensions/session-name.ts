@@ -35,7 +35,8 @@
  *     }
  */
 
-import { complete, type Message } from "@earendil-works/pi-ai/compat";
+import type { Message } from "@earendil-works/pi-ai";
+import { getModelProvider } from "../lib/llm.ts";
 import {
   SessionManager,
   type ExtensionAPI,
@@ -274,11 +275,13 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
     };
 
     try {
-      const response = await complete(
-        model,
-        { systemPrompt, messages: [userMessage] },
-        { apiKey: auth.apiKey, headers: auth.headers, env: auth.env, signal: controller.signal },
-      );
+      const response = await getModelProvider(ctx, model)
+        .stream(
+          model,
+          { systemPrompt, messages: [userMessage] },
+          { apiKey: auth.apiKey, headers: auth.headers, env: auth.env, signal: controller.signal },
+        )
+        .result();
       if (response.stopReason === "error" || response.stopReason === "aborted") return null;
       const raw = response.content
         .filter((c): c is { type: "text"; text: string } => c.type === "text")

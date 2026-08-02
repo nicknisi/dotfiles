@@ -637,8 +637,8 @@ async function extractVideo(
     };
 
     const thumbnail = await extractVideoFrame(info.absolutePath);
-    if (!("error" in thumbnail)) {
-      result.thumbnail = thumbnail;
+    if (thumbnail.data && thumbnail.mimeType) {
+      result.thumbnail = { data: thumbnail.data, mimeType: thumbnail.mimeType };
     }
 
     return result;
@@ -1114,12 +1114,9 @@ export default function (pi: ExtensionAPI) {
         throw new Error(result.error);
       }
 
-      const content: Array<{
-        type: string;
-        text?: string;
-        data?: string;
-        mimeType?: string;
-      }> = [];
+      const content: Array<
+        { type: "text"; text: string } | { type: "image"; data: string; mimeType: string }
+      > = [];
 
       // Add frames first
       if (result.frames?.length) {

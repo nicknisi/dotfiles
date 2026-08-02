@@ -6,7 +6,8 @@
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
     "lint": "oxlint .",
-    "lint:fix": "oxlint --fix ."
+    "lint:fix": "oxlint --fix .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "^0.83.0",
@@ -15,6 +16,7 @@
     "typebox": "^1.1.38"
   },
   "devDependencies": {
+    "@types/node": "^24.0.0",
     "oxfmt": "^0.61.0",
     "oxlint": "^1.76.0",
     "typescript": "^7.0.2"

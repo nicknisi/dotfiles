@@ -74,12 +74,13 @@ export default function (pi: ExtensionAPI) {
     const skill = pi
       .getCommands()
       .find((c) => c.source === "skill" && c.name === `skill:${skillName}`);
-    if (!skill?.path) return { action: "continue" as const };
+    const skillPath = skill?.sourceInfo.path;
+    if (!skillPath) return { action: "continue" as const };
 
     // Read and check for dynamic commands
     let content: string;
     try {
-      content = readFileSync(skill.path, "utf-8");
+      content = readFileSync(skillPath, "utf-8");
     } catch {
       return { action: "continue" as const };
     }
@@ -87,7 +88,7 @@ export default function (pi: ExtensionAPI) {
     if (!HAS_CMD.test(content)) return { action: "continue" as const };
 
     // Execute commands and expand
-    const skillDir = dirname(skill.path);
+    const skillDir = skill!.sourceInfo.baseDir ?? dirname(skillPath);
     ctx.ui.notify(`Expanding dynamic commands in ${skillName}…`, "info");
     const expanded = await expandCommands(content, skillDir);
 

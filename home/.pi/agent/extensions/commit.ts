@@ -11,14 +11,15 @@
  *   /commit --no-changelog     — skip changelog generation
  *   /commit -c "extra context" — pass context to the model
  *
- * Ported from omp's commit pipeline. Uses the session model + pi-ai complete().
+ * Ported from omp's commit pipeline. Uses the session model via the provider's stream API.
  */
 
-import { complete, type Message } from "@earendil-works/pi-ai";
+import type { Message } from "@earendil-works/pi-ai";
+import { getModelProvider } from "../lib/llm.ts";
 import {
   BorderedLoader,
   convertToLlm,
-  serializeConversation,
+  sessionEntryToContextMessages,
   type ExtensionAPI,
   type ExtensionCommandContext,
 } from "@earendil-works/pi-coding-agent";
@@ -177,29 +178,37 @@ async function generateMessage(
   signal: AbortSignal | undefined,
 ): Promise<GenerateResult> {
   const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model!);
-  if (!auth.ok) throw new Error(`No API key configured for ${ctx.model!.provider}/${ctx.model!.id}: ${auth.error}`);
+  if (!auth.ok)
+    throw new Error(
+      `No API key configured for ${ctx.model!.provider}/${ctx.model!.id}: ${auth.error}`,
+    );
   const { apiKey, headers } = auth;
 
-  const conversation = serializeConversation(ctx.sessionManager);
+  const contextMessages = ctx.sessionManager
+    .buildContextEntries()
+    .flatMap((entry) => sessionEntryToContextMessages(entry));
   const userMessage: Message = {
     role: "user",
-    content: [{ type: "text", text: prompt, timestamp: Date.now() }],
+    content: [{ type: "text", text: prompt }],
+    timestamp: Date.now(),
   };
 
-  const llmMessages = [...convertToLlm(conversation), userMessage];
+  const llmMessages = [...convertToLlm(contextMessages), userMessage];
 
-  const response = await complete(
-    ctx.model!,
-    { systemPrompt: SYSTEM_PROMPT, messages: llmMessages },
-    { apiKey, headers, signal },
-  );
+  const response = await getModelProvider(ctx, ctx.model!)
+    .stream(
+      ctx.model!,
+      { systemPrompt: SYSTEM_PROMPT, messages: llmMessages },
+      { apiKey, headers, signal },
+    )
+    .result();
 
   if (response.stopReason === "aborted") {
     return { message: null, changelog: null };
   }
 
   if (response.stopReason === "error" || !response.content) {
-    throw new Error(response.error || "Model returned an error");
+    throw new Error(response.errorMessage || "Model returned an error");
   }
 
   const text = response.content
@@ -308,6 +317,8 @@ export default function (pi: ExtensionAPI) {
         };
 
         void doGenerate();
+
+        return loader;
       });
 
       if (result.error) {
@@ -344,7 +355,7 @@ export default function (pi: ExtensionAPI) {
       // Run the commit
       try {
         const output = await runGitCommit(cwd, result.message, opts.push);
-        ctx.ui.notify(output, "success");
+        ctx.ui.notify(output, "info");
       } catch (err) {
         ctx.ui.notify(
           `git commit failed: ${err instanceof Error ? err.message : String(err)}`,

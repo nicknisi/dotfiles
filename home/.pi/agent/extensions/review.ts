@@ -23,6 +23,7 @@ import type {
 } from "@earendil-works/pi-coding-agent";
 import { DynamicBorder, BorderedLoader } from "@earendil-works/pi-coding-agent";
 import { Container, type SelectItem, SelectList, Text } from "@earendil-works/pi-tui";
+import { SearchableSelectList } from "../lib/searchable-select-list.ts";
 
 // State to track fresh session review (where we branched from).
 // Module-level state means only one review can be active at a time.
@@ -410,16 +411,13 @@ export default function reviewExtension(pi: ExtensionAPI) {
       container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
       container.addChild(new Text(theme.fg("accent", theme.bold("Select base branch"))));
 
-      const selectList = new SelectList(items, Math.min(items.length, 10), {
+      const selectList = new SearchableSelectList(items, Math.min(items.length, 10), {
         selectedPrefix: (text) => theme.fg("accent", text),
         selectedText: (text) => theme.fg("accent", text),
         description: (text) => theme.fg("muted", text),
         scrollInfo: (text) => theme.fg("dim", text),
         noMatch: (text) => theme.fg("warning", text),
       });
-
-      // Enable search
-      selectList.searchable = true;
 
       selectList.onSelect = (item) => done(item.value);
       selectList.onCancel = () => done(null);
@@ -471,16 +469,13 @@ export default function reviewExtension(pi: ExtensionAPI) {
         container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
         container.addChild(new Text(theme.fg("accent", theme.bold("Select commit to review"))));
 
-        const selectList = new SelectList(items, Math.min(items.length, 10), {
+        const selectList = new SearchableSelectList(items, Math.min(items.length, 10), {
           selectedPrefix: (text) => theme.fg("accent", text),
           selectedText: (text) => theme.fg("accent", text),
           description: (text) => theme.fg("muted", text),
           scrollInfo: (text) => theme.fg("dim", text),
           noMatch: (text) => theme.fg("warning", text),
         });
-
-        // Enable search
-        selectList.searchable = true;
 
         selectList.onSelect = (item) => {
           const commit = commits.find((c) => c.sha === item.value);
