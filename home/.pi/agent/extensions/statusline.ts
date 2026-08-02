@@ -19,6 +19,7 @@
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { columns } from "./tui-utils.ts";
+import { visibleWidth } from "@earendil-works/pi-tui";
 import { writeFileSync, readFileSync, mkdirSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { execSync, spawn } from "node:child_process";
@@ -303,10 +304,9 @@ export default function (pi: ExtensionAPI) {
           const usage = ctx.getContextUsage();
           const usedPercent = usage?.percent ?? 0;
           const remaining = Math.max(0, Math.round(100 - usedPercent));
-          const contextBar = buildBar(remaining, 5, theme);
           const tokensUsed = usage?.tokens ?? 0;
 
-          // ── Build segments ───────────────────────────────────
+          // ── Build segments ───────────────────────────────────────
           const segments: string[] = [];
 
           // Nerd font icons for each section
@@ -330,10 +330,6 @@ export default function (pi: ExtensionAPI) {
             segments.push(`${ICON_LINES} ${lines}`);
           }
 
-          // Context bar — shows remaining context window
-          const contextStr = `${contextBar} ${remaining}% ctx`;
-          const tokenStr = tokensUsed > 0 ? theme.fg("dim", ` (${formatTokens(tokensUsed)})`) : "";
-          segments.push(`${ICON_CONTEXT} ${contextStr}${tokenStr}`);
 
           // Usage limits (5h / 7d windows) — only for Anthropic models
           // \U000f0241 = 󰉁 gauge
@@ -354,13 +350,30 @@ export default function (pi: ExtensionAPI) {
             segments.push(`${ICON_USAGE} ${fiveStr} ${theme.fg("dim", "╱")} ${sevenStr}`);
           }
 
-          const left = segments.join(SEP);
-
-          // ── Right side: git branch ───────────────────────────
+          // Context bar — stretch to fill whatever width remains on the line.
+          // Build a placeholder context segment, measure all segments + the right
+          // side, then give the bar the leftover columns (clamped 5..40).
+          const tokenStr = tokensUsed > 0 ? theme.fg("dim", ` (${formatTokens(tokensUsed)})`) : "";
+          const ctxLabel = `${ICON_CONTEXT} `;
+          const ctxTail = ` ${remaining}% ctx${tokenStr}`;
           const branch = footerData.getGitBranch();
           const right = branch ? theme.fg("dim", `${ICON_BRANCH} ${branch}`) : "";
-
           const PAD = " ";
+          const innerWidth = width - 2; // minus the two PAD gutters
+          const sepWidth = visibleWidth(SEP);
+          const otherWidth =
+            segments.reduce((sum, s) => sum + visibleWidth(s), 0) +
+            sepWidth * segments.length + // separators between segments
+            sepWidth + // separator before context segment
+            visibleWidth(ctxLabel) +
+            visibleWidth(ctxTail) +
+            visibleWidth(right) +
+            1; // min 1 gap between left and right
+          const barWidth = Math.max(5, Math.min(40, innerWidth - otherWidth));
+          const contextBar = buildBar(remaining, barWidth, theme);
+          segments.push(`${ctxLabel}${contextBar}${ctxTail}`);
+
+          const left = segments.join(SEP);
           return [`${PAD}${columns(left, right, width - 2)}${PAD}`];
         },
       };
