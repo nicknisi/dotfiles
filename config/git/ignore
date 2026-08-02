@@ -27,3 +27,6 @@ npm-debug.log
 **/CLAUDE.local.md
 
 .playwright-cli/
+
+.pi-glla/
+*.pid
