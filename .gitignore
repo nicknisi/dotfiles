@@ -34,6 +34,7 @@ home/.pi/agent/projects-memory/
 home/.pi/agent/extensions/mcp.local.bak/
 home/.pi/agent/agents/
 home/.pi/agent/intercom/
+home/.pi/workflows/
 
 # pi-goal-list-loop-audit (glla) runtime state
 .pi-glla/
