@@ -22,7 +22,7 @@ import type {
   ExtensionCommandContext,
 } from "@earendil-works/pi-coding-agent";
 import { DynamicBorder, BorderedLoader } from "@earendil-works/pi-coding-agent";
-import { Container, type SelectItem, SelectList, Text, Key } from "@earendil-works/pi-tui";
+import { Container, type SelectItem, SelectList, Text } from "@earendil-works/pi-tui";
 
 // State to track fresh session review (where we branched from).
 // Module-level state means only one review can be active at a time.

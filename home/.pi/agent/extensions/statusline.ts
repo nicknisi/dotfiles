@@ -201,7 +201,6 @@ function formatTokens(n: number): string {
 // ── Extension ────────────────────────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
-  let turnCount = 0;
 
   // ── Tmux status hooks ──────────────────────────────────────────────────
 
@@ -235,7 +234,6 @@ export default function (pi: ExtensionAPI) {
 
   pi.on("session_switch", async (event) => {
     if (event.reason === "new") {
-      turnCount = 0;
       writeStatus("idle");
     }
   });
@@ -243,7 +241,6 @@ export default function (pi: ExtensionAPI) {
   // ── Turn tracking ──────────────────────────────────────────────────────
 
   pi.on("turn_start", async () => {
-    turnCount++;
     // Keep the status-file timestamp fresh during long tool-less
     // generations: fleet decays "working" to idle after 180s stale,
     // and pi has no scrape/title fallback signal there.

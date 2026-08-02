@@ -92,7 +92,7 @@ export default function (pi: ExtensionAPI) {
   });
 
   // Inject hidden instructions into the system prompt + bump thinking level.
-  pi.on("before_agent_start", async (event, ctx) => {
+  pi.on("before_agent_start", async (event, _ctx) => {
     if (pendingKeywords.size === 0) return;
 
     const instructions: string[] = [];

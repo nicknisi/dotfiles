@@ -42,7 +42,7 @@ import * as waitingDataSmall from "./frames-waiting-small.ts";
 import * as waitingData from "./frames-waiting.ts";
 
 const ANSI_RESET = "\x1b[0m";
-const ANSI_RE = /\x1b\[[0-9;]*m/g;
+const ANSI_RE = /\u001b\[[0-9;]*m/g; // eslint-disable-line no-control-regex -- intentional: matches ANSI color escapes
 const visibleLen = (s: string) => s.replace(ANSI_RE, "").length;
 
 // ---------------------------------------------------------------------------

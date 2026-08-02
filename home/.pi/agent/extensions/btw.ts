@@ -85,11 +85,12 @@ export default function (pi: ExtensionAPI) {
       const reasoning: ThinkingLevel | undefined =
         thinkingLevel === "off" ? undefined : (thinkingLevel as ThinkingLevel);
 
-      const apiKey = await ctx.modelRegistry.getApiKey(ctx.model);
-      if (!apiKey) {
-        ctx.ui.notify(`No API key for ${ctx.model.provider}/${ctx.model.id}`, "error");
+      const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
+      if (!auth.ok) {
+        ctx.ui.notify(`No API key for ${ctx.model.provider}/${ctx.model.id}: ${auth.error}`, "error");
         return;
       }
+      const { apiKey, headers } = auth;
 
       const modelId = ctx.model.id;
 
@@ -103,7 +104,7 @@ export default function (pi: ExtensionAPI) {
             const stream = streamSimple(
               ctx.model!,
               { systemPrompt: SYSTEM_PROMPT, messages: llmMessages },
-              { apiKey, reasoning, signal: loader.signal },
+              { apiKey, headers, reasoning, signal: loader.signal },
             );
 
             let text = "";
@@ -122,7 +123,7 @@ export default function (pi: ExtensionAPI) {
               }
             }
             done(text || null);
-          } catch (err) {
+          } catch {
             done(null);
           }
         })();

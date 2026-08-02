@@ -5,7 +5,7 @@ description: "Compare two models on the same task (usage: /compare-models <model
 Run the `workflow` tool with this script (pass `$1` as `m1`, `$2` as `m2`, `${@:3}` as `task` in `args`):
 
 ```js
-export const meta = { name: 'compare_models', description: 'Compare two models on the same task' };
+export const meta = { name: "compare_models", description: "Compare two models on the same task" };
 const { m1, m2, task } = args;
 const [a, b] = await parallel([
   () => agent(`Answer the following concisely:\n\n${task}`, { model: m1 }),

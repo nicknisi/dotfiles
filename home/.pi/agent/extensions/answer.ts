@@ -65,8 +65,8 @@ interface ExtractionModelPreference {
 }
 
 const EXTRACTION_MODEL_PREFERENCES: readonly ExtractionModelPreference[] = [
-  { provider: "openai-codex", modelId: "gpt-5.5" },
-  { provider: "anthropic", modelId: "claude-haiku-4-5" },
+  { provider: "anthropic", modelId: "claude-fable-5" },
+  { provider: "anthropic", modelId: "claude-opus-5" },
 ];
 
 function formatExtractionModelPreferences(
@@ -555,7 +555,7 @@ export default function (pi: ExtensionAPI) {
             apiKey: auth.apiKey,
             headers: auth.headers,
             signal: loader.signal,
-            ...(extractionModel.provider === "openai-codex" ? { reasoningEffort: "none" } : {}),
+            // (no provider-specific reasoning override; both fallback models are Anthropic)
           },
         );
 

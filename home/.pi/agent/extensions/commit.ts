@@ -176,8 +176,9 @@ async function generateMessage(
   prompt: string,
   signal: AbortSignal | undefined,
 ): Promise<GenerateResult> {
-  const apiKey = await ctx.modelRegistry.getApiKey(ctx.model!);
-  if (!apiKey) throw new Error(`No API key configured for ${ctx.model!.provider}/${ctx.model!.id}`);
+  const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model!);
+  if (!auth.ok) throw new Error(`No API key configured for ${ctx.model!.provider}/${ctx.model!.id}: ${auth.error}`);
+  const { apiKey, headers } = auth;
 
   const conversation = serializeConversation(ctx.sessionManager);
   const userMessage: Message = {
@@ -190,7 +191,7 @@ async function generateMessage(
   const response = await complete(
     ctx.model!,
     { systemPrompt: SYSTEM_PROMPT, messages: llmMessages },
-    { apiKey, signal },
+    { apiKey, headers, signal },
   );
 
   if (response.stopReason === "aborted") {
