@@ -146,9 +146,10 @@ export default function (pi: ExtensionAPI) {
       const data = entry.data as { summary: string; ts: number };
       const dim = (s: string) => theme.fg("dim", s);
       // Hardcoded bg darker than both base bg (#1a1b26) and message bg (#1e1f2b)
-      // so it's clearly distinct from user/assistant messages. No borders —
-      // the background shift alone sets it apart.
-      const box = new Box(1, 0, (s) => theme.bg("#131320", dim(s)));
+      // so it's clearly distinct from user/assistant messages. theme.bg only
+      // accepts named tokens, so emit a truecolor escape directly.
+      const bg = (s: string) => `\x1b[48;2;19;19;32m${s}\x1b[49m`;
+      const box = new Box(1, 0, (s) => bg(dim(s)));
       box.addChild(
         new Text(
           dim(theme.bold("Recap")) + dim(` · ${new Date(data.ts).toLocaleTimeString()}`),
