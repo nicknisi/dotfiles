@@ -22,7 +22,10 @@ import { columns } from "../lib/tui-utils.ts";
 import { hyperlink, visibleWidth } from "@earendil-works/pi-tui";
 import { writeFileSync, readFileSync, mkdirSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { execSync, spawn } from "node:child_process";
+import { execSync, execFile, spawn } from "node:child_process";
+import { promisify } from "node:util";
+
+const execFileP = promisify(execFile);
 
 // ── Tmux status integration ─────────────────────────────────────────────────
 
@@ -99,22 +102,22 @@ interface UsageData {
   seven_day: UsageWindow;
 }
 
-function getOAuthToken(): string | undefined {
-  // Try pi's auth.json first
+async function getOAuthToken(): Promise<string | undefined> {
+  // Try pi's auth.json first (cheap sync file read)
   const piAuth = join(process.env.HOME || "", ".pi", "agent", "auth.json");
   try {
     const data = JSON.parse(readFileSync(piAuth, "utf-8"));
     if (data?.anthropic?.access) return data.anthropic.access;
   } catch {}
 
-  // Fallback: Claude Code keychain (macOS)
+  // Fallback: Claude Code keychain (macOS), async so it never blocks the TUI
   try {
-    const creds = execSync('security find-generic-password -s "Claude Code-credentials" -w', {
-      encoding: "utf-8",
-      timeout: 2000,
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
-    const parsed = JSON.parse(creds);
+    const { stdout } = await execFileP(
+      "security",
+      ["find-generic-password", "-s", "Claude Code-credentials", "-w"],
+      { timeout: 2000 },
+    );
+    const parsed = JSON.parse(stdout.trim());
     if (parsed?.claudeAiOauth?.accessToken) return parsed.claudeAiOauth.accessToken;
   } catch {}
 
@@ -134,27 +137,54 @@ function readUsageCache(allowStale = false): UsageData | undefined {
   }
 }
 
-function fetchUsage(): UsageData | undefined {
-  const token = getOAuthToken();
-  if (!token) return undefined;
+let usageRefreshInFlight = false;
+let onUsageUpdated: (() => void) | undefined;
 
-  try {
-    if (!existsSync(USAGE_CACHE_DIR)) mkdirSync(USAGE_CACHE_DIR, { recursive: true });
-    const response = execSync(
-      `curl -s --max-time 3 -H "Authorization: Bearer ${token}" -H "anthropic-beta: oauth-2025-04-20" "https://api.anthropic.com/api/oauth/usage"`,
-      { encoding: "utf-8", timeout: 5000, stdio: ["pipe", "pipe", "pipe"] },
-    );
-    const data = JSON.parse(response);
-    if (data?.five_hour?.utilization === undefined) return undefined;
-    writeFileSync(join(USAGE_CACHE_DIR, "usage.json"), response);
-    return data;
-  } catch {
-    return undefined;
-  }
+/** Fire-and-forget async refresh of the usage cache. Never blocks the TUI. */
+function refreshUsage(): void {
+  if (usageRefreshInFlight) return;
+  usageRefreshInFlight = true;
+  void (async () => {
+    try {
+      const token = await getOAuthToken();
+      if (!token) return;
+      const { stdout } = await execFileP(
+        "curl",
+        [
+          "-s",
+          "--max-time",
+          "3",
+          "-H",
+          `Authorization: Bearer ${token}`,
+          "-H",
+          "anthropic-beta: oauth-2025-04-20",
+          "https://api.anthropic.com/api/oauth/usage",
+        ],
+        { timeout: 5000 },
+      );
+      const data = JSON.parse(stdout);
+      if (data?.five_hour?.utilization === undefined) return;
+      if (!existsSync(USAGE_CACHE_DIR)) mkdirSync(USAGE_CACHE_DIR, { recursive: true });
+      writeFileSync(join(USAGE_CACHE_DIR, "usage.json"), stdout);
+      onUsageUpdated?.();
+    } catch {
+      // non-fatal: usage segment just renders stale/absent data
+    } finally {
+      usageRefreshInFlight = false;
+    }
+  })();
 }
 
+/**
+ * Usage data for the footer. Reads only the on-disk cache; when it's stale or
+ * missing, kicks an async refresh and renders stale data (or nothing) in the
+ * meantime. Never performs network or keychain I/O on the render path.
+ */
 function getUsageData(): UsageData | undefined {
-  return readUsageCache() ?? fetchUsage() ?? readUsageCache(true);
+  const fresh = readUsageCache();
+  if (fresh) return fresh;
+  refreshUsage();
+  return readUsageCache(true);
 }
 
 function formatTimeUntil(resetsAt: string): string {
@@ -195,45 +225,50 @@ function formatTokens(n: number): string {
   return `${n}`;
 }
 
-// ── PR lookup (cached by branch) ─────────────────────────────────────────────
+// ── PR lookup (async, cached by branch — never blocks render) ───────────────
 
 interface PrInfo {
   number: number;
   url: string;
 }
 
-const PR_CACHE_TTL = 30; // seconds — branch→PR mapping is stable, refresh occasionally
+const PR_CACHE_TTL = 60; // seconds — branch→PR mapping is stable, refresh occasionally
 const prCache = new Map<string, { info: PrInfo | null; expires: number }>();
+let prRefreshInFlight: string | undefined;
+let onPrUpdated: (() => void) | undefined;
 
-/** Look up the PR associated with the current branch via `gh`. Cached per branch. */
-function getPrForBranch(): PrInfo | null {
-  const branch = execSync("git branch --show-current", {
-    encoding: "utf-8",
-    timeout: 2000,
-    stdio: ["pipe", "pipe", "pipe"],
-  }).trim();
-  if (!branch) return null;
-
-  const now = Date.now();
+/** Pure cache read — safe to call on the render path. */
+function getPrCached(branch: string): PrInfo | null {
   const cached = prCache.get(branch);
-  if (cached && cached.expires > now) return cached.info;
+  return cached && cached.expires > Date.now() ? cached.info : null;
+}
 
-  let info: PrInfo | null = null;
-  try {
-    const out = execSync(
-      `gh pr view --json number,url --jq '"\\(.number)\\t\\(.url)"' 2>/dev/null`,
-      { encoding: "utf-8", timeout: 5000, stdio: ["pipe", "pipe", "pipe"] },
-    ).trim();
-    if (out) {
-      const [num, url] = out.split("\t");
-      info = { number: parseInt(num, 10), url };
-    }
-  } catch {
-    // Not a PR branch, gh not installed, not a git repo, etc.
-  }
-
-  prCache.set(branch, { info, expires: now + PR_CACHE_TTL * 1000 });
-  return info;
+/**
+ * Fire-and-forget `gh pr view` for a branch. Updates the cache and asks the
+ * footer to re-render on completion. The branch comes from footerData, so no
+ * subprocess is spawned here unless the cache is actually stale.
+ */
+function refreshPr(branch: string): void {
+  const cached = prCache.get(branch);
+  if (cached && cached.expires > Date.now()) return;
+  if (prRefreshInFlight === branch) return;
+  prRefreshInFlight = branch;
+  execFile(
+    "gh",
+    ["pr", "view", "--json", "number,url", "--jq", '"\\(.number)\\t\\(.url)"'],
+    { timeout: 8000 },
+    (err, stdout) => {
+      prRefreshInFlight = undefined;
+      let info: PrInfo | null = null;
+      if (!err) {
+        const [num, url] = stdout.trim().split("\t");
+        if (num && url) info = { number: parseInt(num, 10), url };
+      }
+      // Cache misses too, so a non-PR branch doesn't refetch every render window
+      prCache.set(branch, { info, expires: Date.now() + PR_CACHE_TTL * 1000 });
+      onPrUpdated?.();
+    },
+  );
 }
 
 // ── Extension ────────────────────────────────────────────────────────────────
@@ -289,9 +324,21 @@ export default function (pi: ExtensionAPI) {
   pi.on("session_start", async (_event, ctx) => {
     ctx.ui.setFooter((tui, theme, footerData) => {
       const unsub = footerData.onBranchChange(() => tui.requestRender());
+      onPrUpdated = () => tui.requestRender();
+      onUsageUpdated = () => tui.requestRender();
+
+      // Cost/lines totals need an O(session) walk of every entry — cache them
+      // and recompute only when the branch grows or every 5s, not per render.
+      let lastEntryCount = -1;
+      let lastTotalsAt = 0;
+      let totals = { cost: 0, added: 0, removed: 0 };
 
       return {
-        dispose: unsub,
+        dispose: () => {
+          unsub();
+          onPrUpdated = undefined;
+          onUsageUpdated = undefined;
+        },
         invalidate() {},
         render(width: number): string[] {
           const SEP = theme.fg("dim", " │ ");
@@ -312,29 +359,31 @@ export default function (pi: ExtensionAPI) {
           else modelIcon = theme.fg("dim", "\u{F06A9}");
 
           // ── Cost & tokens ────────────────────────────────────
-          let totalInput = 0;
-          let totalOutput = 0;
-          let totalCost = 0;
-          let linesAdded = 0;
-          let linesRemoved = 0;
-
-          for (const entry of ctx.sessionManager.getBranch()) {
-            if (entry.type !== "message") continue;
-            if (entry.message.role === "assistant") {
-              const m = entry.message as AssistantMessage;
-              totalInput += m.usage.input;
-              totalOutput += m.usage.output;
-              totalCost += m.usage.cost.total;
-            }
-            if (entry.message.role === "toolResult") {
-              const details = entry.message.details;
-              if (details && typeof details === "object") {
-                // Edit tool details have linesAdded/linesRemoved
-                if ("linesAdded" in details) linesAdded += (details as any).linesAdded || 0;
-                if ("linesRemoved" in details) linesRemoved += (details as any).linesRemoved || 0;
+          const branchEntries = ctx.sessionManager.getBranch();
+          const now = Date.now();
+          if (branchEntries.length !== lastEntryCount || now - lastTotalsAt > 5000) {
+            lastEntryCount = branchEntries.length;
+            lastTotalsAt = now;
+            totals = { cost: 0, added: 0, removed: 0 };
+            for (const entry of branchEntries) {
+              if (entry.type !== "message") continue;
+              if (entry.message.role === "assistant") {
+                const m = entry.message as AssistantMessage;
+                totals.cost += m.usage.cost.total;
+              }
+              if (entry.message.role === "toolResult") {
+                const details = entry.message.details;
+                if (details && typeof details === "object") {
+                  // Edit tool details have linesAdded/linesRemoved
+                  if ("linesAdded" in details) totals.added += (details as any).linesAdded || 0;
+                  if ("linesRemoved" in details) totals.removed += (details as any).linesRemoved || 0;
+                }
               }
             }
           }
+          const totalCost = totals.cost;
+          const linesAdded = totals.added;
+          const linesRemoved = totals.removed;
 
           // ── Context usage ────────────────────────────────────
           const usage = ctx.getContextUsage();
@@ -392,7 +441,8 @@ export default function (pi: ExtensionAPI) {
           const ctxLabel = `${ICON_CONTEXT} `;
           const ctxTail = ` ${remaining}% ctx${tokenStr}`;
           const branch = footerData.getGitBranch();
-          const pr = branch ? getPrForBranch() : null;
+          if (branch) refreshPr(branch); // async; no-op while the cache is fresh
+          const pr = branch ? getPrCached(branch) : null;
           const branchStr = branch ? `${ICON_BRANCH} ${branch}` : "";
           const prStr = pr ? ` ${hyperlink(theme.fg("accent", `#${pr.number}`), pr.url)}` : "";
           const right = branch ? theme.fg("dim", branchStr) + prStr : "";
