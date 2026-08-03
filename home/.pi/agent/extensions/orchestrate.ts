@@ -176,10 +176,16 @@ function refreshStatus(ctx: ExtensionContext): void {
   try {
     if (goal) {
       const dur = fmtDuration(Date.now() - goal.startedAt);
-      ctx.ui.setStatus("pi-goal", `◎ goal active · ${dur} · ${goal.turns} turn${goal.turns === 1 ? "" : "s"}`);
+      ctx.ui.setStatus(
+        "pi-goal",
+        `◎ goal active · ${dur} · ${goal.turns} turn${goal.turns === 1 ? "" : "s"}`,
+      );
     } else if (loop) {
       const pace = loop.intervalMs ? `every ${fmtDuration(loop.intervalMs)}` : "self-paced";
-      ctx.ui.setStatus("pi-goal", `↻ loop · ${pace} · ${loop.iterations} run${loop.iterations === 1 ? "" : "s"}`);
+      ctx.ui.setStatus(
+        "pi-goal",
+        `↻ loop · ${pace} · ${loop.iterations} run${loop.iterations === 1 ? "" : "s"}`,
+      );
     } else {
       ctx.ui.setStatus("pi-goal", "");
     }
@@ -359,7 +365,10 @@ function goalStatus(ctx: ExtensionContext): void {
   }
   const dur = fmtDuration(Date.now() - goal.startedAt);
   const reason = goal.lastReason ? `\nLast reason: ${goal.lastReason}` : "";
-  notify(ctx, `Goal: ${short(goal.condition, 200)}\nRunning ${dur} · ${goal.turns} turn${goal.turns === 1 ? "" : "s"}${reason}`);
+  notify(
+    ctx,
+    `Goal: ${short(goal.condition, 200)}\nRunning ${dur} · ${goal.turns} turn${goal.turns === 1 ? "" : "s"}${reason}`,
+  );
 }
 
 // =================================================================
@@ -371,10 +380,14 @@ function parseInterval(s: string): number | null {
   if (!m) return null;
   const n = parseInt(m[1], 10);
   switch (m[2].toLowerCase()) {
-    case "ms": return n;
-    case "s": return n * 1000;
-    case "m": return n * 60_000;
-    case "h": return n * 3_600_000;
+    case "ms":
+      return n;
+    case "s":
+      return n * 1000;
+    case "m":
+      return n * 60_000;
+    case "h":
+      return n * 3_600_000;
   }
   return null;
 }
@@ -454,7 +467,11 @@ function stopLoop(ctx: ExtensionContext, silent = false): void {
   persist(ctx.cwd);
   if (!goal && !loop) clearStateFile(ctx.cwd);
   refreshStatus(ctx);
-  if (!silent) notify(ctx, `Loop stopped (${was.iterations} run${was.iterations === 1 ? "" : "s"}): ${short(was.prompt)}`);
+  if (!silent)
+    notify(
+      ctx,
+      `Loop stopped (${was.iterations} run${was.iterations === 1 ? "" : "s"}): ${short(was.prompt)}`,
+    );
 }
 
 function loopStatus(ctx: ExtensionContext): void {
@@ -463,7 +480,10 @@ function loopStatus(ctx: ExtensionContext): void {
     return;
   }
   const pace = loop.intervalMs ? `every ${fmtDuration(loop.intervalMs)}` : "self-paced";
-  notify(ctx, `Loop (${pace}): ${short(loop.prompt, 200)}\n${loop.iterations} run${loop.iterations === 1 ? "" : "s"}`);
+  notify(
+    ctx,
+    `Loop (${pace}): ${short(loop.prompt, 200)}\n${loop.iterations} run${loop.iterations === 1 ? "" : "s"}`,
+  );
 }
 
 // =================================================================
@@ -498,7 +518,9 @@ async function onAgentEnd(event: any, ctx: ExtensionContext): Promise<void> {
         return;
       }
       // Not met — take the reason as guidance for the next turn.
-      sendContinuation(`Goal not yet met: ${goal.condition}\nEvaluator: ${result.reason || "condition not satisfied"}\nKeep working.`);
+      sendContinuation(
+        `Goal not yet met: ${goal.condition}\nEvaluator: ${result.reason || "condition not satisfied"}\nKeep working.`,
+      );
     } finally {
       evalInFlight = false;
     }
@@ -551,16 +573,26 @@ export default function (pi: ExtensionAPI): void {
   api = pi;
 
   pi.registerCommand("goal", {
-    description: "Set a completion condition and pi keeps working until a model confirms it's met. /goal <condition> | /goal (status) | /goal clear",
+    description:
+      "Set a completion condition and pi keeps working until a model confirms it's met. /goal <condition> | /goal (status) | /goal clear",
     getArgumentCompletions: (prefix: string) =>
-      ["clear", "stop"].filter((v) => v.startsWith(prefix)).map((v) => ({ value: v + " ", label: v, description: v === "clear" ? "remove the active goal" : "alias of clear" })),
+      ["clear", "stop"]
+        .filter((v) => v.startsWith(prefix))
+        .map((v) => ({
+          value: v + " ",
+          label: v,
+          description: v === "clear" ? "remove the active goal" : "alias of clear",
+        })),
     handler: (args: string, ctx: ExtensionContext) => cmdGoal(args, ctx),
   });
 
   pi.registerCommand("loop", {
-    description: "Re-run a prompt while the session stays open. /loop [interval] <prompt> | /loop (status) | /loop stop. Omit the interval to self-pace.",
+    description:
+      "Re-run a prompt while the session stays open. /loop [interval] <prompt> | /loop (status) | /loop stop. Omit the interval to self-pace.",
     getArgumentCompletions: (prefix: string) =>
-      ["stop", "cancel"].filter((v) => v.startsWith(prefix)).map((v) => ({ value: v + " ", label: v, description: "stop the loop" })),
+      ["stop", "cancel"]
+        .filter((v) => v.startsWith(prefix))
+        .map((v) => ({ value: v + " ", label: v, description: "stop the loop" })),
     handler: (args: string, ctx: ExtensionContext) => cmdLoop(args, ctx),
   });
 
