@@ -1,5 +1,5 @@
 {
-  "defaultProvider": "openrouter",
+  "defaultProvider": "anthropic",
   "editorPaddingX": 1,
   "outputPad": 1,
   "theme": "tokyonight-night",
@@ -41,7 +41,7 @@
     "npm:pi-intercom",
     "npm:pi-goal-list-loop-audit"
   ],
-  "defaultModel": "z-ai/glm-5.2",
+  "defaultModel": "claude-fable-5",
   "warnings": {
     "anthropicExtraUsage": false
   }

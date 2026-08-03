@@ -19,7 +19,7 @@
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, Theme } from "@earendil-works/pi-coding-agent";
 import { columns } from "../lib/tui-utils.ts";
-import { visibleWidth } from "@earendil-works/pi-tui";
+import { hyperlink, visibleWidth } from "@earendil-works/pi-tui";
 import { writeFileSync, readFileSync, mkdirSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { execSync, spawn } from "node:child_process";
@@ -195,6 +195,47 @@ function formatTokens(n: number): string {
   return `${n}`;
 }
 
+// ── PR lookup (cached by branch) ─────────────────────────────────────────────
+
+interface PrInfo {
+  number: number;
+  url: string;
+}
+
+const PR_CACHE_TTL = 30; // seconds — branch→PR mapping is stable, refresh occasionally
+const prCache = new Map<string, { info: PrInfo | null; expires: number }>();
+
+/** Look up the PR associated with the current branch via `gh`. Cached per branch. */
+function getPrForBranch(): PrInfo | null {
+  const branch = execSync("git branch --show-current", {
+    encoding: "utf-8",
+    timeout: 2000,
+    stdio: ["pipe", "pipe", "pipe"],
+  }).trim();
+  if (!branch) return null;
+
+  const now = Date.now();
+  const cached = prCache.get(branch);
+  if (cached && cached.expires > now) return cached.info;
+
+  let info: PrInfo | null = null;
+  try {
+    const out = execSync(
+      `gh pr view --json number,url --jq '"\\(.number)\\t\\(.url)"' 2>/dev/null`,
+      { encoding: "utf-8", timeout: 5000, stdio: ["pipe", "pipe", "pipe"] },
+    ).trim();
+    if (out) {
+      const [num, url] = out.split("\t");
+      info = { number: parseInt(num, 10), url };
+    }
+  } catch {
+    // Not a PR branch, gh not installed, not a git repo, etc.
+  }
+
+  prCache.set(branch, { info, expires: now + PR_CACHE_TTL * 1000 });
+  return info;
+}
+
 // ── Extension ────────────────────────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
@@ -351,7 +392,10 @@ export default function (pi: ExtensionAPI) {
           const ctxLabel = `${ICON_CONTEXT} `;
           const ctxTail = ` ${remaining}% ctx${tokenStr}`;
           const branch = footerData.getGitBranch();
-          const right = branch ? theme.fg("dim", `${ICON_BRANCH} ${branch}`) : "";
+          const pr = branch ? getPrForBranch() : null;
+          const branchStr = branch ? `${ICON_BRANCH} ${branch}` : "";
+          const prStr = pr ? ` ${hyperlink(theme.fg("accent", `#${pr.number}`), pr.url)}` : "";
+          const right = branch ? theme.fg("dim", branchStr) + prStr : "";
           const PAD = " ";
           const innerWidth = width - 2; // minus the two PAD gutters
           const sepWidth = visibleWidth(SEP);

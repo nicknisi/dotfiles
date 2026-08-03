@@ -1315,5 +1315,6 @@
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true,
-  "defaultMode": "auto"
+  "defaultMode": "auto",
+  "model": "claude-fable-5[1m]"
 }
