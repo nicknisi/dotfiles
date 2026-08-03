@@ -2,7 +2,7 @@
   "autoName": "llm",
   "heuristicMaxLength": 60,
   "llmMaxWords": 6,
-  "llmModel": "fireworks/deepseek-v4-flash",
+  "llmModel": "fireworks/glm-fast-latest",
   "notifyOnAutoName": true,
   "setTitle": true,
   "titleFormat": "{summary} — {dir}"
