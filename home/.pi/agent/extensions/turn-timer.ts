@@ -1,13 +1,15 @@
 /**
  * Turn Timer Extension
  *
- * Shows how long each assistant message took to generate, as a dim
- * one-line row below the response — similar to Claude Code's per-turn
- * elapsed timer.
+ * Shows how long each full turn took (assistant + tool calls + results),
+ * as a dim one-line row below the response — similar to Claude Code's
+ * per-turn elapsed timer. One row per turn, so tool-call batches don't
+ * each get their own timer.
  *
- * Times from message_start (role=assistant) to message_end (role=assistant)
- * and renders the result as a custom transcript entry that does NOT
- * participate in LLM context, so it never pollutes the conversation.
+ * Uses turn_start/turn_end and renders the result as a custom transcript
+ * entry that does NOT participate in LLM context, so it never pollutes
+ * the conversation and /copy (which reads only assistant message text)
+ * never picks it up.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -26,22 +28,24 @@ function formatDuration(seconds: number): string {
 export default function turnTimer(pi: ExtensionAPI) {
   // ── Render the timer row: a quiet dim line ───────────────────────────
   pi.registerEntryRenderer(CUSTOM_TYPE, (entry, _opts, theme) => {
-    const data = entry.data as { seconds: number; model: string };
+    const data = entry.data as { seconds: number };
     const label = theme.fg("dim", `· ${formatDuration(data.seconds)}`);
     return new Text(label, 0, 0);
   });
 
-  // ── Time each assistant message ──────────────────────────────────────
+  // ── Time each full turn (assistant + tool calls + results) ──────────
+  // One row per turn, not one per assistant message, so tool-call
+  // batches don't each get their own timer.
   let start: number | undefined;
 
-  pi.on("message_start", (event) => {
-    if (event.message.role === "assistant") start = Date.now();
+  pi.on("turn_start", (event) => {
+    start = event.timestamp ?? Date.now();
   });
 
-  pi.on("message_end", (event) => {
-    if (event.message.role !== "assistant" || start === undefined) return;
+  pi.on("turn_end", () => {
+    if (start === undefined) return;
     const seconds = (Date.now() - start) / 1000;
     start = undefined;
-    pi.appendEntry(CUSTOM_TYPE, { seconds, model: event.message.model });
+    pi.appendEntry(CUSTOM_TYPE, { seconds });
   });
 }
