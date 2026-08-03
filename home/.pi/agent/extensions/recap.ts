@@ -8,20 +8,20 @@ import * as os from "node:os";
 import * as path from "node:path";
 
 // Auto-recap: after N idle minutes, summarize the conversation and surface it.
-// Display mode is configurable: "toast" (auto-open overlay),
-// "card" (bordered inline transcript entry), or "widget" (one-line bar above editor).
+// Display mode is configurable: "card" (bordered inline transcript entry)
+// or "widget" (one-line bar above editor).
 
-type Mode = "toast" | "card" | "widget";
+type Mode = "card" | "widget";
 type Config = { mode: Mode; idleMinutes: number; model?: { provider: string; id: string } };
 
-const DEFAULT_CONFIG: Config = { mode: "toast", idleMinutes: 3 };
+const DEFAULT_CONFIG: Config = { mode: "card", idleMinutes: 3 };
 const CONFIG_PATH = path.join(os.homedir(), ".pi", "agent", "configs", "recap.json");
 const WIDGET_ID = "recap";
 const ENTRY_TYPE = "recap";
 const TICK_MS = 30_000;
 const MIN_BRANCH_LEN = 4; // don't recap tiny conversations
 
-const MODES: Mode[] = ["toast", "card", "widget"];
+const MODES: Mode[] = ["card", "widget"];
 
 let lastActivity = Date.now();
 let firedThisIdle = false;
@@ -185,9 +185,7 @@ async function maybeFire(ctx: import("@earendil-works/pi-coding-agent").Extensio
   const summary = await generateSummary(ctx);
   if (!summary) return;
   lastSummary = summary;
-  if (cfg.mode === "toast") {
-    await showOverlay(summary, ctx);
-  } else if (cfg.mode === "card") {
+  if (cfg.mode === "card") {
     piRef?.appendEntry(ENTRY_TYPE, { summary, ts: Date.now() });
   } else if (cfg.mode === "widget") {
     setWidgetSummary(summary);
@@ -260,9 +258,9 @@ export default function (pi: ExtensionAPI) {
     requestRender = null;
   });
 
-  // Manual trigger: always open the full overlay (generates if nothing cached).
+  // Manual trigger: open the full overlay (generates if needed).
   pi.registerCommand("recap", {
-    description: "Show a conversation recap (generates if needed)",
+    description: "Show a conversation recap in a full overlay (generates if needed)",
     handler: async (_args, ctx) => {
       let summary = lastSummary;
       if (!summary) {
@@ -280,7 +278,7 @@ export default function (pi: ExtensionAPI) {
 
   // View or set the display mode.
   pi.registerCommand("recap-mode", {
-    description: "Show or set recap display mode (toast | card | widget)",
+    description: "Show or set recap display mode (card | widget)",
     handler: async (args, ctx) => {
       const cfg = readConfig();
       const arg = args.trim();
