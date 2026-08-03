@@ -1,8 +1,8 @@
 {
-  "autoName": "heuristic",
+  "autoName": "llm",
   "heuristicMaxLength": 60,
   "llmMaxWords": 6,
-  "llmModel": null,
+  "llmModel": "fireworks/deepseek-v4-flash",
   "notifyOnAutoName": true,
   "setTitle": true,
   "titleFormat": "{summary} — {dir}"

@@ -29,6 +29,8 @@
  *       "autoName": "heuristic" | "llm" | "off",
  *       "heuristicMaxLength": 60,
  *       "llmMaxWords": 6,
+ *       "llmModel": "anthropic/claude-haiku-4-5",  // cheap model for titles;
+ *                                                  // null = use session model
  *       "notifyOnAutoName": true,
  *       "setTitle": true,
  *       "titleFormat": "{summary} — {dir}"
@@ -57,6 +59,8 @@ interface SessionNameConfig {
   heuristicMaxLength: number;
   /** Max words for LLM-generated titles. */
   llmMaxWords: number;
+  /** Model for LLM titles as "provider/model-id". null = the session model. */
+  llmModel: string | null;
   /** Notify when a session is auto-named. */
   notifyOnAutoName: boolean;
   /** Set the terminal/window title to reflect the session summary. */
@@ -69,6 +73,7 @@ const DEFAULT_CONFIG: SessionNameConfig = {
   autoName: "heuristic",
   heuristicMaxLength: 60,
   llmMaxWords: 6,
+  llmModel: null,
   notifyOnAutoName: true,
   setTitle: true,
   titleFormat: "{summary} — {dir}",
@@ -258,7 +263,7 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
     userText: string,
     assistantText: string,
   ): Promise<string | null> {
-    const model = ctx.model;
+    const model = resolveTitleModel(ctx);
     if (!model) return null;
     const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
     if (!auth.ok || !auth.apiKey) return null;
@@ -305,6 +310,29 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
     } finally {
       if (titleAbort === controller) titleAbort = null;
     }
+  }
+
+  // Warn once if the configured title model can't be resolved, so a typo
+  // doesn't silently burn session-model tokens on every new session.
+  let warnedBadModel = false;
+
+  /** Resolve the model for title generation: configured cheap model, else session model. */
+  function resolveTitleModel(ctx: ExtensionContext) {
+    if (config.llmModel) {
+      const slash = config.llmModel.indexOf("/");
+      const provider = slash > 0 ? config.llmModel.slice(0, slash) : "";
+      const modelId = slash > 0 ? config.llmModel.slice(slash + 1) : "";
+      const found = provider && modelId ? ctx.modelRegistry.find(provider, modelId) : undefined;
+      if (found) return found;
+      if (!warnedBadModel && ctx.hasUI) {
+        warnedBadModel = true;
+        ctx.ui.notify(
+          `session-name: model "${config.llmModel}" not found; using session model`,
+          "warning",
+        );
+      }
+    }
+    return ctx.model;
   }
 
   // ── /sn — set / show / clear ─────────────────────────────────────────
