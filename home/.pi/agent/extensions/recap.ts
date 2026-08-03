@@ -1,6 +1,6 @@
 import { uuidv7 } from "@earendil-works/pi-ai";
 import { complete, getModel } from "@earendil-works/pi-ai/compat";
-import { DynamicBorder, getMarkdownTheme, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { getMarkdownTheme, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Box, Markdown, Text } from "@earendil-works/pi-tui";
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -145,9 +145,10 @@ export default function (pi: ExtensionAPI) {
     pi.registerEntryRenderer(ENTRY_TYPE, (entry, _opts, theme) => {
       const data = entry.data as { summary: string; ts: number };
       const dim = (s: string) => theme.fg("dim", s);
-      // Tight card: customMessageBg background, dim text, minimal padding.
-      const box = new Box(1, 0, (s) => theme.bg("customMessageBg", dim(s)));
-      box.addChild(new DynamicBorder(() => dim("")));
+      // Hardcoded bg darker than both base bg (#1a1b26) and message bg (#1e1f2b)
+      // so it's clearly distinct from user/assistant messages. No borders —
+      // the background shift alone sets it apart.
+      const box = new Box(1, 0, (s) => theme.bg("#131320", dim(s)));
       box.addChild(
         new Text(
           dim(theme.bold("Recap")) + dim(` · ${new Date(data.ts).toLocaleTimeString()}`),
@@ -156,7 +157,6 @@ export default function (pi: ExtensionAPI) {
         ),
       );
       box.addChild(new Markdown(capLines(data.summary, MAX_CARD_LINES), 0, 0, getMarkdownTheme()));
-      box.addChild(new DynamicBorder(() => dim("")));
       return box;
     });
 
