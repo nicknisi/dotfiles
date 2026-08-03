@@ -1,0 +1,10 @@
+{
+  "boxedView": true,
+  "boxPadX": 1,
+  "menuGap": 0,
+  "extraMenuIndent": 1,
+  "borderColor": "border",
+  "prefix": "❯",
+  "prefixColor": "accent",
+  "corners": "rounded"
+}

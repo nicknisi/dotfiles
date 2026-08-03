@@ -1,0 +1,20 @@
+{
+  "member": {
+    "council": [
+      { "model": "fireworks/accounts/fireworks/models/glm-5p2", "displayName": "GLM 5.2", "label": "Member A" },
+      { "model": "fireworks/accounts/fireworks/models/kimi-k3", "displayName": "Kimi K3", "label": "Member B" },
+      { "model": "anthropic/claude-fable-5", "displayName": "Claude Fable 5", "label": "Member C" }
+    ],
+    "tools": ["read", "grep", "find", "ls"],
+    "thinking": "medium",
+    "extensions": [],
+    "skills": [],
+    "contextFiles": false
+  },
+  "chairman": {
+    "model": "anthropic/claude-opus-5",
+    "displayName": "Claude Opus 5",
+    "exposePersonas": true,
+    "thinking": "medium"
+  }
+}
