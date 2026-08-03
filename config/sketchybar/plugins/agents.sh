@@ -21,8 +21,19 @@ STATE_DIR="$HOME/.cache/sketchybar"
 mkdir -p "$STATE_DIR"
 
 PANES=$(tmux list-panes -a -F '#{pane_id}' 2>/dev/null)
-TOTAL=$(tmux list-panes -a -F '#{pane_current_command}' 2>/dev/null |
-  grep -cE '^([0-9]+\.[0-9]+\.[0-9]+$|claude|codex|pi$)')
+# pane_current_command catches claude (shows its version as the command
+# name, e.g. 2.1.220) and codex. pi runs as a #!/usr/bin/env node script,
+# so tmux reports its pane_current_command as 'node' — detect those by
+# checking the pane's child processes for a comm of pi/claude/codex.
+TOTAL=$(
+  tmux list-panes -a -F '#{pane_pid} #{pane_current_command}' 2>/dev/null |
+  while read -r pane_pid cmd; do
+    case "$cmd" in
+      [0-9]*.[0-9]*.[0-9]*|claude|codex|pi) echo 1 ;;
+      *) pgrep -P "$pane_pid" -x 'pi|claude|codex' >/dev/null 2>&1 && echo 1 ;;
+    esac
+  done | grep -c 1
+)
 
 if [ "${TOTAL:-0}" -eq 0 ]; then
   sketchybar --set "$NAME" drawing=off --set attention drawing=off
