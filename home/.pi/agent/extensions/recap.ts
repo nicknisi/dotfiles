@@ -258,9 +258,35 @@ export default function (pi: ExtensionAPI) {
     requestRender = null;
   });
 
-  // Manual trigger: open the full overlay (generates if needed).
+  // Manual trigger: render via the current mode (generates if needed).
+  // /recap-full always opens the full overlay.
   pi.registerCommand("recap", {
-    description: "Show a conversation recap in a full overlay (generates if needed)",
+    description: "Show a recap via the current display mode (generates if needed)",
+    handler: async (_args, ctx) => {
+      let summary = lastSummary;
+      if (!summary) {
+        ctx.ui.notify("Generating recap...", "info");
+        summary = await generateSummary(ctx);
+      }
+      if (!summary) {
+        ctx.ui.notify("Nothing to recap yet", "warning");
+        return;
+      }
+      lastSummary = summary;
+      const cfg = readConfig();
+      if (cfg.mode === "card") {
+        piRef?.appendEntry(ENTRY_TYPE, { summary, ts: Date.now() });
+      } else if (cfg.mode === "widget") {
+        setWidgetSummary(summary);
+      } else {
+        await showOverlay(summary, ctx);
+      }
+    },
+  });
+
+  // Full overlay, regardless of mode.
+  pi.registerCommand("recap-full", {
+    description: "Show the full recap in a dismissible overlay",
     handler: async (_args, ctx) => {
       let summary = lastSummary;
       if (!summary) {
