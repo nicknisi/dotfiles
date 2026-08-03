@@ -1,0 +1,94 @@
+{
+  "$schema": "https://raw.githubusercontent.com/earendil-works/pi/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json",
+  "name": "aurora-night",
+  "vars": {
+    "lime": "#b6ff4d",
+    "mint": "#55f7c2",
+    "cyan": "#3fe7ff",
+    "blue": "#5f8cff",
+    "violet": "#b47cff",
+    "magenta": "#ff6bd6",
+    "amber": "#ffd166",
+    "coral": "#ff6f7d",
+
+    "bg": "#1a1b26",
+    "bgDark": "#16161e",
+    "bgHighlight": "#283457",
+    "panel": "#1e1f2b",
+    "tool": "#121318",
+    "errorPanel": "#2d1b2e",
+
+    "fg": "#c0caf5",
+    "fgDark": "#a9b1d6",
+    "comment": "#565f89",
+    "dark3": "#3b4261",
+    "dark5": "#737aa2",
+    "terminal_black": "#414868"
+  },
+  "colors": {
+    "accent": "cyan",
+    "border": "blue",
+    "borderAccent": "cyan",
+    "borderMuted": "terminal_black",
+    "success": "mint",
+    "error": "coral",
+    "warning": "amber",
+    "muted": "comment",
+    "dim": "dark5",
+    "text": "",
+    "thinkingText": "dark3",
+
+    "selectedBg": "bgHighlight",
+    "userMessageBg": "panel",
+    "userMessageText": "",
+    "customMessageBg": "panel",
+    "customMessageText": "",
+    "customMessageLabel": "lime",
+
+    "toolPendingBg": "tool",
+    "toolSuccessBg": "tool",
+    "toolErrorBg": "errorPanel",
+    "toolTitle": "cyan",
+    "toolOutput": "dark3",
+
+    "mdHeading": "lime",
+    "mdLink": "cyan",
+    "mdLinkUrl": "blue",
+    "mdCode": "amber",
+    "mdCodeBlock": "",
+    "mdCodeBlockBorder": "terminal_black",
+    "mdQuote": "comment",
+    "mdQuoteBorder": "mint",
+    "mdHr": "terminal_black",
+    "mdListBullet": "magenta",
+
+    "toolDiffAdded": "mint",
+    "toolDiffRemoved": "coral",
+    "toolDiffContext": "comment",
+
+    "syntaxComment": "comment",
+    "syntaxKeyword": "violet",
+    "syntaxFunction": "cyan",
+    "syntaxVariable": "fg",
+    "syntaxString": "mint",
+    "syntaxNumber": "amber",
+    "syntaxType": "lime",
+    "syntaxOperator": "magenta",
+    "syntaxPunctuation": "dark5",
+
+    "thinkingOff": "terminal_black",
+    "thinkingMinimal": "dark3",
+    "thinkingLow": "blue",
+    "thinkingMedium": "cyan",
+    "thinkingHigh": "lime",
+    "thinkingXhigh": "magenta",
+    "thinkingMax": "amber",
+
+    "bashMode": "amber"
+  },
+  "export": {
+    "pageBg": "#16161e",
+    "cardBg": "#1a1b26",
+    "infoBg": "#1e1f2b"
+  }
+}
