@@ -15,7 +15,7 @@ const CONFIG_PATH = path.join(os.homedir(), ".pi", "agent", "configs", "recap.js
 const ENTRY_TYPE = "recap";
 const TICK_MS = 30_000;
 const MIN_BRANCH_LEN = 4;
-const MAX_CARD_LINES = 8;
+const MAX_CARD_LINES = 5;
 
 let lastActivity = Date.now();
 let firedThisIdle = false;
@@ -145,7 +145,8 @@ export default function (pi: ExtensionAPI) {
     pi.registerEntryRenderer(ENTRY_TYPE, (entry, _opts, theme) => {
       const data = entry.data as { summary: string; ts: number };
       const dim = (s: string) => theme.fg("dim", s);
-      const box = new Box(1, 1, (s) => dim(s));
+      // Tight card: customMessageBg background, dim text, minimal padding.
+      const box = new Box(1, 0, (s) => theme.bg("customMessageBg", dim(s)));
       box.addChild(new DynamicBorder(() => dim("")));
       box.addChild(
         new Text(
@@ -154,7 +155,7 @@ export default function (pi: ExtensionAPI) {
           0,
         ),
       );
-      box.addChild(new Markdown(capLines(data.summary, MAX_CARD_LINES), 0, 1, getMarkdownTheme()));
+      box.addChild(new Markdown(capLines(data.summary, MAX_CARD_LINES), 0, 0, getMarkdownTheme()));
       box.addChild(new DynamicBorder(() => dim("")));
       return box;
     });
