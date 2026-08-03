@@ -1,0 +1,7 @@
+{
+  "_comment": "Copy to ~/.pi/agent/configs/artifacts.json to customize artifact styling. All keys optional. theme: 'auto' follows the OS light/dark preference, 'light'/'dark' pin one scheme. accent = links/badge/blockquote color on the dark scheme; accentLight = same on the light scheme (darker for contrast on white). maxWidth = content column width in px.",
+  "theme": "auto",
+  "accent": "#d67858",
+  "accentLight": "#b95730",
+  "maxWidth": 860
+}
