@@ -1,15 +1,15 @@
 import { uuidv7 } from "@earendil-works/pi-ai";
 import { complete, getModel } from "@earendil-works/pi-ai/compat";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { getMarkdownTheme } from "@earendil-works/pi-coding-agent";
+import { DynamicBorder, getMarkdownTheme } from "@earendil-works/pi-coding-agent";
 import { Box, Container, Markdown, matchesKey, Text } from "@earendil-works/pi-tui";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 
 // Auto-recap: after N idle minutes, summarize the conversation and surface it.
-// Display mode is configurable: "toast" (notify + /recap to view),
-// "card" (inline transcript entry), or "widget" (one-line bar above editor).
+// Display mode is configurable: "toast" (auto-open overlay),
+// "card" (bordered inline transcript entry), or "widget" (one-line bar above editor).
 
 type Mode = "toast" | "card" | "widget";
 type Config = { mode: Mode; idleMinutes: number; model?: { provider: string; id: string } };
@@ -92,16 +92,25 @@ function buildConversation(entries: Entry[]): string {
   return sections.join("\n\n");
 }
 
+const MAX_CARD_LINES = 8;
+
 function summaryPrompt(conversation: string): string {
   return [
     "Summarize this conversation so far as a concise recap.",
     "Include goals, key decisions, progress, and open items.",
-    "Use short markdown headings.",
+    "Be terse — at most 6-8 lines. Use short markdown headings.",
+    "Skip preamble; lead with the substance.",
     "",
     "<conversation>",
     conversation,
     "</conversation>",
   ].join("\n");
+}
+
+function capLines(text: string, max: number): string {
+  const lines = text.split("\n");
+  if (lines.length <= max) return text;
+  return lines.slice(0, max).join("\n") + " …";
 }
 
 function truncate(text: string, budget: number): string {
@@ -177,7 +186,7 @@ async function maybeFire(ctx: import("@earendil-works/pi-coding-agent").Extensio
   if (!summary) return;
   lastSummary = summary;
   if (cfg.mode === "toast") {
-    ctx.ui.notify("recap ready — /recap to view", "info");
+    await showOverlay(summary, ctx);
   } else if (cfg.mode === "card") {
     piRef?.appendEntry(ENTRY_TYPE, { summary, ts: Date.now() });
   } else if (cfg.mode === "widget") {
@@ -199,6 +208,7 @@ export default function (pi: ExtensionAPI) {
     pi.registerEntryRenderer(ENTRY_TYPE, (entry, _opts, theme) => {
       const data = entry.data as { summary: string; ts: number };
       const box = new Box(1, 1, (s) => theme.bg("customMessageBg", s));
+      box.addChild(new DynamicBorder((s) => theme.fg("accent", s)));
       box.addChild(
         new Text(
           theme.fg("accent", theme.bold("Recap")) + theme.fg("dim", ` · ${new Date(data.ts).toLocaleTimeString()}`),
@@ -206,7 +216,8 @@ export default function (pi: ExtensionAPI) {
           0,
         ),
       );
-      box.addChild(new Markdown(data.summary, 0, 1, getMarkdownTheme()));
+      box.addChild(new Markdown(capLines(data.summary, MAX_CARD_LINES), 0, 1, getMarkdownTheme()));
+      box.addChild(new DynamicBorder((s) => theme.fg("accent", s)));
       return box;
     });
 
