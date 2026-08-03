@@ -1,0 +1,50 @@
+{
+  "_comment": "Global config. Copy to ~/.pi/agent/configs/llm-council.json. For a per-project council (e.g. different lineup for work vs personal), drop a minimal <project>/.pi/configs/llm-council.json — see llm-council.project.example.json. Only the keys that differ need to be present.",
+
+  "shared": {
+    "spinner": { "prefixChars": ["·", "✢", "✳", "✶", "✻", "✽"], "interval": 80, "color": "muted" },
+    "successPrefix": { "prefix": "✓", "color": "success" },
+    "errorPrefix": { "prefix": "✗", "color": "error" },
+    "branch": { "prefix": "└─", "color": "separator" },
+    "status": {
+      "doneLabel": "Done", "doneColor": "success",
+      "errorLabel": "Error", "errorColor": "error",
+      "workingLabel": "Working...", "workingColor": "dim",
+      "waitingIcon": "↪", "waitingIconColor": "muted",
+      "synthesizingLabel": "Synthesising...", "waitingLabel": "Waiting for members...",
+      "elapsedColor": "dim"
+    },
+    "toolHeader": { "titleColor": "toolTitle", "summaryColor": "dim" },
+    "expandHint": { "color": "dim" },
+    "questionPreview": { "maxLength": 40 }
+  },
+
+  "member": {
+    "_comment": "model = a pi model id from settings.json enabledModels. label is required; displayName is the UI label; systemPrompt is optional (falls back to defaultSystemPrompt). tools default to built-in read-only set; extensions/skills default to none so members run lightweight subprocesses.",
+    "council": [
+      { "model": "fireworks/accounts/fireworks/models/glm-5p2", "displayName": "GLM 5.2", "label": "Member A" },
+      { "model": "fireworks/accounts/fireworks/models/kimi-k3", "displayName": "Kimi K3", "label": "Member B" },
+      { "model": "anthropic/claude-fable-5", "displayName": "Claude Fable 5", "label": "Member C" }
+    ],
+    "defaultSystemPrompt": "You are a member of an LLM Council. Answer the user's question thoroughly and concisely. Provide your best reasoning.",
+    "display": { "labelColor": "accent", "modelColor": "dim" },
+    "tools": ["read", "grep", "find", "ls"],
+    "thinking": "medium",
+    "extensions": [],
+    "skills": [],
+    "contextFiles": false
+  },
+
+  "chairman": {
+    "model": "anthropic/claude-opus-5",
+    "displayName": "Claude Opus 5",
+    "systemPrompt": "You are the Chairman of an LLM Council. Multiple AI models answered the same question anonymously, labeled A, B, C, etc. Synthesize the best answer, drawing on the strongest points from each response. Resolve any disagreements. Present a unified, well-reasoned answer. Do not mention which model gave which answer — treat them as anonymous perspectives.",
+    "exposePersonas": true,
+    "display": { "icon": "", "labelColor": "accent", "modelColor": "dim" },
+    "tools": [],
+    "thinking": "medium",
+    "extensions": [],
+    "skills": [],
+    "contextFiles": false
+  }
+}
