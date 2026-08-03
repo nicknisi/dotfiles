@@ -271,9 +271,17 @@ function refreshPr(branch: string): void {
   );
 }
 
+// ── Thinking level (re-render hook) ─────────────────────────────────────────
+
+let onThinkingUpdated: (() => void) | undefined;
+
 // ── Extension ────────────────────────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
+  pi.on("thinking_level_select", async () => {
+    onThinkingUpdated?.();
+  });
+
   // ── Tmux status hooks ──────────────────────────────────────────────────
 
   pi.on("session_start", async () => {
@@ -326,6 +334,7 @@ export default function (pi: ExtensionAPI) {
       const unsub = footerData.onBranchChange(() => tui.requestRender());
       onPrUpdated = () => tui.requestRender();
       onUsageUpdated = () => tui.requestRender();
+      onThinkingUpdated = () => tui.requestRender();
 
       // Cost/lines totals need an O(session) walk of every entry — cache them
       // and recompute only when the branch grows or every 5s, not per render.
@@ -338,6 +347,7 @@ export default function (pi: ExtensionAPI) {
           unsub();
           onPrUpdated = undefined;
           onUsageUpdated = undefined;
+          onThinkingUpdated = undefined;
         },
         invalidate() {},
         render(width: number): string[] {
@@ -357,6 +367,11 @@ export default function (pi: ExtensionAPI) {
           else if (lower.includes("sonnet")) modelIcon = theme.fg("accent", "\u{F075A}");
           else if (lower.includes("haiku")) modelIcon = theme.fg("success", "\u{F0735}");
           else modelIcon = theme.fg("dim", "\u{F06A9}");
+
+          // Thinking level — only meaningful on reasoning models (pi clamps
+          // everything else to "off"). Read live so /model, keybindings, and
+          // pi.setThinkingLevel() all reflect immediately.
+          const thinkingLevel = ctx.model?.reasoning ? pi.getThinkingLevel() : undefined;
 
           // ── Cost & tokens ────────────────────────────────────
           const branchEntries = ctx.sessionManager.getBranch();
@@ -401,8 +416,11 @@ export default function (pi: ExtensionAPI) {
           const ICON_CONTEXT = theme.fg("accent", "\u{F09D1}");
           const ICON_BRANCH = theme.fg("success", "\u{E725}");
 
-          // Model
-          segments.push(`${modelIcon} ${theme.fg("accent", shortModel)}`);
+          // Model (+ thinking level)
+          const modelSeg = `${modelIcon} ${theme.fg("accent", shortModel)}`;
+          segments.push(
+            thinkingLevel ? `${modelSeg} ${theme.fg("dim", thinkingLevel)}` : modelSeg,
+          );
 
           // Cost (only if non-zero)
           if (totalCost > 0.001) {
