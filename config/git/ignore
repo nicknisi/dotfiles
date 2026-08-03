@@ -28,6 +28,6 @@ npm-debug.log
 
 .playwright-cli/
 
-.pi-glla/
 *.pid
 .pi-subagents/
+.pi-goal/
