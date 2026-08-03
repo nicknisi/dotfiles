@@ -5,5 +5,5 @@
   "llmModel": "fireworks/glm-fast-latest",
   "notifyOnAutoName": true,
   "setTitle": true,
-  "titleFormat": "{summary} — {dir}"
+  "titleFormat": "{summary}"
 }
