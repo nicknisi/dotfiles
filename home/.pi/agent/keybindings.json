@@ -1,3 +1,5 @@
 {
-  "tui.input.newLine": ["shift+enter", "ctrl+j"]
+  "tui.input.newLine": ["shift+enter", "ctrl+j"],
+  "app.thinking.cycle": ["shift+tab", "ctrl+shift+t"],
+  "app.model.cycleForward": ["ctrl+p", "ctrl+shift+m"]
 }
