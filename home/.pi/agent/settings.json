@@ -38,7 +38,8 @@
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:pi-agent-browser-native",
     "npm:pi-web-access",
-    "npm:pi-intercom"
+    "npm:pi-intercom",
+    "https://github.com/zerray/pi-remote-control"
   ],
   "defaultModel": "claude-fable-5",
   "warnings": {
