@@ -2,7 +2,7 @@
   "defaultProvider": "anthropic",
   "editorPaddingX": 1,
   "outputPad": 1,
-  "theme": "tokyonight-night",
+  "theme": "vesper",
   "quietStartup": true,
   "hideThinkingBlock": true,
   "skills": [
