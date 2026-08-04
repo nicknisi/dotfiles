@@ -13,6 +13,8 @@ the box. Evolved from the earlier single-file `box-editor.ts`.
 - **Menu outside box**: slash menu (`/`) renders below the box, indented
 - **Scroll indicators**: `↑ N more` / `↓ N more` embedded in the borders when content scrolls
 - **Responsive**: degrades gracefully on narrow terminals
+- **Focus indicator**: border switches colour when the tmux pane holding this
+  session has terminal focus (requires tmux `focus-events on`)
 
 ## Configuration
 
@@ -28,7 +30,9 @@ defaults (config is read once at extension load — restart pi to apply):
   "borderColor": "border",
   "prefix": "❯",
   "prefixColor": "accent",
-  "corners": "rounded"
+  "corners": "rounded",
+  "focusIndicator": true,
+  "focusedBorderColor": "accent"
 }
 ```
 
@@ -42,6 +46,8 @@ defaults (config is read once at extension load — restart pi to apply):
 | `prefix` | `string` | `"❯"` | Prefix glyph shown on the first body line. |
 | `prefixColor` | `string` | `"accent"` | Theme colour token **or** hex colour for the prefix. |
 | `corners` | `"rounded" \| "square"` | `"rounded"` | `rounded` = `╭╮│╰╯`, `square` = `┌┐│└┘`. |
+| `focusIndicator` | `boolean` | `true` | Track terminal focus (DECSET 1004) and restyle the border when this pane is focused. Requires `focus-events on` in tmux. |
+| `focusedBorderColor` | `string` | `"accent"` | Border colour while the pane is focused; `borderColor` is used when unfocused. |
 
 ### Colour tokens
 

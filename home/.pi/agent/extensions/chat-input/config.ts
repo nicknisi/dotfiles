@@ -21,6 +21,10 @@ export const DEFAULT_CONFIG = {
   PREFIX_COLOR: "accent",
   /** Corner style: "rounded" (╭╮│╰╯) or "square" (┌┐│└┘). */
   CORNERS: "rounded" as const,
+  /** Restyle the border when this pane has terminal focus (needs tmux focus-events). */
+  FOCUS_INDICATOR: true,
+  /** Theme colour token or hex for the border while the pane is focused. */
+  FOCUSED_BORDER_COLOR: "accent",
 };
 
 interface ChatInputUserConfig {
@@ -32,6 +36,8 @@ interface ChatInputUserConfig {
   prefix?: string;
   prefixColor?: string;
   corners?: "rounded" | "square";
+  focusIndicator?: boolean;
+  focusedBorderColor?: string;
 }
 
 const CONFIG_PATH = join(homedir(), ".pi", "agent", "configs", "chat-input.json");
@@ -55,4 +61,6 @@ export const CONFIG = {
   PREFIX: u.prefix ?? DEFAULT_CONFIG.PREFIX,
   PREFIX_COLOR: u.prefixColor ?? DEFAULT_CONFIG.PREFIX_COLOR,
   CORNERS: (u.corners === "square" ? "square" : "rounded") as "rounded" | "square",
+  FOCUS_INDICATOR: u.focusIndicator ?? DEFAULT_CONFIG.FOCUS_INDICATOR,
+  FOCUSED_BORDER_COLOR: u.focusedBorderColor ?? DEFAULT_CONFIG.FOCUSED_BORDER_COLOR,
 };

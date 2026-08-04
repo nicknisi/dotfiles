@@ -192,17 +192,73 @@ class ChatInput extends CustomEditor {
 
 // ─── Extension entry ──────────────────────────────────────────────────────
 
+// Terminal focus tracking — delineates the focused tmux pane. We enable
+// terminal focus reporting (DECSET 1004) so tmux (with `focus-events on`)
+// sends CSI I / CSI O when this pane gains/loses focus, and swap the border
+// colour accordingly. pi itself never enables 1004, so we must both enable
+// it and clean it up on exit — otherwise the shell inherits a mode that
+// spews `[I`/`[O` into the prompt.
+
+const FOCUS_IN = "\x1b[I";
+const FOCUS_OUT = "\x1b[O";
+
+let paneFocused = true;
+let removeFocusListener: (() => void) | undefined;
+let exitHookInstalled = false;
+
+function enableFocusTracking(tui: TUI): void {
+  process.stdout.write("\x1b[?1004h");
+  if (!exitHookInstalled) {
+    exitHookInstalled = true;
+    process.on("exit", () => {
+      try {
+        process.stdout.write("\x1b[?1004l");
+      } catch {
+        /* stdout gone */
+      }
+    });
+  }
+  removeFocusListener?.();
+  removeFocusListener = tui.addInputListener((data) => {
+    const inIdx = data.lastIndexOf(FOCUS_IN);
+    const outIdx = data.lastIndexOf(FOCUS_OUT);
+    if (inIdx === -1 && outIdx === -1) return undefined;
+    paneFocused = inIdx > outIdx;
+    tui.requestRender();
+    const stripped = data.replaceAll(FOCUS_IN, "").replaceAll(FOCUS_OUT, "");
+    return stripped.length === 0 ? { consume: true } : { data: stripped };
+  });
+}
+
+function disableFocusTracking(): void {
+  try {
+    process.stdout.write("\x1b[?1004l");
+  } catch {
+    /* stdout gone */
+  }
+  removeFocusListener?.();
+  removeFocusListener = undefined;
+  paneFocused = true;
+}
+
 export default function chatInput(pi: ExtensionAPI) {
   pi.on("session_start", (_event, ctx: ExtensionContext) => {
     if (ctx.mode !== "tui") return;
     ctx.ui.setEditorComponent((tui, theme, kb) => {
-      const borderFn = (s: string) => applyColor(ctx.ui.theme, CONFIG.BORDER_COLOR, s);
+      const baseBorder = (s: string) => applyColor(ctx.ui.theme, CONFIG.BORDER_COLOR, s);
+      const focusBorder = (s: string) => applyColor(ctx.ui.theme, CONFIG.FOCUSED_BORDER_COLOR, s);
+      const borderFn = CONFIG.FOCUS_INDICATOR
+        ? (s: string) => (paneFocused ? focusBorder(s) : baseBorder(s))
+        : baseBorder;
       const accentFn = (s: string) => applyColor(ctx.ui.theme, CONFIG.PREFIX_COLOR, s);
+      if (CONFIG.FOCUS_INDICATOR) enableFocusTracking(tui);
       return new ChatInput(tui, theme, kb, borderFn, accentFn);
     });
   });
 
   pi.on("session_shutdown", (_event, ctx: ExtensionContext) => {
-    if (ctx.mode === "tui") ctx.ui.setEditorComponent(undefined);
+    if (ctx.mode !== "tui") return;
+    if (CONFIG.FOCUS_INDICATOR) disableFocusTracking();
+    ctx.ui.setEditorComponent(undefined);
   });
 }

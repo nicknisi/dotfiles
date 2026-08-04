@@ -7,5 +7,7 @@
   "borderColor": "border",
   "prefix": "❯",
   "prefixColor": "accent",
-  "corners": "rounded"
+  "corners": "rounded",
+  "focusIndicator": true,
+  "focusedBorderColor": "accent"
 }
