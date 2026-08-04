@@ -248,7 +248,10 @@ function evalResourceLoader(): ResourceLoader {
     getAgentsFiles: () => ({ agentsFiles: [] }),
     getSystemPrompt: () =>
       "You are a goal-completion evaluator. You judge whether a stated goal condition has been met, using ONLY the conversation transcript provided. You do not run commands or read files. Answer with exactly YES or NO on the first line, then a single short sentence explaining your judgement.",
+    // The evaluator prompt is synthetic, so there are no backing files to report.
+    getSystemPromptSource: () => undefined,
     getAppendSystemPrompt: () => [],
+    getAppendSystemPromptSources: () => [],
     extendResources: () => {},
     reload: async () => {},
   };
@@ -583,7 +586,7 @@ export default function (pi: ExtensionAPI): void {
           label: v,
           description: v === "clear" ? "remove the active goal" : "alias of clear",
         })),
-    handler: (args: string, ctx: ExtensionContext) => cmdGoal(args, ctx),
+    handler: async (args: string, ctx: ExtensionContext) => cmdGoal(args, ctx),
   });
 
   pi.registerCommand("loop", {
@@ -593,7 +596,7 @@ export default function (pi: ExtensionAPI): void {
       ["stop", "cancel"]
         .filter((v) => v.startsWith(prefix))
         .map((v) => ({ value: v + " ", label: v, description: "stop the loop" })),
-    handler: (args: string, ctx: ExtensionContext) => cmdLoop(args, ctx),
+    handler: async (args: string, ctx: ExtensionContext) => cmdLoop(args, ctx),
   });
 
   // Restore state when a session starts (--resume carries the goal forward).
