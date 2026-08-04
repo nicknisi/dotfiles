@@ -1,5 +1,7 @@
 {
   "tui.input.newLine": ["shift+enter", "ctrl+j"],
-  "app.thinking.cycle": ["shift+tab", "ctrl+shift+t"],
-  "app.model.cycleForward": ["ctrl+p", "ctrl+shift+m"]
+  "app.thinking.cycle": ["shift+tab"],
+  "app.model.cycleForward": ["ctrl+p", "ctrl+shift+m"],
+  "app.models.save": ["ctrl+shift+v"],
+  "app.session.toggleSort": ["ctrl+shift+r"]
 }
