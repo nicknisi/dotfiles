@@ -1,5 +1,5 @@
 {
-  "defaultProvider": "anthropic",
+  "defaultProvider": "fireworks",
   "editorPaddingX": 1,
   "outputPad": 1,
   "theme": "vesper",
@@ -20,6 +20,8 @@
     "fireworks/accounts/fireworks/models/glm-5p2",
     "openrouter/moonshotai/kimi-k3",
     "fireworks/accounts/fireworks/models/kimi-k3",
+    "fireworks/deepseek-v4-flash",
+    "fireworks/deepseek-v4-pro",
     "openrouter/anthropic/claude-fable-5",
     "anthropic/claude-fable-5",
     "openrouter/anthropic/claude-opus-5",
@@ -27,9 +29,9 @@
   ],
   "packages": [
     "npm:pi-subagents",
-    "git:github.com/nicknisi/ideation",
     "npm:pi-prompt-template-model",
     "../../Developer/claude-plugins",
+    "../../Developer/ideation",
     "git:github.com/code-yeongyu/pi-lsp-client",
     "npm:@quintinshaw/pi-dynamic-workflows",
     "npm:pi-hermes-memory",
@@ -43,7 +45,7 @@
     "../../../../opt/homebrew/opt/fleet/hooks/pi",
     "npm:@juicesharp/rpiv-todo"
   ],
-  "defaultModel": "claude-fable-5",
+  "defaultModel": "accounts/fireworks/models/kimi-k3",
   "warnings": {
     "anthropicExtraUsage": false
   }
