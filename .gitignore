@@ -22,6 +22,7 @@ home/.claude/*
 
 # pi agent — track only config, ignore runtime data
 home/.pi/agent/auth.json
+home/.pi/agent/trust.json
 home/.pi/agent/sessions/
 home/.pi/agent/git/
 home/.pi/agent/run-history.jsonl
