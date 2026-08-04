@@ -39,7 +39,9 @@
     "npm:pi-agent-browser-native",
     "npm:pi-web-access",
     "npm:pi-intercom",
-    "https://github.com/zerray/pi-remote-control"
+    "https://github.com/zerray/pi-remote-control",
+    "../../../../opt/homebrew/opt/fleet/hooks/pi",
+    "npm:@juicesharp/rpiv-todo"
   ],
   "defaultModel": "claude-fable-5",
   "warnings": {
