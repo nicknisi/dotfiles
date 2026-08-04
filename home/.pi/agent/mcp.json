@@ -21,12 +21,12 @@
       "auth": "oauth"
     },
     "slack": {
-      "command": "npx",
-      "args": ["-y", "slack-mcp-server"],
-      "env": {
-        "SLACK_MCP_XOXP_TOKEN": "!cat ~/.slack/service-token"
-      },
-      "lifecycle": "lazy"
+      "url": "https://mcp.slack.com/mcp",
+      "auth": "oauth",
+      "oauth": {
+        "clientId": "1601185624273.8899143856786",
+        "redirectUri": "http://localhost:3118/callback"
+      }
     }
   }
 }
