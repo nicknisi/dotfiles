@@ -13,11 +13,21 @@
  *   - PR diff: !`gh pr diff`
  *   - Changed files: !`gh pr diff --name-only`
  *
+ *   ```!
+ *   gh pr view --json title,body
+ *   ```
+ *
  *   Summarize this pull request...
  *
  * Handles two invocation paths:
  *   1. /skill:name — intercepted at input, expanded with commands executed
  *   2. Agent reads SKILL.md via read tool — output patched in tool_result
+ *
+ * Security boundary: commands are only executed for SKILL.md files that pi has
+ * actually registered as skills, i.e. files discovered under a configured skill
+ * path. Reading an arbitrary SKILL.md — say, from a freshly cloned untrusted
+ * repo — never executes anything, because that file is not a registered skill.
+ * Without this guard, `read`ing a hostile SKILL.md is remote code execution.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -25,9 +35,16 @@ import { exec as execCb } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-/** Matches !`command` — the ! prefix distinguishes from normal backtick code */
-const CMD_RE = /!`([^`]+)`/g;
-const HAS_CMD = /!`[^`]+`/;
+/**
+ * Matches both dynamic-command forms, mirroring Claude Code:
+ *   - a fenced block opened with ```! for multi-line commands
+ *   - inline !`command`, recognized only when ! starts a line or follows
+ *     whitespace, so `KEY=!`cmd`` stays literal text and does not execute
+ *
+ * Group 1 is a fenced body, group 2 an inline command; exactly one is set.
+ */
+const CMD_RE = /^```!\r?\n([\s\S]*?)\r?\n```[ \t]*$|(?<=^|\s)!`([^`]+)`/gm;
+const HAS_CMD = /^```!\r?\n|(?<=^|\s)!`[^`]+`/m;
 
 function runCommand(command: string, cwd: string): Promise<string> {
   return new Promise((resolve) => {
@@ -36,7 +53,10 @@ function runCommand(command: string, cwd: string): Promise<string> {
       { cwd, timeout: 30_000, maxBuffer: 1024 * 512, encoding: "utf-8" },
       (err, stdout, stderr) => {
         if (err && !stdout && !stderr) {
-          resolve(`[!\`${command}\` failed: ${err.message}]`);
+          // Fenced blocks are multi-line; label with the first line only.
+          const [first, ...rest] = command.split("\n");
+          const label = rest.length > 0 ? `${first}…` : first;
+          resolve(`[!\`${label}\` failed: ${err.message}]`);
         } else {
           resolve((stdout || stderr || "").trim());
         }
@@ -49,8 +69,9 @@ async function expandCommands(text: string, cwd: string): Promise<string> {
   const matches = [...text.matchAll(CMD_RE)];
   if (matches.length === 0) return text;
 
-  // Run all commands in parallel
-  const outputs = await Promise.all(matches.map((m) => runCommand(m[1], cwd)));
+  // Run all commands in parallel. Matches come from the original text and are
+  // replaced by index, so command output is never re-scanned for placeholders.
+  const outputs = await Promise.all(matches.map((m) => runCommand(m[1] ?? m[2], cwd)));
 
   // Replace in reverse to preserve indices
   let result = text;
@@ -60,6 +81,22 @@ async function expandCommands(text: string, cwd: string): Promise<string> {
     result = result.slice(0, start) + outputs[i] + result.slice(end);
   }
   return result;
+}
+
+/**
+ * Resolved SKILL.md path -> skill base dir, for every skill pi registered in
+ * this session. This is the allowlist for command expansion: a SKILL.md that
+ * pi did not load as a skill is just an untrusted file on disk.
+ */
+function registeredSkillPaths(pi: ExtensionAPI): Map<string, string> {
+  const paths = new Map<string, string>();
+  for (const cmd of pi.getCommands()) {
+    if (cmd.source !== "skill") continue;
+    const path = cmd.sourceInfo?.path;
+    if (!path) continue;
+    paths.set(resolve(path), cmd.sourceInfo.baseDir ?? dirname(path));
+  }
+  return paths;
 }
 
 export default function (pi: ExtensionAPI) {
@@ -110,7 +147,13 @@ export default function (pi: ExtensionAPI) {
     );
     if (!hasAny) return;
 
-    const skillDir = dirname(resolve(ctx.cwd, input.path));
+    // Only expand for SKILL.md files pi registered as skills. Reading some
+    // other SKILL.md must never execute the commands embedded in it.
+    const skillDir = registeredSkillPaths(pi).get(resolve(ctx.cwd, input.path));
+    if (!skillDir) {
+      ctx.ui.notify(`Skipped !\`cmd\` expansion in unregistered ${input.path}`, "warning");
+      return;
+    }
 
     const newContent = await Promise.all(
       event.content.map(async (block) => {
