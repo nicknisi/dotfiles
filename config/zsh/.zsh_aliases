@@ -60,6 +60,10 @@ if [[ -n "$(command -v nvim)" ]]; then
     alias vimg="nvim +Ge:"
 fi
 
+# Claude aliases
 alias claude!="claude --dangerously-skip-permissions"
 alias cc="claude"
 alias cc!="claude!"
+
+# pi aliases
+alias upp="pi update && pi update --extensions"
