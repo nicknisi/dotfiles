@@ -3,6 +3,13 @@
     "autoAuth": true
   },
   "mcpServers": {
+    "horizon": {
+      "url": "https://horizon.workos.tools/mcp",
+      "auth": "oauth",
+      "oauth": {
+        "scope": "horizon:mcp"
+      }
+    },
     "sessions": {
       "command": "/opt/homebrew/bin/sessions",
       "args": ["--mcp"],

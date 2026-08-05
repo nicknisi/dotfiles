@@ -15,7 +15,11 @@
  * /loop stop            stop the loop.
  *
  * One goal per session. One loop per session. State persists to
- * <cwd>/.pi-goal/state.json so it survives --resume. The evaluator reads the
+ * <cwd>/.pi-goal/state.json so it survives --resume — but it is stamped with
+ * the owning session file and is ONLY re-adopted by that exact session.
+ * Other instances in the same cwd ignore it (a cwd-keyed file with no owner
+ * check used to leak goals into every concurrent session). Ephemeral
+ * sessions keep goal/loop state in memory only. The evaluator reads the
  * transcript tail and calls no tools (cheap, fast — Claude Code semantics).
  */
 
@@ -52,6 +56,8 @@ interface LoopState {
 }
 
 interface SavedState {
+  /** Session file that owns this state; null/absent = untrusted (never adopt). */
+  owner?: string | null;
   goal: GoalState | null;
   loop: LoopState | null;
 }
@@ -78,25 +84,47 @@ function statePath(cwd: string): string {
   return path.join(stateDir(cwd), "state.json");
 }
 
-function persist(cwd: string): void {
+function sessionFileOf(ctx: ExtensionContext): string | null {
   try {
-    fs.mkdirSync(stateDir(cwd), { recursive: true });
-    const data: SavedState = { goal, loop };
-    fs.writeFileSync(statePath(cwd), JSON.stringify(data, null, 2));
+    return ctx.sessionManager.getSessionFile() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function persist(ctx: ExtensionContext): void {
+  try {
+    const owner = sessionFileOf(ctx);
+    // Ephemeral session: no durable identity to key on — keep state in
+    // memory only rather than writing a file another instance could adopt.
+    if (!owner) return;
+    fs.mkdirSync(stateDir(ctx.cwd), { recursive: true });
+    const data: SavedState = { owner, goal, loop };
+    fs.writeFileSync(statePath(ctx.cwd), JSON.stringify(data, null, 2));
   } catch {
     /* persistence is advisory — never block the loop on it */
   }
 }
 
-function loadState(cwd: string): void {
+function loadState(ctx: ExtensionContext): void {
+  goal = null;
+  loop = null;
   try {
-    const raw = fs.readFileSync(statePath(cwd), "utf8");
+    const raw = fs.readFileSync(statePath(ctx.cwd), "utf8");
     const data = JSON.parse(raw) as SavedState;
+    const owner = sessionFileOf(ctx);
+    // Adopt persisted state only in the session that created it (--resume).
+    // Anything else — different session, ephemeral session, or legacy state
+    // with no owner stamp — is ignored so goals cannot leak across instances.
+    if (!data.owner || !owner || data.owner !== owner) {
+      // Prune orphaned state whose owning session no longer exists.
+      if (data.owner && !fs.existsSync(data.owner)) clearStateFile(ctx.cwd);
+      return;
+    }
     goal = data.goal ?? null;
     loop = data.loop ?? null;
   } catch {
-    goal = null;
-    loop = null;
+    /* no state / unreadable — stay clear */
   }
 }
 
@@ -341,7 +369,7 @@ function setGoal(ctx: ExtensionContext, condition: string): void {
     return;
   }
   goal = { condition: trimmed, startedAt: Date.now(), turns: 0 };
-  persist(ctx.cwd);
+  persist(ctx);
   refreshStatus(ctx);
   notify(ctx, `Goal set: ${short(trimmed)}`);
   // Setting a goal starts a turn immediately with the condition as directive.
@@ -355,7 +383,7 @@ function clearGoal(ctx: ExtensionContext, silent = false): void {
   }
   const cond = goal.condition;
   goal = null;
-  persist(ctx.cwd);
+  persist(ctx);
   if (!goal && !loop) clearStateFile(ctx.cwd);
   refreshStatus(ctx);
   if (!silent) notify(ctx, `Goal cleared: ${short(cond)}`);
@@ -381,8 +409,8 @@ function goalStatus(ctx: ExtensionContext): void {
 function parseInterval(s: string): number | null {
   const m = s.match(/^(\d+)\s*(ms|s|m|h)$/i);
   if (!m) return null;
-  const n = parseInt(m[1], 10);
-  switch (m[2].toLowerCase()) {
+  const n = parseInt(m[1]!, 10);
+  switch (m[2]!.toLowerCase()) {
     case "ms":
       return n;
     case "s":
@@ -418,7 +446,7 @@ function loopTick(ctx: ExtensionContext): void {
   if (!loop) return;
   loop.iterations++;
   loop.lastTickAt = Date.now();
-  persist(ctx.cwd);
+  persist(ctx);
   refreshStatus(ctx);
   sendContinuation(loop.prompt);
   // Schedule next tick if timer-driven
@@ -439,7 +467,7 @@ function setLoop(ctx: ExtensionContext, args: string): void {
   }
   // Try to parse a leading interval: "5m <prompt>" or "30s <prompt>"
   const parts = trimmed.split(/\s+(.+)/);
-  const intervalMs = parseInterval(parts[0]);
+  const intervalMs = parseInterval(parts[0] ?? "");
   let prompt: string;
   let pace: number | null;
   if (intervalMs !== null) {
@@ -451,7 +479,7 @@ function setLoop(ctx: ExtensionContext, args: string): void {
   }
   clearLoopTimer();
   loop = { prompt, intervalMs: pace, iterations: 0, lastTickAt: Date.now() };
-  persist(ctx.cwd);
+  persist(ctx);
   refreshStatus(ctx);
   const paceLabel = pace ? `every ${fmtDuration(pace)}` : "self-paced";
   notify(ctx, `Loop started (${paceLabel}): ${short(prompt)}`);
@@ -467,7 +495,7 @@ function stopLoop(ctx: ExtensionContext, silent = false): void {
   clearLoopTimer();
   const was = loop;
   loop = null;
-  persist(ctx.cwd);
+  persist(ctx);
   if (!goal && !loop) clearStateFile(ctx.cwd);
   refreshStatus(ctx);
   if (!silent)
@@ -496,7 +524,7 @@ function loopStatus(ctx: ExtensionContext): void {
 async function onAgentEnd(event: any, ctx: ExtensionContext): Promise<void> {
   if (goal) {
     goal.turns++;
-    persist(ctx.cwd);
+    persist(ctx);
     refreshStatus(ctx);
     if (evalInFlight) return; // don't stack evaluators
     evalInFlight = true;
@@ -505,7 +533,7 @@ async function onAgentEnd(event: any, ctx: ExtensionContext): Promise<void> {
       if (!goal) return; // cleared while evaluating
       goal.lastReason = result.reason || (result.met ? "condition met" : "not yet");
       goal.lastEvalAt = Date.now();
-      persist(ctx.cwd);
+      persist(ctx);
       if (result.error) {
         notify(ctx, `Goal evaluator error: ${result.error}. Continuing.`, "warning");
         // Keep working — the evaluator failed, not the goal.
@@ -602,7 +630,7 @@ export default function (pi: ExtensionAPI): void {
   // Restore state when a session starts (--resume carries the goal forward).
   pi.on("session_start" as any, (_event: any, ctx: ExtensionContext) => {
     rememberCtx(ctx);
-    loadState(ctx.cwd);
+    loadState(ctx);
     // Re-arm a timer-driven loop
     if (loop && loop.intervalMs !== null) {
       clearLoopTimer();
