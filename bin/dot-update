@@ -21,6 +21,9 @@ Options:
     homebrew, brew       Update Homebrew packages
     dotfiles             Update dotfiles
     zsh                  Update Zsh plugins
+    pi                   Update pi and its extensions
+    mise                 Update mise and its managed tools
+    uv                   Update uv-installed tools
     all                  Update everything
 EOF
 }
@@ -130,6 +133,90 @@ update_zsh_plugins() {
   log_success "ZSH Plugin updates completed."
 }
 
+update_mise() {
+  fmt_title_underline "Updating mise"
+
+  if ! command -v mise >/dev/null 2>&1; then
+    log_info "mise not installed, skipping"
+    return 0
+  fi
+
+  local log_file=$(mktemp)
+  trap 'rm -f "$log_file"' EXIT
+
+  # self-update only applies to the standalone installer, not brew installs
+  if [[ "$(command -v mise)" != *"/homebrew/"* ]]; then
+    run_with_spinner "mise self-update -y > '$log_file' 2>&1" 11 "Updating mise"
+    [[ "$verbose" == true ]] && cat "$log_file"
+  fi
+
+  run_with_spinner "mise upgrade > '$log_file' 2>&1" 11 "Updating mise tools"
+
+  if grep -qi "^error\|failed" "$log_file"; then
+    log_error "Error occurred during mise upgrade:"
+    cat "$log_file"
+    return 1
+  fi
+
+  grep -i "updated\|installed\|→" "$log_file" || log_info "No updates found"
+  echo -e
+}
+
+update_uv_tools() {
+  fmt_title_underline "Updating uv tools"
+
+  if ! command -v uv >/dev/null 2>&1; then
+    log_info "uv not installed, skipping"
+    return 0
+  fi
+
+  local log_file=$(mktemp)
+  trap 'rm -f "$log_file"' EXIT
+
+  run_with_spinner "uv tool upgrade --all > '$log_file' 2>&1" 11 "Updating uv tools"
+
+  if grep -qi "error\|failed" "$log_file"; then
+    log_error "Error occurred during uv tool upgrade:"
+    cat "$log_file"
+    return 1
+  fi
+
+  grep -i "updated\|upgraded\|installed\|nothing to upgrade" "$log_file" || log_info "No updates found"
+  echo -e
+}
+
+update_pi() {
+  fmt_title_underline "Updating pi"
+
+  if ! command -v pi >/dev/null 2>&1; then
+    log_info "pi not installed, skipping"
+    return 0
+  fi
+
+  local log_file=$(mktemp)
+  trap 'rm -f "$log_file"' EXIT
+
+  # pi itself is mise-managed (npm:@earendil-works/pi-coding-agent), so update
+  # it through mise rather than pi's self-updater
+  if [[ "$(command -v pi)" == *"/mise/"* ]]; then
+    run_with_spinner "mise upgrade 'npm:@earendil-works/pi-coding-agent' > '$log_file' 2>&1" 11 "Updating pi (via mise)"
+  else
+    run_with_spinner "pi update > '$log_file' 2>&1" 11 "Updating pi"
+  fi
+  [[ "$verbose" == true ]] && cat "$log_file"
+
+  run_with_spinner "pi update --extensions > '$log_file' 2>&1" 11 "Updating pi extensions"
+
+  if grep -qi "error\|failed" "$log_file"; then
+    log_error "Error occurred during pi extension update:"
+    cat "$log_file"
+    return 1
+  fi
+
+  grep -i "updated\|installed\|up to date" "$log_file" || log_info "No updates found"
+  echo -e
+}
+
 main() {
   local subcmd=""
   local verbose=false
@@ -169,10 +256,22 @@ main() {
   zsh)
     update_zsh_plugins
     ;;
+  pi)
+    update_pi
+    ;;
+  mise)
+    update_mise
+    ;;
+  uv)
+    update_uv_tools
+    ;;
   all)
     update_nvim_plugins
     update_homebrew
     update_zsh_plugins
+    update_mise
+    update_uv_tools
+    update_pi
     update_dotfiles
     ;;
   *)
