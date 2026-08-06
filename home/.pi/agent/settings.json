@@ -46,6 +46,7 @@
     "npm:@juicesharp/rpiv-todo",
     "npm:@injaneity/pi-computer-use"
   ],
+  "tuiMode": "fullscreen",
   "defaultModel": "claude-fable-5",
   "warnings": {
     "anthropicExtraUsage": false
