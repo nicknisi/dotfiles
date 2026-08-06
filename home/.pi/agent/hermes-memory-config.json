@@ -1,0 +1,4 @@
+{
+  "memoryCharLimit": 8000,
+  "consolidationTimeoutMs": 480000
+}
