@@ -1,5 +1,5 @@
 packages:
   - agent/extensions/*
 allowBuilds:
-  "@google/genai": true
+  '@google/genai': true
   protobufjs: true

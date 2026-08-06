@@ -23,28 +23,28 @@
  * `/nicknisi-header` cycles blink → waiting → full → compact.
  */
 
-import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
-import { formatDirectory } from "../../lib/tui-utils.ts";
-import { join } from "node:path";
+import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { formatDirectory } from '../../lib/tui-utils.ts';
+import { join } from 'node:path';
 import {
   VERSION,
   getAgentDir,
   type ExtensionAPI,
   type ExtensionContext,
   type Theme,
-} from "@earendil-works/pi-coding-agent";
-import type { Component } from "@earendil-works/pi-tui";
-import * as blinkDataLarge from "./frames-blink-large.ts";
-import * as blinkDataSmall from "./frames-blink-small.ts";
-import * as blinkData from "./frames-blink.ts";
-import * as waitingDataLarge from "./frames-waiting-large.ts";
-import * as waitingDataSmall from "./frames-waiting-small.ts";
-import * as waitingData from "./frames-waiting.ts";
+} from '@earendil-works/pi-coding-agent';
+import type { Component } from '@earendil-works/pi-tui';
+import * as blinkDataLarge from './frames-blink-large.ts';
+import * as blinkDataSmall from './frames-blink-small.ts';
+import * as blinkData from './frames-blink.ts';
+import * as waitingDataLarge from './frames-waiting-large.ts';
+import * as waitingDataSmall from './frames-waiting-small.ts';
+import * as waitingData from './frames-waiting.ts';
 
-const ANSI_RESET = "\x1b[0m";
+const ANSI_RESET = '\x1b[0m';
 const ANSI_RE = /\u001b\[[0-9;]*m/g; // eslint-disable-line no-control-regex -- intentional: matches ANSI color escapes
-const visibleLen = (s: string) => s.replace(ANSI_RE, "").length;
+const visibleLen = (s: string) => s.replace(ANSI_RE, '').length;
 
 // ---------------------------------------------------------------------------
 // GIF frame decoding (palette-indexed half-block cells, per source file)
@@ -82,7 +82,7 @@ function makeGifDecoder(data: FrameData) {
     return esc;
   };
   const cellString = (idx: number): string => {
-    if (idx === 0) return " ";
+    if (idx === 0) return ' ';
     let str = cellStrings.get(idx);
     if (!str) {
       const [top, bottom] = data.CELLS[idx];
@@ -103,11 +103,11 @@ function makeGifDecoder(data: FrameData) {
         lines = data.FRAMES[index].lines.map((tokens) =>
           tokens
             .map((token) => {
-              const star = token.indexOf("*");
+              const star = token.indexOf('*');
               if (star === -1) return cellString(Number(token));
               return cellString(Number(token.slice(0, star))).repeat(Number(token.slice(star + 1)));
             })
-            .join(""),
+            .join(''),
         );
         decodedFrames.set(index, lines);
       }
@@ -125,11 +125,11 @@ function makeGifDecoder(data: FrameData) {
   };
 }
 
-type Size = "small" | "medium" | "large";
-const SIZES: Size[] = ["small", "medium", "large"];
+type Size = 'small' | 'medium' | 'large';
+const SIZES: Size[] = ['small', 'medium', 'large'];
 
 /** Rows per size: small ≈ 10, medium ≈ 13-14, large ≈ 15-18. */
-const GIFS: Record<"blink" | "waiting", Record<Size, ReturnType<typeof makeGifDecoder>>> = {
+const GIFS: Record<'blink' | 'waiting', Record<Size, ReturnType<typeof makeGifDecoder>>> = {
   blink: {
     small: makeGifDecoder(blinkDataSmall),
     medium: makeGifDecoder(blinkData),
@@ -146,11 +146,11 @@ const GIFS: Record<"blink" | "waiting", Record<Size, ReturnType<typeof makeGifDe
 interface HeaderConfig {
   size?: Size;
 }
-const CONFIG_PATH = join(getAgentDir(), "nicknisi-header.json");
+const CONFIG_PATH = join(getAgentDir(), 'nicknisi-header.json');
 
 function loadConfig(): HeaderConfig {
   try {
-    return JSON.parse(readFileSync(CONFIG_PATH, "utf8")) as HeaderConfig;
+    return JSON.parse(readFileSync(CONFIG_PATH, 'utf8')) as HeaderConfig;
   } catch {
     return {};
   }
@@ -169,49 +169,49 @@ function saveConfig(config: HeaderConfig): void {
 // ---------------------------------------------------------------------------
 
 const ART = [
-  "                                              ",
-  "               ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓               ",
-  "           ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓        ",
-  "          ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓       ",
-  "       ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓       ",
-  "      ▓▓▓▓▓▓▓▓▓▓▒▒░░░░░▓▓▓▓▓▓▓▓▓▓░▒▒▓▓▓       ",
-  "     ▓▓▓▓▓▓▓▓▓▓▒░░░░░░░░░░░░░░░░░░░░▒▒▓▓▓     ",
-  "     ▓▓▓▓▓▓▒▒░░░░░░░░░░░░░░░░░░░░░░░░░▒▓▓     ",
-  "     ▓▓▓▓▓▒░░░░░▓▓▓▓▓▓▓░░░░░░░░░▒▓▓▓▓▓▓▓▓     ",
-  "     ▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▓▓     ",
-  "   ░░░▒▓▓▓░░░░░      ▓▓░░░░░░░░       ▓▓▓░░   ",
-  " ░░░░░▒▓▓▓░░░░░    ░▓▓▓▒▒░░░░▒▒     ▓▓▓▓▓░░   ",
-  " ░░▒▒░▒▓░░░░░░░    ░▓██▒▒░░░░▒▒     ▓▓█▒▒░░   ",
-  "   ░░▒▒░░░░░░░░▒     ▒▒░░░░░░░░▒░     ▒░░▒▒   ",
-  "     ░░░░░░░░░░░▒▒▒▒▒░░░░░░░░░░░░▒▒▒░░░▒▒     ",
-  "        ▒▒░░░░░░░░░░░░░░░░▒▒▒▒▒▒▒░░░░░▒       ",
-  "          ▒░░░░░░░░░░░░░░░░░░░░░░░░░▒▒        ",
-  "           ▒▒░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒░░░▒▒          ",
-  "             ▒▒▒░░░░░░░░░░░░░░░░░▒            ",
-  "                ▒▒▒▒▒░░░░░░░░▒▒▒▒             ",
-  "           ▓▓▓▓▓▓▓▓▒░▒▒▒▒▒▒▒▒▓▓               ",
-  "          ▓▓▓▓▓▓▓▓▓▓▓░░░░░▓▓▓▓▓▓▓             ",
-  "      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓          ",
-  "      ▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒          ",
-  "      ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░          ",
+  '                                              ',
+  '               ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓               ',
+  '           ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓        ',
+  '          ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓       ',
+  '       ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓       ',
+  '      ▓▓▓▓▓▓▓▓▓▓▒▒░░░░░▓▓▓▓▓▓▓▓▓▓░▒▒▓▓▓       ',
+  '     ▓▓▓▓▓▓▓▓▓▓▒░░░░░░░░░░░░░░░░░░░░▒▒▓▓▓     ',
+  '     ▓▓▓▓▓▓▒▒░░░░░░░░░░░░░░░░░░░░░░░░░▒▓▓     ',
+  '     ▓▓▓▓▓▒░░░░░▓▓▓▓▓▓▓░░░░░░░░░▒▓▓▓▓▓▓▓▓     ',
+  '     ▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▓▓     ',
+  '   ░░░▒▓▓▓░░░░░      ▓▓░░░░░░░░       ▓▓▓░░   ',
+  ' ░░░░░▒▓▓▓░░░░░    ░▓▓▓▒▒░░░░▒▒     ▓▓▓▓▓░░   ',
+  ' ░░▒▒░▒▓░░░░░░░    ░▓██▒▒░░░░▒▒     ▓▓█▒▒░░   ',
+  '   ░░▒▒░░░░░░░░▒     ▒▒░░░░░░░░▒░     ▒░░▒▒   ',
+  '     ░░░░░░░░░░░▒▒▒▒▒░░░░░░░░░░░░▒▒▒░░░▒▒     ',
+  '        ▒▒░░░░░░░░░░░░░░░░▒▒▒▒▒▒▒░░░░░▒       ',
+  '          ▒░░░░░░░░░░░░░░░░░░░░░░░░░▒▒        ',
+  '           ▒▒░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒░░░▒▒          ',
+  '             ▒▒▒░░░░░░░░░░░░░░░░░▒            ',
+  '                ▒▒▒▒▒░░░░░░░░▒▒▒▒             ',
+  '           ▓▓▓▓▓▓▓▓▒░▒▒▒▒▒▒▒▒▓▓               ',
+  '          ▓▓▓▓▓▓▓▓▓▓▓░░░░░▓▓▓▓▓▓▓             ',
+  '      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓          ',
+  '      ▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒          ',
+  '      ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░          ',
 ].map((line) => line.trimEnd());
 
 const ART_WIDTH = Math.max(...ART.map((line) => line.length));
 
-type Shade = "▓" | "▒" | "░" | "█";
+type Shade = '▓' | '▒' | '░' | '█';
 
-const SHADE_COLORS: Record<Shade, Parameters<Theme["fg"]>[0]> = {
-  "▓": "accent",
-  "▒": "muted",
-  "░": "text",
-  "█": "dim",
+const SHADE_COLORS: Record<Shade, Parameters<Theme['fg']>[0]> = {
+  '▓': 'accent',
+  '▒': 'muted',
+  '░': 'text',
+  '█': 'dim',
 };
 
 /** Pixel lookup; when blinking, eyes (█) become face (░). */
 function pixel(x: number, y: number, blink: boolean): Shade | undefined {
   const ch = ART[y]?.[x];
-  if (ch === "▓" || ch === "▒" || ch === "░" || ch === "█") {
-    return blink && ch === "█" ? "░" : ch;
+  if (ch === '▓' || ch === '▒' || ch === '░' || ch === '█') {
+    return blink && ch === '█' ? '░' : ch;
   }
   return undefined;
 }
@@ -220,13 +220,13 @@ function pixel(x: number, y: number, blink: boolean): Shade | undefined {
 function renderFull(theme: Theme, blink: boolean): string[] {
   const lines: string[] = [];
   for (let y = 0; y < ART.length; y++) {
-    let line = "";
+    let line = '';
     let runShade: Shade | undefined;
-    let run = "";
+    let run = '';
     const flush = () => {
       if (runShade) line += theme.fg(SHADE_COLORS[runShade], run);
       else line += run;
-      run = "";
+      run = '';
     };
     for (let x = 0; x < ART_WIDTH; x++) {
       const shade = pixel(x, y, blink);
@@ -234,7 +234,7 @@ function renderFull(theme: Theme, blink: boolean): string[] {
         flush();
         runShade = shade;
       }
-      run += shade ?? " ";
+      run += shade ?? ' ';
     }
     flush();
     lines.push(line.trimEnd());
@@ -243,8 +243,8 @@ function renderFull(theme: Theme, blink: boolean): string[] {
 }
 
 /** Convert a theme fg escape (\x1b[38;…) into the matching bg escape (\x1b[48;…). */
-function bgAnsi(theme: Theme, color: Parameters<Theme["fg"]>[0]): string {
-  return theme.getFgAnsi(color).replace("38;", "48;");
+function bgAnsi(theme: Theme, color: Parameters<Theme['fg']>[0]): string {
+  return theme.getFgAnsi(color).replace('38;', '48;');
 }
 
 /** Compact render: two pixel rows per terminal row via ▀/▄ half-blocks. */
@@ -253,14 +253,14 @@ function renderCompact(theme: Theme, blink: boolean): string[] {
   const bg = (s: Shade) => bgAnsi(theme, SHADE_COLORS[s]);
   const lines: string[] = [];
   for (let y = 0; y < ART.length; y += 2) {
-    let line = "";
+    let line = '';
     for (let x = 0; x < ART_WIDTH; x++) {
       const top = pixel(x, y, blink);
       const bottom = pixel(x, y + 1, blink);
       if (top && bottom) line += `${fg(top)}${bg(bottom)}▀${ANSI_RESET}`;
       else if (top) line += `${fg(top)}▀${ANSI_RESET}`;
       else if (bottom) line += `${fg(bottom)}▄${ANSI_RESET}`;
-      else line += " ";
+      else line += ' ';
     }
     lines.push(line.trimEnd());
   }
@@ -272,50 +272,50 @@ function renderCompact(theme: Theme, blink: boolean): string[] {
 // ---------------------------------------------------------------------------
 
 const QUOTES = [
-  "turning coffee into commits",
-  "the code works and nobody knows why",
-  "git blame says it was me. rude.",
+  'turning coffee into commits',
+  'the code works and nobody knows why',
+  'git blame says it was me. rude.',
   "it's not a bug, it's a side quest",
-  "ship it, then read the docs",
-  "TODO: write better TODOs",
-  "my other editor is also vim",
-  "have you tried :wq?",
-  "there is no place like ~/.",
-  "weeks of coding save hours of planning",
-  "neovim btw",
-  "merge conflicts build character",
-  "dotfiles: 10 years in the making",
-  "rm -rf doubt && ship",
+  'ship it, then read the docs',
+  'TODO: write better TODOs',
+  'my other editor is also vim',
+  'have you tried :wq?',
+  'there is no place like ~/.',
+  'weeks of coding save hours of planning',
+  'neovim btw',
+  'merge conflicts build character',
+  'dotfiles: 10 years in the making',
+  'rm -rf doubt && ship',
   "undefined is not a function, it's a vibe",
-  "every bug was once a feature",
-  "the real bug was inside us all along",
-  "turning tokens into something readable",
+  'every bug was once a feature',
+  'the real bug was inside us all along',
+  'turning tokens into something readable',
   "the cloud is just someone else's computer",
-  "keep calm and :wq",
+  'keep calm and :wq',
 ];
 
 /** Waiting-themed quotes for waiting mode (he's impatiently waiting on you). */
 const WAITING_QUOTES = [
-  "*taps foot*",
-  "any decade now…",
-  "still faster than npm install",
+  '*taps foot*',
+  'any decade now…',
+  'still faster than npm install',
   "I'll just wait here then",
-  "ahem.",
-  "loading prompt…",
-  "the cursor blinks, questioning our purpose",
+  'ahem.',
+  'loading prompt…',
+  'the cursor blinks, questioning our purpose',
   "take your time. I'll wait. obviously.",
-  "this is me, waiting",
-  "did the wifi eat your prompt?",
+  'this is me, waiting',
+  'did the wifi eat your prompt?',
 ];
 
 /** Blink-mode quotes (he's watching you). */
 const BLINK_QUOTES = [
   "blink and you'll miss it",
-  "I see everything",
-  "did you catch that?",
-  "just watching you type",
+  'I see everything',
+  'did you catch that?',
+  'just watching you type',
   "no, YOU'RE staring",
-  "always watching. in a fun way.",
+  'always watching. in a fun way.',
   "I blink so I don't miss anything",
   "eyes on the prize. you're the prize.",
 ];
@@ -324,18 +324,18 @@ const BLINK_QUOTES = [
 // Extension
 // ---------------------------------------------------------------------------
 
-type Mode = "blink" | "waiting" | "full" | "compact";
-const MODES: Mode[] = ["blink", "waiting", "full", "compact"];
+type Mode = 'blink' | 'waiting' | 'full' | 'compact';
+const MODES: Mode[] = ['blink', 'waiting', 'full', 'compact'];
 
-const MARGIN = "  ";
-const INFO_GAP = "   ";
+const MARGIN = '  ';
+const INFO_GAP = '   ';
 
 function gitBranch(cwd: string): string | undefined {
   try {
-    const branch = execFileSync("git", ["branch", "--show-current"], {
+    const branch = execFileSync('git', ['branch', '--show-current'], {
       cwd,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
       timeout: 2000,
     }).trim();
     return branch || undefined;
@@ -345,8 +345,8 @@ function gitBranch(cwd: string): string | undefined {
 }
 
 export default function (pi: ExtensionAPI) {
-  let mode: Mode = "blink";
-  let size: Size = loadConfig().size ?? "medium";
+  let mode: Mode = 'blink';
+  let size: Size = loadConfig().size ?? 'medium';
   let timer: ReturnType<typeof setInterval> | undefined;
   let shown = false;
 
@@ -358,8 +358,8 @@ export default function (pi: ExtensionAPI) {
   };
 
   const showDashboard = (ctx: ExtensionContext) => {
-    const gif = mode === "blink" || mode === "waiting" ? GIFS[mode][size] : undefined;
-    const pool = mode === "waiting" ? WAITING_QUOTES : mode === "blink" ? BLINK_QUOTES : QUOTES;
+    const gif = mode === 'blink' || mode === 'waiting' ? GIFS[mode][size] : undefined;
+    const pool = mode === 'waiting' ? WAITING_QUOTES : mode === 'blink' ? BLINK_QUOTES : QUOTES;
     const quote = pool[Math.floor(Math.random() * pool.length)];
     let typed = 0;
     let blink = false;
@@ -371,11 +371,9 @@ export default function (pi: ExtensionAPI) {
     let headerComp: Component | undefined;
 
     // Session info, resolved once
-    const modelName = ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : "no model";
+    const modelName = ctx.model ? `${ctx.model.provider}/${ctx.model.id}` : 'no model';
     const branch = gitBranch(ctx.cwd);
-    const location = branch
-      ? `${formatDirectory(ctx.cwd)}  ·  ${branch}`
-      : formatDirectory(ctx.cwd);
+    const location = branch ? `${formatDirectory(ctx.cwd)}  ·  ${branch}` : formatDirectory(ctx.cwd);
 
     shown = true;
     ctx.ui.setHeader((tui, theme) => {
@@ -426,7 +424,7 @@ export default function (pi: ExtensionAPI) {
           if (gif) {
             art = gif.frame(frameIndex);
             artWidth = gif.width();
-          } else if (mode === "compact") {
+          } else if (mode === 'compact') {
             art = renderCompact(theme, blink);
             artWidth = ART_WIDTH;
           } else {
@@ -435,20 +433,20 @@ export default function (pi: ExtensionAPI) {
           }
 
           // Info column, vertically centered against the art
-          const cursor = typed < quote.length ? theme.fg("dim", "▌") : "";
+          const cursor = typed < quote.length ? theme.fg('dim', '▌') : '';
           const info = [
-            `${theme.bold(theme.fg("accent", "pi"))} ${theme.fg("dim", `v${VERSION} · ${modelName}`)}`,
-            theme.fg("muted", location),
-            theme.italic(theme.fg("text", quote.slice(0, typed))) + cursor,
+            `${theme.bold(theme.fg('accent', 'pi'))} ${theme.fg('dim', `v${VERSION} · ${modelName}`)}`,
+            theme.fg('muted', location),
+            theme.italic(theme.fg('text', quote.slice(0, typed))) + cursor,
           ];
           const infoOffset = Math.max(0, Math.floor((art.length - info.length) / 2));
 
           const rows = art.map((artLine, i) => {
-            const left = MARGIN + artLine + " ".repeat(Math.max(0, artWidth - visibleLen(artLine)));
+            const left = MARGIN + artLine + ' '.repeat(Math.max(0, artWidth - visibleLen(artLine)));
             const infoIdx = i - infoOffset;
             return infoIdx >= 0 && infoIdx < info.length ? left + INFO_GAP + info[infoIdx] : left;
           });
-          return ["", ...rows];
+          return ['', ...rows];
         },
         invalidate() {},
       };
@@ -456,60 +454,56 @@ export default function (pi: ExtensionAPI) {
     });
   };
 
-  pi.on("session_start", (_event, ctx) => {
-    if (ctx.mode !== "tui") return;
+  pi.on('session_start', (_event, ctx) => {
+    if (ctx.mode !== 'tui') return;
 
     // Only show the dashboard on fresh sessions, not resumes
-    const hasConversation = ctx.sessionManager
-      .getBranch()
-      .some((entry) => entry.type === "message");
+    const hasConversation = ctx.sessionManager.getBranch().some((entry) => entry.type === 'message');
     if (hasConversation) return;
 
     showDashboard(ctx);
   });
 
   // Dashboard's job is done once you start working — restore built-in header
-  pi.on("before_agent_start", (_event, ctx) => {
-    if (ctx.mode === "tui" && shown) {
+  pi.on('before_agent_start', (_event, ctx) => {
+    if (ctx.mode === 'tui' && shown) {
       shown = false;
       stopAnimation();
       ctx.ui.setHeader(undefined);
     }
   });
 
-  pi.on("session_shutdown", () => {
+  pi.on('session_shutdown', () => {
     shown = false;
     stopAnimation();
   });
 
   // Cycle blink → waiting → full → compact (re-renders live if the dashboard is up)
-  pi.registerCommand("nicknisi-header", {
-    description: "Cycle nicknisi header style (blink → waiting → full → compact)",
+  pi.registerCommand('nicknisi-header', {
+    description: 'Cycle nicknisi header style (blink → waiting → full → compact)',
     handler: async (_args, ctx) => {
       mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
-      if (shown && ctx.mode === "tui") {
+      if (shown && ctx.mode === 'tui') {
         stopAnimation();
         showDashboard(ctx);
       }
-      ctx.ui.notify(`nicknisi header: ${mode}`, "info");
+      ctx.ui.notify(`nicknisi header: ${mode}`, 'info');
     },
   });
 
   // Set or cycle gif size: /nicknisi-header-size [small|medium|large]
   // Persisted to ~/.pi/agent/nicknisi-header.json. ASCII art modes are fixed-size.
-  pi.registerCommand("nicknisi-header-size", {
-    description: "Set nicknisi header size (small|medium|large, no arg cycles)",
+  pi.registerCommand('nicknisi-header-size', {
+    description: 'Set nicknisi header size (small|medium|large, no arg cycles)',
     handler: async (args, ctx) => {
       const requested = args.trim() as Size;
-      size = SIZES.includes(requested)
-        ? requested
-        : SIZES[(SIZES.indexOf(size) + 1) % SIZES.length];
+      size = SIZES.includes(requested) ? requested : SIZES[(SIZES.indexOf(size) + 1) % SIZES.length];
       saveConfig({ ...loadConfig(), size });
-      if (shown && ctx.mode === "tui") {
+      if (shown && ctx.mode === 'tui') {
         stopAnimation();
         showDashboard(ctx);
       }
-      ctx.ui.notify(`nicknisi header size: ${size} (applies to gif modes)`, "info");
+      ctx.ui.notify(`nicknisi header size: ${size} (applies to gif modes)`, 'info');
     },
   });
 }

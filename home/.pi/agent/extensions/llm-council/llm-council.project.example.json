@@ -5,7 +5,11 @@
     "council": [
       { "model": "openrouter/z-ai/glm-5.2", "displayName": "GLM 5.2", "label": "Member A" },
       { "model": "openrouter/moonshotai/kimi-k3", "displayName": "Kimi K3", "label": "Member B" },
-      { "model": "openrouter/anthropic/claude-fable-5", "displayName": "Claude Fable 5", "label": "Member C" }
+      {
+        "model": "openrouter/anthropic/claude-fable-5",
+        "displayName": "Claude Fable 5",
+        "label": "Member C"
+      }
     ]
   },
 

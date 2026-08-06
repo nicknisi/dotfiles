@@ -27,18 +27,14 @@
  * assistant message, which models that reject assistant prefill 400 on.
  */
 
-import { execFile } from "node:child_process";
-import { randomBytes, randomUUID } from "node:crypto";
-import { writeFileSync } from "node:fs";
-import { join } from "node:path";
-import type { AssistantMessage, Message, ThinkingLevel } from "@earendil-works/pi-ai";
-import { getModelProvider } from "../lib/llm.ts";
-import type { ExtensionAPI, SessionEntry, Theme } from "@earendil-works/pi-coding-agent";
-import {
-  convertToLlm,
-  CURRENT_SESSION_VERSION,
-  getMarkdownTheme,
-} from "@earendil-works/pi-coding-agent";
+import { execFile } from 'node:child_process';
+import { randomBytes, randomUUID } from 'node:crypto';
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import type { AssistantMessage, Message, ThinkingLevel } from '@earendil-works/pi-ai';
+import { getModelProvider } from '../lib/llm.ts';
+import type { ExtensionAPI, SessionEntry, Theme } from '@earendil-works/pi-coding-agent';
+import { convertToLlm, CURRENT_SESSION_VERSION, getMarkdownTheme } from '@earendil-works/pi-coding-agent';
 import {
   Box,
   type Component,
@@ -53,9 +49,9 @@ import {
   type TUI,
   visibleWidth,
   wrapTextWithAnsi,
-} from "@earendil-works/pi-tui";
+} from '@earendil-works/pi-tui';
 
-const CUSTOM_TYPE = "btw-answer";
+const CUSTOM_TYPE = 'btw-answer';
 
 interface Turn {
   question: string;
@@ -70,57 +66,57 @@ interface BtwEntryData {
   answer?: string;
 }
 
-type BtwAction = "close" | "promote" | "fork";
+type BtwAction = 'close' | 'promote' | 'fork';
 type BtwResult = { turns: Turn[]; action: BtwAction } | null;
 
 const SYSTEM_PROMPT = `You are a helpful side-channel assistant. The user is in the middle of a coding session and has a quick question (possibly with follow-ups). Answer concisely based on the conversation context provided. Do not suggest tool calls or actions — just answer directly.`;
 
-const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
-function extractText(content: AssistantMessage["content"]): string {
+function extractText(content: AssistantMessage['content']): string {
   return content
-    .filter((c): c is { type: "text"; text: string } => c.type === "text")
+    .filter((c): c is { type: 'text'; text: string } => c.type === 'text')
     .map((c) => c.text)
-    .join("\n");
+    .join('\n');
 }
 
 function firstLine(text: string, max = 120): string {
-  const line = text.split("\n")[0] ?? "";
-  return line.length > max ? line.slice(0, max - 3) + "..." : line;
+  const line = text.split('\n')[0] ?? '';
+  return line.length > max ? line.slice(0, max - 3) + '...' : line;
 }
 
 function normalizeTurns(data: BtwEntryData | undefined): Turn[] {
   if (data?.turns?.length) return data.turns;
-  if (data?.question) return [{ question: data.question, answer: data.answer ?? "" }];
+  if (data?.question) return [{ question: data.question, answer: data.answer ?? '' }];
   return [];
 }
 
 /** Transcript card shared by the entry renderer and the legacy message renderer. */
 function buildCard(turns: Turn[], model: string, expanded: boolean, theme: Theme): Box {
-  const count = turns.length > 1 ? theme.fg("dim", ` · ${turns.length} turns`) : "";
-  const header = `${theme.fg("accent", theme.bold("btw"))} ${theme.fg("dim", `(${model})`)}${count}`;
+  const count = turns.length > 1 ? theme.fg('dim', ` · ${turns.length} turns`) : '';
+  const header = `${theme.fg('accent', theme.bold('btw'))} ${theme.fg('dim', `(${model})`)}${count}`;
 
   const lines: string[] = [header];
   if (expanded) {
     for (const t of turns) {
-      lines.push(`${theme.fg("warning", "Q:")} ${t.question}`);
-      lines.push(`${theme.fg("success", "A:")} ${t.answer}`);
+      lines.push(`${theme.fg('warning', 'Q:')} ${t.question}`);
+      lines.push(`${theme.fg('success', 'A:')} ${t.answer}`);
     }
   } else {
     const last = turns[turns.length - 1];
     if (last) {
-      lines.push(`${theme.fg("warning", "Q:")} ${last.question}`);
-      lines.push(`${theme.fg("success", "A:")} ${firstLine(last.answer)}`);
+      lines.push(`${theme.fg('warning', 'Q:')} ${last.question}`);
+      lines.push(`${theme.fg('success', 'A:')} ${firstLine(last.answer)}`);
     }
   }
 
-  const box = new Box(1, 1, (t) => theme.bg("customMessageBg", t));
-  box.addChild(new Text(lines.join("\n"), 0, 0));
+  const box = new Box(1, 1, (t) => theme.bg('customMessageBg', t));
+  box.addChild(new Text(lines.join('\n'), 0, 0));
   return box;
 }
 
 function formatThreadForPromote(turns: Turn[], model: string): string {
-  const body = turns.map((t) => `Q: ${t.question}\nA: ${t.answer}`).join("\n\n");
+  const body = turns.map((t) => `Q: ${t.question}\nA: ${t.answer}`).join('\n\n');
   return `FYI — I had this side conversation with ${model} (via /btw). Factor it into what you're doing where relevant:\n\n${body}`;
 }
 
@@ -129,11 +125,11 @@ class BtwWindow implements Component, Focusable {
   onAsk?: (question: string) => void;
 
   private _focused = false;
-  private state: "streaming" | "idle" = "idle";
+  private state: 'streaming' | 'idle' = 'idle';
   private readonly turns: Turn[] = [];
-  private currentQuestion = "";
-  private currentAnswer = "";
-  private lastError = "";
+  private currentQuestion = '';
+  private currentAnswer = '';
+  private lastError = '';
   private abort: AbortController | undefined;
   private frame = 0;
   private timer: ReturnType<typeof setInterval> | undefined;
@@ -150,13 +146,13 @@ class BtwWindow implements Component, Focusable {
     private readonly close: (result: BtwResult) => void,
   ) {
     const editorTheme: EditorTheme = {
-      borderColor: (text: string) => theme.fg("borderAccent", text),
+      borderColor: (text: string) => theme.fg('borderAccent', text),
       selectList: {
-        selectedPrefix: (text: string) => theme.fg("accent", text),
-        selectedText: (text: string) => theme.fg("accent", text),
-        description: (text: string) => theme.fg("muted", text),
-        scrollInfo: (text: string) => theme.fg("dim", text),
-        noMatch: (text: string) => theme.fg("warning", text),
+        selectedPrefix: (text: string) => theme.fg('accent', text),
+        selectedText: (text: string) => theme.fg('accent', text),
+        description: (text: string) => theme.fg('muted', text),
+        scrollInfo: (text: string) => theme.fg('dim', text),
+        noMatch: (text: string) => theme.fg('warning', text),
       },
     };
     this.editor = new Editor(this.tui, editorTheme);
@@ -170,7 +166,7 @@ class BtwWindow implements Component, Focusable {
 
   set focused(value: boolean) {
     this._focused = value;
-    this.editor.focused = value && this.state === "idle";
+    this.editor.focused = value && this.state === 'idle';
   }
 
   get signal(): AbortSignal | undefined {
@@ -183,9 +179,9 @@ class BtwWindow implements Component, Focusable {
 
   beginStreaming(question: string): void {
     this.currentQuestion = question;
-    this.currentAnswer = "";
-    this.lastError = "";
-    this.state = "streaming";
+    this.currentAnswer = '';
+    this.lastError = '';
+    this.state = 'streaming';
     this.editor.focused = false;
     this.abort = new AbortController();
     this.stickBottom = true;
@@ -205,7 +201,7 @@ class BtwWindow implements Component, Focusable {
 
   completeTurn(answer: string): void {
     this.turns.push({ question: this.currentQuestion, answer: answer || this.currentAnswer });
-    this.backToIdle("");
+    this.backToIdle('');
   }
 
   /** Cancelled mid-stream: restore the question into the editor for retry. */
@@ -219,9 +215,9 @@ class BtwWindow implements Component, Focusable {
   }
 
   private backToIdle(editorText: string): void {
-    this.currentQuestion = "";
-    this.currentAnswer = "";
-    this.state = "idle";
+    this.currentQuestion = '';
+    this.currentAnswer = '';
+    this.state = 'idle';
     if (editorText) this.editor.setText(editorText);
     this.editor.focused = this._focused;
     this.stopSpinner();
@@ -252,8 +248,8 @@ class BtwWindow implements Component, Focusable {
   }
 
   handleInput(data: string): void {
-    if (this.state === "streaming") {
-      if (matchesKey(data, Key.escape) || matchesKey(data, Key.ctrl("c"))) {
+    if (this.state === 'streaming') {
+      if (matchesKey(data, Key.escape) || matchesKey(data, Key.ctrl('c'))) {
         this.abort?.abort();
         this.cancelCurrent();
         return;
@@ -263,27 +259,27 @@ class BtwWindow implements Component, Focusable {
       return;
     }
 
-    if (matchesKey(data, Key.escape) || matchesKey(data, Key.ctrl("c"))) {
-      this.dismiss("close");
+    if (matchesKey(data, Key.escape) || matchesKey(data, Key.ctrl('c'))) {
+      this.dismiss('close');
       return;
     }
-    if (matchesKey(data, Key.ctrl("p"))) {
-      this.dismiss("promote");
+    if (matchesKey(data, Key.ctrl('p'))) {
+      this.dismiss('promote');
       return;
     }
-    if (matchesKey(data, Key.ctrl("f"))) {
-      this.dismiss("fork");
+    if (matchesKey(data, Key.ctrl('f'))) {
+      this.dismiss('fork');
       return;
     }
-    if (matchesKey(data, Key.enter) && !matchesKey(data, Key.shift("enter"))) {
+    if (matchesKey(data, Key.enter) && !matchesKey(data, Key.shift('enter'))) {
       const question = this.editor.getText().trim();
       if (question) {
-        this.editor.setText("");
+        this.editor.setText('');
         this.onAsk?.(question);
       }
       return;
     }
-    if (this.editor.getText() === "") {
+    if (this.editor.getText() === '') {
       if (matchesKey(data, Key.up)) {
         this.scrollBy(-1);
         return;
@@ -305,7 +301,7 @@ class BtwWindow implements Component, Focusable {
   }
 
   private turnLines(turn: { question: string; answer: string }, width: number): string[] {
-    const lines = wrapTextWithAnsi(`${this.theme.fg("warning", "Q:")} ${turn.question}`, width);
+    const lines = wrapTextWithAnsi(`${this.theme.fg('warning', 'Q:')} ${turn.question}`, width);
     if (turn.answer) {
       lines.push(...new Markdown(turn.answer, 0, 0, getMarkdownTheme()).render(width));
     }
@@ -316,22 +312,20 @@ class BtwWindow implements Component, Focusable {
     if (this.doneCache?.width !== width || this.doneCache.upTo !== this.turns.length) {
       const lines: string[] = [];
       for (const turn of this.turns) {
-        if (lines.length > 0) lines.push("");
+        if (lines.length > 0) lines.push('');
         lines.push(...this.turnLines(turn, width));
       }
       this.doneCache = { width, upTo: this.turns.length, lines };
     }
     const lines = [...this.doneCache.lines];
-    if (this.state === "streaming") {
-      if (lines.length > 0) lines.push("");
-      lines.push(
-        ...this.turnLines({ question: this.currentQuestion, answer: this.currentAnswer }, width),
-      );
-      if (!this.currentAnswer) lines.push(this.theme.fg("muted", "thinking…"));
+    if (this.state === 'streaming') {
+      if (lines.length > 0) lines.push('');
+      lines.push(...this.turnLines({ question: this.currentQuestion, answer: this.currentAnswer }, width));
+      if (!this.currentAnswer) lines.push(this.theme.fg('muted', 'thinking…'));
     }
     if (this.lastError) {
-      if (lines.length > 0) lines.push("");
-      lines.push(...wrapTextWithAnsi(this.theme.fg("error", this.lastError), width));
+      if (lines.length > 0) lines.push('');
+      lines.push(...wrapTextWithAnsi(this.theme.fg('error', this.lastError), width));
     }
     return lines;
   }
@@ -340,21 +334,18 @@ class BtwWindow implements Component, Focusable {
     const boxWidth = Math.min(Math.max(width, 20), 100);
     const innerWidth = Math.max(1, boxWidth - 2);
     const contentWidth = Math.max(1, innerWidth - 2);
-    const border = (s: string) => this.theme.fg("border", s);
+    const border = (s: string) => this.theme.fg('border', s);
     const lines: string[] = [];
-    const push = (content = "") => {
-      const line = truncateToWidth(content, innerWidth, "…");
+    const push = (content = '') => {
+      const line = truncateToWidth(content, innerWidth, '…');
       const pad = Math.max(0, innerWidth - visibleWidth(line));
-      lines.push(border("│") + line + " ".repeat(pad) + border("│"));
+      lines.push(border('│') + line + ' '.repeat(pad) + border('│'));
     };
 
-    lines.push(border(`╭${"─".repeat(innerWidth)}╮`));
-    const spinner =
-      this.state === "streaming" ? ` ${this.theme.fg("accent", SPINNER_FRAMES[this.frame]!)}` : "";
-    push(
-      ` ${this.theme.fg("accent", this.theme.bold("btw"))} ${this.theme.fg("dim", `(${this.model})`)}${spinner}`,
-    );
-    lines.push(border(`├${"─".repeat(innerWidth)}┤`));
+    lines.push(border(`╭${'─'.repeat(innerWidth)}╮`));
+    const spinner = this.state === 'streaming' ? ` ${this.theme.fg('accent', SPINNER_FRAMES[this.frame]!)}` : '';
+    push(` ${this.theme.fg('accent', this.theme.bold('btw'))} ${this.theme.fg('dim', `(${this.model})`)}${spinner}`);
+    lines.push(border(`├${'─'.repeat(innerWidth)}┤`));
 
     const rows = this.tui.terminal.rows || 40;
     const maxBody = Math.max(5, Math.min(rows - 14, 30));
@@ -365,23 +356,23 @@ class BtwWindow implements Component, Focusable {
       push(` ${l}`);
     }
 
-    if (this.state === "idle") {
-      lines.push(border(`├${"─".repeat(innerWidth)}┤`));
+    if (this.state === 'idle') {
+      lines.push(border(`├${'─'.repeat(innerWidth)}┤`));
       const editorLines = this.editor.render(contentWidth);
       for (let i = 1; i < editorLines.length - 1; i++) {
         push(` ${editorLines[i]}`);
       }
     }
 
-    lines.push(border(`├${"─".repeat(innerWidth)}┤`));
+    lines.push(border(`├${'─'.repeat(innerWidth)}┤`));
     const hint =
-      this.state === "streaming"
-        ? "esc cancel"
+      this.state === 'streaming'
+        ? 'esc cancel'
         : this.turns.length > 0
-          ? "enter send • esc close • ^p promote • ^f fork"
-          : "enter send • esc close";
-    push(` ${this.theme.fg("dim", hint)}`);
-    lines.push(border(`╰${"─".repeat(innerWidth)}╯`));
+          ? 'enter send • esc close • ^p promote • ^f fork'
+          : 'enter send • esc close';
+    push(` ${this.theme.fg('dim', hint)}`);
+    lines.push(border(`╰${'─'.repeat(innerWidth)}╯`));
     return lines;
   }
 }
@@ -390,44 +381,42 @@ export default function (pi: ExtensionAPI) {
   // ── Legacy: old sessions persisted answers as custom MESSAGES ─────────
   // Keep filtering them out of the main agent's context and rendering them.
   // New answers are custom ENTRIES, which never enter context by design.
-  pi.on("context", async (event) => {
-    const filtered = event.messages.filter(
-      (m) => !(m.role === "custom" && (m as any).customType === CUSTOM_TYPE),
-    );
+  pi.on('context', async (event) => {
+    const filtered = event.messages.filter((m) => !(m.role === 'custom' && (m as any).customType === CUSTOM_TYPE));
     return { messages: filtered };
   });
 
   pi.registerMessageRenderer(CUSTOM_TYPE, (message, { expanded }, theme) => {
     const details = message.details as { question?: string; model?: string } | undefined;
-    const answer = typeof message.content === "string" ? message.content : "";
-    const turns = [{ question: details?.question ?? "?", answer }];
-    return buildCard(turns, details?.model ?? "unknown", expanded, theme);
+    const answer = typeof message.content === 'string' ? message.content : '';
+    const turns = [{ question: details?.question ?? '?', answer }];
+    return buildCard(turns, details?.model ?? 'unknown', expanded, theme);
   });
 
   // ── Transcript renderer for persisted btw threads ─────────────────────
   pi.registerEntryRenderer<BtwEntryData>(CUSTOM_TYPE, (entry, { expanded }, theme) => {
-    return buildCard(normalizeTurns(entry.data), entry.data?.model ?? "unknown", expanded, theme);
+    return buildCard(normalizeTurns(entry.data), entry.data?.model ?? 'unknown', expanded, theme);
   });
 
   // ── /btw command ──────────────────────────────────────────────────────
-  pi.registerCommand("btw", {
-    description: "Side-chat window: ask + follow-ups (never touches agent context)",
+  pi.registerCommand('btw', {
+    description: 'Side-chat window: ask + follow-ups (never touches agent context)',
     handler: async (args, ctx) => {
       const question = args.trim();
       if (!question) {
-        ctx.ui.notify("Usage: /btw <question>", "error");
+        ctx.ui.notify('Usage: /btw <question>', 'error');
         return;
       }
 
       if (!ctx.model) {
-        ctx.ui.notify("No model selected", "error");
+        ctx.ui.notify('No model selected', 'error');
         return;
       }
 
       // Gather branch messages and convert to LLM format
       const branch = ctx.sessionManager.getBranch();
       const agentMessages = branch
-        .filter((e): e is SessionEntry & { type: "message" } => e.type === "message")
+        .filter((e): e is SessionEntry & { type: 'message' } => e.type === 'message')
         .map((e) => e.message);
       const llmMessages: Message[] = convertToLlm(agentMessages);
 
@@ -436,15 +425,15 @@ export default function (pi: ExtensionAPI) {
       // Drop unanswered tool calls (and assistant messages left empty).
       const answered = new Set<string>();
       for (const m of llmMessages) {
-        if (m.role === "toolResult") answered.add(m.toolCallId);
+        if (m.role === 'toolResult') answered.add(m.toolCallId);
       }
       const sideThread: Message[] = [];
       for (const m of llmMessages) {
-        if (m.role !== "assistant") {
+        if (m.role !== 'assistant') {
           sideThread.push(m);
           continue;
         }
-        const content = m.content.filter((c) => c.type !== "toolCall" || answered.has(c.id));
+        const content = m.content.filter((c) => c.type !== 'toolCall' || answered.has(c.id));
         if (content.length > 0) {
           sideThread.push(content.length === m.content.length ? m : { ...m, content });
         }
@@ -453,14 +442,11 @@ export default function (pi: ExtensionAPI) {
       // Map thinking level ("off" → undefined, otherwise pass through)
       const thinkingLevel = pi.getThinkingLevel();
       const reasoning: ThinkingLevel | undefined =
-        thinkingLevel === "off" ? undefined : (thinkingLevel as ThinkingLevel);
+        thinkingLevel === 'off' ? undefined : (thinkingLevel as ThinkingLevel);
 
       const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
       if (!auth.ok) {
-        ctx.ui.notify(
-          `No API key for ${ctx.model.provider}/${ctx.model.id}: ${auth.error}`,
-          "error",
-        );
+        ctx.ui.notify(`No API key for ${ctx.model.provider}/${ctx.model.id}: ${auth.error}`, 'error');
         return;
       }
       const { apiKey, headers } = auth;
@@ -469,13 +455,13 @@ export default function (pi: ExtensionAPI) {
       const modelId = model.id;
 
       const makeUser = (text: string): Message => ({
-        role: "user",
-        content: [{ type: "text", text }],
+        role: 'user',
+        content: [{ type: 'text', text }],
         timestamp: Date.now(),
       });
       const makeAssistant = (text: string): Message => ({
-        role: "assistant",
-        content: [{ type: "text", text }],
+        role: 'assistant',
+        content: [{ type: 'text', text }],
         api: model.api,
         provider: model.provider,
         model: modelId,
@@ -487,7 +473,7 @@ export default function (pi: ExtensionAPI) {
           totalTokens: 0,
           cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
         },
-        stopReason: "stop",
+        stopReason: 'stop',
         timestamp: Date.now(),
       });
 
@@ -507,22 +493,22 @@ export default function (pi: ExtensionAPI) {
               { apiKey, headers, reasoning, signal },
             );
 
-            let final = "";
+            let final = '';
             for await (const event of stream) {
-              if (event.type === "text_delta") {
+              if (event.type === 'text_delta') {
                 win.append(event.delta);
-              } else if (event.type === "done") {
+              } else if (event.type === 'done') {
                 final = extractText(event.message.content);
-              } else if (event.type === "error") {
-                if (event.reason !== "aborted" && !signal?.aborted) {
-                  win.fail(event.error.errorMessage ?? "Request failed");
+              } else if (event.type === 'error') {
+                if (event.reason !== 'aborted' && !signal?.aborted) {
+                  win.fail(event.error.errorMessage ?? 'Request failed');
                 }
                 return;
               }
             }
             if (signal?.aborted) return;
             if (!final) {
-              win.fail("Empty response");
+              win.fail('Empty response');
               return;
             }
             sideThread.push(makeUser(q), makeAssistant(final));
@@ -541,15 +527,12 @@ export default function (pi: ExtensionAPI) {
       if (!result || result.turns.length === 0) return;
 
       // Fork BEFORE persisting the card so the snapshot doesn't include it.
-      if (result.action === "fork") {
+      if (result.action === 'fork') {
         try {
           const file = forkSessionWithThread(ctx.sessionManager, result.turns, makeAssistant);
-          ctx.ui.notify(await openFork(file, ctx.sessionManager.getCwd()), "info");
+          ctx.ui.notify(await openFork(file, ctx.sessionManager.getCwd()), 'info');
         } catch (err) {
-          ctx.ui.notify(
-            `fork failed: ${err instanceof Error ? err.message : String(err)}`,
-            "error",
-          );
+          ctx.ui.notify(`fork failed: ${err instanceof Error ? err.message : String(err)}`, 'error');
         }
       }
 
@@ -557,10 +540,10 @@ export default function (pi: ExtensionAPI) {
       // never part of LLM context, never triggers or steers an agent turn.
       pi.appendEntry<BtwEntryData>(CUSTOM_TYPE, { model: modelId, turns: result.turns });
 
-      if (result.action === "promote") {
+      if (result.action === 'promote') {
         pi.sendUserMessage(
           formatThreadForPromote(result.turns, modelId),
-          ctx.isIdle() ? undefined : { deliverAs: "steer" },
+          ctx.isIdle() ? undefined : { deliverAs: 'steer' },
         );
       }
     },
@@ -587,7 +570,7 @@ function forkSessionWithThread(
   const genId = (): string => {
     let id: string;
     do {
-      id = randomBytes(4).toString("hex");
+      id = randomBytes(4).toString('hex');
     } while (usedIds.has(id));
     usedIds.add(id);
     return id;
@@ -597,7 +580,7 @@ function forkSessionWithThread(
   const entries: Record<string, unknown>[] = [];
   let parentId: string | null = null;
   for (const entry of branch) {
-    if (entry.type === "label") continue;
+    if (entry.type === 'label') continue;
     entries.push({ ...entry, parentId });
     parentId = entry.id;
   }
@@ -605,7 +588,7 @@ function forkSessionWithThread(
   const now = new Date();
   const iso = now.toISOString();
   const header = {
-    type: "session",
+    type: 'session',
     version: CURRENT_SESSION_VERSION,
     id: randomUUID(),
     timestamp: iso,
@@ -616,20 +599,20 @@ function forkSessionWithThread(
   for (const turn of turns) {
     const userId = genId();
     entries.push({
-      type: "message",
+      type: 'message',
       id: userId,
       parentId,
       timestamp: iso,
       message: {
-        role: "user",
-        content: [{ type: "text", text: turn.question }],
+        role: 'user',
+        content: [{ type: 'text', text: turn.question }],
         timestamp: now.getTime(),
       },
     });
     parentId = userId;
     const assistantId = genId();
     entries.push({
-      type: "message",
+      type: 'message',
       id: assistantId,
       parentId,
       timestamp: iso,
@@ -640,18 +623,15 @@ function forkSessionWithThread(
 
   // Name the forked session after the first question.
   entries.push({
-    type: "session_info",
+    type: 'session_info',
     id: genId(),
     parentId,
     timestamp: iso,
     name: `btw: ${firstLine(turns[0]!.question, 50)}`,
   });
 
-  const file = join(
-    sessionManager.getSessionDir(),
-    `${iso.replace(/[:.]/g, "-")}_${header.id}.jsonl`,
-  );
-  writeFileSync(file, [header, ...entries].map((e) => JSON.stringify(e)).join("\n") + "\n");
+  const file = join(sessionManager.getSessionDir(), `${iso.replace(/[:.]/g, '-')}_${header.id}.jsonl`);
+  writeFileSync(file, [header, ...entries].map((e) => JSON.stringify(e)).join('\n') + '\n');
   return file;
 }
 
@@ -662,9 +642,9 @@ function run(cmd: string, args: string[]): Promise<void> {
 }
 
 function copyToClipboard(text: string): Promise<boolean> {
-  if (process.platform !== "darwin") return Promise.resolve(false);
+  if (process.platform !== 'darwin') return Promise.resolve(false);
   return new Promise((resolve) => {
-    const child = execFile("pbcopy", (err) => resolve(!err));
+    const child = execFile('pbcopy', (err) => resolve(!err));
     child.stdin?.end(text);
   });
 }
@@ -681,32 +661,28 @@ async function openFork(sessionFile: string, cwd: string): Promise<string> {
   if (process.env.TMUX) {
     const override = process.env.PI_BTW_SPLIT;
     const direction =
-      override === "h" || override === "v"
-        ? `-${override}`
-        : (process.stdout.columns ?? 0) >= 160
-          ? "-h"
-          : "-v";
+      override === 'h' || override === 'v' ? `-${override}` : (process.stdout.columns ?? 0) >= 160 ? '-h' : '-v';
     try {
-      await run("tmux", ["split-window", direction, "-c", cwd, "pi", "--session", sessionFile]);
-      return "btw fork opened in a tmux split";
+      await run('tmux', ['split-window', direction, '-c', cwd, 'pi', '--session', sessionFile]);
+      return 'btw fork opened in a tmux split';
     } catch {
       // fall through to Ghostty/clipboard
     }
   }
 
-  if (process.platform === "darwin") {
+  if (process.platform === 'darwin') {
     try {
-      await run("open", [
-        "-na",
-        "Ghostty",
-        "--args",
+      await run('open', [
+        '-na',
+        'Ghostty',
+        '--args',
         `--working-directory=${cwd}`,
-        "-e",
-        "/bin/zsh",
-        "-ilc",
+        '-e',
+        '/bin/zsh',
+        '-ilc',
         `exec pi --session '${sessionFile}'`,
       ]);
-      return "btw fork opened in a new Ghostty window";
+      return 'btw fork opened in a new Ghostty window';
     } catch {
       // Ghostty not installed — fall through to clipboard
     }

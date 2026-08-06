@@ -14,14 +14,11 @@
  * `ctx.modelRegistry.getApiKeyAndHeaders(model)` in the stream options.
  */
 
-import type { Api, Model, Provider } from "@earendil-works/pi-ai";
-import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { Api, Model, Provider } from '@earendil-works/pi-ai';
+import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 
 /** Resolve the streaming provider for a model. Throws if unregistered. */
-export function getModelProvider(
-  ctx: Pick<ExtensionContext, "modelRegistry">,
-  model: Model<Api>,
-): Provider {
+export function getModelProvider(ctx: Pick<ExtensionContext, 'modelRegistry'>, model: Model<Api>): Provider {
   const provider = ctx.modelRegistry.getProvider(model.provider);
   if (!provider) {
     throw new Error(`No provider registered for ${model.provider}`);

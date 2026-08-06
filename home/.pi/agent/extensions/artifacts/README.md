@@ -8,10 +8,10 @@ https://github.com/user-attachments/assets/b84e0ebd-84db-45ec-ba77-52aede167b4e
 
 One tool, action-based:
 
-| Param     | Type / values                            | Notes                                              |
-|-----------|------------------------------------------|----------------------------------------------------|
-| `action`  | `create` \| `update` \| `open` \| `list` | `update` on a missing slug creates it              |
-| `title`   | string                                   | required for create/update/open; slug derived      |
+| Param     | Type / values                            | Notes                                               |
+| --------- | ---------------------------------------- | --------------------------------------------------- |
+| `action`  | `create` \| `update` \| `open` \| `list` | `update` on a missing slug creates it               |
+| `title`   | string                                   | required for create/update/open; slug derived       |
 | `kind`    | `markdown` \| `html`                     | required for create/update                          |
 | `content` | string                                   | inline content                                      |
 | `path`    | string                                   | alternative to `content`: read file (kind required) |
@@ -56,6 +56,7 @@ Project-local, mirroring plan-mode's `.pi/plans` convention:
 ## `/artifacts` command
 
 User-facing front door to the index page: starts the lazy server (if not running) and opens `/` in the browser. No args, no subcommands — the index page is the listing and the picker (clickable, newest-first). The `artifact` tool's `list`/`open` actions remain for the model; the command is for when you want to browse directly without asking it.
+
 - No auth: localhost-bound, serving files the agent just wrote locally. Paths are normalized and prefix-checked — nothing outside the artifacts dir is served.
 
 ## Styling: bespoke document stylesheet
@@ -69,7 +70,7 @@ No CSS framework. `styles.ts` owns the entire design system (~300 lines): system
 Copy [`artifacts.example.json`](artifacts.example.json) to `~/.pi/agent/configs/artifacts.json`. Config is read once at extension load (pi extensions load at session start) — restart pi to apply changes.
 
 | Key           | Default   | Meaning                                              |
-|---------------|-----------|------------------------------------------------------|
+| ------------- | --------- | ---------------------------------------------------- |
 | `theme`       | `auto`    | `auto` follows the OS; `light`/`dark` pin one scheme |
 | `accent`      | `#d67858` | Accent on the dark scheme                            |
 | `accentLight` | `#b95730` | Accent on the light scheme (darker for contrast)     |
@@ -81,12 +82,12 @@ Tool results render as a one-line card in the transcript: status icon, title, ki
 
 ## The "when" layer (prompt, not code)
 
-The extension makes artifacts *possible*; instructions decide *when*:
+The extension makes artifacts _possible_; instructions decide _when_:
 
 1. **`pr-review` skill** — companion to the `gh` skill. Instructs the agent to gather the PR diff via `gh`, review it, then emit **one markdown artifact** through the `artifact` tool — verdict up top, findings ranked by severity, per-file ` ```diff ` fences — and open it.
 2. **`APPEND_SYSTEM.md`** — one general-case line covering the long tail (reports, diagrams, tables longer than a screen).
 
-Tuning *when* artifacts appear never touches extension code.
+Tuning _when_ artifacts appear never touches extension code.
 
 ## Dependencies
 

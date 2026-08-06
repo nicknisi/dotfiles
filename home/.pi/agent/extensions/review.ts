@@ -16,14 +16,10 @@
  * - `/review custom "check for security issues"` - custom instructions
  */
 
-import type {
-  ExtensionAPI,
-  ExtensionContext,
-  ExtensionCommandContext,
-} from "@earendil-works/pi-coding-agent";
-import { DynamicBorder, BorderedLoader } from "@earendil-works/pi-coding-agent";
-import { Container, type SelectItem, SelectList, Text } from "@earendil-works/pi-tui";
-import { SearchableSelectList } from "../lib/searchable-select-list.ts";
+import type { ExtensionAPI, ExtensionContext, ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
+import { DynamicBorder, BorderedLoader } from '@earendil-works/pi-coding-agent';
+import { Container, type SelectItem, SelectList, Text } from '@earendil-works/pi-tui';
+import { SearchableSelectList } from '../lib/searchable-select-list.ts';
 
 // State to track fresh session review (where we branched from).
 // Module-level state means only one review can be active at a time.
@@ -32,14 +28,14 @@ let reviewOriginId: string | undefined = undefined;
 
 // Review target types (matching Codex's approach)
 type ReviewTarget =
-  | { type: "uncommitted" }
-  | { type: "baseBranch"; branch: string }
-  | { type: "commit"; sha: string; title?: string }
-  | { type: "custom"; instructions: string };
+  | { type: 'uncommitted' }
+  | { type: 'baseBranch'; branch: string }
+  | { type: 'commit'; sha: string; title?: string }
+  | { type: 'custom'; instructions: string };
 
 // Prompts (adapted from Codex)
 const UNCOMMITTED_PROMPT =
-  "Review the current code changes (staged, unstaged, and untracked files) and provide prioritized findings.";
+  'Review the current code changes (staged, unstaged, and untracked files) and provide prioritized findings.';
 
 const BASE_BRANCH_PROMPT_WITH_MERGE_BASE =
   "Review the code changes against the base branch '{baseBranch}'. The merge base commit for this comparison is {mergeBaseSha}. Run `git diff {mergeBaseSha}` to inspect the changes relative to {baseBranch}. Provide prioritized, actionable findings.";
@@ -50,8 +46,7 @@ const BASE_BRANCH_PROMPT_FALLBACK =
 const COMMIT_PROMPT_WITH_TITLE =
   'Review the code changes introduced by commit {sha} ("{title}"). Provide prioritized, actionable findings.';
 
-const COMMIT_PROMPT =
-  "Review the code changes introduced by commit {sha}. Provide prioritized, actionable findings.";
+const COMMIT_PROMPT = 'Review the code changes introduced by commit {sha}. Provide prioritized, actionable findings.';
 
 // The detailed review rubric (adapted from Codex's review_prompt.md)
 const REVIEW_RUBRIC = `# Review Guidelines
@@ -123,25 +118,21 @@ Output all findings the author would fix if they knew about them. If there are n
 async function getMergeBase(pi: ExtensionAPI, branch: string): Promise<string | null> {
   try {
     // First try to get the upstream tracking branch
-    const { stdout: upstream, code: upstreamCode } = await pi.exec("git", [
-      "rev-parse",
-      "--abbrev-ref",
+    const { stdout: upstream, code: upstreamCode } = await pi.exec('git', [
+      'rev-parse',
+      '--abbrev-ref',
       `${branch}@{upstream}`,
     ]);
 
     if (upstreamCode === 0 && upstream.trim()) {
-      const { stdout: mergeBase, code } = await pi.exec("git", [
-        "merge-base",
-        "HEAD",
-        upstream.trim(),
-      ]);
+      const { stdout: mergeBase, code } = await pi.exec('git', ['merge-base', 'HEAD', upstream.trim()]);
       if (code === 0 && mergeBase.trim()) {
         return mergeBase.trim();
       }
     }
 
     // Fall back to using the branch directly
-    const { stdout: mergeBase, code } = await pi.exec("git", ["merge-base", "HEAD", branch]);
+    const { stdout: mergeBase, code } = await pi.exec('git', ['merge-base', 'HEAD', branch]);
     if (code === 0 && mergeBase.trim()) {
       return mergeBase.trim();
     }
@@ -156,31 +147,28 @@ async function getMergeBase(pi: ExtensionAPI, branch: string): Promise<string | 
  * Get list of local branches
  */
 async function getLocalBranches(pi: ExtensionAPI): Promise<string[]> {
-  const { stdout, code } = await pi.exec("git", ["branch", "--format=%(refname:short)"]);
+  const { stdout, code } = await pi.exec('git', ['branch', '--format=%(refname:short)']);
   if (code !== 0) return [];
   return stdout
     .trim()
-    .split("\n")
+    .split('\n')
     .filter((b) => b.trim());
 }
 
 /**
  * Get list of recent commits
  */
-async function getRecentCommits(
-  pi: ExtensionAPI,
-  limit: number = 10,
-): Promise<Array<{ sha: string; title: string }>> {
-  const { stdout, code } = await pi.exec("git", ["log", `--oneline`, `-n`, `${limit}`]);
+async function getRecentCommits(pi: ExtensionAPI, limit: number = 10): Promise<Array<{ sha: string; title: string }>> {
+  const { stdout, code } = await pi.exec('git', ['log', `--oneline`, `-n`, `${limit}`]);
   if (code !== 0) return [];
 
   return stdout
     .trim()
-    .split("\n")
+    .split('\n')
     .filter((line) => line.trim())
     .map((line) => {
-      const [sha, ...rest] = line.trim().split(" ");
-      return { sha, title: rest.join(" ") };
+      const [sha, ...rest] = line.trim().split(' ');
+      return { sha, title: rest.join(' ') };
     });
 }
 
@@ -188,7 +176,7 @@ async function getRecentCommits(
  * Check if there are uncommitted changes (staged, unstaged, or untracked)
  */
 async function hasUncommittedChanges(pi: ExtensionAPI): Promise<boolean> {
-  const { stdout, code } = await pi.exec("git", ["status", "--porcelain"]);
+  const { stdout, code } = await pi.exec('git', ['status', '--porcelain']);
   return code === 0 && stdout.trim().length > 0;
 }
 
@@ -196,7 +184,7 @@ async function hasUncommittedChanges(pi: ExtensionAPI): Promise<boolean> {
  * Get the current branch name
  */
 async function getCurrentBranch(pi: ExtensionAPI): Promise<string | null> {
-  const { stdout, code } = await pi.exec("git", ["branch", "--show-current"]);
+  const { stdout, code } = await pi.exec('git', ['branch', '--show-current']);
   if (code === 0 && stdout.trim()) {
     return stdout.trim();
   }
@@ -208,21 +196,17 @@ async function getCurrentBranch(pi: ExtensionAPI): Promise<string | null> {
  */
 async function getDefaultBranch(pi: ExtensionAPI): Promise<string> {
   // Try to get from remote HEAD
-  const { stdout, code } = await pi.exec("git", [
-    "symbolic-ref",
-    "refs/remotes/origin/HEAD",
-    "--short",
-  ]);
+  const { stdout, code } = await pi.exec('git', ['symbolic-ref', 'refs/remotes/origin/HEAD', '--short']);
   if (code === 0 && stdout.trim()) {
-    return stdout.trim().replace("origin/", "");
+    return stdout.trim().replace('origin/', '');
   }
 
   // Fall back to checking if main or master exists
   const branches = await getLocalBranches(pi);
-  if (branches.includes("main")) return "main";
-  if (branches.includes("master")) return "master";
+  if (branches.includes('main')) return 'main';
+  if (branches.includes('master')) return 'master';
 
-  return "main"; // Default fallback
+  return 'main'; // Default fallback
 }
 
 /**
@@ -230,10 +214,10 @@ async function getDefaultBranch(pi: ExtensionAPI): Promise<string> {
  */
 async function buildReviewPrompt(pi: ExtensionAPI, target: ReviewTarget): Promise<string> {
   switch (target.type) {
-    case "uncommitted":
+    case 'uncommitted':
       return UNCOMMITTED_PROMPT;
 
-    case "baseBranch": {
+    case 'baseBranch': {
       const mergeBase = await getMergeBase(pi, target.branch);
       if (mergeBase) {
         return BASE_BRANCH_PROMPT_WITH_MERGE_BASE.replace(/{baseBranch}/g, target.branch).replace(
@@ -244,16 +228,13 @@ async function buildReviewPrompt(pi: ExtensionAPI, target: ReviewTarget): Promis
       return BASE_BRANCH_PROMPT_FALLBACK.replace(/{branch}/g, target.branch);
     }
 
-    case "commit":
+    case 'commit':
       if (target.title) {
-        return COMMIT_PROMPT_WITH_TITLE.replace("{sha}", target.sha).replace(
-          "{title}",
-          target.title,
-        );
+        return COMMIT_PROMPT_WITH_TITLE.replace('{sha}', target.sha).replace('{title}', target.title);
       }
-      return COMMIT_PROMPT.replace("{sha}", target.sha);
+      return COMMIT_PROMPT.replace('{sha}', target.sha);
 
-    case "custom":
+    case 'custom':
       return target.instructions;
   }
 }
@@ -263,48 +244,46 @@ async function buildReviewPrompt(pi: ExtensionAPI, target: ReviewTarget): Promis
  */
 function getUserFacingHint(target: ReviewTarget): string {
   switch (target.type) {
-    case "uncommitted":
-      return "current changes";
-    case "baseBranch":
+    case 'uncommitted':
+      return 'current changes';
+    case 'baseBranch':
       return `changes against '${target.branch}'`;
-    case "commit": {
+    case 'commit': {
       const shortSha = target.sha.slice(0, 7);
       return target.title ? `commit ${shortSha}: ${target.title}` : `commit ${shortSha}`;
     }
-    case "custom":
-      return target.instructions.length > 40
-        ? target.instructions.slice(0, 37) + "..."
-        : target.instructions;
+    case 'custom':
+      return target.instructions.length > 40 ? target.instructions.slice(0, 37) + '...' : target.instructions;
   }
 }
 
 // Review preset options for the selector
 const REVIEW_PRESETS = [
-  { value: "baseBranch", label: "Review against a base branch", description: "(PR Style)" },
-  { value: "uncommitted", label: "Review uncommitted changes", description: "" },
-  { value: "commit", label: "Review a commit", description: "" },
-  { value: "custom", label: "Custom review instructions", description: "" },
+  { value: 'baseBranch', label: 'Review against a base branch', description: '(PR Style)' },
+  { value: 'uncommitted', label: 'Review uncommitted changes', description: '' },
+  { value: 'commit', label: 'Review a commit', description: '' },
+  { value: 'custom', label: 'Custom review instructions', description: '' },
 ] as const;
 
 export default function reviewExtension(pi: ExtensionAPI) {
   /**
    * Determine the smart default review type based on git state
    */
-  async function getSmartDefault(): Promise<"uncommitted" | "baseBranch" | "commit"> {
+  async function getSmartDefault(): Promise<'uncommitted' | 'baseBranch' | 'commit'> {
     // Priority 1: If there are uncommitted changes, default to reviewing them
     if (await hasUncommittedChanges(pi)) {
-      return "uncommitted";
+      return 'uncommitted';
     }
 
     // Priority 2: If on a feature branch (not the default branch), default to PR-style review
     const currentBranch = await getCurrentBranch(pi);
     const defaultBranch = await getDefaultBranch(pi);
     if (currentBranch && currentBranch !== defaultBranch) {
-      return "baseBranch";
+      return 'baseBranch';
     }
 
     // Priority 3: Default to reviewing a specific commit
-    return "commit";
+    return 'commit';
   }
 
   /**
@@ -328,23 +307,23 @@ export default function reviewExtension(pi: ExtensionAPI) {
 
     const result = await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
       const container = new Container();
-      container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
-      container.addChild(new Text(theme.fg("accent", theme.bold("Select a review preset"))));
+      container.addChild(new DynamicBorder((str) => theme.fg('accent', str)));
+      container.addChild(new Text(theme.fg('accent', theme.bold('Select a review preset'))));
 
       const selectList = new SelectList(items, Math.min(items.length, 10), {
-        selectedPrefix: (text) => theme.fg("accent", text),
-        selectedText: (text) => theme.fg("accent", text),
-        description: (text) => theme.fg("muted", text),
-        scrollInfo: (text) => theme.fg("dim", text),
-        noMatch: (text) => theme.fg("warning", text),
+        selectedPrefix: (text) => theme.fg('accent', text),
+        selectedText: (text) => theme.fg('accent', text),
+        description: (text) => theme.fg('muted', text),
+        scrollInfo: (text) => theme.fg('dim', text),
+        noMatch: (text) => theme.fg('warning', text),
       });
 
       selectList.onSelect = (item) => done(item.value);
       selectList.onCancel = () => done(null);
 
       container.addChild(selectList);
-      container.addChild(new Text(theme.fg("dim", "Press enter to confirm or esc to go back")));
-      container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
+      container.addChild(new Text(theme.fg('dim', 'Press enter to confirm or esc to go back')));
+      container.addChild(new DynamicBorder((str) => theme.fg('accent', str)));
 
       return {
         render(width: number) {
@@ -364,16 +343,16 @@ export default function reviewExtension(pi: ExtensionAPI) {
 
     // Handle each preset type
     switch (result) {
-      case "uncommitted":
-        return { type: "uncommitted" };
+      case 'uncommitted':
+        return { type: 'uncommitted' };
 
-      case "baseBranch":
+      case 'baseBranch':
         return await showBranchSelector(ctx);
 
-      case "commit":
+      case 'commit':
         return await showCommitSelector(ctx);
 
-      case "custom":
+      case 'custom':
         return await showCustomInput(ctx);
 
       default:
@@ -389,7 +368,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
     const defaultBranch = await getDefaultBranch(pi);
 
     if (branches.length === 0) {
-      ctx.ui.notify("No branches found", "error");
+      ctx.ui.notify('No branches found', 'error');
       return null;
     }
 
@@ -403,30 +382,28 @@ export default function reviewExtension(pi: ExtensionAPI) {
     const items: SelectItem[] = sortedBranches.map((branch) => ({
       value: branch,
       label: branch,
-      description: branch === defaultBranch ? "(default)" : "",
+      description: branch === defaultBranch ? '(default)' : '',
     }));
 
     const result = await ctx.ui.custom<string | null>((tui, theme, _kb, done) => {
       const container = new Container();
-      container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
-      container.addChild(new Text(theme.fg("accent", theme.bold("Select base branch"))));
+      container.addChild(new DynamicBorder((str) => theme.fg('accent', str)));
+      container.addChild(new Text(theme.fg('accent', theme.bold('Select base branch'))));
 
       const selectList = new SearchableSelectList(items, Math.min(items.length, 10), {
-        selectedPrefix: (text) => theme.fg("accent", text),
-        selectedText: (text) => theme.fg("accent", text),
-        description: (text) => theme.fg("muted", text),
-        scrollInfo: (text) => theme.fg("dim", text),
-        noMatch: (text) => theme.fg("warning", text),
+        selectedPrefix: (text) => theme.fg('accent', text),
+        selectedText: (text) => theme.fg('accent', text),
+        description: (text) => theme.fg('muted', text),
+        scrollInfo: (text) => theme.fg('dim', text),
+        noMatch: (text) => theme.fg('warning', text),
       });
 
       selectList.onSelect = (item) => done(item.value);
       selectList.onCancel = () => done(null);
 
       container.addChild(selectList);
-      container.addChild(
-        new Text(theme.fg("dim", "Type to filter • enter to select • esc to cancel")),
-      );
-      container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
+      container.addChild(new Text(theme.fg('dim', 'Type to filter • enter to select • esc to cancel')));
+      container.addChild(new DynamicBorder((str) => theme.fg('accent', str)));
 
       return {
         render(width: number) {
@@ -443,7 +420,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
     });
 
     if (!result) return null;
-    return { type: "baseBranch", branch: result };
+    return { type: 'baseBranch', branch: result };
   }
 
   /**
@@ -453,63 +430,59 @@ export default function reviewExtension(pi: ExtensionAPI) {
     const commits = await getRecentCommits(pi, 20);
 
     if (commits.length === 0) {
-      ctx.ui.notify("No commits found", "error");
+      ctx.ui.notify('No commits found', 'error');
       return null;
     }
 
     const items: SelectItem[] = commits.map((commit) => ({
       value: commit.sha,
       label: `${commit.sha.slice(0, 7)} ${commit.title}`,
-      description: "",
+      description: '',
     }));
 
-    const result = await ctx.ui.custom<{ sha: string; title: string } | null>(
-      (tui, theme, _kb, done) => {
-        const container = new Container();
-        container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
-        container.addChild(new Text(theme.fg("accent", theme.bold("Select commit to review"))));
+    const result = await ctx.ui.custom<{ sha: string; title: string } | null>((tui, theme, _kb, done) => {
+      const container = new Container();
+      container.addChild(new DynamicBorder((str) => theme.fg('accent', str)));
+      container.addChild(new Text(theme.fg('accent', theme.bold('Select commit to review'))));
 
-        const selectList = new SearchableSelectList(items, Math.min(items.length, 10), {
-          selectedPrefix: (text) => theme.fg("accent", text),
-          selectedText: (text) => theme.fg("accent", text),
-          description: (text) => theme.fg("muted", text),
-          scrollInfo: (text) => theme.fg("dim", text),
-          noMatch: (text) => theme.fg("warning", text),
-        });
+      const selectList = new SearchableSelectList(items, Math.min(items.length, 10), {
+        selectedPrefix: (text) => theme.fg('accent', text),
+        selectedText: (text) => theme.fg('accent', text),
+        description: (text) => theme.fg('muted', text),
+        scrollInfo: (text) => theme.fg('dim', text),
+        noMatch: (text) => theme.fg('warning', text),
+      });
 
-        selectList.onSelect = (item) => {
-          const commit = commits.find((c) => c.sha === item.value);
-          if (commit) {
-            done(commit);
-          } else {
-            done(null);
-          }
-        };
-        selectList.onCancel = () => done(null);
+      selectList.onSelect = (item) => {
+        const commit = commits.find((c) => c.sha === item.value);
+        if (commit) {
+          done(commit);
+        } else {
+          done(null);
+        }
+      };
+      selectList.onCancel = () => done(null);
 
-        container.addChild(selectList);
-        container.addChild(
-          new Text(theme.fg("dim", "Type to filter • enter to select • esc to cancel")),
-        );
-        container.addChild(new DynamicBorder((str) => theme.fg("accent", str)));
+      container.addChild(selectList);
+      container.addChild(new Text(theme.fg('dim', 'Type to filter • enter to select • esc to cancel')));
+      container.addChild(new DynamicBorder((str) => theme.fg('accent', str)));
 
-        return {
-          render(width: number) {
-            return container.render(width);
-          },
-          invalidate() {
-            container.invalidate();
-          },
-          handleInput(data: string) {
-            selectList.handleInput(data);
-            tui.requestRender();
-          },
-        };
-      },
-    );
+      return {
+        render(width: number) {
+          return container.render(width);
+        },
+        invalidate() {
+          container.invalidate();
+        },
+        handleInput(data: string) {
+          selectList.handleInput(data);
+          tui.requestRender();
+        },
+      };
+    });
 
     if (!result) return null;
-    return { type: "commit", sha: result.sha, title: result.title };
+    return { type: 'commit', sha: result.sha, title: result.title };
   }
 
   /**
@@ -517,12 +490,12 @@ export default function reviewExtension(pi: ExtensionAPI) {
    */
   async function showCustomInput(ctx: ExtensionContext): Promise<ReviewTarget | null> {
     const result = await ctx.ui.editor(
-      "Enter review instructions:",
-      "Review the code for security vulnerabilities and potential bugs...",
+      'Enter review instructions:',
+      'Review the code for security vulnerabilities and potential bugs...',
     );
 
     if (!result?.trim()) return null;
-    return { type: "custom", instructions: result.trim() };
+    return { type: 'custom', instructions: result.trim() };
   }
 
   /**
@@ -535,7 +508,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
   ): Promise<void> {
     // Check if we're already in a review
     if (reviewOriginId) {
-      ctx.ui.notify("Already in a review. Use /end-review to finish first.", "warning");
+      ctx.ui.notify('Already in a review. Use /end-review to finish first.', 'warning');
       return;
     }
 
@@ -546,12 +519,10 @@ export default function reviewExtension(pi: ExtensionAPI) {
 
       // Find the first user message in the session
       const entries = ctx.sessionManager.getEntries();
-      const firstUserMessage = entries.find(
-        (e) => e.type === "message" && e.message.role === "user",
-      );
+      const firstUserMessage = entries.find((e) => e.type === 'message' && e.message.role === 'user');
 
       if (!firstUserMessage) {
-        ctx.ui.notify("No user message found in session", "error");
+        ctx.ui.notify('No user message found in session', 'error');
         reviewOriginId = undefined;
         return;
       }
@@ -561,7 +532,7 @@ export default function reviewExtension(pi: ExtensionAPI) {
       try {
         const result = await ctx.navigateTree(firstUserMessage.id, {
           summarize: false,
-          label: "code-review",
+          label: 'code-review',
         });
         if (result.cancelled) {
           reviewOriginId = undefined;
@@ -570,23 +541,16 @@ export default function reviewExtension(pi: ExtensionAPI) {
       } catch (error) {
         // Clean up state if navigation fails
         reviewOriginId = undefined;
-        ctx.ui.notify(
-          `Failed to start review: ${error instanceof Error ? error.message : String(error)}`,
-          "error",
-        );
+        ctx.ui.notify(`Failed to start review: ${error instanceof Error ? error.message : String(error)}`, 'error');
         return;
       }
 
       // Clear the editor (navigating to user message fills it with the message text)
-      ctx.ui.setEditorText("");
+      ctx.ui.setEditorText('');
 
       // Show widget indicating review is active
-      ctx.ui.setWidget("review", (_tui, theme) => {
-        const text = new Text(
-          theme.fg("warning", "Review session active, return with /end-review"),
-          0,
-          0,
-        );
+      ctx.ui.setWidget('review', (_tui, theme) => {
+        const text = new Text(theme.fg('warning', 'Review session active, return with /end-review'), 0, 0);
         return {
           render(width: number) {
             return text.render(width);
@@ -604,8 +568,8 @@ export default function reviewExtension(pi: ExtensionAPI) {
     // Combine the review rubric with the specific prompt
     const fullPrompt = `${REVIEW_RUBRIC}\n\n---\n\nPlease perform a code review with the following focus:\n\n${prompt}`;
 
-    const modeHint = useFreshSession ? " (fresh session)" : "";
-    ctx.ui.notify(`Starting review: ${hint}${modeHint}`, "info");
+    const modeHint = useFreshSession ? ' (fresh session)' : '';
+    ctx.ui.notify(`Starting review: ${hint}${modeHint}`, 'info');
 
     // Send as a user message that triggers a turn
     pi.sendUserMessage(fullPrompt);
@@ -621,26 +585,26 @@ export default function reviewExtension(pi: ExtensionAPI) {
     const subcommand = parts[0]?.toLowerCase();
 
     switch (subcommand) {
-      case "uncommitted":
-        return { type: "uncommitted" };
+      case 'uncommitted':
+        return { type: 'uncommitted' };
 
-      case "branch": {
+      case 'branch': {
         const branch = parts[1];
         if (!branch) return null;
-        return { type: "baseBranch", branch };
+        return { type: 'baseBranch', branch };
       }
 
-      case "commit": {
+      case 'commit': {
         const sha = parts[1];
         if (!sha) return null;
-        const title = parts.slice(2).join(" ") || undefined;
-        return { type: "commit", sha, title };
+        const title = parts.slice(2).join(' ') || undefined;
+        return { type: 'commit', sha, title };
       }
 
-      case "custom": {
-        const instructions = parts.slice(1).join(" ");
+      case 'custom': {
+        const instructions = parts.slice(1).join(' ');
         if (!instructions) return null;
-        return { type: "custom", instructions };
+        return { type: 'custom', instructions };
       }
 
       default:
@@ -649,24 +613,24 @@ export default function reviewExtension(pi: ExtensionAPI) {
   }
 
   // Register the /review command
-  pi.registerCommand("review", {
-    description: "Review code changes (uncommitted, branch, commit, or custom)",
+  pi.registerCommand('review', {
+    description: 'Review code changes (uncommitted, branch, commit, or custom)',
     handler: async (args, ctx) => {
       if (!ctx.hasUI) {
-        ctx.ui.notify("Review requires interactive mode", "error");
+        ctx.ui.notify('Review requires interactive mode', 'error');
         return;
       }
 
       // Check if we're already in a review
       if (reviewOriginId) {
-        ctx.ui.notify("Already in a review. Use /end-review to finish first.", "warning");
+        ctx.ui.notify('Already in a review. Use /end-review to finish first.', 'warning');
         return;
       }
 
       // Check if we're in a git repository
-      const { code } = await pi.exec("git", ["rev-parse", "--git-dir"]);
+      const { code } = await pi.exec('git', ['rev-parse', '--git-dir']);
       if (code !== 0) {
-        ctx.ui.notify("Not a git repository", "error");
+        ctx.ui.notify('Not a git repository', 'error');
         return;
       }
 
@@ -679,27 +643,27 @@ export default function reviewExtension(pi: ExtensionAPI) {
       }
 
       if (!target) {
-        ctx.ui.notify("Review cancelled", "info");
+        ctx.ui.notify('Review cancelled', 'info');
         return;
       }
 
       // Determine if we should use fresh session mode
       // Check if this is a new session (no messages yet)
       const entries = ctx.sessionManager.getEntries();
-      const messageCount = entries.filter((e) => e.type === "message").length;
+      const messageCount = entries.filter((e) => e.type === 'message').length;
 
       let useFreshSession = false;
 
       if (messageCount > 0) {
         // Existing session - ask user which mode they want
-        const choice = await ctx.ui.select("Start review in:", ["Empty branch", "Current session"]);
+        const choice = await ctx.ui.select('Start review in:', ['Empty branch', 'Current session']);
 
         if (choice === undefined) {
-          ctx.ui.notify("Review cancelled", "info");
+          ctx.ui.notify('Review cancelled', 'info');
           return;
         }
 
-        useFreshSession = choice === "Empty branch";
+        useFreshSession = choice === 'Empty branch';
       }
       // If messageCount === 0, useFreshSession stays false (current session mode)
 
@@ -741,87 +705,80 @@ Preserve exact file paths, function names, and error messages.
 `;
 
   // Register the /end-review command
-  pi.registerCommand("end-review", {
-    description: "Complete review and return to original position",
+  pi.registerCommand('end-review', {
+    description: 'Complete review and return to original position',
     handler: async (args, ctx) => {
       if (!ctx.hasUI) {
-        ctx.ui.notify("End-review requires interactive mode", "error");
+        ctx.ui.notify('End-review requires interactive mode', 'error');
         return;
       }
 
       // Check if we're in a fresh session review
       if (!reviewOriginId) {
         ctx.ui.notify(
-          "Not in a review branch (use /review first, or review was started in current session mode)",
-          "info",
+          'Not in a review branch (use /review first, or review was started in current session mode)',
+          'info',
         );
         return;
       }
 
       // Ask about summarization (Summarize is default/first option)
-      const summaryChoice = await ctx.ui.select("Summarize review branch?", [
-        "Summarize",
-        "No summary",
-      ]);
+      const summaryChoice = await ctx.ui.select('Summarize review branch?', ['Summarize', 'No summary']);
 
       if (summaryChoice === undefined) {
         // User cancelled - keep state so they can call /end-review again
-        ctx.ui.notify("Cancelled. Use /end-review to try again.", "info");
+        ctx.ui.notify('Cancelled. Use /end-review to try again.', 'info');
         return;
       }
 
-      const wantsSummary = summaryChoice === "Summarize";
+      const wantsSummary = summaryChoice === 'Summarize';
       const originId = reviewOriginId;
 
       if (wantsSummary) {
         // Show spinner while summarizing
-        const result = await ctx.ui.custom<{ cancelled: boolean; error?: string } | null>(
-          (tui, theme, _kb, done) => {
-            const loader = new BorderedLoader(tui, theme, "Summarizing review branch...");
-            loader.onAbort = () => done(null);
+        const result = await ctx.ui.custom<{ cancelled: boolean; error?: string } | null>((tui, theme, _kb, done) => {
+          const loader = new BorderedLoader(tui, theme, 'Summarizing review branch...');
+          loader.onAbort = () => done(null);
 
-            ctx
-              .navigateTree(originId!, {
-                summarize: true,
-                customInstructions: REVIEW_SUMMARY_PROMPT,
-                replaceInstructions: true,
-              })
-              .then(done)
-              .catch((err) =>
-                done({ cancelled: false, error: err instanceof Error ? err.message : String(err) }),
-              );
+          ctx
+            .navigateTree(originId!, {
+              summarize: true,
+              customInstructions: REVIEW_SUMMARY_PROMPT,
+              replaceInstructions: true,
+            })
+            .then(done)
+            .catch((err) => done({ cancelled: false, error: err instanceof Error ? err.message : String(err) }));
 
-            return loader;
-          },
-        );
+          return loader;
+        });
 
         if (result === null) {
           // User aborted - keep state so they can try again
-          ctx.ui.notify("Summarization cancelled. Use /end-review to try again.", "info");
+          ctx.ui.notify('Summarization cancelled. Use /end-review to try again.', 'info');
           return;
         }
 
         if (result.error) {
           // Real error - keep state so they can try again
-          ctx.ui.notify(`Summarization failed: ${result.error}`, "error");
+          ctx.ui.notify(`Summarization failed: ${result.error}`, 'error');
           return;
         }
 
         // Clear state only on success
-        ctx.ui.setWidget("review", undefined);
+        ctx.ui.setWidget('review', undefined);
         reviewOriginId = undefined;
 
         if (result.cancelled) {
-          ctx.ui.notify("Navigation cancelled", "info");
+          ctx.ui.notify('Navigation cancelled', 'info');
           return;
         }
 
         // Pre-fill prompt if editor is empty
         if (!ctx.ui.getEditorText().trim()) {
-          ctx.ui.setEditorText("Act on the code review");
+          ctx.ui.setEditorText('Act on the code review');
         }
 
-        ctx.ui.notify("Review complete! Returned to original position.", "info");
+        ctx.ui.notify('Review complete! Returned to original position.', 'info');
       } else {
         // No summary - just navigate back
         try {
@@ -829,20 +786,17 @@ Preserve exact file paths, function names, and error messages.
 
           if (result.cancelled) {
             // Keep state so they can try again
-            ctx.ui.notify("Navigation cancelled. Use /end-review to try again.", "info");
+            ctx.ui.notify('Navigation cancelled. Use /end-review to try again.', 'info');
             return;
           }
 
           // Clear state only on success
-          ctx.ui.setWidget("review", undefined);
+          ctx.ui.setWidget('review', undefined);
           reviewOriginId = undefined;
-          ctx.ui.notify("Review complete! Returned to original position.", "info");
+          ctx.ui.notify('Review complete! Returned to original position.', 'info');
         } catch (error) {
           // Keep state so they can try again
-          ctx.ui.notify(
-            `Failed to return: ${error instanceof Error ? error.message : String(error)}`,
-            "error",
-          );
+          ctx.ui.notify(`Failed to return: ${error instanceof Error ? error.message : String(error)}`, 'error');
         }
       }
     },

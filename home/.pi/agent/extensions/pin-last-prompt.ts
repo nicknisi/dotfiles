@@ -1,5 +1,5 @@
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { truncateToWidth, visibleWidth, type OverlayHandle, type TUI } from "@earendil-works/pi-tui";
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { truncateToWidth, visibleWidth, type OverlayHandle, type TUI } from '@earendil-works/pi-tui';
 
 // Pin the relevant user prompt while scrolling back (fullscreen, pi >= 0.84):
 // whenever the transcript is scrolled back, a full-width bar pins to the top
@@ -18,8 +18,8 @@ import { truncateToWidth, visibleWidth, type OverlayHandle, type TUI } from "@ea
 // on pi internals; if a pi update renames things, the bar gracefully falls
 // back to the last prompt sent this session.
 
-const WIDGET_ID = "pin-last-prompt";
-let lastPrompt = "";
+const WIDGET_ID = 'pin-last-prompt';
+let lastPrompt = '';
 let requestRender: (() => void) | null = null;
 
 interface RenderableLike {
@@ -46,16 +46,16 @@ interface PromptEntry {
 }
 
 function collapse(text: string): string {
-  return text.replace(/\s+/g, " ").trim();
+  return text.replace(/\s+/g, ' ').trim();
 }
 
 function padToWidth(text: string, width: number): string {
   const pad = width - visibleWidth(text);
-  return pad > 0 ? text + " ".repeat(pad) : text;
+  return pad > 0 ? text + ' '.repeat(pad) : text;
 }
 
 function componentName(child: unknown): string {
-  return (child as { constructor?: { name?: string } })?.constructor?.name ?? "";
+  return (child as { constructor?: { name?: string } })?.constructor?.name ?? '';
 }
 
 /** Accumulate document line offsets of every UserMessageComponent.
@@ -65,12 +65,12 @@ function collectPrompts(children: unknown[], width: number, offset: number, out:
   for (const child of children) {
     const name = componentName(child);
     const component = child as RenderableLike;
-    if (name === "UserMessageComponent") {
-      if (typeof component.text === "string") {
+    if (name === 'UserMessageComponent') {
+      if (typeof component.text === 'string') {
         out.push({ start: offset, text: collapse(component.text) });
       }
       offset += component.render(width).length;
-    } else if (name === "Container" && Array.isArray(component.children)) {
+    } else if (name === 'Container' && Array.isArray(component.children)) {
       offset = collectPrompts(component.children, width, offset, out);
     } else {
       offset += component.render(width).length;
@@ -80,26 +80,30 @@ function collectPrompts(children: unknown[], width: number, offset: number, out:
 }
 
 export default function (pi: ExtensionAPI) {
-  pi.on("before_agent_start", async (event, _ctx) => {
-    if (typeof event.prompt === "string" && event.prompt.trim()) {
+  pi.on('before_agent_start', async (event, _ctx) => {
+    if (typeof event.prompt === 'string' && event.prompt.trim()) {
       lastPrompt = collapse(event.prompt);
       requestRender?.();
     }
   });
 
-  pi.on("session_start", async (_event, ctx) => {
-    if (ctx.mode !== "tui") return;
+  pi.on('session_start', async (_event, ctx) => {
+    if (ctx.mode !== 'tui') return;
     ctx.ui.setWidget(WIDGET_ID, (tui, theme) => {
       requestRender = () => tui.requestRender();
       const internals = tui as TuiInternals;
 
-      let pinnedText = "";
+      let pinnedText = '';
       let overlay: OverlayHandle | null = null;
       let syncQueued = false;
 
       // Offset cache, invalidated when the transcript's width or total
       // rendered height changes (streaming, tool expand/collapse, resize).
-      let cache: { width: number; contentHeight: number | undefined; entries: PromptEntry[] } | null = null;
+      let cache: {
+        width: number;
+        contentHeight: number | undefined;
+        entries: PromptEntry[];
+      } | null = null;
 
       const promptEntries = (sv: ScrollViewLike): PromptEntry[] => {
         const doc = sv.child as RenderableLike | undefined;
@@ -133,16 +137,15 @@ export default function (pi: ExtensionAPI) {
       const topBar = {
         render(width: number): string[] {
           if (!pinnedText) return [];
-          const label = truncateToWidth(pinnedText, Math.max(0, width - 4), "…");
-          const line = ` ${theme.fg("accent", "\uf007")} ${theme.fg("text", label)}`;
-          return [theme.bg("selectedBg", padToWidth(line, width))];
+          const label = truncateToWidth(pinnedText, Math.max(0, width - 4), '…');
+          const line = ` ${theme.fg('accent', '\uf007')} ${theme.fg('text', label)}`;
+          return [theme.bg('selectedBg', padToWidth(line, width))];
         },
         invalidate() {},
       };
 
       // isFollowingOutput only exists on the fullscreen renderer (TuiAltScreen).
-      const scrolledBack = (): boolean =>
-        tui.mode === "fullscreen" && internals.isFollowingOutput === false;
+      const scrolledBack = (): boolean => tui.mode === 'fullscreen' && internals.isFollowingOutput === false;
 
       // Called from render(), which runs every frame — that's where scroll
       // state is observable. The overlay composites after the dock renders,
@@ -158,10 +161,10 @@ export default function (pi: ExtensionAPI) {
           const wantNow = scrolledBack() && !!pinnedText;
           if (wantNow && !overlay) {
             overlay = tui.showOverlay(topBar, {
-              anchor: "top-left",
+              anchor: 'top-left',
               row: 0,
               col: 0,
-              width: "100%",
+              width: '100%',
               nonCapturing: true,
             });
             tui.requestRender();
@@ -190,10 +193,10 @@ export default function (pi: ExtensionAPI) {
     });
   });
 
-  pi.on("session_shutdown", async (_event, ctx) => {
-    if (ctx.mode !== "tui") return;
+  pi.on('session_shutdown', async (_event, ctx) => {
+    if (ctx.mode !== 'tui') return;
     ctx.ui.setWidget(WIDGET_ID, undefined);
-    lastPrompt = "";
+    lastPrompt = '';
     requestRender = null;
   });
 }

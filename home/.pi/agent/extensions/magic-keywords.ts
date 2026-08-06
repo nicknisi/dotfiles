@@ -23,15 +23,15 @@
  * The keyword glows in the editor when recognized (via setStatus).
  */
 
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
-type ThinkingLevel = "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
+type ThinkingLevel = 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 
 const KEYWORDS = {
   ultrathink: {
     instruction:
-      "Reason carefully through this multi-step task. Think through each step before acting. Consider edge cases, failure modes, and alternative approaches before committing to a plan. Take your time — thoroughness is more important than speed here.",
-    thinkingLevel: "max" as ThinkingLevel,
+      'Reason carefully through this multi-step task. Think through each step before acting. Consider edge cases, failure modes, and alternative approaches before committing to a plan. Take your time — thoroughness is more important than speed here.',
+    thinkingLevel: 'max' as ThinkingLevel,
   },
   orchestrate: {
     instruction:
@@ -47,14 +47,14 @@ let savedThinkingLevel: ThinkingLevel | null = null;
 
 /** Remove fenced code blocks and inline code spans so keywords inside code don't trigger. */
 function stripCode(text: string): string {
-  let cleaned = text.replace(/```[\s\S]*?```/g, "");
-  cleaned = cleaned.replace(/`[^`]+`/g, "");
+  let cleaned = text.replace(/```[\s\S]*?```/g, '');
+  cleaned = cleaned.replace(/`[^`]+`/g, '');
   return cleaned;
 }
 
 /** Escape regex special characters in a literal string. */
 function escapeRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
@@ -81,24 +81,24 @@ function findKeywords(text: string): Set<string> {
 
 export default function (pi: ExtensionAPI) {
   // Detect keywords in raw user input, before skill/template expansion.
-  pi.on("input", async (event, ctx) => {
+  pi.on('input', async (event, ctx) => {
     pendingKeywords = findKeywords(event.text);
 
     if (pendingKeywords.size > 0 && ctx.hasUI) {
-      ctx.ui.setStatus("magic-keywords", `✨ ${[...pendingKeywords].join(", ")}`);
+      ctx.ui.setStatus('magic-keywords', `✨ ${[...pendingKeywords].join(', ')}`);
     }
 
-    return { action: "continue" };
+    return { action: 'continue' };
   });
 
   // Inject hidden instructions into the system prompt + bump thinking level.
-  pi.on("before_agent_start", async (event, _ctx) => {
+  pi.on('before_agent_start', async (event, _ctx) => {
     if (pendingKeywords.size === 0) return;
 
     const instructions: string[] = [];
 
     // Bump thinking level for ultrathink
-    if (pendingKeywords.has("ultrathink")) {
+    if (pendingKeywords.has('ultrathink')) {
       const config = KEYWORDS.ultrathink;
       savedThinkingLevel = pi.getThinkingLevel() as ThinkingLevel;
       // Only bump if current level is lower than the target
@@ -120,7 +120,7 @@ export default function (pi: ExtensionAPI) {
 
     if (instructions.length === 0) return;
 
-    const hiddenBlock = `\n\n<keyword-guidance>\n${instructions.join("\n\n")}\n</keyword-guidance>`;
+    const hiddenBlock = `\n\n<keyword-guidance>\n${instructions.join('\n\n')}\n</keyword-guidance>`;
 
     return {
       systemPrompt: event.systemPrompt + hiddenBlock,
@@ -128,14 +128,14 @@ export default function (pi: ExtensionAPI) {
   });
 
   // Restore thinking level after the full agent interaction settles (handles retries).
-  pi.on("agent_settled", async (_event, ctx) => {
+  pi.on('agent_settled', async (_event, ctx) => {
     if (savedThinkingLevel !== null) {
       pi.setThinkingLevel(savedThinkingLevel);
       savedThinkingLevel = null;
     }
     pendingKeywords.clear();
     if (ctx.hasUI) {
-      ctx.ui.setStatus("magic-keywords", "");
+      ctx.ui.setStatus('magic-keywords', '');
     }
   });
 }

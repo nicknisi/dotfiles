@@ -1,7 +1,7 @@
-import { readFileSync, existsSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
-import type { CouncilMemberUserConfig, LlmCouncilUserConfig } from "./types.js";
+import { readFileSync, existsSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import type { CouncilMemberUserConfig, LlmCouncilUserConfig } from './types.js';
 
 // ── Defaults ───────────────────────────────────────────────────────────────
 // Council lineup defaults to models available in this user's setup (see
@@ -11,63 +11,71 @@ import type { CouncilMemberUserConfig, LlmCouncilUserConfig } from "./types.js";
 export const DEFAULT_CONFIG = {
   SHARED: {
     SPINNER: {
-      PREFIX_CHARS: ["·", "✢", "✳", "✶", "✻", "✽"],
+      PREFIX_CHARS: ['·', '✢', '✳', '✶', '✻', '✽'],
       INTERVAL: 80,
-      COLOR: "muted",
+      COLOR: 'muted',
     },
-    SUCCESS_PREFIX: { PREFIX: "✓", COLOR: "success" },
-    ERROR_PREFIX: { PREFIX: "✗", COLOR: "error" },
-    BRANCH: { PREFIX: "└─", COLOR: "separator" },
+    SUCCESS_PREFIX: { PREFIX: '✓', COLOR: 'success' },
+    ERROR_PREFIX: { PREFIX: '✗', COLOR: 'error' },
+    BRANCH: { PREFIX: '└─', COLOR: 'separator' },
     STATUS: {
-      DONE_LABEL: "Done",
-      DONE_COLOR: "success",
-      ERROR_LABEL: "Error",
-      ERROR_COLOR: "error",
-      WORKING_LABEL: "Working...",
-      WORKING_COLOR: "dim",
-      WAITING_ICON: "↪",
-      WAITING_ICON_COLOR: "muted",
-      SYNTHESIZING_LABEL: "Synthesising...",
-      WAITING_LABEL: "Waiting for members...",
-      ELAPSED_COLOR: "dim",
+      DONE_LABEL: 'Done',
+      DONE_COLOR: 'success',
+      ERROR_LABEL: 'Error',
+      ERROR_COLOR: 'error',
+      WORKING_LABEL: 'Working...',
+      WORKING_COLOR: 'dim',
+      WAITING_ICON: '↪',
+      WAITING_ICON_COLOR: 'muted',
+      SYNTHESIZING_LABEL: 'Synthesising...',
+      WAITING_LABEL: 'Waiting for members...',
+      ELAPSED_COLOR: 'dim',
     },
-    TOOL_HEADER: { TITLE_COLOR: "toolTitle", SUMMARY_COLOR: "dim" },
-    EXPAND_HINT: { COLOR: "dim" },
+    TOOL_HEADER: { TITLE_COLOR: 'toolTitle', SUMMARY_COLOR: 'dim' },
+    EXPAND_HINT: { COLOR: 'dim' },
     QUESTION_PREVIEW: { MAX_LENGTH: 40 },
   },
 
   MEMBER: {
     // Diverse, cost-aware: two cheap open models via fireworks + one Claude.
     COUNCIL: [
-      { model: "fireworks/accounts/fireworks/models/glm-5p2", displayName: "GLM 5.2", label: "Member A" },
-      { model: "fireworks/accounts/fireworks/models/kimi-k3", displayName: "Kimi K3", label: "Member B" },
-      { model: "anthropic/claude-fable-5", displayName: "Claude Fable 5", label: "Member C" },
+      {
+        model: 'fireworks/accounts/fireworks/models/glm-5p2',
+        displayName: 'GLM 5.2',
+        label: 'Member A',
+      },
+      {
+        model: 'fireworks/accounts/fireworks/models/kimi-k3',
+        displayName: 'Kimi K3',
+        label: 'Member B',
+      },
+      { model: 'anthropic/claude-fable-5', displayName: 'Claude Fable 5', label: 'Member C' },
     ],
     DEFAULT_SYSTEM_PROMPT:
       "You are a member of an LLM Council. Answer the user's question thoroughly and concisely. Provide your best reasoning. Do not spawn subprocesses or delegate tasks to other agents.",
-    DISPLAY: { LABEL_COLOR: "accent", MODEL_COLOR: "dim" },
+    DISPLAY: { LABEL_COLOR: 'accent', MODEL_COLOR: 'dim' },
     // Built-in read-only tools only — no extension loading needed in the
     // subprocess. Add web tools + the pi-web-access extension by path in your
     // config if you want members to browse.
-    TOOLS: ["read", "grep", "find", "ls"],
-    THINKING: "medium",
+    TOOLS: ['read', 'grep', 'find', 'ls'],
+    THINKING: 'medium',
     EXTENSIONS: [] as string[],
     SKILLS: [] as string[],
     CONTEXT_FILES: false,
   },
 
   CHAIRMAN: {
-    MODEL: "anthropic/claude-opus-5",
-    DISPLAY_NAME: "Claude Opus 5",
+    MODEL: 'anthropic/claude-opus-5',
+    DISPLAY_NAME: 'Claude Opus 5',
     SYSTEM_PROMPT:
-      "You are the Chairman of an LLM Council. Multiple AI models answered the same question anonymously, labeled A, B, C, etc. " +
-      "Synthesize the best answer, drawing on the strongest points from each response. " +
-      "Resolve any disagreements. Present a unified, well-reasoned answer. " +
-      "Do not mention which model gave which answer — treat them as anonymous perspectives.",
+      'You are the Chairman of an LLM Council. Multiple AI models answered the same question anonymously, labeled A, B, C, etc. ' +
+      'Synthesize the best answer, drawing on the strongest points from each response. ' +
+      'Resolve any disagreements. Present a unified, well-reasoned answer. ' +
+      'Do not mention which model gave which answer — treat them as anonymous perspectives.',
     EXPOSE_PERSONAS: true,
-    DISPLAY: { ICON: "", LABEL_COLOR: "accent", MODEL_COLOR: "dim" },
+    DISPLAY: { ICON: '', LABEL_COLOR: 'accent', MODEL_COLOR: 'dim' },
     TOOLS: [] as string[],
-    THINKING: "medium",
+    THINKING: 'medium',
     EXTENSIONS: [] as string[],
     SKILLS: [] as string[],
     CONTEXT_FILES: false,
@@ -80,15 +88,15 @@ export const DEFAULT_CONFIG = {
 //           only the keys that differ need to be present — e.g. just
 //           member.council and chairman.model for a per-project lineup)
 
-const GLOBAL_CONFIG_PATH = join(homedir(), ".pi", "agent", "configs", "llm-council.json");
+const GLOBAL_CONFIG_PATH = join(homedir(), '.pi', 'agent', 'configs', 'llm-council.json');
 
 function projectConfigPath(cwd: string): string {
-  return join(cwd, ".pi", "configs", "llm-council.json");
+  return join(cwd, '.pi', 'configs', 'llm-council.json');
 }
 
 function readJson(path: string): Partial<LlmCouncilUserConfig> {
   try {
-    return JSON.parse(readFileSync(path, "utf8"));
+    return JSON.parse(readFileSync(path, 'utf8'));
   } catch {
     return {};
   }
@@ -136,7 +144,8 @@ export const CONFIG = {
       workingLabel: userConfig.shared?.status?.workingLabel ?? DEFAULT_CONFIG.SHARED.STATUS.WORKING_LABEL,
       waitingIcon: userConfig.shared?.status?.waitingIcon ?? DEFAULT_CONFIG.SHARED.STATUS.WAITING_ICON,
       waitingIconColor: userConfig.shared?.status?.waitingIconColor ?? DEFAULT_CONFIG.SHARED.STATUS.WAITING_ICON_COLOR,
-      synthesizingLabel: userConfig.shared?.status?.synthesizingLabel ?? DEFAULT_CONFIG.SHARED.STATUS.SYNTHESIZING_LABEL,
+      synthesizingLabel:
+        userConfig.shared?.status?.synthesizingLabel ?? DEFAULT_CONFIG.SHARED.STATUS.SYNTHESIZING_LABEL,
       waitingLabel: userConfig.shared?.status?.waitingLabel ?? DEFAULT_CONFIG.SHARED.STATUS.WAITING_LABEL,
       elapsedColor: userConfig.shared?.status?.elapsedColor ?? DEFAULT_CONFIG.SHARED.STATUS.ELAPSED_COLOR,
     },
@@ -238,7 +247,7 @@ export function loadCouncil(cwd: string): ResolvedCouncil {
     model: m.model,
     displayName: m.displayName,
     label: m.label ?? String(i + 1),
-    systemPrompt: m.systemPrompt ?? (pm?.defaultSystemPrompt ?? CONFIG.member.defaultSystemPrompt),
+    systemPrompt: m.systemPrompt ?? pm?.defaultSystemPrompt ?? CONFIG.member.defaultSystemPrompt,
   }));
 
   return {

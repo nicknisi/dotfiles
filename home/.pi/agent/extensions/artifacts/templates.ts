@@ -1,11 +1,11 @@
 /** HTML shell + markdown→HTML rendering with server-side diff/code highlighting and client-side mermaid. */
 
-import { Marked } from "marked";
-import { parse as diffParse, html as diffHtml } from "diff2html";
-import hljs from "highlight.js";
+import { Marked } from 'marked';
+import { parse as diffParse, html as diffHtml } from 'diff2html';
+import hljs from 'highlight.js';
 
-import { CONFIG, MERMAID_CDN } from "./config.js";
-import { BASE_CSS, D2H_CSS, HLJS_CSS } from "./styles.js";
+import { CONFIG, MERMAID_CDN } from './config.js';
+import { BASE_CSS, D2H_CSS, HLJS_CSS } from './styles.js';
 
 export interface RenderFlags {
   hasMermaid: boolean;
@@ -15,12 +15,12 @@ export interface RenderFlags {
 
 /** Escape HTML special characters. */
 function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /** Escape for attribute context (quotes too). */
 function escapeAttr(s: string): string {
-  return escapeHtml(s).replace(/"/g, "&quot;");
+  return escapeHtml(s).replace(/"/g, '&quot;');
 }
 
 /** Render markdown to an HTML body fragment, handling diff/code/mermaid fences. */
@@ -32,14 +32,14 @@ export function renderMarkdown(content: string, flags: RenderFlags): string {
     breaks: false,
     renderer: {
       code({ text, lang }: { text: string; lang?: string }): string {
-        const language = (lang ?? "").trim().toLowerCase();
+        const language = (lang ?? '').trim().toLowerCase();
 
-        if (language === "mermaid") {
+        if (language === 'mermaid') {
           flags.hasMermaid = true;
           return `<div class="artifact-mermaid"><pre class="mermaid">${escapeHtml(text)}</pre></div>`;
         }
 
-        if (language === "diff") {
+        if (language === 'diff') {
           const rendered = renderDiff(text);
           if (rendered) {
             flags.hasDiff = true;
@@ -61,7 +61,7 @@ export function renderMarkdown(content: string, flags: RenderFlags): string {
 
         // Plain escaped code block (no unreliable auto-detect on short snippets)
         if (language) flags.hasCode = true;
-        return `<pre><code${language ? ` class="language-${escapeAttr(language)}"` : ""}>${escapeHtml(text)}</code></pre>`;
+        return `<pre><code${language ? ` class="language-${escapeAttr(language)}"` : ''}>${escapeHtml(text)}</code></pre>`;
       },
     },
   });
@@ -75,7 +75,7 @@ function renderDiff(diffText: string): string | null {
     const json = diffParse(diffText, {});
     if (!json || json.length === 0) return null;
     return diffHtml(json, {
-      outputFormat: "line-by-line",
+      outputFormat: 'line-by-line',
       drawFileList: false,
     });
   } catch {
@@ -153,7 +153,7 @@ function mermaidSnippet(): string {
 export function buildShell(opts: {
   title: string;
   slug: string;
-  kind: "markdown" | "html";
+  kind: 'markdown' | 'html';
   bodyHtml: string;
   flags: RenderFlags;
 }): string {
@@ -180,19 +180,19 @@ export function buildShell(opts: {
 <meta name="artifact-generated" content="${generated}">
 <meta name="artifact-project" content="${escapeAttr(projectPath)}">
 <title>${escapeHtml(title)}</title>
-${styles.join("\n")}
+${styles.join('\n')}
 </head>
 <body>
 <article>
 <header class="artifact-header">
 <h1>${escapeHtml(title)}</h1>
 <span class="artifact-badge">${kind}</span>
-<span class="artifact-meta">${escapeHtml(generatedIso.replace("T", " ").slice(0, 19))}</span>
+<span class="artifact-meta">${escapeHtml(generatedIso.replace('T', ' ').slice(0, 19))}</span>
 </header>
 ${bodyHtml}
 <footer class="artifact-footer">source: ${escapeHtml(projectPath)}</footer>
 </article>
-${scripts.join("\n")}
+${scripts.join('\n')}
 </body>
 </html>`;
 }
@@ -201,7 +201,7 @@ ${scripts.join("\n")}
 export function renderMarkdownDocument(title: string, slug: string, content: string): string {
   const flags: RenderFlags = { hasMermaid: false, hasDiff: false, hasCode: false };
   const bodyHtml = renderMarkdown(content, flags);
-  return buildShell({ title, slug, kind: "markdown", bodyHtml, flags });
+  return buildShell({ title, slug, kind: 'markdown', bodyHtml, flags });
 }
 
 /** Render an html artifact: full documents get the shell's metadata metas + SSE reload snippet spliced in; fragments get the full shell. */
@@ -218,9 +218,11 @@ export function renderHtmlDocument(title: string, slug: string, content: string)
     const projectPath = process.cwd();
     const metas: string[] = [];
     if (!content.includes('name="artifact-kind"')) metas.push(`<meta name="artifact-kind" content="html">`);
-    if (!content.includes('name="artifact-generated"')) metas.push(`<meta name="artifact-generated" content="${generated}">`);
-    if (!content.includes('name="artifact-project"')) metas.push(`<meta name="artifact-project" content="${escapeAttr(projectPath)}">`);
-    const metaBlock = metas.length ? metas.join("\n") + "\n" : "";
+    if (!content.includes('name="artifact-generated"'))
+      metas.push(`<meta name="artifact-generated" content="${generated}">`);
+    if (!content.includes('name="artifact-project"'))
+      metas.push(`<meta name="artifact-project" content="${escapeAttr(projectPath)}">`);
+    const metaBlock = metas.length ? metas.join('\n') + '\n' : '';
     const snippet = sseSnippet(slug);
 
     let out = content;
@@ -231,30 +233,33 @@ export function renderHtmlDocument(title: string, slug: string, content: string)
     }
     // SSE listener before </body>. If there was no <head>, also drop the metas here —
     // the index parser is regex-based, so location is irrelevant to function.
-    const tail = (headClose === -1 ? metaBlock : "") + snippet;
+    const tail = (headClose === -1 ? metaBlock : '') + snippet;
     const bodyClose = out.search(/<\/body>/i);
     out = bodyClose !== -1 ? out.slice(0, bodyClose) + tail + out.slice(bodyClose) : out + tail;
     return out;
   }
 
   const flags: RenderFlags = { hasMermaid: false, hasDiff: false, hasCode: false };
-  return buildShell({ title, slug, kind: "html", bodyHtml: content, flags });
+  return buildShell({ title, slug, kind: 'html', bodyHtml: content, flags });
 }
 
 /** Build the index page listing all artifacts, newest first. */
 export function renderIndexPage(entries: { slug: string; title: string; kind: string; mtime: number }[]): string {
   const projectPath = process.cwd();
   const rows = entries.map((e) => {
-    const when = e.mtime ? new Date(e.mtime).toISOString().replace("T", " ").slice(0, 19) : "";
+    const when = e.mtime ? new Date(e.mtime).toISOString().replace('T', ' ').slice(0, 19) : '';
     const href = `/${e.slug}.html`;
-    return `<tr><td><a href="${escapeAttr(href)}">${escapeHtml(e.title)}</a></td>` +
+    return (
+      `<tr><td><a href="${escapeAttr(href)}">${escapeHtml(e.title)}</a></td>` +
       `<td><span class="artifact-badge">${escapeHtml(e.kind)}</span></td>` +
-      `<td><code>${escapeHtml(when)}</code></td></tr>`;
+      `<td><code>${escapeHtml(when)}</code></td></tr>`
+    );
   });
 
-  const empty = entries.length === 0
-    ? `<p><em>No artifacts yet. Use the <code>artifact</code> tool to create one.</em></p>`
-    : `<table><thead><tr><th>Title</th><th>Kind</th><th>Generated</th></tr></thead><tbody>${rows.join("\n")}</tbody></table>`;
+  const empty =
+    entries.length === 0
+      ? `<p><em>No artifacts yet. Use the <code>artifact</code> tool to create one.</em></p>`
+      : `<table><thead><tr><th>Title</th><th>Kind</th><th>Generated</th></tr></thead><tbody>${rows.join('\n')}</tbody></table>`;
 
   const styles = [`<style data-base>${BASE_CSS}</style>`];
 
@@ -265,7 +270,7 @@ export function renderIndexPage(entries: { slug: string; title: string; kind: st
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="artifact-kind" content="html">
 <title>Artifacts — ${escapeHtml(projectPath)}</title>
-${styles.join("\n")}
+${styles.join('\n')}
 </head>
 <body>
 <article>

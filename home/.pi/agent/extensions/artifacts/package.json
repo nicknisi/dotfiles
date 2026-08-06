@@ -4,9 +4,9 @@
   "private": true,
   "description": "artifact tool: render markdown/html to a styled browser page served from a lazy localhost server.",
   "dependencies": {
-    "marked": "^18.0.5",
     "diff2html": "^3.4.52",
-    "highlight.js": "^11.11.1"
+    "highlight.js": "^11.11.1",
+    "marked": "^18.0.5"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",

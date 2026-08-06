@@ -1,8 +1,8 @@
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { getAgentDir } from "@earendil-works/pi-coding-agent";
-import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { basename, join, resolve } from "node:path";
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { getAgentDir } from '@earendil-works/pi-coding-agent';
+import { readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { basename, join, resolve } from 'node:path';
 
 type CloakPatternSpec =
   | string
@@ -45,10 +45,10 @@ interface RuntimeState {
   error?: string;
 }
 
-const DEFAULT_CONFIG_PATH = join(getAgentDir(), "cloak.json");
+const DEFAULT_CONFIG_PATH = join(getAgentDir(), 'cloak.json');
 const DEFAULT_CONFIG: CloakConfig = {
   enabled: true,
-  cloakCharacter: "*",
+  cloakCharacter: '*',
   cloakLength: null,
   tryAllPatterns: true,
   patterns: [],
@@ -60,12 +60,12 @@ function toArray<T>(value: T | T[] | undefined): T[] {
 }
 
 function normalizeSlashes(value: string): string {
-  return value.split("\\").join("/");
+  return value.split('\\').join('/');
 }
 
 function expandHome(value: string): string {
-  if (value === "~") return homedir();
-  if (value.startsWith("~/")) return join(homedir(), value.slice(2));
+  if (value === '~') return homedir();
+  if (value.startsWith('~/')) return join(homedir(), value.slice(2));
   return value;
 }
 
@@ -74,61 +74,61 @@ function normalizePath(value: string): string {
 }
 
 function stripLeadingAt(value: string): string {
-  return value.startsWith("@") ? value.slice(1) : value;
+  return value.startsWith('@') ? value.slice(1) : value;
 }
 
 function escapeRegex(value: string): string {
-  return value.replace(/[|\\{}()[\]^$+?.]/g, "\\$&");
+  return value.replace(/[|\\{}()[\]^$+?.]/g, '\\$&');
 }
 
 function globToRegExp(glob: string): RegExp {
   const normalized = normalizePath(glob);
-  let pattern = "^";
+  let pattern = '^';
 
   for (let index = 0; index < normalized.length; index++) {
     const char = normalized[index]!;
     const next = normalized[index + 1];
     const afterNext = normalized[index + 2];
 
-    if (char === "*" && next === "*") {
-      if (afterNext === "/") {
-        pattern += "(?:.*/)?";
+    if (char === '*' && next === '*') {
+      if (afterNext === '/') {
+        pattern += '(?:.*/)?';
         index += 2;
       } else {
-        pattern += ".*";
+        pattern += '.*';
         index += 1;
       }
       continue;
     }
 
-    if (char === "*") {
-      pattern += "[^/]*";
+    if (char === '*') {
+      pattern += '[^/]*';
       continue;
     }
 
-    if (char === "?") {
-      pattern += "[^/]";
+    if (char === '?') {
+      pattern += '[^/]';
       continue;
     }
 
     pattern += escapeRegex(char);
   }
 
-  pattern += "$";
+  pattern += '$';
   return new RegExp(pattern);
 }
 
 function ensureGlobalFlags(flags?: string): string {
-  const unique = new Set((flags ?? "").split("").filter(Boolean));
-  unique.add("g");
-  return Array.from(unique).join("");
+  const unique = new Set((flags ?? '').split('').filter(Boolean));
+  unique.add('g');
+  return Array.from(unique).join('');
 }
 
 function compilePattern(spec: CloakPatternSpec, ruleReplace?: string): CompiledCloakPattern {
-  if (typeof spec === "string") {
+  if (typeof spec === 'string') {
     return {
       source: spec,
-      regex: new RegExp(spec, "g"),
+      regex: new RegExp(spec, 'g'),
       replace: ruleReplace,
     };
   }
@@ -153,7 +153,7 @@ function compileRule(rule: CloakRuleConfig): CompiledCloakRule {
 
 export function loadState(configPath: string = DEFAULT_CONFIG_PATH): RuntimeState {
   try {
-    const raw = readFileSync(configPath, "utf8");
+    const raw = readFileSync(configPath, 'utf8');
     const parsed = JSON.parse(raw) as CloakConfig;
     const config: CloakConfig = {
       ...DEFAULT_CONFIG,
@@ -167,7 +167,7 @@ export function loadState(configPath: string = DEFAULT_CONFIG_PATH): RuntimeStat
       rules: (config.patterns ?? []).map(compileRule),
     };
   } catch (error) {
-    const isMissingFile = error instanceof Error && "code" in error && error.code === "ENOENT";
+    const isMissingFile = error instanceof Error && 'code' in error && error.code === 'ENOENT';
 
     return {
       configPath,
@@ -184,9 +184,7 @@ function getPathCandidates(rawPath: string, cwd: string): string[] {
   const cleanPath = normalizePath(stripLeadingAt(rawPath));
   const absolutePath = normalizePath(resolve(cwd, expandHome(stripLeadingAt(rawPath))));
 
-  return Array.from(
-    new Set([cleanPath, absolutePath, basename(cleanPath), basename(absolutePath)]),
-  );
+  return Array.from(new Set([cleanPath, absolutePath, basename(cleanPath), basename(absolutePath)]));
 }
 
 function ruleMatchesPath(rule: CompiledCloakRule, rawPath: string, cwd: string): boolean {
@@ -195,8 +193,8 @@ function ruleMatchesPath(rule: CompiledCloakRule, rawPath: string, cwd: string):
 }
 
 function repeatToLength(seed: string, length: number): string {
-  if (length <= 0) return "";
-  if (!seed) return "";
+  if (length <= 0) return '';
+  if (!seed) return '';
 
   const pieces: string[] = [];
   let totalLength = 0;
@@ -205,32 +203,32 @@ function repeatToLength(seed: string, length: number): string {
     totalLength += seed.length;
   }
 
-  return pieces.join("").slice(0, length);
+  return pieces.join('').slice(0, length);
 }
 
 function applyReplacementTemplate(template: string, match: string, captures: string[]): string {
-  let result = "";
+  let result = '';
 
   for (let index = 0; index < template.length; index++) {
     const char = template[index]!;
-    if (char !== "$") {
+    if (char !== '$') {
       result += char;
       continue;
     }
 
     const next = template[index + 1];
     if (!next) {
-      result += "$";
+      result += '$';
       continue;
     }
 
-    if (next === "$") {
-      result += "$";
+    if (next === '$') {
+      result += '$';
       index += 1;
       continue;
     }
 
-    if (next === "&") {
+    if (next === '&') {
       result += match;
       index += 1;
       continue;
@@ -243,7 +241,7 @@ function applyReplacementTemplate(template: string, match: string, captures: str
       }
 
       const groupIndex = Number(template.slice(index + 1, end + 1)) - 1;
-      result += captures[groupIndex] ?? "";
+      result += captures[groupIndex] ?? '';
       index = end;
       continue;
     }
@@ -280,14 +278,12 @@ function applyPatternsToLine(
   for (const pattern of patterns) {
     let matchedThisPattern = false;
     const next = updated.replace(pattern.regex, (match: string, ...args: unknown[]) => {
-      const captures = args
-        .slice(0, Math.max(0, args.length - 2))
-        .map((value) => String(value ?? ""));
+      const captures = args.slice(0, Math.max(0, args.length - 2)).map((value) => String(value ?? ''));
       const replacement = buildMaskedReplacement(
         match,
         captures,
         pattern.replace,
-        config.cloakCharacter ?? "*",
+        config.cloakCharacter ?? '*',
         config.cloakLength,
       );
 
@@ -310,18 +306,13 @@ function applyPatternsToLine(
   return { line: updated, changed };
 }
 
-export function cloakText(
-  rawText: string,
-  rawPath: string,
-  cwd: string,
-  state: RuntimeState,
-): string {
+export function cloakText(rawText: string, rawPath: string, cwd: string, state: RuntimeState): string {
   if (!state.config.enabled) return rawText;
 
   const matchingRules = state.rules.filter((rule) => ruleMatchesPath(rule, rawPath, cwd));
   if (matchingRules.length === 0) return rawText;
 
-  const newline = rawText.includes("\r\n") ? "\r\n" : "\n";
+  const newline = rawText.includes('\r\n') ? '\r\n' : '\n';
   const lines = rawText.split(/\r?\n/);
   let changed = false;
 
@@ -349,16 +340,16 @@ export default function (pi: ExtensionAPI) {
     state = loadState();
   };
 
-  pi.on("session_start", async (_event, ctx) => {
+  pi.on('session_start', async (_event, ctx) => {
     reloadConfig();
 
     if (state.error && ctx.hasUI) {
-      ctx.ui.notify(state.error, "warning");
+      ctx.ui.notify(state.error, 'warning');
     }
   });
 
-  pi.registerCommand("cloak-status", {
-    description: "Show pi-cloak config status",
+  pi.registerCommand('cloak-status', {
+    description: 'Show pi-cloak config status',
     handler: async (_args, ctx) => {
       reloadConfig();
 
@@ -366,20 +357,20 @@ export default function (pi: ExtensionAPI) {
         ? `${state.error}\npatterns: ${state.rules.length}`
         : `pi-cloak enabled=${state.config.enabled !== false} patterns=${state.rules.length} config=${state.configPath}`;
 
-      ctx.ui.notify(summary, state.error ? "warning" : "info");
+      ctx.ui.notify(summary, state.error ? 'warning' : 'info');
     },
   });
 
-  pi.on("tool_result", async (event, ctx) => {
-    if (event.toolName !== "read") return undefined;
+  pi.on('tool_result', async (event, ctx) => {
+    if (event.toolName !== 'read') return undefined;
     if (!state.config.enabled) return undefined;
 
-    const rawPath = typeof event.input?.path === "string" ? event.input.path : "";
+    const rawPath = typeof event.input?.path === 'string' ? event.input.path : '';
     if (!rawPath) return undefined;
 
     let changed = false;
     const content = event.content.map((part) => {
-      if (part.type !== "text" || typeof part.text !== "string") {
+      if (part.type !== 'text' || typeof part.text !== 'string') {
         return part;
       }
 

@@ -5,7 +5,6 @@ chairman synthesizes their answers into a unified response. Progress streams
 inline with animated spinners, member status, and elapsed time; collapse/expand
 to see full member responses.
 
-
 ## How it works
 
 1. **Members** — each council member (a different LLM) receives the same question
@@ -17,8 +16,8 @@ to see full member responses.
 
 Registered as `llm_council`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter  | Type     | Description                         |
+| ---------- | -------- | ----------------------------------- |
 | `question` | `string` | The question to pose to the council |
 
 ### When to use
@@ -31,12 +30,12 @@ Registered as `llm_council`.
 
 Defaults to models from `~/.pi/agent/settings.json` `enabledModels`:
 
-| Role | Model | Label |
-|------|-------|-------|
-| Member | GLM 5.2 (fireworks) | Member A |
-| Member | Kimi K3 (fireworks) | Member B |
-| Member | Claude Fable 5 (anthropic) | Member C |
-| Chairman | Claude Opus 5 (anthropic) | Chairman |
+| Role     | Model                      | Label    |
+| -------- | -------------------------- | -------- |
+| Member   | GLM 5.2 (fireworks)        | Member A |
+| Member   | Kimi K3 (fireworks)        | Member B |
+| Member   | Claude Fable 5 (anthropic) | Member C |
+| Chairman | Claude Opus 5 (anthropic)  | Chairman |
 
 Members run as lightweight subprocesses with a built-in read-only tool set
 (`read`, `grep`, `find`, `ls`), no extensions, no skills. The chairman has no
@@ -58,32 +57,32 @@ root whose council should differ.
 
 ### Member options (`member`)
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `council` | `object[]` | *(3 members above)* | Each requires `model` and `label`. Optional: `displayName`, `systemPrompt` |
-| `defaultSystemPrompt` | `string` | *(built-in)* | System prompt for members without their own |
-| `display.labelColor` | `string` | `"accent"` | Member label color (theme token or hex) |
-| `display.modelColor` | `string` | `"dim"` | Model name color |
-| `tools` | `string[] \| null` | `["read","grep","find","ls"]` | Tools for members. `null` = pi defaults, `[]` = none |
-| `thinking` | `string \| null` | `"medium"` | Thinking level. `null` = pi default |
-| `extensions` | `string[] \| null` | `[]` | Extensions for members (by name; resolved to `~/.pi/agent/extensions/<name>/...`). `null` = pi defaults |
-| `skills` | `string[] \| null` | `[]` | Skills for members. `null` = pi defaults |
-| `contextFiles` | `boolean` | `false` | Whether members see project context files |
+| Key                   | Type               | Default                       | Description                                                                                             |
+| --------------------- | ------------------ | ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `council`             | `object[]`         | _(3 members above)_           | Each requires `model` and `label`. Optional: `displayName`, `systemPrompt`                              |
+| `defaultSystemPrompt` | `string`           | _(built-in)_                  | System prompt for members without their own                                                             |
+| `display.labelColor`  | `string`           | `"accent"`                    | Member label color (theme token or hex)                                                                 |
+| `display.modelColor`  | `string`           | `"dim"`                       | Model name color                                                                                        |
+| `tools`               | `string[] \| null` | `["read","grep","find","ls"]` | Tools for members. `null` = pi defaults, `[]` = none                                                    |
+| `thinking`            | `string \| null`   | `"medium"`                    | Thinking level. `null` = pi default                                                                     |
+| `extensions`          | `string[] \| null` | `[]`                          | Extensions for members (by name; resolved to `~/.pi/agent/extensions/<name>/...`). `null` = pi defaults |
+| `skills`              | `string[] \| null` | `[]`                          | Skills for members. `null` = pi defaults                                                                |
+| `contextFiles`        | `boolean`          | `false`                       | Whether members see project context files                                                               |
 
 ### Chairman options (`chairman`)
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `model` | `string` | `"anthropic/claude-opus-5"` | Chairman model |
-| `displayName` | `string` | `"Claude Opus 5"` | Human-readable name for UI |
-| `systemPrompt` | `string` | *(built-in)* | Chairman system prompt |
-| `exposePersonas` | `boolean` | `true` | Include member system prompts in chairman input |
-| `display.icon` | `string` | `""` | Icon prefix |
-| `display.labelColor` / `display.modelColor` | `string` | `"accent"` / `"dim"` | Colors |
-| `tools` | `string[] \| null` | `[]` | Chairman tools (none by default) |
-| `thinking` | `string \| null` | `"medium"` | Thinking level |
-| `extensions` / `skills` | `string[] \| null` | `[]` | Extensions / skills |
-| `contextFiles` | `boolean` | `false` | Whether chairman sees project context files |
+| Key                                         | Type               | Default                     | Description                                     |
+| ------------------------------------------- | ------------------ | --------------------------- | ----------------------------------------------- |
+| `model`                                     | `string`           | `"anthropic/claude-opus-5"` | Chairman model                                  |
+| `displayName`                               | `string`           | `"Claude Opus 5"`           | Human-readable name for UI                      |
+| `systemPrompt`                              | `string`           | _(built-in)_                | Chairman system prompt                          |
+| `exposePersonas`                            | `boolean`          | `true`                      | Include member system prompts in chairman input |
+| `display.icon`                              | `string`           | `""`                        | Icon prefix                                     |
+| `display.labelColor` / `display.modelColor` | `string`           | `"accent"` / `"dim"`        | Colors                                          |
+| `tools`                                     | `string[] \| null` | `[]`                        | Chairman tools (none by default)                |
+| `thinking`                                  | `string \| null`   | `"medium"`                  | Thinking level                                  |
+| `extensions` / `skills`                     | `string[] \| null` | `[]`                        | Extensions / skills                             |
+| `contextFiles`                              | `boolean`          | `false`                     | Whether chairman sees project context files     |
 
 ### Shared display options (`shared`)
 

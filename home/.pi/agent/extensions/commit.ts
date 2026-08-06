@@ -14,15 +14,15 @@
  * Ported from omp's commit pipeline. Uses the session model via the provider's stream API.
  */
 
-import type { Message } from "@earendil-works/pi-ai";
-import { getModelProvider } from "../lib/llm.ts";
+import type { Message } from '@earendil-works/pi-ai';
+import { getModelProvider } from '../lib/llm.ts';
 import {
   BorderedLoader,
   convertToLlm,
   sessionEntryToContextMessages,
   type ExtensionAPI,
   type ExtensionCommandContext,
-} from "@earendil-works/pi-coding-agent";
+} from '@earendil-works/pi-coding-agent';
 
 const SYSTEM_PROMPT = `You are a commit message generator. Given a git diff and optional context, produce a clear, conventional commit message.
 
@@ -56,35 +56,35 @@ function parseArgs(args: string): CommitArgs {
   const contextParts: string[] = [];
 
   for (let i = 0; i < parts.length; i++) {
-    const raw = parts[i] ?? "";
+    const raw = parts[i] ?? '';
     switch (raw) {
-      case "--push":
-      case "-p":
+      case '--push':
+      case '-p':
         result.push = true;
         break;
-      case "--dry-run":
-      case "-n":
+      case '--dry-run':
+      case '-n':
         result.dryRun = true;
         break;
-      case "--no-changelog":
+      case '--no-changelog':
         result.noChangelog = true;
         break;
-      case "-c":
-      case "--context":
+      case '-c':
+      case '--context':
         // Grab the rest of the args as context
         contextParts.push(...parts.slice(i + 1));
         i = parts.length;
         break;
       default:
         // Unknown — treat as context if it's not a flag
-        if (!raw.startsWith("-")) {
+        if (!raw.startsWith('-')) {
           contextParts.push(raw);
         }
         break;
     }
   }
 
-  result.context = contextParts.length > 0 ? contextParts.join(" ") : null;
+  result.context = contextParts.length > 0 ? contextParts.join(' ') : null;
   return result;
 }
 
@@ -96,28 +96,28 @@ interface DiffResult {
 }
 
 async function getDiff(cwd: string): Promise<DiffResult> {
-  const { execSync } = await import("node:child_process");
+  const { execSync } = await import('node:child_process');
 
   const run = (cmd: string): string => {
     try {
-      return execSync(cmd, { cwd, encoding: "utf-8", maxBuffer: 1024 * 1024 * 10 }).trim();
+      return execSync(cmd, { cwd, encoding: 'utf-8', maxBuffer: 1024 * 1024 * 10 }).trim();
     } catch {
-      return "";
+      return '';
     }
   };
 
-  const staged = run("git diff --cached --no-color");
-  const unstaged = run("git diff --no-color");
-  const status = run("git status --porcelain=v1");
+  const staged = run('git diff --cached --no-color');
+  const unstaged = run('git diff --no-color');
+  const status = run('git status --porcelain=v1');
 
   let untracked: string[] = [];
   try {
-    untracked = execSync("git ls-files --others --exclude-standard", {
+    untracked = execSync('git ls-files --others --exclude-standard', {
       cwd,
-      encoding: "utf-8",
+      encoding: 'utf-8',
     })
       .trim()
-      .split("\n")
+      .split('\n')
       .filter(Boolean);
   } catch {
     untracked = [];
@@ -138,7 +138,7 @@ function buildDiffPrompt(diff: DiffResult, context: string | null, noChangelog: 
   }
 
   if (diff.untracked.length > 0) {
-    sections.push(`## Untracked files\n\n${diff.untracked.map((f) => `- ${f}`).join("\n")}`);
+    sections.push(`## Untracked files\n\n${diff.untracked.map((f) => `- ${f}`).join('\n')}`);
   }
 
   if (diff.status) {
@@ -150,21 +150,21 @@ function buildDiffPrompt(diff: DiffResult, context: string | null, noChangelog: 
   }
 
   if (!noChangelog) {
-    sections.push("## Changelog\n\nAlso generate a single changelog bullet after ---CHANGELOG---");
+    sections.push('## Changelog\n\nAlso generate a single changelog bullet after ---CHANGELOG---');
   }
 
   if (!diff.staged && !diff.unstaged && diff.untracked.length === 0) {
-    return "There are no changes to commit. Respond with: NO_CHANGES";
+    return 'There are no changes to commit. Respond with: NO_CHANGES';
   }
 
   // If there are unstaged but no staged changes, note that we'll stage all
   if (!diff.staged && (diff.unstaged || diff.untracked.length > 0)) {
     sections.push(
-      "Note: No changes are staged. I will stage all changes (git add -A) before committing. Base the commit message on all changes shown above.",
+      'Note: No changes are staged. I will stage all changes (git add -A) before committing. Base the commit message on all changes shown above.',
     );
   }
 
-  return sections.join("\n\n");
+  return sections.join('\n\n');
 }
 
 interface GenerateResult {
@@ -178,51 +178,44 @@ async function generateMessage(
   signal: AbortSignal | undefined,
 ): Promise<GenerateResult> {
   const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model!);
-  if (!auth.ok)
-    throw new Error(
-      `No API key configured for ${ctx.model!.provider}/${ctx.model!.id}: ${auth.error}`,
-    );
+  if (!auth.ok) throw new Error(`No API key configured for ${ctx.model!.provider}/${ctx.model!.id}: ${auth.error}`);
   const { apiKey, headers } = auth;
 
   const contextMessages = ctx.sessionManager
     .buildContextEntries()
     .flatMap((entry) => sessionEntryToContextMessages(entry));
   const userMessage: Message = {
-    role: "user",
-    content: [{ type: "text", text: prompt }],
+    role: 'user',
+    content: [{ type: 'text', text: prompt }],
     timestamp: Date.now(),
   };
 
   const llmMessages = [...convertToLlm(contextMessages), userMessage];
 
   const response = await getModelProvider(ctx, ctx.model!)
-    .stream(
-      ctx.model!,
-      { systemPrompt: SYSTEM_PROMPT, messages: llmMessages },
-      { apiKey, headers, signal },
-    )
+    .stream(ctx.model!, { systemPrompt: SYSTEM_PROMPT, messages: llmMessages }, { apiKey, headers, signal })
     .result();
 
-  if (response.stopReason === "aborted") {
+  if (response.stopReason === 'aborted') {
     return { message: null, changelog: null };
   }
 
-  if (response.stopReason === "error" || !response.content) {
-    throw new Error(response.errorMessage || "Model returned an error");
+  if (response.stopReason === 'error' || !response.content) {
+    throw new Error(response.errorMessage || 'Model returned an error');
   }
 
   const text = response.content
-    .filter((c): c is { type: "text"; text: string } => c.type === "text")
+    .filter((c): c is { type: 'text'; text: string } => c.type === 'text')
     .map((c) => c.text)
-    .join("\n")
+    .join('\n')
     .trim();
 
-  if (text === "NO_CHANGES" || !text) {
+  if (text === 'NO_CHANGES' || !text) {
     return { message: null, changelog: null };
   }
 
   // Split commit message and changelog if present
-  const parts = text.split("---CHANGELOG---");
+  const parts = text.split('---CHANGELOG---');
   const message = parts[0]!.trim();
   const changelog = parts[1]?.trim() || null;
 
@@ -230,33 +223,33 @@ async function generateMessage(
 }
 
 async function runGitCommit(cwd: string, message: string, push: boolean): Promise<string> {
-  const { execSync } = await import("node:child_process");
+  const { execSync } = await import('node:child_process');
 
   // Stage all if nothing is staged
-  const hasStaged = execSync("git diff --cached --name-only", { cwd, encoding: "utf-8" }).trim();
+  const hasStaged = execSync('git diff --cached --name-only', { cwd, encoding: 'utf-8' }).trim();
   if (!hasStaged) {
-    execSync("git add -A", { cwd, encoding: "utf-8" });
+    execSync('git add -A', { cwd, encoding: 'utf-8' });
   }
 
   // Write message to a temp file to avoid shell escaping issues
-  const { writeFileSync, mkdtempSync, rmSync } = await import("node:fs");
-  const { join } = await import("node:path");
-  const { tmpdir } = await import("node:os");
-  const tmpDir = mkdtempSync(join(tmpdir(), "pi-commit-"));
-  const msgFile = join(tmpDir, "COMMIT_MSG");
+  const { writeFileSync, mkdtempSync, rmSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { tmpdir } = await import('node:os');
+  const tmpDir = mkdtempSync(join(tmpdir(), 'pi-commit-'));
+  const msgFile = join(tmpDir, 'COMMIT_MSG');
   writeFileSync(msgFile, message, { mode: 0o600 });
 
   try {
     const result = execSync(`git commit -F "${msgFile}"`, {
       cwd,
-      encoding: "utf-8",
+      encoding: 'utf-8',
       maxBuffer: 1024 * 1024 * 10,
     }).trim();
 
     if (push) {
-      const pushResult = execSync("git push", {
+      const pushResult = execSync('git push', {
         cwd,
-        encoding: "utf-8",
+        encoding: 'utf-8',
         maxBuffer: 1024 * 1024 * 10,
       }).trim();
       return `${result}\n\n${pushResult}`;
@@ -269,18 +262,18 @@ async function runGitCommit(cwd: string, message: string, push: boolean): Promis
 }
 
 export default function (pi: ExtensionAPI) {
-  pi.registerCommand("commit", {
-    description: "AI-powered git commit — generates a message from the diff and commits",
+  pi.registerCommand('commit', {
+    description: 'AI-powered git commit — generates a message from the diff and commits',
     handler: async (args, ctx) => {
       const opts = parseArgs(args);
       const cwd = ctx.cwd;
 
       // Check we're in a git repo
-      const { execSync } = await import("node:child_process");
+      const { execSync } = await import('node:child_process');
       try {
-        execSync("git rev-parse --is-inside-work-tree", { cwd, encoding: "utf-8", stdio: "pipe" });
+        execSync('git rev-parse --is-inside-work-tree', { cwd, encoding: 'utf-8', stdio: 'pipe' });
       } catch {
-        ctx.ui.notify("Not a git repository", "error");
+        ctx.ui.notify('Not a git repository', 'error');
         return;
       }
 
@@ -288,7 +281,7 @@ export default function (pi: ExtensionAPI) {
       const diff = await getDiff(cwd);
 
       if (!diff.staged && !diff.unstaged && diff.untracked.length === 0) {
-        ctx.ui.notify("No changes to commit", "info");
+        ctx.ui.notify('No changes to commit', 'info');
         return;
       }
 
@@ -300,7 +293,7 @@ export default function (pi: ExtensionAPI) {
         changelog: string | null;
         error?: string;
       }>((tui, theme, _kb, done) => {
-        const loader = new BorderedLoader(tui, theme, "Generating commit message...");
+        const loader = new BorderedLoader(tui, theme, 'Generating commit message...');
         loader.onAbort = () => done({ message: null, changelog: null });
 
         const doGenerate = async () => {
@@ -322,45 +315,40 @@ export default function (pi: ExtensionAPI) {
       });
 
       if (result.error) {
-        ctx.ui.notify(`Failed to generate commit message: ${result.error}`, "error");
+        ctx.ui.notify(`Failed to generate commit message: ${result.error}`, 'error');
         return;
       }
 
       if (!result.message) {
-        ctx.ui.notify("No commit message generated", "info");
+        ctx.ui.notify('No commit message generated', 'info');
         return;
       }
 
       // Show the generated message
-      const display = result.changelog
-        ? `${result.message}\n\n--- changelog ---\n${result.changelog}`
-        : result.message;
+      const display = result.changelog ? `${result.message}\n\n--- changelog ---\n${result.changelog}` : result.message;
 
       if (opts.dryRun) {
-        ctx.ui.notify(`Dry run — message:\n\n${display}`, "info");
+        ctx.ui.notify(`Dry run — message:\n\n${display}`, 'info');
         return;
       }
 
       // Confirm before committing (unless auto-approved)
       const confirmed = await ctx.ui.confirm(
-        "Commit with this message?",
-        result.message.split("\n")[0] ?? result.message,
+        'Commit with this message?',
+        result.message.split('\n')[0] ?? result.message,
       );
 
       if (!confirmed) {
-        ctx.ui.notify("Commit cancelled", "info");
+        ctx.ui.notify('Commit cancelled', 'info');
         return;
       }
 
       // Run the commit
       try {
         const output = await runGitCommit(cwd, result.message, opts.push);
-        ctx.ui.notify(output, "info");
+        ctx.ui.notify(output, 'info');
       } catch (err) {
-        ctx.ui.notify(
-          `git commit failed: ${err instanceof Error ? err.message : String(err)}`,
-          "error",
-        );
+        ctx.ui.notify(`git commit failed: ${err instanceof Error ? err.message : String(err)}`, 'error');
       }
     },
   });

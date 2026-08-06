@@ -15,7 +15,7 @@ import {
   type Component,
   type SelectItem,
   type SelectListTheme,
-} from "@earendil-works/pi-tui";
+} from '@earendil-works/pi-tui';
 
 export class SearchableSelectList implements Component {
   private container = new Container();
@@ -44,10 +44,10 @@ export class SearchableSelectList implements Component {
   handleInput(keyData: string): void {
     const kb = getKeybindings();
     if (
-      kb.matches(keyData, "tui.select.up") ||
-      kb.matches(keyData, "tui.select.down") ||
-      kb.matches(keyData, "tui.select.confirm") ||
-      kb.matches(keyData, "tui.select.cancel")
+      kb.matches(keyData, 'tui.select.up') ||
+      kb.matches(keyData, 'tui.select.down') ||
+      kb.matches(keyData, 'tui.select.confirm') ||
+      kb.matches(keyData, 'tui.select.cancel')
     ) {
       this.selectList.handleInput(keyData);
     } else {

@@ -37,24 +37,24 @@
  *     }
  */
 
-import type { Message } from "@earendil-works/pi-ai";
-import { getModelProvider } from "../lib/llm.ts";
+import type { Message } from '@earendil-works/pi-ai';
+import { getModelProvider } from '../lib/llm.ts';
 import {
   SessionManager,
   type ExtensionAPI,
   type ExtensionContext,
   type SessionEntry,
   type SessionInfo,
-} from "@earendil-works/pi-coding-agent";
-import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { basename, join } from "node:path";
+} from '@earendil-works/pi-coding-agent';
+import { readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { basename, join } from 'node:path';
 
 // ── Config ────────────────────────────────────────────────────────────────
 
 interface SessionNameConfig {
   /** Auto-naming mode after the first exchange. */
-  autoName: "off" | "heuristic" | "llm";
+  autoName: 'off' | 'heuristic' | 'llm';
   /** Max characters for derived names (heuristic and LLM). */
   heuristicMaxLength: number;
   /** Max words for LLM-generated titles. */
@@ -70,19 +70,19 @@ interface SessionNameConfig {
 }
 
 const DEFAULT_CONFIG: SessionNameConfig = {
-  autoName: "heuristic",
+  autoName: 'heuristic',
   heuristicMaxLength: 60,
   llmMaxWords: 6,
   llmModel: null,
   notifyOnAutoName: true,
   setTitle: true,
-  titleFormat: "{summary} — {dir}",
+  titleFormat: '{summary} — {dir}',
 };
 
 function loadConfig(): SessionNameConfig {
   try {
-    const path = join(homedir(), ".pi", "agent", "extensions", "session-name.json");
-    const raw = readFileSync(path, "utf8");
+    const path = join(homedir(), '.pi', 'agent', 'extensions', 'session-name.json');
+    const raw = readFileSync(path, 'utf8');
     const parsed = JSON.parse(raw) as Partial<SessionNameConfig>;
     return { ...DEFAULT_CONFIG, ...parsed };
   } catch {
@@ -100,23 +100,23 @@ function truncate(text: string, max: number): string {
 
 /** Extract plain text from a message's content (string or content blocks). */
 function contentToText(content: unknown): string {
-  if (typeof content === "string") return content;
+  if (typeof content === 'string') return content;
   if (Array.isArray(content)) {
     return content
       .filter(
-        (c): c is { type: "text"; text: string } =>
-          typeof c === "object" && c !== null && (c as { type?: string }).type === "text",
+        (c): c is { type: 'text'; text: string } =>
+          typeof c === 'object' && c !== null && (c as { type?: string }).type === 'text',
       )
       .map((c) => c.text)
-      .join(" ");
+      .join(' ');
   }
-  return "";
+  return '';
 }
 
 /** First user message text in the branch (oldest first). */
 function firstUserText(branch: SessionEntry[]): string | undefined {
   for (const entry of branch) {
-    if (entry.type === "message" && entry.message.role === "user") {
+    if (entry.type === 'message' && entry.message.role === 'user') {
       const text = contentToText(entry.message.content);
       if (text.trim()) return text;
     }
@@ -127,7 +127,7 @@ function firstUserText(branch: SessionEntry[]): string | undefined {
 /** First assistant message text in the branch (oldest first). */
 function firstAssistantText(branch: SessionEntry[]): string | undefined {
   for (const entry of branch) {
-    if (entry.type === "message" && entry.message.role === "assistant") {
+    if (entry.type === 'message' && entry.message.role === 'assistant') {
       const text = contentToText(entry.message.content);
       if (text.trim()) return text;
     }
@@ -141,7 +141,7 @@ function deriveHeuristicName(text: string, maxLen: number): string | null {
     .split(/\n/)
     .map((l) => l.trim())
     .find((l) => l.length > 0);
-  let name = (firstLine ?? text).replace(/\s+/g, " ").trim();
+  let name = (firstLine ?? text).replace(/\s+/g, ' ').trim();
   if (!name) return null;
   if (name.length > maxLen) name = `${name.slice(0, maxLen - 1).trimEnd()}…`;
   return name;
@@ -150,7 +150,7 @@ function deriveHeuristicName(text: string, maxLen: number): string | null {
 function relativeTime(date: Date): string {
   const diff = Date.now() - date.getTime();
   const sec = Math.floor(diff / 1000);
-  if (sec < 60) return "just now";
+  if (sec < 60) return 'just now';
   const min = Math.floor(sec / 60);
   if (min < 60) return `${min}m ago`;
   const hr = Math.floor(min / 60);
@@ -163,8 +163,8 @@ function relativeTime(date: Date): string {
 }
 
 function formatSessionLine(s: SessionInfo): string {
-  const marker = s.name ? "★" : "·";
-  const title = s.name || truncate(s.firstMessage || "(empty)", 60);
+  const marker = s.name ? '★' : '·';
+  const title = s.name || truncate(s.firstMessage || '(empty)', 60);
   return `${marker} ${title}  — ${s.messageCount} msgs — ${relativeTime(s.modified)} — ${s.id.slice(0, 8)}`;
 }
 
@@ -187,7 +187,7 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
   // never lands on a torn-down session.
   let pendingTitleTimer: ReturnType<typeof setTimeout> | null = null;
 
-  pi.on("session_start", (_event, ctx) => {
+  pi.on('session_start', (_event, ctx) => {
     autoNamed = false;
     if (config.setTitle && ctx.hasUI) {
       // Defer so we run after pi's built-in updateTerminalTitle() on startup,
@@ -203,14 +203,14 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
     }
   });
 
-  pi.on("session_info_changed", (event, ctx) => {
+  pi.on('session_info_changed', (event, ctx) => {
     if (!config.setTitle || !ctx.hasUI) return;
     // setSessionName emits to pi's built-in handlers first, then to extensions,
     // so this runs after the built-in updateTerminalTitle() and wins.
     ctx.ui.setTitle(buildTitle(event.name, ctx.cwd, config.titleFormat));
   });
 
-  pi.on("session_shutdown", () => {
+  pi.on('session_shutdown', () => {
     titleAbort?.abort();
     titleAbort = null;
     if (pendingTitleTimer) {
@@ -220,8 +220,8 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
   });
 
   // ── Auto-naming after the first exchange ──────────────────────────────
-  pi.on("agent_settled", async (_event, ctx) => {
-    if (autoNamed || config.autoName === "off") return;
+  pi.on('agent_settled', async (_event, ctx) => {
+    if (autoNamed || config.autoName === 'off') return;
     // Respect an existing name (set via /name, /sn, --name, or a prior turn).
     if (pi.getSessionName()) {
       autoNamed = true;
@@ -237,9 +237,9 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
 
     let name: string | null = null;
     try {
-      if (config.autoName === "llm") {
+      if (config.autoName === 'llm') {
         const assistantText = firstAssistantText(branch);
-        name = await generateLlmTitle(ctx, userText, assistantText ?? "");
+        name = await generateLlmTitle(ctx, userText, assistantText ?? '');
         if (!name) name = deriveHeuristicName(userText, config.heuristicMaxLength);
       } else {
         name = deriveHeuristicName(userText, config.heuristicMaxLength);
@@ -254,7 +254,7 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
 
     pi.setSessionName(name);
     if (config.notifyOnAutoName && ctx.hasUI) {
-      ctx.ui.notify(`Session named: ${name}`, "info");
+      ctx.ui.notify(`Session named: ${name}`, 'info');
     }
   });
 
@@ -274,8 +274,8 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
     const systemPrompt = `You generate concise session titles for a coding agent. Given the user's first prompt and the start of the assistant's first reply, reply with ONLY a short title of at most ${config.llmMaxWords} words. No quotes, no trailing punctuation, no explanation.`;
     const body = `User's first prompt:\n${truncate(userText, 1000)}\n\nAssistant's first reply (start):\n${truncate(assistantText, 800)}`;
     const userMessage: Message = {
-      role: "user",
-      content: [{ type: "text", text: body }],
+      role: 'user',
+      content: [{ type: 'text', text: body }],
       timestamp: Date.now(),
     };
 
@@ -287,18 +287,18 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
           { apiKey: auth.apiKey, headers: auth.headers, env: auth.env, signal: controller.signal },
         )
         .result();
-      if (response.stopReason === "error" || response.stopReason === "aborted") return null;
+      if (response.stopReason === 'error' || response.stopReason === 'aborted') return null;
       const raw = response.content
-        .filter((c): c is { type: "text"; text: string } => c.type === "text")
+        .filter((c): c is { type: 'text'; text: string } => c.type === 'text')
         .map((c) => c.text)
-        .join(" ")
+        .join(' ')
         .trim();
       if (!raw) return null;
       let title = raw
         .split(/\n/)[0]
         .trim()
-        .replace(/^["'`]+|["'`]+$/g, "")
-        .replace(/[.!?]+$/, "")
+        .replace(/^["'`]+|["'`]+$/g, '')
+        .replace(/[.!?]+$/, '')
         .trim();
       if (!title) return null;
       if (title.length > config.heuristicMaxLength) {
@@ -319,27 +319,24 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
   /** Resolve the model for title generation: configured cheap model, else session model. */
   function resolveTitleModel(ctx: ExtensionContext) {
     if (config.llmModel) {
-      const slash = config.llmModel.indexOf("/");
-      const provider = slash > 0 ? config.llmModel.slice(0, slash) : "";
-      const modelId = slash > 0 ? config.llmModel.slice(slash + 1) : "";
+      const slash = config.llmModel.indexOf('/');
+      const provider = slash > 0 ? config.llmModel.slice(0, slash) : '';
+      const modelId = slash > 0 ? config.llmModel.slice(slash + 1) : '';
       const found = provider && modelId ? ctx.modelRegistry.find(provider, modelId) : undefined;
       if (found) return found;
       if (!warnedBadModel && ctx.hasUI) {
         warnedBadModel = true;
-        ctx.ui.notify(
-          `session-name: model "${config.llmModel}" not found; using session model`,
-          "warning",
-        );
+        ctx.ui.notify(`session-name: model "${config.llmModel}" not found; using session model`, 'warning');
       }
     }
     return ctx.model;
   }
 
   // ── /sn — set / show / clear ─────────────────────────────────────────
-  pi.registerCommand("sn", {
-    description: "Set or show the session name (usage: /sn [name] | /sn clear)",
+  pi.registerCommand('sn', {
+    description: 'Set or show the session name (usage: /sn [name] | /sn clear)',
     getArgumentCompletions: (prefix: string) => {
-      const suggestions = ["clear"];
+      const suggestions = ['clear'];
       const filtered = suggestions.filter((s) => s.startsWith(prefix));
       return filtered.length > 0 ? filtered.map((s) => ({ value: s, label: s })) : null;
     },
@@ -348,43 +345,40 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
 
       if (!arg) {
         const current = pi.getSessionName();
-        ctx.ui.notify(
-          current ? `Session name: ${current}` : "No session name set (use /sn <name>)",
-          "info",
-        );
+        ctx.ui.notify(current ? `Session name: ${current}` : 'No session name set (use /sn <name>)', 'info');
         return;
       }
 
-      if (arg === "clear" || arg === "-c" || arg === "--clear") {
-        pi.setSessionName("");
+      if (arg === 'clear' || arg === '-c' || arg === '--clear') {
+        pi.setSessionName('');
         autoNamed = true; // user intentionally cleared; don't re-auto-name
-        ctx.ui.notify("Session name cleared", "info");
+        ctx.ui.notify('Session name cleared', 'info');
         return;
       }
 
       pi.setSessionName(arg);
       autoNamed = true; // user named manually; don't overwrite later
-      ctx.ui.notify(`Session named: ${arg}`, "info");
+      ctx.ui.notify(`Session named: ${arg}`, 'info');
     },
   });
 
   // ── /sessions — name-focused picker that resumes ──────────────────────
-  pi.registerCommand("sessions", {
-    description: "Search sessions by name and resume (usage: /sessions [query] [--all])",
+  pi.registerCommand('sessions', {
+    description: 'Search sessions by name and resume (usage: /sessions [query] [--all])',
     handler: async (args, ctx) => {
       if (!ctx.hasUI) {
-        ctx.ui.notify("/sessions requires interactive mode", "error");
+        ctx.ui.notify('/sessions requires interactive mode', 'error');
         return;
       }
 
       const { query, all } = parseSessionsArgs(args);
 
-      ctx.ui.setStatus("session-name", "Loading sessions…");
+      ctx.ui.setStatus('session-name', 'Loading sessions…');
       let sessions: SessionInfo[];
       try {
         sessions = all ? await SessionManager.listAll() : await SessionManager.list(ctx.cwd);
       } finally {
-        ctx.ui.setStatus("session-name", undefined);
+        ctx.ui.setStatus('session-name', undefined);
       }
 
       const currentFile = ctx.sessionManager.getSessionFile();
@@ -394,31 +388,22 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
         const q = query.toLowerCase();
         list = list.filter(
           (s) =>
-            (s.name ?? "").toLowerCase().includes(q) ||
+            (s.name ?? '').toLowerCase().includes(q) ||
             s.firstMessage.toLowerCase().includes(q) ||
             s.id.toLowerCase().includes(q),
         );
       }
 
       // Named sessions first, then most recently modified.
-      list.sort(
-        (a, b) =>
-          Number(!!b.name) - Number(!!a.name) || b.modified.getTime() - a.modified.getTime(),
-      );
+      list.sort((a, b) => Number(!!b.name) - Number(!!a.name) || b.modified.getTime() - a.modified.getTime());
 
       if (list.length === 0) {
-        ctx.ui.notify(
-          query ? `No sessions matching "${query}"` : "No other sessions found",
-          "info",
-        );
+        ctx.ui.notify(query ? `No sessions matching "${query}"` : 'No other sessions found', 'info');
         return;
       }
 
       const lines = list.map(formatSessionLine);
-      const choice = await ctx.ui.select(
-        all ? "Sessions (all projects)" : "Sessions (this project)",
-        lines,
-      );
+      const choice = await ctx.ui.select(all ? 'Sessions (all projects)' : 'Sessions (this project)', lines);
       if (!choice) return;
 
       const idx = lines.indexOf(choice);
@@ -428,13 +413,13 @@ export default function sessionNameExtension(pi: ExtensionAPI): void {
       const result = await ctx.switchSession(target.path, {
         withSession: async (rctx) => {
           const label = target.name ?? truncate(target.firstMessage, 50);
-          rctx.ui.notify(`Resumed: ${label}`, "info");
+          rctx.ui.notify(`Resumed: ${label}`, 'info');
         },
       });
 
       if (result?.cancelled) {
         // The original ctx is still valid here only if the switch was cancelled.
-        ctx.ui.notify("Switch cancelled", "info");
+        ctx.ui.notify('Switch cancelled', 'info');
       }
     },
   });
@@ -447,8 +432,8 @@ function parseSessionsArgs(args: string): { query: string; all: boolean } {
   let all = false;
   const queryParts: string[] = [];
   for (const tok of tokens) {
-    if (tok === "--all" || tok === "-a") all = true;
+    if (tok === '--all' || tok === '-a') all = true;
     else queryParts.push(tok);
   }
-  return { query: queryParts.join(" ").trim(), all };
+  return { query: queryParts.join(' ').trim(), all };
 }

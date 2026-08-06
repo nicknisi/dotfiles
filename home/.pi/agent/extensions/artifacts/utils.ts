@@ -1,10 +1,10 @@
 /** Pure helpers: slugify, artifact file I/O, browser open. */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { join, normalize, sep } from "node:path";
-import { spawn } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { join, normalize, sep } from 'node:path';
+import { spawn } from 'node:child_process';
 
-import { ARTIFACT_DIR } from "./config.js";
+import { ARTIFACT_DIR } from './config.js';
 
 /** Absolute path to the artifacts dir for the current project. */
 export function artifactDir(): string {
@@ -20,19 +20,21 @@ export function ensureArtifactDir(): string {
 
 /** Kebab-case slug from a title. Lowercase, alnum + hyphens, trimmed. */
 export function slugify(title: string): string {
-  return title
-    .toLowerCase()
-    .trim()
-    .replace(/['"`]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || "artifact";
+  return (
+    title
+      .toLowerCase()
+      .trim()
+      .replace(/['"`]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80) || 'artifact'
+  );
 }
 
 /** Reject path traversal; a slug must be a bare filename (no separators, no dots-prefix). */
 export function isSafeSlug(slug: string): boolean {
   if (!slug) return false;
-  if (slug.includes("/") || slug.includes("\\") || slug.includes("..")) return false;
+  if (slug.includes('/') || slug.includes('\\') || slug.includes('..')) return false;
   if (!/^[a-z0-9-]+$/i.test(slug)) return false;
   return true;
 }
@@ -46,7 +48,7 @@ export function artifactPath(slug: string): string {
 export function writeArtifact(slug: string, html: string): string {
   ensureArtifactDir();
   const path = artifactPath(slug);
-  writeFileSync(path, html, "utf-8");
+  writeFileSync(path, html, 'utf-8');
   return path;
 }
 
@@ -54,7 +56,7 @@ export function writeArtifact(slug: string, html: string): string {
 export function readArtifact(slug: string): string | null {
   const path = artifactPath(slug);
   if (!existsSync(path)) return null;
-  return readFileSync(path, "utf-8");
+  return readFileSync(path, 'utf-8');
 }
 
 /** Does the artifact file exist? */
@@ -65,7 +67,7 @@ export function artifactExists(slug: string): boolean {
 export interface ArtifactEntry {
   slug: string;
   title: string;
-  kind: "markdown" | "html";
+  kind: 'markdown' | 'html';
   mtime: number;
   absPath: string;
 }
@@ -76,10 +78,10 @@ export function listArtifacts(): ArtifactEntry[] {
   if (!existsSync(dir)) return [];
   const entries: ArtifactEntry[] = [];
   for (const file of readdirSync(dir)) {
-    if (!file.endsWith(".html")) continue;
+    if (!file.endsWith('.html')) continue;
     const absPath = join(dir, file);
-    const content = readFileSync(absPath, "utf-8");
-    const slug = file.replace(/\.html$/, "");
+    const content = readFileSync(absPath, 'utf-8');
+    const slug = file.replace(/\.html$/, '');
     const titleMatch = content.match(/<title>(.*?)<\/title>/s);
     const kindMatch = content.match(/<meta name="artifact-kind" content="(.*?)"/);
     const kindRaw = kindMatch?.[1];
@@ -87,9 +89,12 @@ export function listArtifacts(): ArtifactEntry[] {
     // infer from the shell marker: buildShell always emits <style data-base>, so
     // its presence means a rendered markdown/fragment artifact; absence means a
     // full-doc html or a foreign file → call it html.
-    const kind: "markdown" | "html" = kindRaw === "html" || kindRaw === "markdown"
-      ? kindRaw
-      : content.includes("<style data-base") ? "markdown" : "html";
+    const kind: 'markdown' | 'html' =
+      kindRaw === 'html' || kindRaw === 'markdown'
+        ? kindRaw
+        : content.includes('<style data-base')
+          ? 'markdown'
+          : 'html';
     entries.push({
       slug,
       title: titleMatch ? titleMatch[1].trim() : slug,
@@ -121,12 +126,13 @@ export function safeArtifactPath(reqPath: string): string | null {
  * is a cmd.exe built-in and cannot be spawned directly); on linux: `xdg-open`.
  */
 export function openInBrowser(url: string): void {
-  const [cmd, args] = process.platform === "darwin"
-    ? ["open", [url]]
-    : process.platform === "win32"
-      ? ["rundll32", ["url.dll,FileProtocolHandler", url]]
-      : ["xdg-open", [url]];
-  spawn(cmd, args, { detached: true, stdio: "ignore" })
-    .on("error", (err) => console.warn(`openInBrowser: ${cmd} failed: ${err.message}`))
+  const [cmd, args] =
+    process.platform === 'darwin'
+      ? ['open', [url]]
+      : process.platform === 'win32'
+        ? ['rundll32', ['url.dll,FileProtocolHandler', url]]
+        : ['xdg-open', [url]];
+  spawn(cmd, args, { detached: true, stdio: 'ignore' })
+    .on('error', (err) => console.warn(`openInBrowser: ${cmd} failed: ${err.message}`))
     .unref();
 }

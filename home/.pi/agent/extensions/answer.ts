@@ -1,11 +1,6 @@
-import type { Api, Model, UserMessage } from "@earendil-works/pi-ai";
-import { getModelProvider } from "../lib/llm.ts";
-import {
-  BorderedLoader,
-  Theme,
-  type ExtensionAPI,
-  type ExtensionContext,
-} from "@earendil-works/pi-coding-agent";
+import type { Api, Model, UserMessage } from '@earendil-works/pi-ai';
+import { getModelProvider } from '../lib/llm.ts';
+import { BorderedLoader, Theme, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
 import {
   type Component,
   type Focusable,
@@ -17,7 +12,7 @@ import {
   truncateToWidth,
   visibleWidth,
   wrapTextWithAnsi,
-} from "@earendil-works/pi-tui";
+} from '@earendil-works/pi-tui';
 
 interface ExtractedQuestion {
   question: string;
@@ -29,9 +24,9 @@ interface ExtractionResult {
 }
 
 type ExtractionOutcome =
-  | { type: "success"; result: ExtractionResult }
-  | { type: "cancelled" }
-  | { type: "error"; message: string };
+  | { type: 'success'; result: ExtractionResult }
+  | { type: 'cancelled' }
+  | { type: 'error'; message: string };
 
 const SYSTEM_PROMPT = `You extract questions from assistant text that still need answers from the user.
 
@@ -66,22 +61,17 @@ interface ExtractionModelPreference {
 }
 
 const EXTRACTION_MODEL_PREFERENCES: readonly ExtractionModelPreference[] = [
-  { provider: "anthropic", modelId: "claude-fable-5" },
-  { provider: "anthropic", modelId: "claude-opus-5" },
+  { provider: 'anthropic', modelId: 'claude-fable-5' },
+  { provider: 'anthropic', modelId: 'claude-opus-5' },
 ];
 
-function formatExtractionModelPreferences(
-  preferences: readonly ExtractionModelPreference[],
-): string {
-  return preferences.map((candidate) => `${candidate.provider}/${candidate.modelId}`).join(", ");
+function formatExtractionModelPreferences(preferences: readonly ExtractionModelPreference[]): string {
+  return preferences.map((candidate) => `${candidate.provider}/${candidate.modelId}`).join(', ');
 }
 
 function getTextParts(content: Array<{ type: string; text?: string }>): string[] {
   return content
-    .filter(
-      (part): part is { type: "text"; text: string } =>
-        part.type === "text" && typeof part.text === "string",
-    )
+    .filter((part): part is { type: 'text'; text: string } => part.type === 'text' && typeof part.text === 'string')
     .map((part) => part.text);
 }
 
@@ -100,8 +90,8 @@ function getJsonCandidates(text: string): string[] {
     }
   }
 
-  const firstBrace = text.indexOf("{");
-  const lastBrace = text.lastIndexOf("}");
+  const firstBrace = text.indexOf('{');
+  const lastBrace = text.lastIndexOf('}');
   if (firstBrace !== -1 && lastBrace > firstBrace) {
     const candidate = text.slice(firstBrace, lastBrace + 1).trim();
     if (candidate) {
@@ -137,7 +127,7 @@ function parseExtractionResult(text: string): ExtractionOutcome {
       const parsed = JSON.parse(candidate) as ExtractionResult;
       if (parsed && Array.isArray(parsed.questions)) {
         return {
-          type: "success",
+          type: 'success',
           result: normalizeExtractedQuestions(parsed),
         };
       }
@@ -147,16 +137,16 @@ function parseExtractionResult(text: string): ExtractionOutcome {
   }
 
   return {
-    type: "error",
-    message: "Question extraction returned invalid JSON.",
+    type: 'error',
+    message: 'Question extraction returned invalid JSON.',
   };
 }
 
 function fallbackExtractQuestions(text: string): ExtractionResult {
-  const normalized = text.replace(/\r\n?/g, "\n").trim();
+  const normalized = text.replace(/\r\n?/g, '\n').trim();
   const questionMatches = normalized.match(/[^\n.!?]*\?+(?:["')\]]+)?/g) ?? [];
   const questions = questionMatches
-    .map((question) => question.replace(/^[\s>*-]+/, "").trim())
+    .map((question) => question.replace(/^[\s>*-]+/, '').trim())
     .filter((question) => question.length > 0)
     .map((question) => ({ question }));
 
@@ -172,13 +162,13 @@ function findLastCompletedAssistantMessage(ctx: ExtensionContext): {
 
   for (let i = branch.length - 1; i >= 0; i--) {
     const entry = branch[i]!;
-    if (entry.type !== "message") continue;
+    if (entry.type !== 'message') continue;
 
     const message = entry.message;
-    if (!("role" in message) || message.role !== "assistant") continue;
+    if (!('role' in message) || message.role !== 'assistant') continue;
 
-    const text = getTextParts(message.content).join("\n").trim();
-    if (message.stopReason !== "stop") {
+    const text = getTextParts(message.content).join('\n').trim();
+    if (message.stopReason !== 'stop') {
       skippedIncomplete = true;
       continue;
     }
@@ -195,9 +185,7 @@ async function selectExtractionModel(
     find: (provider: string, modelId: string) => Model<Api> | undefined;
     getApiKeyAndHeaders: (
       model: Model<Api>,
-    ) => Promise<
-      { ok: true; apiKey?: string; headers?: Record<string, string> } | { ok: false; error: string }
-    >;
+    ) => Promise<{ ok: true; apiKey?: string; headers?: Record<string, string> } | { ok: false; error: string }>;
   },
   preferences: readonly ExtractionModelPreference[],
 ): Promise<Model<Api> | undefined> {
@@ -215,11 +203,11 @@ async function selectExtractionModel(
 }
 
 function buildAnswerMessage(questions: ExtractedQuestion[], answers: string[]): string {
-  const lines = ["Here are my answers to your questions:", ""];
+  const lines = ['Here are my answers to your questions:', ''];
 
   for (let i = 0; i < questions.length; i++) {
     const question = questions[i]!;
-    const answer = answers[i]?.trim() || "(no answer)";
+    const answer = answers[i]?.trim() || '(no answer)';
 
     lines.push(`Q: ${question.question}`);
     if (question.context) {
@@ -228,11 +216,11 @@ function buildAnswerMessage(questions: ExtractedQuestion[], answers: string[]): 
     lines.push(`A: ${answer}`);
 
     if (i < questions.length - 1) {
-      lines.push("");
+      lines.push('');
     }
   }
 
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 class AnswerComponent implements Component, Focusable {
@@ -260,16 +248,16 @@ class AnswerComponent implements Component, Focusable {
     private readonly theme: Theme,
     private readonly done: (result: string | null) => void,
   ) {
-    this.answers = questions.map(() => "");
+    this.answers = questions.map(() => '');
 
     const editorTheme: EditorTheme = {
-      borderColor: (text: string) => this.theme.fg("borderAccent", text),
+      borderColor: (text: string) => this.theme.fg('borderAccent', text),
       selectList: {
-        selectedPrefix: (text: string) => this.theme.fg("accent", text),
-        selectedText: (text: string) => this.theme.fg("accent", text),
-        description: (text: string) => this.theme.fg("muted", text),
-        scrollInfo: (text: string) => this.theme.fg("dim", text),
-        noMatch: (text: string) => this.theme.fg("warning", text),
+        selectedPrefix: (text: string) => this.theme.fg('accent', text),
+        selectedText: (text: string) => this.theme.fg('accent', text),
+        description: (text: string) => this.theme.fg('muted', text),
+        scrollInfo: (text: string) => this.theme.fg('dim', text),
+        noMatch: (text: string) => this.theme.fg('warning', text),
       },
     };
 
@@ -282,7 +270,7 @@ class AnswerComponent implements Component, Focusable {
   }
 
   private border(text: string): string {
-    return this.theme.fg("border", text);
+    return this.theme.fg('border', text);
   }
 
   private saveCurrentAnswer(): void {
@@ -298,7 +286,7 @@ class AnswerComponent implements Component, Focusable {
     if (index < 0 || index >= this.questions.length) return;
     this.saveCurrentAnswer();
     this.currentIndex = index;
-    this.editor.setText(this.answers[index] || "");
+    this.editor.setText(this.answers[index] || '');
     this.showingConfirmation = false;
     this.invalidate();
   }
@@ -314,15 +302,11 @@ class AnswerComponent implements Component, Focusable {
 
   handleInput(data: string): void {
     if (this.showingConfirmation) {
-      if (matchesKey(data, Key.enter) || data.toLowerCase() === "y") {
+      if (matchesKey(data, Key.enter) || data.toLowerCase() === 'y') {
         this.submit();
         return;
       }
-      if (
-        matchesKey(data, Key.escape) ||
-        matchesKey(data, Key.ctrl("c")) ||
-        data.toLowerCase() === "n"
-      ) {
+      if (matchesKey(data, Key.escape) || matchesKey(data, Key.ctrl('c')) || data.toLowerCase() === 'n') {
         this.showingConfirmation = false;
         this.invalidate();
         this.tui.requestRender();
@@ -331,7 +315,7 @@ class AnswerComponent implements Component, Focusable {
       return;
     }
 
-    if (matchesKey(data, Key.escape) || matchesKey(data, Key.ctrl("c"))) {
+    if (matchesKey(data, Key.escape) || matchesKey(data, Key.ctrl('c'))) {
       this.cancel();
       return;
     }
@@ -349,7 +333,7 @@ class AnswerComponent implements Component, Focusable {
       return;
     }
 
-    if (matchesKey(data, Key.shift("tab"))) {
+    if (matchesKey(data, Key.shift('tab'))) {
       if (this.currentIndex > 0) {
         this.navigateTo(this.currentIndex - 1);
         this.tui.requestRender();
@@ -357,7 +341,7 @@ class AnswerComponent implements Component, Focusable {
       return;
     }
 
-    if (matchesKey(data, Key.up) && this.editor.getText() === "") {
+    if (matchesKey(data, Key.up) && this.editor.getText() === '') {
       if (this.currentIndex > 0) {
         this.navigateTo(this.currentIndex - 1);
         this.tui.requestRender();
@@ -365,7 +349,7 @@ class AnswerComponent implements Component, Focusable {
       }
     }
 
-    if (matchesKey(data, Key.down) && this.editor.getText() === "") {
+    if (matchesKey(data, Key.down) && this.editor.getText() === '') {
       if (this.currentIndex < this.questions.length - 1) {
         this.navigateTo(this.currentIndex + 1);
         this.tui.requestRender();
@@ -373,7 +357,7 @@ class AnswerComponent implements Component, Focusable {
       }
     }
 
-    if (matchesKey(data, Key.enter) && !matchesKey(data, Key.shift("enter"))) {
+    if (matchesKey(data, Key.enter) && !matchesKey(data, Key.shift('enter'))) {
       this.saveCurrentAnswer();
       if (this.currentIndex < this.questions.length - 1) {
         this.navigateTo(this.currentIndex + 1);
@@ -403,76 +387,70 @@ class AnswerComponent implements Component, Focusable {
     const answered = this.answeredCount();
     const unanswered = this.questions.length - answered;
 
-    const pushBoxLine = (content = "") => {
-      const line = truncateToWidth(content, innerWidth, "…");
+    const pushBoxLine = (content = '') => {
+      const line = truncateToWidth(content, innerWidth, '…');
       const padding = Math.max(0, innerWidth - visibleWidth(line));
-      lines.push(this.border("│") + line + " ".repeat(padding) + this.border("│"));
+      lines.push(this.border('│') + line + ' '.repeat(padding) + this.border('│'));
     };
 
-    lines.push(this.border(`╭${"─".repeat(innerWidth)}╮`));
+    lines.push(this.border(`╭${'─'.repeat(innerWidth)}╮`));
     pushBoxLine(
-      ` ${this.theme.fg("accent", this.theme.bold("Questions"))}${this.theme.fg("dim", ` (${this.currentIndex + 1}/${this.questions.length})`)}`,
+      ` ${this.theme.fg('accent', this.theme.bold('Questions'))}${this.theme.fg('dim', ` (${this.currentIndex + 1}/${this.questions.length})`)}`,
     );
-    pushBoxLine(` ${this.theme.fg("muted", `Answered ${answered}/${this.questions.length}`)}`);
+    pushBoxLine(` ${this.theme.fg('muted', `Answered ${answered}/${this.questions.length}`)}`);
     pushBoxLine(
       ` ${this.questions
         .map((_, index) => {
           const label = String(index + 1);
           if (index === this.currentIndex) {
-            return this.theme.bg("selectedBg", this.theme.fg("text", ` ${label} `));
+            return this.theme.bg('selectedBg', this.theme.fg('text', ` ${label} `));
           }
           if (this.answers[index]?.trim()) {
-            return this.theme.fg("success", label);
+            return this.theme.fg('success', label);
           }
-          return this.theme.fg("dim", label);
+          return this.theme.fg('dim', label);
         })
-        .join(" ")}`,
+        .join(' ')}`,
     );
-    lines.push(this.border(`├${"─".repeat(innerWidth)}┤`));
+    lines.push(this.border(`├${'─'.repeat(innerWidth)}┤`));
 
-    for (const line of wrapTextWithAnsi(
-      `${this.theme.bold("Q: ")}${question.question}`,
-      contentWidth,
-    )) {
+    for (const line of wrapTextWithAnsi(`${this.theme.bold('Q: ')}${question.question}`, contentWidth)) {
       pushBoxLine(` ${line}`);
     }
 
     if (question.context) {
       pushBoxLine();
-      for (const line of wrapTextWithAnsi(
-        this.theme.fg("muted", `Context: ${question.context}`),
-        contentWidth,
-      )) {
+      for (const line of wrapTextWithAnsi(this.theme.fg('muted', `Context: ${question.context}`), contentWidth)) {
         pushBoxLine(` ${line}`);
       }
     }
 
     pushBoxLine();
 
-    const answerPrefix = this.theme.bold("A: ");
+    const answerPrefix = this.theme.bold('A: ');
     const answerPrefixWidth = visibleWidth(answerPrefix);
     const editorWidth = Math.max(1, contentWidth - answerPrefixWidth);
     const editorLines = this.editor.render(editorWidth);
     for (let i = 1; i < editorLines.length - 1; i++) {
-      const prefix = i === 1 ? answerPrefix : " ".repeat(answerPrefixWidth);
+      const prefix = i === 1 ? answerPrefix : ' '.repeat(answerPrefixWidth);
       pushBoxLine(` ${prefix}${editorLines[i]}`);
     }
 
     pushBoxLine();
-    lines.push(this.border(`├${"─".repeat(innerWidth)}┤`));
+    lines.push(this.border(`├${'─'.repeat(innerWidth)}┤`));
 
     if (this.showingConfirmation) {
       const message =
         unanswered > 0
-          ? ` Submit answers? ${unanswered} unanswered ${unanswered === 1 ? "item" : "items"} will be sent as '(no answer)'. Enter/y confirm • Esc/n back`
-          : " Submit answers? Enter/y confirm • Esc/n back";
-      pushBoxLine(this.theme.fg("warning", truncateToWidth(message, innerWidth - 1, "…")));
+          ? ` Submit answers? ${unanswered} unanswered ${unanswered === 1 ? 'item' : 'items'} will be sent as '(no answer)'. Enter/y confirm • Esc/n back`
+          : ' Submit answers? Enter/y confirm • Esc/n back';
+      pushBoxLine(this.theme.fg('warning', truncateToWidth(message, innerWidth - 1, '…')));
     } else {
-      const controls = " Tab/Enter next • Shift+Tab previous • Shift+Enter newline • Esc cancel";
-      pushBoxLine(this.theme.fg("dim", truncateToWidth(controls, innerWidth - 1, "…")));
+      const controls = ' Tab/Enter next • Shift+Tab previous • Shift+Enter newline • Esc cancel';
+      pushBoxLine(this.theme.fg('dim', truncateToWidth(controls, innerWidth - 1, '…')));
     }
 
-    lines.push(this.border(`╰${"─".repeat(innerWidth)}╯`));
+    lines.push(this.border(`╰${'─'.repeat(innerWidth)}╯`));
 
     this.cachedWidth = width;
     this.cachedLines = lines;
@@ -488,39 +466,34 @@ class AnswerComponent implements Component, Focusable {
 export default function (pi: ExtensionAPI) {
   const answerHandler = async (ctx: ExtensionContext) => {
     if (!ctx.hasUI) {
-      ctx.ui.notify("answer requires interactive mode", "error");
+      ctx.ui.notify('answer requires interactive mode', 'error');
       return;
     }
 
     if (!ctx.model) {
-      ctx.ui.notify("No model selected", "error");
+      ctx.ui.notify('No model selected', 'error');
       return;
     }
 
     const { text: lastAssistantText, skippedIncomplete } = findLastCompletedAssistantMessage(ctx);
     if (!lastAssistantText) {
       ctx.ui.notify(
-        skippedIncomplete
-          ? "No completed assistant message found yet"
-          : "No assistant messages found",
-        "error",
+        skippedIncomplete ? 'No completed assistant message found yet' : 'No assistant messages found',
+        'error',
       );
       return;
     }
 
     if (skippedIncomplete) {
-      ctx.ui.notify("Using the last completed assistant message", "warning");
+      ctx.ui.notify('Using the last completed assistant message', 'warning');
     }
 
     const extractionModelPreferences = EXTRACTION_MODEL_PREFERENCES;
-    const extractionModel = await selectExtractionModel(
-      ctx.modelRegistry,
-      extractionModelPreferences,
-    );
+    const extractionModel = await selectExtractionModel(ctx.modelRegistry, extractionModelPreferences);
     if (!extractionModel) {
       ctx.ui.notify(
         `No configured extraction model is available with a configured API key. Checked: ${formatExtractionModelPreferences(extractionModelPreferences)}`,
-        "error",
+        'error',
       );
       return;
     }
@@ -531,21 +504,21 @@ export default function (pi: ExtensionAPI) {
         theme,
         `Extracting questions using ${extractionModel.provider}/${extractionModel.id}...`,
       );
-      loader.onAbort = () => done({ type: "cancelled" });
+      loader.onAbort = () => done({ type: 'cancelled' });
 
       const doExtract = async () => {
         const auth = await ctx.modelRegistry.getApiKeyAndHeaders(extractionModel);
         if (!auth.ok) {
-          const authError = "error" in auth ? auth.error : "Unknown auth error";
+          const authError = 'error' in auth ? auth.error : 'Unknown auth error';
           return {
-            type: "error",
+            type: 'error',
             message: `No auth available for ${extractionModel.provider}/${extractionModel.id}: ${authError}`,
           } as ExtractionOutcome;
         }
 
         const userMessage: UserMessage = {
-          role: "user",
-          content: [{ type: "text", text: lastAssistantText }],
+          role: 'user',
+          content: [{ type: 'text', text: lastAssistantText }],
           timestamp: Date.now(),
         };
 
@@ -562,25 +535,25 @@ export default function (pi: ExtensionAPI) {
           )
           .result();
 
-        if (response.stopReason === "aborted") {
-          return { type: "cancelled" } as ExtractionOutcome;
+        if (response.stopReason === 'aborted') {
+          return { type: 'cancelled' } as ExtractionOutcome;
         }
 
-        const responseText = getTextParts(response.content).join("\n").trim();
+        const responseText = getTextParts(response.content).join('\n').trim();
         if (!responseText) {
           const fallback = fallbackExtractQuestions(lastAssistantText);
           return {
-            type: "success",
+            type: 'success',
             result: fallback,
           } as ExtractionOutcome;
         }
 
         const parsed = parseExtractionResult(responseText);
-        if (parsed.type === "error") {
+        if (parsed.type === 'error') {
           const fallback = fallbackExtractQuestions(lastAssistantText);
           if (fallback.questions.length > 0) {
             return {
-              type: "success",
+              type: 'success',
               result: fallback,
             } as ExtractionOutcome;
           }
@@ -593,7 +566,7 @@ export default function (pi: ExtensionAPI) {
         .then(done)
         .catch((error) => {
           done({
-            type: "error",
+            type: 'error',
             message: error instanceof Error ? error.message : String(error),
           });
         });
@@ -601,18 +574,18 @@ export default function (pi: ExtensionAPI) {
       return loader;
     });
 
-    if (extractionOutcome.type === "cancelled") {
-      ctx.ui.notify("Cancelled", "info");
+    if (extractionOutcome.type === 'cancelled') {
+      ctx.ui.notify('Cancelled', 'info');
       return;
     }
 
-    if (extractionOutcome.type === "error") {
-      ctx.ui.notify(extractionOutcome.message, "error");
+    if (extractionOutcome.type === 'error') {
+      ctx.ui.notify(extractionOutcome.message, 'error');
       return;
     }
 
     if (extractionOutcome.result.questions.length === 0) {
-      ctx.ui.notify("No questions found in the selected assistant message", "info");
+      ctx.ui.notify('No questions found in the selected assistant message', 'info');
       return;
     }
 
@@ -621,26 +594,25 @@ export default function (pi: ExtensionAPI) {
     });
 
     if (answersResult === null) {
-      ctx.ui.notify("Cancelled", "info");
+      ctx.ui.notify('Cancelled', 'info');
       return;
     }
 
     if (ctx.isIdle()) {
       pi.sendUserMessage(answersResult);
     } else {
-      pi.sendUserMessage(answersResult, { deliverAs: "followUp" });
-      ctx.ui.notify("Answers queued as a follow-up message", "info");
+      pi.sendUserMessage(answersResult, { deliverAs: 'followUp' });
+      ctx.ui.notify('Answers queued as a follow-up message', 'info');
     }
   };
 
-  pi.registerCommand("answer", {
-    description:
-      "Extract questions from the last completed assistant message into an interactive Q&A",
+  pi.registerCommand('answer', {
+    description: 'Extract questions from the last completed assistant message into an interactive Q&A',
     handler: async (_args, ctx) => answerHandler(ctx),
   });
 
-  pi.registerShortcut("ctrl+.", {
-    description: "Extract and answer questions",
+  pi.registerShortcut('ctrl+.', {
+    description: 'Extract and answer questions',
     handler: answerHandler,
   });
 }

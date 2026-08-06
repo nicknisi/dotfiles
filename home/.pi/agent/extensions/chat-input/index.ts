@@ -47,12 +47,12 @@ function cleanPastedText(text: string): string {
     return match;
   });
   // normalizeText: CRLF/CR -> LF, tabs -> 4 spaces
-  const normalized = decoded.replace(/\r\n/g, "\n").replace(/\r/g, "\n").replace(/\t/g, "    ");
+  const normalized = decoded.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\t/g, '    ');
   // Strip non-printables except newline
   return normalized
-    .split("")
-    .filter((c) => c === "\n" || c.charCodeAt(0) >= 32)
-    .join("");
+    .split('')
+    .filter((c) => c === '\n' || c.charCodeAt(0) >= 32)
+    .join('');
 }
 
 // pi-tui Editor privates we touch at runtime
@@ -67,30 +67,30 @@ interface EditorInternals {
   setCursorCol(col: number): void;
 }
 
-import { CustomEditor, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
-import type { TUI, EditorTheme } from "@earendil-works/pi-tui";
-import type { KeybindingsManager } from "@earendil-works/pi-coding-agent";
-import { visibleWidth } from "@earendil-works/pi-tui";
-import { CONFIG } from "./config.js";
-import { applyColor, plainText } from "./utils.js";
+import { CustomEditor, type ExtensionAPI, type ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { TUI, EditorTheme } from '@earendil-works/pi-tui';
+import type { KeybindingsManager } from '@earendil-works/pi-coding-agent';
+import { visibleWidth } from '@earendil-works/pi-tui';
+import { CONFIG } from './config.js';
+import { applyColor, plainText } from './utils.js';
 
 // Corner glyphs per style.
 const CORNERS = {
-  rounded: { tl: "╭", tr: "╮", bl: "╰", br: "╯", side: "│" },
-  square: { tl: "┌", tr: "┐", bl: "└", br: "┘", side: "│" },
+  rounded: { tl: '╭', tr: '╮', bl: '╰', br: '╯', side: '│' },
+  square: { tl: '┌', tr: '┐', bl: '└', br: '┘', side: '│' },
 } as const;
 
 // ─── Border / scroll detection on pi's stock render output ────────────────
 
 /** Solid border: every visible char is ─. */
 function isSolidBorder(line: string): boolean {
-  return plainText(line).replace(/─/g, "").length === 0;
+  return plainText(line).replace(/─/g, '').length === 0;
 }
 
 /** Extract the `↑ N more` / `↓ N more` scroll indicator, or null. */
 function getScrollText(line: string): string | null {
   const plain = plainText(line);
-  if (!plain.startsWith("─")) return null;
+  if (!plain.startsWith('─')) return null;
   const m = plain.match(/((?:↑|↓)\s*\d+\s*more)/);
   return m ? m[1] : null;
 }
@@ -162,7 +162,7 @@ class ChatInput extends CustomEditor {
     const line = self.state.lines[lineIdx]!;
     const before = line.slice(0, match.index);
     const after = line.slice(match.index + match[0].length);
-    self.state.lines.splice(lineIdx, 1, ...(before + content + after).split("\n"));
+    self.state.lines.splice(lineIdx, 1, ...(before + content + after).split('\n'));
 
     // Remove registry entry, shift higher ids down, renumber their markers
     self.pastes.delete(id);
@@ -174,12 +174,12 @@ class ChatInput extends CustomEditor {
     }
     self.state.lines = self.state.lines.map((l) =>
       l.replace(PASTE_MARKER_REGEX, (full, idGroup, suffix) =>
-        Number(idGroup) <= id ? full : `[paste #${Number(idGroup) - 1}${suffix ?? ""}]`,
+        Number(idGroup) <= id ? full : `[paste #${Number(idGroup) - 1}${suffix ?? ''}]`,
       ),
     );
 
     // Cursor to end of the expanded content
-    const contentLines = content.split("\n");
+    const contentLines = content.split('\n');
     self.state.cursorLine = lineIdx + contentLines.length - 1;
     self.setCursorCol(
       contentLines.length === 1 ? before.length + content.length : contentLines[contentLines.length - 1]!.length,
@@ -192,9 +192,7 @@ class ChatInput extends CustomEditor {
     const padMultiplier = CONFIG.BOXED_VIEW ? 3 : 1;
     if (width < 5 + CONFIG.BOX_PAD_X * padMultiplier) return super.render(width);
 
-    const contentWidth = CONFIG.BOXED_VIEW
-      ? width - 3 - CONFIG.BOX_PAD_X * 3
-      : width - 2 * CONFIG.BOX_PAD_X - 1;
+    const contentWidth = CONFIG.BOXED_VIEW ? width - 3 - CONFIG.BOX_PAD_X * 3 : width - 2 * CONFIG.BOX_PAD_X - 1;
     const stock = super.render(contentWidth);
     if (stock.length < 2) return super.render(width);
 
@@ -210,24 +208,33 @@ class ChatInput extends CustomEditor {
     const firstIdx = stock.findIndex(isBorderLike);
     let lastIdx = -1;
     for (let i = stock.length - 1; i >= 0; i--) {
-      if (isBorderLike(stock[i]!)) { lastIdx = i; break; }
+      if (isBorderLike(stock[i]!)) {
+        lastIdx = i;
+        break;
+      }
     }
 
     const buildTop = (scroll: string | null): string =>
       scroll
-        ? this.border(c.tl) + this.border(`── ${scroll} `) + this.border("─".repeat(Math.max(0, innerWidth - visibleWidth(`── ${scroll} `)))) + this.border(c.tr)
-        : this.border(c.tl) + this.border("─".repeat(innerWidth)) + this.border(c.tr);
+        ? this.border(c.tl) +
+          this.border(`── ${scroll} `) +
+          this.border('─'.repeat(Math.max(0, innerWidth - visibleWidth(`── ${scroll} `)))) +
+          this.border(c.tr)
+        : this.border(c.tl) + this.border('─'.repeat(innerWidth)) + this.border(c.tr);
     const buildBottom = (scroll: string | null): string =>
       scroll
-        ? this.border(c.bl) + this.border(`── ${scroll} `) + this.border("─".repeat(Math.max(0, innerWidth - visibleWidth(`── ${scroll} `)))) + this.border(c.br)
-        : this.border(c.bl) + this.border("─".repeat(innerWidth)) + this.border(c.br);
+        ? this.border(c.bl) +
+          this.border(`── ${scroll} `) +
+          this.border('─'.repeat(Math.max(0, innerWidth - visibleWidth(`── ${scroll} `)))) +
+          this.border(c.br)
+        : this.border(c.bl) + this.border('─'.repeat(innerWidth)) + this.border(c.br);
 
     const topScroll = firstIdx !== -1 ? getScrollText(stock[firstIdx]!) : null;
     const bottomScroll = lastIdx !== -1 && lastIdx !== firstIdx ? getScrollText(stock[lastIdx]!) : null;
     const top = buildTop(topScroll);
     const bottom = buildBottom(bottomScroll);
 
-    const pad = " ".repeat(CONFIG.BOX_PAD_X);
+    const pad = ' '.repeat(CONFIG.BOX_PAD_X);
 
     // Body lines (between first and last border).
     const body: string[] = [];
@@ -236,8 +243,8 @@ class ChatInput extends CustomEditor {
       if (i === firstIdx || i === lastIdx) continue;
       if (lastIdx !== -1 && i > lastIdx) continue;
       const vw = visibleWidth(stock[i]!);
-      const fill = vw < contentWidth ? " ".repeat(contentWidth - vw) : "";
-      const prefixStr = isFirst ? this.accent(CONFIG.PREFIX) : " ";
+      const fill = vw < contentWidth ? ' '.repeat(contentWidth - vw) : '';
+      const prefixStr = isFirst ? this.accent(CONFIG.PREFIX) : ' ';
       body.push(this.border(c.side) + pad + prefixStr + pad + stock[i]! + fill + pad + this.border(c.side));
       isFirst = false;
     }
@@ -247,13 +254,13 @@ class ChatInput extends CustomEditor {
     if (lastIdx !== -1) {
       for (let i = lastIdx + 1; i < stock.length; i++) {
         const vw = visibleWidth(stock[i]!);
-        const indent = " ".repeat(CONFIG.EXTRA_MENU_INDENT);
-        const fill = vw + CONFIG.EXTRA_MENU_INDENT < width ? " ".repeat(width - vw - CONFIG.EXTRA_MENU_INDENT) : "";
+        const indent = ' '.repeat(CONFIG.EXTRA_MENU_INDENT);
+        const fill = vw + CONFIG.EXTRA_MENU_INDENT < width ? ' '.repeat(width - vw - CONFIG.EXTRA_MENU_INDENT) : '';
         menu.push(indent + stock[i]! + fill);
       }
     }
 
-    const gap = Array.from({ length: CONFIG.MENU_GAP }, () => "");
+    const gap = Array.from({ length: CONFIG.MENU_GAP }, () => '');
     return [top, ...body, bottom, ...gap, ...menu];
   }
 
@@ -261,13 +268,16 @@ class ChatInput extends CustomEditor {
     const firstIdx = stock.findIndex(isBorderLike);
     let lastIdx = -1;
     for (let i = stock.length - 1; i >= 0; i--) {
-      if (isBorderLike(stock[i]!)) { lastIdx = i; break; }
+      if (isBorderLike(stock[i]!)) {
+        lastIdx = i;
+        break;
+      }
     }
 
     const buildTop = (scroll: string | null): string =>
       scroll
-        ? this.border(`── ${scroll} `) + this.border("─".repeat(Math.max(0, width - visibleWidth(`── ${scroll} `))))
-        : this.border("─".repeat(width));
+        ? this.border(`── ${scroll} `) + this.border('─'.repeat(Math.max(0, width - visibleWidth(`── ${scroll} `))))
+        : this.border('─'.repeat(width));
     const buildBottom = buildTop; // identical for unboxed
 
     const topScroll = firstIdx !== -1 ? getScrollText(stock[firstIdx]!) : null;
@@ -275,7 +285,7 @@ class ChatInput extends CustomEditor {
     const top = buildTop(topScroll);
     const bottom = buildBottom(bottomScroll);
 
-    const pad = " ".repeat(CONFIG.BOX_PAD_X);
+    const pad = ' '.repeat(CONFIG.BOX_PAD_X);
 
     const body: string[] = [];
     let isFirst = true;
@@ -283,8 +293,8 @@ class ChatInput extends CustomEditor {
       if (i === firstIdx || i === lastIdx) continue;
       if (lastIdx !== -1 && i > lastIdx) continue;
       const vw = visibleWidth(stock[i]!);
-      const fill = vw < contentWidth ? " ".repeat(contentWidth - vw) : "";
-      const prefixStr = isFirst ? this.accent(CONFIG.PREFIX) : " ";
+      const fill = vw < contentWidth ? ' '.repeat(contentWidth - vw) : '';
+      const prefixStr = isFirst ? this.accent(CONFIG.PREFIX) : ' ';
       body.push(pad + prefixStr + pad + stock[i]! + fill);
       isFirst = false;
     }
@@ -293,13 +303,13 @@ class ChatInput extends CustomEditor {
     if (lastIdx !== -1) {
       for (let i = lastIdx + 1; i < stock.length; i++) {
         const vw = visibleWidth(stock[i]!);
-        const indent = " ".repeat(CONFIG.EXTRA_MENU_INDENT);
-        const fill = vw + CONFIG.EXTRA_MENU_INDENT < width ? " ".repeat(width - vw - CONFIG.EXTRA_MENU_INDENT) : "";
+        const indent = ' '.repeat(CONFIG.EXTRA_MENU_INDENT);
+        const fill = vw + CONFIG.EXTRA_MENU_INDENT < width ? ' '.repeat(width - vw - CONFIG.EXTRA_MENU_INDENT) : '';
         menu.push(indent + stock[i]! + fill);
       }
     }
 
-    const gap = Array.from({ length: CONFIG.MENU_GAP }, () => "");
+    const gap = Array.from({ length: CONFIG.MENU_GAP }, () => '');
     return [top, ...body, bottom, ...gap, ...menu];
   }
 }
@@ -313,20 +323,20 @@ class ChatInput extends CustomEditor {
 // it and clean it up on exit — otherwise the shell inherits a mode that
 // spews `[I`/`[O` into the prompt.
 
-const FOCUS_IN = "\x1b[I";
-const FOCUS_OUT = "\x1b[O";
+const FOCUS_IN = '\x1b[I';
+const FOCUS_OUT = '\x1b[O';
 
 let paneFocused = true;
 let removeFocusListener: (() => void) | undefined;
 let exitHookInstalled = false;
 
 function enableFocusTracking(tui: TUI): void {
-  process.stdout.write("\x1b[?1004h");
+  process.stdout.write('\x1b[?1004h');
   if (!exitHookInstalled) {
     exitHookInstalled = true;
-    process.on("exit", () => {
+    process.on('exit', () => {
       try {
-        process.stdout.write("\x1b[?1004l");
+        process.stdout.write('\x1b[?1004l');
       } catch {
         /* stdout gone */
       }
@@ -339,14 +349,14 @@ function enableFocusTracking(tui: TUI): void {
     if (inIdx === -1 && outIdx === -1) return undefined;
     paneFocused = inIdx > outIdx;
     tui.requestRender();
-    const stripped = data.replaceAll(FOCUS_IN, "").replaceAll(FOCUS_OUT, "");
+    const stripped = data.replaceAll(FOCUS_IN, '').replaceAll(FOCUS_OUT, '');
     return stripped.length === 0 ? { consume: true } : { data: stripped };
   });
 }
 
 function disableFocusTracking(): void {
   try {
-    process.stdout.write("\x1b[?1004l");
+    process.stdout.write('\x1b[?1004l');
   } catch {
     /* stdout gone */
   }
@@ -356,8 +366,8 @@ function disableFocusTracking(): void {
 }
 
 export default function chatInput(pi: ExtensionAPI) {
-  pi.on("session_start", (_event, ctx: ExtensionContext) => {
-    if (ctx.mode !== "tui") return;
+  pi.on('session_start', (_event, ctx: ExtensionContext) => {
+    if (ctx.mode !== 'tui') return;
     ctx.ui.setEditorComponent((tui, theme, kb) => {
       const baseBorder = (s: string) => applyColor(ctx.ui.theme, CONFIG.BORDER_COLOR, s);
       const focusBorder = (s: string) => applyColor(ctx.ui.theme, CONFIG.FOCUSED_BORDER_COLOR, s);
@@ -370,8 +380,8 @@ export default function chatInput(pi: ExtensionAPI) {
     });
   });
 
-  pi.on("session_shutdown", (_event, ctx: ExtensionContext) => {
-    if (ctx.mode !== "tui") return;
+  pi.on('session_shutdown', (_event, ctx: ExtensionContext) => {
+    if (ctx.mode !== 'tui') return;
     if (CONFIG.FOCUS_INDICATOR) disableFocusTracking();
     ctx.ui.setEditorComponent(undefined);
   });

@@ -15,9 +15,9 @@
  * compatible with @earendil-works/pi-coding-agent.
  */
 
-import { homedir } from "node:os";
-import { relative } from "node:path";
-import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { homedir } from 'node:os';
+import { relative } from 'node:path';
+import { truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
 
 // ─── shared renderable shape (subset of Pi's RenderableNode) ──────────────
 
@@ -35,7 +35,7 @@ export interface RequestRenderable extends RenderableNode {
 
 type Rgb = [number, number, number];
 
-export const RESET = "\x1b[0m";
+export const RESET = '\x1b[0m';
 
 /** Default blue-leaning palette; override per call for a different feel. */
 export const DEFAULT_PALETTE: Rgb[] = [
@@ -63,11 +63,7 @@ export function sampleGradient(position: number, palette: Rgb[] = DEFAULT_PALETT
   const amount = scaled - index;
   const start = palette[index]!;
   const end = palette[nextIndex]!;
-  return [
-    mix(start[0], end[0], amount),
-    mix(start[1], end[1], amount),
-    mix(start[2], end[2], amount),
-  ];
+  return [mix(start[0], end[0], amount), mix(start[1], end[1], amount), mix(start[2], end[2], amount)];
 }
 
 function foreground([r, g, b]: Rgb, text: string) {
@@ -79,16 +75,10 @@ function foreground([r, g, b]: Rgb, text: string) {
  * (use a row index * small constant to stagger multi-line art). Spaces are
  * passed through uncolored so the gradient doesn't waste hues on whitespace.
  */
-export function gradientText(
-  text: string,
-  phase: number,
-  palette: Rgb[] = DEFAULT_PALETTE,
-): string {
+export function gradientText(text: string, phase: number, palette: Rgb[] = DEFAULT_PALETTE): string {
   const chars = [...text];
   const span = Math.max(chars.length - 1, 1);
-  return chars
-    .map((ch, i) => (ch === " " ? ch : foreground(sampleGradient(i / span + phase, palette), ch)))
-    .join("");
+  return chars.map((ch, i) => (ch === ' ' ? ch : foreground(sampleGradient(i / span + phase, palette), ch))).join('');
 }
 
 // ─── 2. labeled-node removal from a renderable tree ───────────────────────
@@ -100,15 +90,13 @@ export function gradientText(
 /** Render a node to a throwaway buffer and strip ANSI — see pattern 5. */
 export function renderedText(node: RenderableNode, width = 200): string {
   try {
-    return node.render(width).join("\n").replace(ANSI_PATTERN, "");
+    return node.render(width).join('\n').replace(ANSI_PATTERN, '');
   } catch {
-    return "";
+    return '';
   }
 }
 
-function hasChildren(
-  node: RenderableNode,
-): node is RenderableNode & { children: RenderableNode[] } {
+function hasChildren(node: RenderableNode): node is RenderableNode & { children: RenderableNode[] } {
   return Array.isArray(node.children);
 }
 
@@ -123,13 +111,13 @@ export function hideLabeledSection(root: RenderableNode, label: string): boolean
   for (let i = 0; i < root.children.length; i += 1) {
     const child = root.children[i]!;
     const firstLine = renderedText(child)
-      .split("\n")
+      .split('\n')
       .find((line) => line.trim())
       ?.trim();
 
     if (firstLine === label) {
       const sibling = root.children[i + 1];
-      const removeCount = sibling && renderedText(sibling).trim() === "" ? 2 : 1;
+      const removeCount = sibling && renderedText(sibling).trim() === '' ? 2 : 1;
       root.children.splice(i, removeCount);
       root.invalidate();
       return true;
@@ -175,14 +163,14 @@ export function columns(left: string, right: string, width: number): string {
   if (!right) return truncateToWidth(left, width);
 
   const naturalGap = width - visibleWidth(left) - visibleWidth(right);
-  if (naturalGap >= 1) return `${left}${" ".repeat(naturalGap)}${right}`;
+  if (naturalGap >= 1) return `${left}${' '.repeat(naturalGap)}${right}`;
 
   const leftWidth = Math.max(1, Math.floor(width * 0.45));
   const rightWidth = Math.max(1, width - leftWidth - 1);
   const fittedLeft = truncateToWidth(left, leftWidth);
   const fittedRight = truncateToWidth(right, rightWidth);
   const gap = Math.max(1, width - visibleWidth(fittedLeft) - visibleWidth(fittedRight));
-  return truncateToWidth(`${fittedLeft}${" ".repeat(gap)}${fittedRight}`, width);
+  return truncateToWidth(`${fittedLeft}${' '.repeat(gap)}${fittedRight}`, width);
 }
 
 // ─── 4. terminal-label sanitization ───────────────────────────────────────
@@ -190,8 +178,7 @@ export function columns(left: string, right: string, width: number): string {
 /* eslint-disable no-control-regex -- matching ANSI/OSC escape sequences requires control chars */
 const ANSI_PATTERN =
   /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
-const OSC_PATTERN =
-  /(?:\u001b\]|\u009d)(?:[^\u0007\u001b\u009c]|\u001b(?!\\))*(?:\u0007|\u001b\\|\u009c)/g;
+const OSC_PATTERN = /(?:\u001b\]|\u009d)(?:[^\u0007\u001b\u009c]|\u001b(?!\\))*(?:\u0007|\u001b\\|\u009c)/g;
 const CSI_PATTERN = /(?:\u001b\[|\u009b)[0-?]*[ -/]*[@-~]/g;
 const ESCAPE_PATTERN = /\u001b(?:[()][0-2A-Z]|[ -/]*[@-~])/g;
 /* eslint-enable no-control-regex */
@@ -205,18 +192,18 @@ const ESCAPE_PATTERN = /\u001b(?:[()][0-2A-Z]|[ -/]*[@-~])/g;
 export function sanitizeTerminalLabel(text: string): string {
   return (
     text
-      .replace(OSC_PATTERN, "")
-      .replace(CSI_PATTERN, "")
-      .replace(ESCAPE_PATTERN, "")
+      .replace(OSC_PATTERN, '')
+      .replace(CSI_PATTERN, '')
+      .replace(ESCAPE_PATTERN, '')
       // eslint-disable-next-line no-control-regex -- intentionally strips remaining C0/C1 control chars
-      .replace(/[\u0000-\u001f\u007f-\u009f]/g, "")
+      .replace(/[\u0000-\u001f\u007f-\u009f]/g, '')
   );
 }
 
 /** Collapse $HOME to ~ for display. Combined with sanitizeTerminalLabel. */
 export function formatDirectory(cwd: string): string {
   const home = homedir();
-  if (cwd === home) return "~";
+  if (cwd === home) return '~';
   const display = cwd.startsWith(`${home}/`) ? `~/${relative(home, cwd)}` : cwd;
   return sanitizeTerminalLabel(display);
 }

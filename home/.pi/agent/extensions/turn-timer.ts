@@ -12,10 +12,10 @@
  * never picks it up.
  */
 
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { Text } from "@earendil-works/pi-tui";
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { Text } from '@earendil-works/pi-tui';
 
-const CUSTOM_TYPE = "turn-duration";
+const CUSTOM_TYPE = 'turn-duration';
 
 /** Format seconds as a compact human string: "0.8s", "12.3s", "1m 23s". */
 function formatDuration(seconds: number): string {
@@ -29,7 +29,7 @@ export default function turnTimer(pi: ExtensionAPI) {
   // ── Render the timer row: a quiet dim line ───────────────────────────
   pi.registerEntryRenderer(CUSTOM_TYPE, (entry, _opts, theme) => {
     const data = entry.data as { seconds: number };
-    const label = theme.fg("dim", `· ${formatDuration(data.seconds)}`);
+    const label = theme.fg('dim', `· ${formatDuration(data.seconds)}`);
     return new Text(label, 0, 0);
   });
 
@@ -38,11 +38,11 @@ export default function turnTimer(pi: ExtensionAPI) {
   // batches don't each get their own timer.
   let start: number | undefined;
 
-  pi.on("turn_start", (event) => {
+  pi.on('turn_start', (event) => {
     start = event.timestamp ?? Date.now();
   });
 
-  pi.on("turn_end", () => {
+  pi.on('turn_end', () => {
     if (start === undefined) return;
     const seconds = (Date.now() - start) / 1000;
     start = undefined;

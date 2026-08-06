@@ -18,13 +18,13 @@ Infer if unnamed: issue-only → `reproduce`; implementation/PR branch → `veri
 
 pi-computer-use exposes a **direct, state-scoped tool surface**, not a delegated capability and not raw screen capture. The normal loop:
 
-| Step        | Tools                                                                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Find**    | `find_roots` returns ranked `@r` roots (desktop windows and CDP browser pages share one forest). `launch_browser` for a managed CDP page.                            |
-| **Observe** | `observe_ui` captures a root and returns a folded outline, `@e` refs, and a `stateId`. Every later `@e` use requires its owning `stateId`.                           |
-| **Query**   | `search_ui`, `expand_ui`, `inspect_ui`, and `read_text` query the cached state without re-capturing. Refine broad searches instead of paging matches.                |
-| **Act**     | `act_ui` performs checked, transactional steps and returns the successor `stateId`. Attach `expect` when the action has an observable completion signal.             |
-| **Wait**    | `wait_for` for asynchronous UI changes; `navigate_browser` / `evaluate_browser` only on CDP page states.                                                             |
+| Step        | Tools                                                                                                                                                    |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Find**    | `find_roots` returns ranked `@r` roots (desktop windows and CDP browser pages share one forest). `launch_browser` for a managed CDP page.                |
+| **Observe** | `observe_ui` captures a root and returns a folded outline, `@e` refs, and a `stateId`. Every later `@e` use requires its owning `stateId`.               |
+| **Query**   | `search_ui`, `expand_ui`, `inspect_ui`, and `read_text` query the cached state without re-capturing. Refine broad searches instead of paging matches.    |
+| **Act**     | `act_ui` performs checked, transactional steps and returns the successor `stateId`. Attach `expect` when the action has an observable completion signal. |
+| **Wait**    | `wait_for` for asynchronous UI changes; `navigate_browser` / `evaluate_browser` only on CDP page states.                                                 |
 
 Consume the successor `stateId` from `act_ui` directly; observe again only after an uncertain external mutation or state eviction.
 

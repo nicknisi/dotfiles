@@ -1,14 +1,14 @@
 /** Bespoke document stylesheet: design tokens, light/dark schemes, prose, chrome, diff + code theming. */
 
-import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 
-import { CONFIG } from "./config.js";
+import { CONFIG } from './config.js';
 
 const require = createRequire(import.meta.url);
 
 /** diff2html base stylesheet, read from the installed package (stays in sync with its JS). */
-const D2H_BASE_CSS = readFileSync(require.resolve("diff2html/bundles/css/diff2html.min.css"), "utf-8");
+const D2H_BASE_CSS = readFileSync(require.resolve('diff2html/bundles/css/diff2html.min.css'), 'utf-8');
 
 // ─── Design tokens ─────────────────────────────────────────────────────────────
 // One scheme = one flat token set. The accent is user-configurable; everything
@@ -38,47 +38,47 @@ interface Scheme {
 }
 
 const LIGHT: Scheme = {
-  bg: "#ffffff",
-  fg: "#1c1c1a",
-  muted: "#6b6862",
-  border: "#e7e5e0",
-  codeBg: "#f7f6f4",
+  bg: '#ffffff',
+  fg: '#1c1c1a',
+  muted: '#6b6862',
+  border: '#e7e5e0',
+  codeBg: '#f7f6f4',
   accent: CONFIG.accentLight,
-  addBg: "#e9f7ee",
-  addWordBg: "#c8ecd3",
-  addFg: "#1a7f37",
-  delBg: "#feeff1",
-  delWordBg: "#f8d2d7",
-  delFg: "#c93c4c",
-  hlComment: "#6e7781",
-  hlKeyword: "#cf222e",
-  hlString: "#0a3069",
-  hlNumber: "#0550ae",
-  hlTitle: "#8250df",
-  hlType: "#953800",
-  hlAttr: "#0550ae",
+  addBg: '#e9f7ee',
+  addWordBg: '#c8ecd3',
+  addFg: '#1a7f37',
+  delBg: '#feeff1',
+  delWordBg: '#f8d2d7',
+  delFg: '#c93c4c',
+  hlComment: '#6e7781',
+  hlKeyword: '#cf222e',
+  hlString: '#0a3069',
+  hlNumber: '#0550ae',
+  hlTitle: '#8250df',
+  hlType: '#953800',
+  hlAttr: '#0550ae',
 };
 
 const DARK: Scheme = {
-  bg: "#171614",
-  fg: "#e6e3de",
-  muted: "#94918a",
-  border: "#2e2d29",
-  codeBg: "#201f1c",
+  bg: '#171614',
+  fg: '#e6e3de',
+  muted: '#94918a',
+  border: '#2e2d29',
+  codeBg: '#201f1c',
   accent: CONFIG.accent,
-  addBg: "#1d2a20",
-  addWordBg: "#2b4232",
-  addFg: "#85c793",
-  delBg: "#2e1c1e",
-  delWordBg: "#4a292c",
-  delFg: "#e28a91",
-  hlComment: "#8b949e",
-  hlKeyword: "#ff7b72",
-  hlString: "#a5d6ff",
-  hlNumber: "#79c0ff",
-  hlTitle: "#d2a8ff",
-  hlType: "#ffa657",
-  hlAttr: "#79c0ff",
+  addBg: '#1d2a20',
+  addWordBg: '#2b4232',
+  addFg: '#85c793',
+  delBg: '#2e1c1e',
+  delWordBg: '#4a292c',
+  delFg: '#e28a91',
+  hlComment: '#8b949e',
+  hlKeyword: '#ff7b72',
+  hlString: '#a5d6ff',
+  hlNumber: '#79c0ff',
+  hlTitle: '#d2a8ff',
+  hlType: '#ffa657',
+  hlAttr: '#79c0ff',
 };
 
 /** Emit a scheme as CSS custom properties (including diff2html's own variables). */
@@ -107,10 +107,10 @@ function tokens(s: Scheme): string {
 
 /** Scheme block honoring the configured theme mode (auto = follow the OS). */
 function schemeCss(): string {
-  if (CONFIG.theme === "light") {
+  if (CONFIG.theme === 'light') {
     return `:root { color-scheme: light;${tokens(LIGHT)}\n}`;
   }
-  if (CONFIG.theme === "dark") {
+  if (CONFIG.theme === 'dark') {
     return `:root { color-scheme: dark;${tokens(DARK)}\n}`;
   }
   return `:root { color-scheme: light dark;${tokens(LIGHT)}\n}
@@ -120,8 +120,7 @@ function schemeCss(): string {
 // ─── Typography + prose ────────────────────────────────────────────────────────
 // System fonts, fixed 15px base (no viewport scaling), GitHub-README density.
 
-export const FONT_SANS =
-  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+export const FONT_SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 export const FONT_MONO =
   'ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace';
 

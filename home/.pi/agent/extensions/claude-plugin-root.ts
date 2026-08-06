@@ -16,9 +16,9 @@
  * as it always does, and this extension silently resolves it.
  */
 
-import { existsSync } from "node:fs";
-import { dirname, join } from "node:path";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
 /** Package roots derived from loaded skill paths. */
 const packageRoots: string[] = [];
@@ -48,38 +48,35 @@ function derivePackageRoot(skillFilePath: string): string {
  *          and bare ${CLAUDE_PLUGIN_ROOT} (no path).
  */
 function rewriteRootRef(text: string): string {
-  if (!text.includes("CLAUDE_PLUGIN_ROOT")) return text;
+  if (!text.includes('CLAUDE_PLUGIN_ROOT')) return text;
   if (packageRoots.length === 0) return text;
 
-  return text.replace(
-    /\$\{?CLAUDE_PLUGIN_ROOT\}?(?:\s*\/([^\s;|&"'()]+))?/g,
-    (fullMatch, relativePath?: string) => {
-      // No path after the root ref — return first root
-      if (!relativePath) {
-        return packageRoots[0] ?? fullMatch;
-      }
+  return text.replace(/\$\{?CLAUDE_PLUGIN_ROOT\}?(?:\s*\/([^\s;|&"'()]+))?/g, (fullMatch, relativePath?: string) => {
+    // No path after the root ref — return first root
+    if (!relativePath) {
+      return packageRoots[0] ?? fullMatch;
+    }
 
-      // Try each root to find one where the file exists
-      for (const root of packageRoots) {
-        const candidate = join(root, relativePath);
-        if (existsSync(candidate)) {
-          return `${root}/${relativePath}`;
-        }
+    // Try each root to find one where the file exists
+    for (const root of packageRoots) {
+      const candidate = join(root, relativePath);
+      if (existsSync(candidate)) {
+        return `${root}/${relativePath}`;
       }
+    }
 
-      // No match — use first root as fallback
-      return `${packageRoots[0]}/${relativePath}`;
-    },
-  );
+    // No match — use first root as fallback
+    return `${packageRoots[0]}/${relativePath}`;
+  });
 }
 
 export default function (pi: ExtensionAPI) {
   // Discover package roots from loaded skills at session start.
-  pi.on("session_start", async (_event, _ctx) => {
+  pi.on('session_start', async (_event, _ctx) => {
     packageRoots.length = 0;
 
     const commands = pi.getCommands();
-    const skillCommands = commands.filter((cmd: { source?: string }) => cmd.source === "skill");
+    const skillCommands = commands.filter((cmd: { source?: string }) => cmd.source === 'skill');
 
     const seen = new Set<string>();
     for (const cmd of skillCommands) {
@@ -102,11 +99,11 @@ export default function (pi: ExtensionAPI) {
   });
 
   // Intercept tool calls and rewrite CLAUDE_PLUGIN_ROOT references.
-  pi.on("tool_call", async (event, _ctx) => {
+  pi.on('tool_call', async (event, _ctx) => {
     if (packageRoots.length === 0) return;
 
     // Bash tool: rewrite command string
-    if (event.toolName === "bash" && event.input?.command) {
+    if (event.toolName === 'bash' && event.input?.command) {
       const original = event.input.command as string;
       const rewritten = rewriteRootRef(original);
       if (rewritten !== original) {
@@ -115,7 +112,7 @@ export default function (pi: ExtensionAPI) {
     }
 
     // Read tool: rewrite path
-    if (event.toolName === "read" && event.input?.path) {
+    if (event.toolName === 'read' && event.input?.path) {
       const original = event.input.path as string;
       const rewritten = rewriteRootRef(original);
       if (rewritten !== original) {

@@ -7,11 +7,16 @@
     "errorPrefix": { "prefix": "✗", "color": "error" },
     "branch": { "prefix": "└─", "color": "separator" },
     "status": {
-      "doneLabel": "Done", "doneColor": "success",
-      "errorLabel": "Error", "errorColor": "error",
-      "workingLabel": "Working...", "workingColor": "dim",
-      "waitingIcon": "↪", "waitingIconColor": "muted",
-      "synthesizingLabel": "Synthesising...", "waitingLabel": "Waiting for members...",
+      "doneLabel": "Done",
+      "doneColor": "success",
+      "errorLabel": "Error",
+      "errorColor": "error",
+      "workingLabel": "Working...",
+      "workingColor": "dim",
+      "waitingIcon": "↪",
+      "waitingIconColor": "muted",
+      "synthesizingLabel": "Synthesising...",
+      "waitingLabel": "Waiting for members...",
       "elapsedColor": "dim"
     },
     "toolHeader": { "titleColor": "toolTitle", "summaryColor": "dim" },
@@ -22,8 +27,16 @@
   "member": {
     "_comment": "model = a pi model id from settings.json enabledModels. label is required; displayName is the UI label; systemPrompt is optional (falls back to defaultSystemPrompt). tools default to built-in read-only set; extensions/skills default to none so members run lightweight subprocesses.",
     "council": [
-      { "model": "fireworks/accounts/fireworks/models/glm-5p2", "displayName": "GLM 5.2", "label": "Member A" },
-      { "model": "fireworks/accounts/fireworks/models/kimi-k3", "displayName": "Kimi K3", "label": "Member B" },
+      {
+        "model": "fireworks/accounts/fireworks/models/glm-5p2",
+        "displayName": "GLM 5.2",
+        "label": "Member A"
+      },
+      {
+        "model": "fireworks/accounts/fireworks/models/kimi-k3",
+        "displayName": "Kimi K3",
+        "label": "Member B"
+      },
       { "model": "anthropic/claude-fable-5", "displayName": "Claude Fable 5", "label": "Member C" }
     ],
     "defaultSystemPrompt": "You are a member of an LLM Council. Answer the user's question thoroughly and concisely. Provide your best reasoning.",
