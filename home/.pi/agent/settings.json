@@ -43,7 +43,8 @@
     "npm:pi-intercom",
     "https://github.com/zerray/pi-remote-control",
     "../../../../opt/homebrew/opt/fleet/hooks/pi",
-    "npm:@juicesharp/rpiv-todo"
+    "npm:@juicesharp/rpiv-todo",
+    "npm:@injaneity/pi-computer-use"
   ],
   "defaultModel": "claude-fable-5",
   "warnings": {
