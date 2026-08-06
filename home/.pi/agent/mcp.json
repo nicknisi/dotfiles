@@ -24,7 +24,7 @@
       "auth": "oauth"
     },
     "linear": {
-      "url": "https://mcp.linear.app/sse",
+      "url": "https://mcp.linear.app/mcp",
       "auth": "oauth"
     },
     "slack": {
