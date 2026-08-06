@@ -32,5 +32,6 @@ npm-debug.log
 .pi-subagents/
 .pi-goal/
 .pi/
+home/.pi/agent/missions/
 !home/.pi
 .pi/artifacts/
