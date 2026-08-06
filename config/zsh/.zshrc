@@ -38,6 +38,9 @@ fi
 export REPORTTIME=10
 export KEYTIMEOUT=1              # 10ms delay for key sequences
 
+# don't prompt for confirmation on brew upgrade
+export HOMEBREW_NO_ASK=1
+
 setopt NO_BG_NICE
 setopt NO_HUP                    # don't kill background jobs when the shell exits
 setopt NO_LIST_BEEP
