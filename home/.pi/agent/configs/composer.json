@@ -1,0 +1,18 @@
+{
+  "boxedView": true,
+  "boxPadX": 1,
+  "menuGap": 0,
+  "extraMenuIndent": 1,
+  "borderColor": "border",
+  "prefix": "❯",
+  "prefixColor": "accent",
+  "corners": "rounded",
+  "spinner": false,
+  "spinnerStyle": "dots",
+  "spinnerColor": "thinkingMax",
+  "glow": true,
+  "glowStyle": "pulse",
+  "glowColor": "thinkingMax",
+  "glowPeriodMs": 1800,
+  "rainbowPeriodMs": 1200
+}

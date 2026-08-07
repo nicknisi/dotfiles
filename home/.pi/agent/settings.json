@@ -4,7 +4,7 @@
   "outputPad": 1,
   "theme": "workos",
   "quietStartup": true,
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "skills": [
     "~/.claude/skills",
     "~/Developer/claude-plugins/plugins/consultant/skills",
@@ -30,7 +30,7 @@
   "packages": [
     "../../Developer/pi-extensions/packages/agent-urls",
     "../../Developer/pi-extensions/packages/btw",
-    "../../Developer/pi-extensions/packages/chat-input",
+    "../../Developer/pi-extensions/packages/composer",
     "../../Developer/pi-extensions/packages/pin-last-prompt",
     "../../Developer/pi-extensions/packages/recap",
     "../../Developer/pi-extensions/packages/session-name",
