@@ -15,6 +15,12 @@
       "args": ["--mcp"],
       "cwd": "/Users/nicknisi/Developer/sessions"
     },
+    "ctx": {
+      "url": "https://ctx.nicknisi.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CTX_TOKEN}"
+      }
+    },
     "notion": {
       "url": "https://mcp.notion.com/mcp",
       "auth": "oauth"
