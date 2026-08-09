@@ -35,5 +35,8 @@ home/.pi/agent/projects-memory/
 home/.pi/agent/extensions/mcp.local.bak/
 home/.pi/agent/agents/
 home/.pi/agent/intercom/
-home/.pi/workflows/
+home/.pi/agent/relay/
+home/.pi/agent/subagent-runs/
+home/.pi/agent/subagent-worktrees/
+home/.pi/agent/workflow-runs/
 home/.pi/remote-control/
