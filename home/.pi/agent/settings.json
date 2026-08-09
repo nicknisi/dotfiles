@@ -1,5 +1,5 @@
 {
-  "defaultProvider": "anthropic",
+  "defaultProvider": "fireworks",
   "editorPaddingX": 1,
   "outputPad": 1,
   "theme": "workos",
@@ -65,10 +65,11 @@
     "npm:@injaneity/pi-computer-use",
     "../../Developer/bosun",
     "../../Developer/pi-mg",
-    "npm:pi-claude-bridge"
+    "npm:pi-claude-bridge",
+    "../../Developer/ctx/extensions/ctx-sync"
   ],
   "tuiMode": "fullscreen",
-  "defaultModel": "claude-fable-5",
+  "defaultModel": "accounts/fireworks/models/kimi-k3",
   "warnings": {
     "anthropicExtraUsage": false
   }
