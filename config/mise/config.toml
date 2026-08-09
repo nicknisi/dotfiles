@@ -4,6 +4,7 @@ python = "3.14.4"
 "npm:@earendil-works/pi-coding-agent" = "latest"
 "npm:wrangler" = "latest"
 "npm:greptile" = "latest"
+"npm:openclaw" = "latest"
 pnpm = "latest"
 
 [settings]
