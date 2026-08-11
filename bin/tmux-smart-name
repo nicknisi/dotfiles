@@ -3,11 +3,25 @@
 
 COMMAND="$1"
 CURRENT_PATH="$2"
+PANE_TTY="$3"
 
 # Claude sets its process title to its version number (e.g. 2.1.197 or
 # 2_1_197 depending on version), map it back to "claude"
 if [[ "$COMMAND" =~ ^[0-9]+[._][0-9]+[._][0-9]+$ ]]; then
   COMMAND="claude"
+fi
+
+# pi ships as a node shim, so tmux reports pane_current_command as "node".
+# pi sets its own process title to "pi" (Node's process.title), which
+# `ps -t <tty> -o comm=` exposes. Use that to tell pi apart from any other
+# node process so it gets a proper icon below instead of the generic node
+# glyph. Degrades gracefully: no tty / ps failure / non-pi node -> falls
+# through to the node path.
+if [ "$COMMAND" = "node" ] && [ -n "$PANE_TTY" ]; then
+  TTY_BASE=${PANE_TTY#/dev/}
+  if [ -n "$TTY_BASE" ] && ps -t "$TTY_BASE" -o comm= 2>/dev/null | grep -qx pi; then
+    COMMAND="pi"
+  fi
 fi
 
 # Get icon from nerdwin

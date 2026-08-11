@@ -37,6 +37,9 @@ get_icon() {
   claude)
     echo "󱙺"
     ;;
+  pi)
+    echo "π"
+    ;;
   fleet)
     echo "☰"
     ;;
