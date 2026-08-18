@@ -15,6 +15,11 @@
 # --access restricted publishes private packages (scoped names + paid plan
 # required; unscoped packages are always public and are refused up front).
 #
+# Bootstrap publishes always pass --provenance=false: provenance can only be
+# minted inside a supported CI, so a package with publishConfig.provenance
+# would otherwise die locally with "not supported for provider: null". CI
+# attaches provenance later (public packages only).
+#
 # Handles single-package repos (package.json at root) and monorepos: workspace
 # globs come from pnpm-workspace.yaml or the root package.json "workspaces"
 # field (fallback: packages/*), plus the root package itself when publishable.
@@ -268,8 +273,11 @@ EOF
 # Restricted packages 404 on unauthenticated reads, so the already-published
 # check must send the login token when --access restricted. Public stays
 # tokenless: a stale token must not be able to turn 200s into 401s.
-NPM_TOKEN="$(npm config get "//${REGISTRY#*//}/:_authToken" 2>/dev/null || true)"
-case "$NPM_TOKEN" in undefined|null) NPM_TOKEN="" ;; esac
+# npm 11 refuses to print auth values (`npm config get` returns empty), so
+# read the npmrc files directly — project first, then user — and expand a
+# ${VAR} reference the way npm would.
+NPM_TOKEN="$({ grep -sh "^//${REGISTRY#*//}/:_authToken=" "$ROOT/.npmrc" "$HOME/.npmrc" || true; } | head -1 | cut -d= -f2-)"
+case "$NPM_TOKEN" in \$\{*\}) v="${NPM_TOKEN#\$\{}"; v="${v%\}}"; NPM_TOKEN="${!v:-}" ;; esac
 
 version_on_npm() { # <name> <version>
   local url
@@ -350,8 +358,19 @@ done
 if [ "$ACCESS" = "restricted" ]; then
   unscoped=""
   for line in "${PKGS[@]}"; do
-    read -r _ name _ <<< "$line"
+    read -r dir name _ <<< "$line"
     case "$name" in @*/*) ;; *) unscoped="$unscoped $name" ;; esac
+    # The CLI flag outranks publishConfig, so a package declaring itself
+    # public (or provenance-signed — public-only on npm) would be silently
+    # published restricted. Surface the mismatch instead.
+    conflict="$(node -e '
+      const c = require(process.argv[1] + "/package.json").publishConfig || {};
+      const w = [];
+      if (c.access === "public") w.push("publishConfig.access=public");
+      if (c.provenance) w.push("publishConfig.provenance=true (provenance is public-only)");
+      console.log(w.join(", "));
+    ' "$ROOT/$dir" 2>/dev/null || true)"
+    [ -z "$conflict" ] || warn "$name: --access restricted conflicts with $conflict"
   done
   [ -z "$unscoped" ] || die "--access restricted needs scoped names (@scope/pkg) — unscoped:$unscoped"
 fi
@@ -431,7 +450,9 @@ if [ "$SKIP_PUBLISH" -eq 0 ]; then
     # publish with npm and NOTHING piped: npm owns the browser 2FA flow and
     # needs both TTYs. Its auth URL is redacted in output, so it cannot be
     # driven from the outside — let npm drive it.
-    if ! npm publish "$tarball" --access "$ACCESS" --registry="$REGISTRY"; then
+    # --provenance=false: only CI can mint provenance; the CLI flag outranks a
+    # publishConfig.provenance=true baked into the tarball's package.json.
+    if ! npm publish "$tarball" --access "$ACCESS" --provenance=false --registry="$REGISTRY"; then
       if version_on_npm "$name" "$version"; then
         warn "[$n/$COUNT] $name@$version landed after all — continuing"
       else
