@@ -2,7 +2,7 @@
   "autoName": "llm",
   "heuristicMaxLength": 60,
   "llmMaxWords": 6,
-  "llmModel": "fireworks/glm-fast-latest",
+  "llmModel": "fireworks/accounts/fireworks/routers/glm-5p2-fast",
   "notifyOnAutoName": true,
   "setTitle": true,
   "titleFormat": "{summary}"

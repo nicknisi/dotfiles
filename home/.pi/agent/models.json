@@ -1,11 +1,48 @@
 {
   "providers": {
-    "anthropic": {
-      "modelOverrides": {
-        "claude-opus-5": {
-          "name": "Opus 5"
+    "cloudflare-ai-gateway": {
+      "models": [
+        {
+          "id": "grok-4.5",
+          "name": "Grok 4.5",
+          "api": "openai-responses",
+          "baseUrl": "https://gateway.ai.cloudflare.com/v1/{CLOUDFLARE_ACCOUNT_ID}/{CLOUDFLARE_GATEWAY_ID}/grok",
+          "reasoning": true,
+          "input": [
+            "text",
+            "image"
+          ],
+          "contextWindow": 266384,
+          "maxTokens": 500000,
+          "thinkingLevelMap": {
+            "off": null,
+            "minimal": null,
+            "low": "low",
+            "medium": "medium",
+            "high": "high",
+            "xhigh": null,
+            "max": null
+          },
+          "cost": {
+            "input": 2,
+            "output": 6,
+            "cacheRead": 0.3,
+            "cacheWrite": 0,
+            "tiers": [
+              {
+                "inputTokensAbove": 200000,
+                "input": 4,
+                "output": 12,
+                "cacheRead": 0.6,
+                "cacheWrite": 0
+              }
+            ]
+          },
+          "compat": {
+            "supportsLongCacheRetention": false
+          }
         }
-      }
+      ]
     },
     "fireworks": {
       "models": [
@@ -13,7 +50,10 @@
           "id": "firerouter",
           "name": "FireRouter",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 1048575,
           "maxTokens": 131072
         },
@@ -23,7 +63,9 @@
           "contextWindow": 1000000,
           "maxTokens": 384000,
           "reasoning": true,
-          "input": ["text"],
+          "input": [
+            "text"
+          ],
           "cost": {
             "input": 0.14,
             "output": 0.28,
@@ -37,7 +79,9 @@
           "contextWindow": 1000000,
           "maxTokens": 384000,
           "reasoning": true,
-          "input": ["text"],
+          "input": [
+            "text"
+          ],
           "cost": {
             "input": 1.74,
             "output": 3.48,
@@ -49,7 +93,9 @@
           "id": "glm-fast-latest",
           "name": "GLM 5.2 Fast (Latest)",
           "reasoning": true,
-          "input": ["text"],
+          "input": [
+            "text"
+          ],
           "contextWindow": 1048576,
           "maxTokens": 131072,
           "cost": {
@@ -63,7 +109,9 @@
           "id": "glm-latest",
           "name": "GLM 5.2 (Latest)",
           "reasoning": true,
-          "input": ["text"],
+          "input": [
+            "text"
+          ],
           "contextWindow": 1048576,
           "maxTokens": 131072,
           "cost": {
@@ -79,7 +127,9 @@
           "contextWindow": 131072,
           "maxTokens": 32768,
           "reasoning": true,
-          "input": ["text"],
+          "input": [
+            "text"
+          ],
           "cost": {
             "input": 0.15,
             "output": 0.6,
@@ -91,9 +141,12 @@
           "id": "kimi-fast-latest",
           "name": "Kimi K3 Fast (Latest)",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 1048576,
-          "maxTokens": 262000,
+          "maxTokens": 131072,
           "cost": {
             "input": 4.5,
             "output": 22.5,
@@ -105,9 +158,12 @@
           "id": "kimi-k3",
           "name": "Kimi K3",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 1048576,
-          "maxTokens": 262000,
+          "maxTokens": 131072,
           "cost": {
             "input": 3,
             "output": 15,
@@ -119,9 +175,12 @@
           "id": "kimi-k3-fast",
           "name": "Kimi K3 Fast",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 1048576,
-          "maxTokens": 262000,
+          "maxTokens": 131072,
           "cost": {
             "input": 4.5,
             "output": 22.5,
@@ -133,9 +192,12 @@
           "id": "kimi-latest",
           "name": "Kimi K3 (Latest)",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 1048576,
-          "maxTokens": 262000,
+          "maxTokens": 131072,
           "cost": {
             "input": 3,
             "output": 15,
@@ -147,7 +209,10 @@
           "id": "minimax-latest",
           "name": "Minimax M3 (Latest)",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 512000,
           "maxTokens": 512000,
           "cost": {
@@ -161,7 +226,10 @@
           "id": "qwen-plus-latest",
           "name": "Qwen3.7 Plus (Latest)",
           "reasoning": true,
-          "input": ["text", "image"],
+          "input": [
+            "text",
+            "image"
+          ],
           "contextWindow": 262144,
           "maxTokens": 65536,
           "cost": {
@@ -177,7 +245,7 @@
       },
       "headers": {
         "X-Title": "Pi",
-        "HTTP-Referer": "fireconnect/v0.9.1"
+        "HTTP-Referer": "fireconnect/v0.9.2"
       }
     }
   }

@@ -29,6 +29,12 @@
       "url": "https://mcp.granola.ai/mcp",
       "auth": "oauth"
     },
+    "excalidraw": {
+      "url": "https://api.excalidraw.com/api/v1/mcp",
+      "headers": {
+        "Authorization": "Bearer ${EXCALIDRAW_API_TOKEN}"
+      }
+    },
     "linear": {
       "url": "https://mcp.linear.app/mcp",
       "auth": "oauth"

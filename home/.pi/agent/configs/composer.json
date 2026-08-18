@@ -7,12 +7,14 @@
   "prefix": "❯",
   "prefixColor": "accent",
   "corners": "rounded",
-  "spinner": false,
+  "focusIndicator": true,
+  "spinner": true,
   "spinnerStyle": "dots",
   "spinnerColor": "thinkingMax",
-  "glow": true,
+  "glow": false,
   "glowStyle": "pulse",
   "glowColor": "thinkingMax",
   "glowPeriodMs": 1800,
-  "rainbowPeriodMs": 1200
+  "rainbowPeriodMs": 1200,
+  "sessionNameColor": "accent"
 }

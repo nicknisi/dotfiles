@@ -1,0 +1,384 @@
+#!/usr/bin/env bash
+# npm-trust-setup — one-time bootstrap to get a repo's packages onto npm with
+# GitHub Actions trusted publishing.
+#
+#   Phase 1: publish any package version not yet on npm (trusted publishing
+#            can only be attached to a package that already exists).
+#   Phase 2: attach the GitHub Actions trusted publisher to each package via
+#            `npm trust`, so CI publishes with OIDC — no npm tokens.
+#
+# Usage (from the repo root):
+#   npm-trust-setup [--workflow release.yml] [--repo owner/name]
+#                   [--skip-publish] [--skip-trust] [--dry-run]
+#
+# Handles single-package repos (package.json at root) and monorepos
+# (packages/*/package.json); workspace dependencies publish before dependents.
+#
+# Prereqs:
+#   npm >= 11.15.0 (for `npm trust`), pnpm, bash, node
+#   npm login --registry=https://registry.npmjs.org
+#
+# 2FA: npm drives its own browser-based one-time-password flow ("Press ENTER
+# to open in the browser"). That ONLY works while stdin and stdout are both
+# real TTYs — npm's otplease() bails out otherwise, and npm redacts the auth
+# URL in its output so it cannot be recovered after the fact. Hence: never
+# pipe the stdout of `npm publish`/`npm trust` below (no tee, no `while read`
+# loop fed by a pipe). stderr may be captured; stdout and stdin may not.
+#
+# Publishing goes through `<pm> pack` + `npm publish <tarball>` rather than
+# `pnpm publish`: packing is what rewrites workspace:* ranges to real
+# versions, and npm — not pnpm — is the one that knows how to do browser 2FA.
+#
+# The packer is pnpm when this is a pnpm repo and pnpm is installed, else npm
+# (--packer forces one). It only actually matters for workspace:* deps, which
+# npm cannot resolve — those packages are refused rather than shipped broken.
+#
+# NOTE: always targets the real npm registry, bypassing any mirror configured
+# in ~/.npmrc (mirrors can serve stale metadata for view/publish checks).
+set -euo pipefail
+
+START=$SECONDS
+
+# --- terminal dressing -------------------------------------------------------
+# Color only when talking to a human; NO_COLOR honored, piped output stays clean.
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+  C_RESET=$'\e[0m' C_DIM=$'\e[2m' C_BOLD=$'\e[1m'
+  C_ACCENT=$'\e[36m' C_GOOD=$'\e[32m' C_WARN=$'\e[33m' C_BAD=$'\e[31m' C_GOLD=$'\e[35m'
+else
+  C_RESET='' C_DIM='' C_BOLD='' C_ACCENT='' C_GOOD='' C_WARN='' C_BAD='' C_GOLD=''
+fi
+
+say()  { printf '%s\n' "$*"; }
+dim()  { printf '%s%s%s\n' "$C_DIM" "$*" "$C_RESET"; }
+step() { printf '\n%s%s❯ %s%s\n' "$C_BOLD" "$C_ACCENT" "$*" "$C_RESET"; }
+ok()   { printf '%s ✓ %s%s\n' "$C_GOOD" "$*" "$C_RESET"; }
+skip() { printf '%s ⤼ %s%s\n' "$C_DIM" "$*" "$C_RESET"; }
+warn() { printf '%s ⚠ %s%s\n' "$C_WARN" "$*" "$C_RESET" >&2; }
+die()  { printf '%s ✗ %s%s\n' "$C_BAD" "$*" "$C_RESET" >&2; exit 1; }
+
+rule() { printf '%s%s%s\n' "$C_DIM" "$(printf '─%.0s' $(seq 1 52))" "$C_RESET"; }
+dim_inline() { printf '%s%s%s' "$C_DIM" "$*" "$C_RESET"; }
+
+banner() {
+  printf '%s%s' "$C_BOLD" "$C_GOLD"
+  cat <<'EOF'
+   ◦ ˚  🚀 ˚ ◦
+   npm trust setup
+EOF
+  printf '%s' "$C_RESET"
+  dim "from zero to OIDC-published in two small hops"
+  rule
+}
+
+finale() {
+  local lines=(
+    "Go merge that release PR — the robots have it from here."
+    "Your tokens are now nobody's business. Not even yours."
+    "Henceforth, publishing is a thing that happens to other people."
+    "The package has left the nest. 🐣"
+    "OIDC: because 'long-lived secret in CI' is a horror genre."
+  )
+  local pick=$((RANDOM % ${#lines[@]}))
+  printf '\n%s%s ✦ done%s %s\n' "$C_BOLD" "$C_GOOD" "$C_RESET" "${lines[$pick]}"
+  dim "elapsed: $((SECONDS - START))s"
+}
+
+# --- args --------------------------------------------------------------------
+REGISTRY="https://registry.npmjs.org"
+WORKFLOW="release.yml"
+REPO=""
+PACKER=""
+SKIP_PUBLISH=0
+SKIP_TRUST=0
+DRY_RUN=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --workflow) WORKFLOW="$2"; shift 2 ;;
+    --packer) PACKER="$2"; shift 2 ;;
+    --repo) REPO="$2"; shift 2 ;;
+    --registry) REGISTRY="$2"; shift 2 ;;
+    --skip-publish) SKIP_PUBLISH=1; shift ;;
+    --skip-trust) SKIP_TRUST=1; shift ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    -h|--help) sed -n '2,33p' "$0"; exit 0 ;;
+    *) die "unknown flag: $1" ;;
+  esac
+done
+
+banner
+[ "$DRY_RUN" -eq 1 ] && warn "dry run — rehearsing only, nothing will leave this machine"
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not inside a git repo"
+
+PACKDIR="$(mktemp -d)"
+PACKLOG="$PACKDIR/pack.log"
+trap 'rm -rf "$PACKDIR"' EXIT
+
+# --- packer detection: flag > pnpm repo with pnpm installed > npm -----------
+if [ -n "$PACKER" ]; then
+  command -v "$PACKER" >/dev/null 2>&1 || die "--packer $PACKER is not installed"
+elif command -v pnpm >/dev/null 2>&1 && { [ -f "$ROOT/pnpm-workspace.yaml" ] || [ -f "$ROOT/pnpm-lock.yaml" ]; }; then
+  PACKER="pnpm"
+else
+  PACKER="npm"
+fi
+
+# --- repo detection: flag > gh > git remote ---------------------------------
+if [ -z "$REPO" ]; then
+  REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || true)"
+fi
+if [ -z "$REPO" ]; then
+  REPO="$(git -C "$ROOT" remote get-url origin 2>/dev/null | sed -E 's#(git@github\.com:|https://github\.com/)##; s#\.git$##')"
+fi
+[ -n "$REPO" ] || die "could not detect GitHub repo — pass --repo owner/name"
+
+[ -f "$ROOT/.github/workflows/$WORKFLOW" ] || \
+  warn "$ROOT/.github/workflows/$WORKFLOW does not exist (pass --workflow)"
+
+# npm validates the OIDC token's ENTRY workflow. If the publishing workflow is
+# reusable (on: workflow_call) and another workflow invokes it, the token names
+# the CALLER — trusting the reusable file yields a masked 404 on publish:
+#   404 ... could not be found or you do not have permission to access it
+# https://docs.npmjs.com/trusted-publishers/
+WFDIR="$ROOT/.github/workflows"
+if grep -qE '^[[:space:]]*workflow_call:' "$WFDIR/$WORKFLOW" 2>/dev/null; then
+  # `|| true`: pipefail turns a no-match grep into a fatal error under set -e
+  caller="$(grep -lE "uses:[[:space:]]*\./\.github/workflows/$WORKFLOW" "$WFDIR"/*.yml "$WFDIR"/*.yaml 2>/dev/null | head -1 || true)"
+  if [ -n "$caller" ]; then
+    CALLED="$WORKFLOW"
+    WORKFLOW="$(basename "$caller")"
+    warn "$CALLED is reusable and called by $WORKFLOW — trusting the caller, which is what npm validates"
+  fi
+fi
+
+# --- package discovery -------------------------------------------------------
+# Prints "<dir> <name> <version>" per line, workspace deps before dependents.
+discover_packages() {
+  node - "$ROOT" <<'EOF'
+const fs = require("fs"), path = require("path");
+const root = process.argv[2];
+let dirs = [];
+const pkgsDir = path.join(root, "packages");
+if (fs.existsSync(pkgsDir)) {
+  dirs = fs.readdirSync(pkgsDir)
+    .map(d => path.join("packages", d))
+    .filter(d => fs.existsSync(path.join(root, d, "package.json")));
+}
+if (dirs.length === 0 && fs.existsSync(path.join(root, "package.json"))) dirs = ["."];
+const pkgs = dirs.map(d => ({ dir: d, ...JSON.parse(fs.readFileSync(path.join(root, d, "package.json"), "utf8")) }))
+  .filter(p => p.name && p.version && !p.private);
+const byName = new Map(pkgs.map(p => [p.name, p]));
+const done = new Set(), visiting = new Set(), out = [];
+const visit = p => {
+  if (done.has(p.name)) return;
+  if (visiting.has(p.name)) throw new Error(`dependency cycle at ${p.name}`);
+  visiting.add(p.name);
+  for (const dep of Object.keys({ ...p.dependencies, ...p.devDependencies })) {
+    const q = byName.get(dep);
+    if (q) visit(q);
+  }
+  visiting.delete(p.name);
+  done.add(p.name);
+  out.push(p);
+};
+pkgs.forEach(visit);
+out.forEach(p => console.log(`${p.dir} ${p.name} ${p.version}`));
+EOF
+}
+
+version_on_npm() { # <name> <version>
+  curl -sf "$REGISTRY/$(echo "$1" | sed 's|/|%2f|')/$2" >/dev/null 2>&1
+}
+
+# Run a command with a real pty attached but still capture its output. npm
+# gates its browser 2FA on process.stdout.isTTY, so `$(npm trust list ...)` or
+# `npm trust list | grep` silently turns every authenticated read into an EOTP
+# failure. `script` is the only way to have both.
+tty_capture() {
+  if script -q /dev/null true >/dev/null 2>&1; then
+    script -q /dev/null "$@" 2>/dev/null | tr -d '\r\004'   # BSD/macOS
+  else
+    script -qec "$(printf '%q ' "$@")" /dev/null 2>/dev/null | tr -d '\r\004'
+  fi
+}
+
+# Does this package already trust the workflow we are targeting?
+trusts_workflow() { # <trust-list-output>
+  printf '%s' "$1" | grep -qE "file:[[:space:]]*$(printf '%s' "$WORKFLOW" | sed 's/\./\\./g')([[:space:]]|$)"
+}
+
+# pack_tarball <dir> — pack with the chosen packer, print the tarball path.
+# pnpm prints the full path, npm prints just the filename; tolerate both, and
+# fall back to the newest tarball in PACKDIR.
+pack_tarball() {
+  local dir="$1" out tarball dest
+  # One dest per package: the newest-tarball fallback below must never be able
+  # to reach a previous package's tarball and publish it under this name.
+  dest="$(mktemp -d "$PACKDIR/pkg.XXXXXX")"
+  out="$(cd "$ROOT/$dir" && "$PACKER" pack --pack-destination "$dest" 2>"$PACKLOG" | tail -1)"
+  tarball="$out"
+  [ -f "$tarball" ] || tarball="$dest/$(basename "$out")"
+  [ -f "$tarball" ] || tarball="$(ls -t "$dest"/*.tgz 2>/dev/null | head -1)"
+  [ -f "$tarball" ] || return 1
+  printf '%s' "$tarball"
+}
+
+PACKAGES="$(discover_packages)" || die "package discovery exploded — is every package.json valid?"
+[ -n "$PACKAGES" ] || die "no publishable packages found"
+
+# Read into an array, NOT a `while read` pipe: a piped loop makes stdin a pipe
+# and npm's browser 2FA prompt refuses to run without a TTY on stdin.
+PKGS=()
+while IFS= read -r line; do [ -n "$line" ] && PKGS+=("$line"); done <<< "$PACKAGES"
+COUNT=${#PKGS[@]}
+
+say "  ${C_BOLD}repo${C_RESET}      $REPO"
+say "  ${C_BOLD}workflow${C_RESET}  $WORKFLOW"
+say "  ${C_BOLD}packer${C_RESET}    $PACKER $(dim_inline "($($PACKER --version 2>/dev/null))")"
+say "  ${C_BOLD}cargo${C_RESET}     $COUNT package(s), dependency order:"
+for line in "${PKGS[@]}"; do
+  read -r _ name version <<< "$line"
+  say "            ${C_ACCENT}📦 $name@$version${C_RESET}"
+done
+
+# Pre-flight: npm cannot resolve the workspace: protocol, so packing such a
+# package with npm would ship a literal "workspace:*" dependency. Catch it
+# before anything is packed or published — dry runs included.
+if [ "$PACKER" != "pnpm" ]; then
+  ws=""
+  for line in "${PKGS[@]}"; do
+    read -r dir name _ <<< "$line"
+    grep -q '"workspace:' "$ROOT/$dir/package.json" && ws="$ws $name"
+  done
+  [ -z "$ws" ] || die "packer is $PACKER but these need pnpm to resolve workspace: deps —$ws"
+fi
+
+# Pre-flight: CI publishes via trusted publishing are provenance-signed, and
+# npm rejects them (E422) unless package.json repository.url matches the repo
+# the OIDC token attests to. Catch it now, not in a red CI run.
+bad=""
+for line in "${PKGS[@]}"; do
+  read -r dir name _ <<< "$line"
+  match="$(node -e '
+    const r = require(process.argv[1] + "/package.json").repository;
+    const raw = typeof r === "string" ? r : (r && r.url) || "";
+    const norm = raw
+      .replace(/^git\+/, "").replace(/\.git$/, "").replace(/\/$/, "")
+      .replace(/^git@github\.com:/, "https://github.com/")
+      .replace(/^github:/, "https://github.com/")
+      .replace(/^([\w.-]+\/[\w.-]+)$/, "https://github.com/$1")
+      .toLowerCase();
+    console.log(norm === ("https://github.com/" + process.argv[2]).toLowerCase() ? "ok" : "BAD " + (raw || "(missing)"));
+  ' "$ROOT/$dir" "$REPO" 2>/dev/null || echo "BAD (unreadable)")"
+  [ "$match" = "ok" ] || { bad="$bad"$'\n'"    $name → ${match#BAD }"; }
+done
+if [ -n "$bad" ]; then
+  warn "provenance will fail (E422): repository.url must be https://github.com/$REPO in:$bad"
+  die "add to each package.json:  \"repository\": { \"type\": \"git\", \"url\": \"git+https://github.com/$REPO.git\" }"
+fi
+
+if [ "$DRY_RUN" -eq 0 ]; then
+  npm whoami --registry="$REGISTRY" >/dev/null 2>&1 || \
+    die "not logged in — run:  npm login --registry=$REGISTRY"
+  ok "logged in as $(npm whoami --registry="$REGISTRY" 2>/dev/null)"
+  [ -t 0 ] && [ -t 1 ] || warn "not a TTY — npm's browser 2FA prompt will not work here"
+fi
+
+# --- phase 1: publish --------------------------------------------------------
+if [ "$SKIP_PUBLISH" -eq 0 ]; then
+  step "Phase 1 of 2 — liftoff (publish to npm)"
+  n=0
+  for line in "${PKGS[@]}"; do
+    read -r dir name version <<< "$line"
+    n=$((n + 1))
+    # NOTE: `npm view <name>` can 404 on a lagging read replica minutes after
+    # a successful publish. Query the exact version endpoint instead — it
+    # reads authoritatively.
+    if version_on_npm "$name" "$version"; then
+      skip "[$n/$COUNT] $name@$version already on npm"
+      continue
+    fi
+    say "${C_BOLD}🚀 [$n/$COUNT] publishing $name@$version${C_RESET}"
+    if [ "$DRY_RUN" -eq 1 ]; then dim "   (would pack $dir, then npm publish the tarball)"; continue; fi
+
+    # pack: runs prepack/build and rewrites workspace:* to real versions.
+    # stdout is captured here (no 2FA involved in packing).
+    dim "   packing with $PACKER (runs prepack)…"
+    if ! tarball="$(pack_tarball "$dir")"; then
+      cat "$PACKLOG" >&2
+      die "pack failed for $name"
+    fi
+    dim "   $(basename "$tarball")"
+
+    # publish with npm and NOTHING piped: npm owns the browser 2FA flow and
+    # needs both TTYs. Its auth URL is redacted in output, so it cannot be
+    # driven from the outside — let npm drive it.
+    if ! npm publish "$tarball" --access public --registry="$REGISTRY"; then
+      if version_on_npm "$name" "$version"; then
+        warn "[$n/$COUNT] $name@$version landed after all — continuing"
+      else
+        die "publish of $name failed"
+      fi
+    fi
+    ok "[$n/$COUNT] $name@$version is live"
+    sleep 2
+  done
+else
+  skip "Phase 1 — publish skipped by flag"
+fi
+
+# --- phase 2: trusted publisher ----------------------------------------------
+if [ "$SKIP_TRUST" -eq 0 ]; then
+  step "Phase 2 of 2 — the handshake (trusted publishing)"
+  dim "npm may ask for 2FA — 'skip for 5 minutes' covers the rest"
+  n=0
+  for line in "${PKGS[@]}"; do
+    read -r _ name version <<< "$line"
+    n=$((n + 1))
+    current="$(tty_capture npm trust list "$name" --registry="$REGISTRY" || true)"
+    if trusts_workflow "$current"; then
+      skip "[$n/$COUNT] $name already trusts $REPO/$WORKFLOW"
+      continue
+    fi
+    say "${C_BOLD}🤝 [$n/$COUNT] trusting $name → $REPO ($WORKFLOW)${C_RESET}"
+    if [ "$DRY_RUN" -eq 1 ]; then dim "   (would npm trust github)"; continue; fi
+    # Only stderr is redirected — stdout/stdin stay on the terminal so npm can
+    # run its 2FA prompt. `npm trust list` above may fail silently for the same
+    # 2FA reason, so also treat a 409 here as 'already configured' (npm allows
+    # exactly one trusted publisher per package).
+    log="$(mktemp)"
+    if npm trust github "$name" --file "$WORKFLOW" --repo "$REPO" --allow-publish --yes --registry="$REGISTRY" 2>"$log"; then
+      ok "[$n/$COUNT] $name now publishes via OIDC"
+    elif grep -q "E409\|409 Conflict" "$log"; then
+      # npm allows exactly one trusted publisher per package.
+      current="$(tty_capture npm trust list "$name" --registry="$REGISTRY" || true)"
+      if trusts_workflow "$current"; then
+        skip "[$n/$COUNT] $name already trusts $REPO/$WORKFLOW"
+      else
+        id="$(printf '%s' "$current" | awk '/^id:/{print $2; exit}')"
+        warn "[$n/$COUNT] $name trusts something else — replacing it:"
+        printf '%s\n' "$current" | sed 's/^/      /' >&2
+        [ -n "$id" ] || { rm -f "$log"; die "could not read the existing trust id for $name"; }
+        # No redirection: revoke needs 2FA too, so it must keep both TTYs.
+        npm trust revoke "$name" --id="$id" --registry="$REGISTRY" || \
+          die "could not revoke the stale trusted publisher for $name"
+        npm trust github "$name" --file "$WORKFLOW" --repo "$REPO" --allow-publish --yes --registry="$REGISTRY" 2>"$log" || {
+          cat "$log" >&2; rm -f "$log"; die "re-trust failed for $name"
+        }
+        ok "[$n/$COUNT] $name now publishes via OIDC ($REPO/$WORKFLOW)"
+      fi
+    else
+      cat "$log" >&2
+      rm -f "$log"
+      die "trust failed for $name"
+    fi
+    rm -f "$log"
+    sleep 2
+  done
+else
+  skip "Phase 2 — trust skipped by flag"
+fi
+
+rule
+finale

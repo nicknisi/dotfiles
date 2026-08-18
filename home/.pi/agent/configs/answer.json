@@ -1,0 +1,3 @@
+{
+  "extractionModels": ["anthropic/claude-fable-5", "anthropic/claude-opus-5"]
+}
