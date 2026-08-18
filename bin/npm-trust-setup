@@ -9,10 +9,16 @@
 #
 # Usage (from the repo root):
 #   npm-trust-setup [--workflow release.yml] [--repo owner/name]
-#                   [--skip-publish] [--skip-trust] [--dry-run]
+#                   [--access public|restricted] [--skip-publish] [--skip-trust]
+#                   [--dry-run]
 #
-# Handles single-package repos (package.json at root) and monorepos
-# (packages/*/package.json); workspace dependencies publish before dependents.
+# --access restricted publishes private packages (scoped names + paid plan
+# required; unscoped packages are always public and are refused up front).
+#
+# Handles single-package repos (package.json at root) and monorepos: workspace
+# globs come from pnpm-workspace.yaml or the root package.json "workspaces"
+# field (fallback: packages/*), plus the root package itself when publishable.
+# Workspace dependencies publish before dependents (runtime deps only).
 #
 # Prereqs:
 #   npm >= 11.15.0 (for `npm trust`), pnpm, bash, node
@@ -88,6 +94,7 @@ REGISTRY="https://registry.npmjs.org"
 WORKFLOW="release.yml"
 REPO=""
 PACKER=""
+ACCESS="public"
 SKIP_PUBLISH=0
 SKIP_TRUST=0
 DRY_RUN=0
@@ -98,13 +105,20 @@ while [ $# -gt 0 ]; do
     --packer) PACKER="$2"; shift 2 ;;
     --repo) REPO="$2"; shift 2 ;;
     --registry) REGISTRY="$2"; shift 2 ;;
+    --access) ACCESS="$2"; shift 2 ;;
     --skip-publish) SKIP_PUBLISH=1; shift ;;
     --skip-trust) SKIP_TRUST=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
-    -h|--help) sed -n '2,33p' "$0"; exit 0 ;;
+    -h|--help) awk 'NR > 1 && !/^#/ { exit } NR > 1 { sub(/^# ?/, ""); print }' "$0"; exit 0 ;;
     *) die "unknown flag: $1" ;;
   esac
 done
+
+REGISTRY="${REGISTRY%/}"
+case "$ACCESS" in
+  public|restricted) ;;
+  *) die "--access must be public or restricted (got: $ACCESS)" ;;
+esac
 
 banner
 [ "$DRY_RUN" -eq 1 ] && warn "dry run — rehearsing only, nothing will leave this machine"
@@ -124,12 +138,19 @@ else
   PACKER="npm"
 fi
 
+# --- npm version gate: `npm trust` shipped in npm 11.15.0 --------------------
+if [ "$SKIP_TRUST" -eq 0 ]; then
+  NPMV="$(npm --version 2>/dev/null)" || die "npm is not installed"
+  [ "$(printf '%s\n' 11.15.0 "$NPMV" | sort -V | head -1)" = "11.15.0" ] || \
+    die "npm trust needs npm >= 11.15.0 (found $NPMV) — upgrade npm or pass --skip-trust"
+fi
+
 # --- repo detection: flag > gh > git remote ---------------------------------
 if [ -z "$REPO" ]; then
   REPO="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || true)"
 fi
 if [ -z "$REPO" ]; then
-  REPO="$(git -C "$ROOT" remote get-url origin 2>/dev/null | sed -E 's#(git@github\.com:|https://github\.com/)##; s#\.git$##')"
+  REPO="$(git -C "$ROOT" remote get-url origin 2>/dev/null | sed -E 's#^(ssh://)?git@github\.com[:/]##; s#^(https?|git)://github\.com/##; s#\.git$##; s#/$##')"
 fi
 [ -n "$REPO" ] || die "could not detect GitHub repo — pass --repo owner/name"
 
@@ -154,19 +175,76 @@ fi
 
 # --- package discovery -------------------------------------------------------
 # Prints "<dir> <name> <version>" per line, workspace deps before dependents.
+# Workspace globs come from pnpm-workspace.yaml, else the root package.json
+# "workspaces" field, else packages/*; the root package is always a candidate.
+# Ordering follows runtime deps only (dependencies/peer/optional) — devDeps
+# never need to be live on the registry and routinely form harmless cycles.
 discover_packages() {
   node - "$ROOT" <<'EOF'
 const fs = require("fs"), path = require("path");
 const root = process.argv[2];
-let dirs = [];
-const pkgsDir = path.join(root, "packages");
-if (fs.existsSync(pkgsDir)) {
-  dirs = fs.readdirSync(pkgsDir)
-    .map(d => path.join("packages", d))
-    .filter(d => fs.existsSync(path.join(root, d, "package.json")));
-}
-if (dirs.length === 0 && fs.existsSync(path.join(root, "package.json"))) dirs = ["."];
-const pkgs = dirs.map(d => ({ dir: d, ...JSON.parse(fs.readFileSync(path.join(root, d, "package.json"), "utf8")) }))
+
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+// ponytail: *, **, and ! only — no braces/extglobs; extend if a workspace file ever uses them.
+const globToRe = g => {
+  let re = "";
+  for (const tok of g.replace(/\/+$/, "").split(/(\*\*\/|\*\*|\*)/)) {
+    if (tok === "**/") re += "(?:.*/)?";
+    else if (tok === "**") re += ".*";
+    else if (tok === "*") re += "[^/]*";
+    else re += escRe(tok);
+  }
+  return new RegExp("^" + re + "$");
+};
+
+const readJson = f => JSON.parse(fs.readFileSync(f, "utf8"));
+
+// ponytail: line-based YAML — covers the flat "packages:" list real pnpm-workspace.yaml files use.
+const workspaceGlobs = () => {
+  const yaml = path.join(root, "pnpm-workspace.yaml");
+  if (fs.existsSync(yaml)) {
+    const globs = [];
+    let inList = false;
+    for (const line of fs.readFileSync(yaml, "utf8").split("\n")) {
+      const inline = line.match(/^packages:\s*\[(.*)\]/);
+      if (inline) return inline[1].split(",").map(s => s.trim().replace(/^['"]|['"]$/g, "")).filter(Boolean);
+      if (/^packages:\s*$/.test(line)) { inList = true; continue; }
+      if (!inList) continue;
+      const item = line.match(/^\s+-\s*(.+?)\s*$/);
+      if (item) globs.push(item[1].replace(/^['"]|['"]$/g, ""));
+      else if (/^\S/.test(line)) inList = false;
+    }
+    if (globs.length) return globs;
+  }
+  const rootPkg = path.join(root, "package.json");
+  if (fs.existsSync(rootPkg)) {
+    const ws = readJson(rootPkg).workspaces;
+    const globs = Array.isArray(ws) ? ws : ws && ws.packages;
+    if (globs && globs.length) return globs;
+  }
+  return ["packages/*"];
+};
+
+// Every dir (outside node_modules and dot-dirs) holding a package.json.
+const pkgDirs = [];
+const walk = rel => {
+  let entries;
+  try { entries = fs.readdirSync(path.join(root, rel || "."), { withFileTypes: true }); } catch { return; }
+  if (rel && entries.some(e => e.name === "package.json" && e.isFile())) pkgDirs.push(rel);
+  for (const e of entries) {
+    if (!e.isDirectory() || e.name === "node_modules" || e.name.startsWith(".")) continue;
+    walk(rel ? `${rel}/${e.name}` : e.name);
+  }
+};
+walk("");
+
+const globs = workspaceGlobs();
+const inc = globs.filter(g => !g.startsWith("!")).map(globToRe);
+const exc = globs.filter(g => g.startsWith("!")).map(g => globToRe(g.slice(1)));
+const dirs = pkgDirs.filter(d => inc.some(r => r.test(d)) && !exc.some(r => r.test(d)));
+if (fs.existsSync(path.join(root, "package.json"))) dirs.unshift(".");
+
+const pkgs = [...new Set(dirs)].map(d => ({ dir: d, ...readJson(path.join(root, d, "package.json")) }))
   .filter(p => p.name && p.version && !p.private);
 const byName = new Map(pkgs.map(p => [p.name, p]));
 const done = new Set(), visiting = new Set(), out = [];
@@ -174,7 +252,7 @@ const visit = p => {
   if (done.has(p.name)) return;
   if (visiting.has(p.name)) throw new Error(`dependency cycle at ${p.name}`);
   visiting.add(p.name);
-  for (const dep of Object.keys({ ...p.dependencies, ...p.devDependencies })) {
+  for (const dep of Object.keys({ ...p.dependencies, ...p.peerDependencies, ...p.optionalDependencies })) {
     const q = byName.get(dep);
     if (q) visit(q);
   }
@@ -187,8 +265,20 @@ out.forEach(p => console.log(`${p.dir} ${p.name} ${p.version}`));
 EOF
 }
 
+# Restricted packages 404 on unauthenticated reads, so the already-published
+# check must send the login token when --access restricted. Public stays
+# tokenless: a stale token must not be able to turn 200s into 401s.
+NPM_TOKEN="$(npm config get "//${REGISTRY#*//}/:_authToken" 2>/dev/null || true)"
+case "$NPM_TOKEN" in undefined|null) NPM_TOKEN="" ;; esac
+
 version_on_npm() { # <name> <version>
-  curl -sf "$REGISTRY/$(echo "$1" | sed 's|/|%2f|')/$2" >/dev/null 2>&1
+  local url
+  url="$REGISTRY/$(echo "$1" | sed 's|/|%2f|')/$2"
+  if [ "$ACCESS" = "restricted" ] && [ -n "$NPM_TOKEN" ]; then
+    curl -sf -H "Authorization: Bearer $NPM_TOKEN" "$url" >/dev/null 2>&1
+  else
+    curl -sf "$url" >/dev/null 2>&1
+  fi
 }
 
 # Run a command with a real pty attached but still capture its output. npm
@@ -196,16 +286,28 @@ version_on_npm() { # <name> <version>
 # `npm trust list | grep` silently turns every authenticated read into an EOTP
 # failure. `script` is the only way to have both.
 tty_capture() {
-  if script -q /dev/null true >/dev/null 2>&1; then
-    script -q /dev/null "$@" 2>/dev/null | tr -d '\r\004'   # BSD/macOS
-  else
-    script -qec "$(printf '%q ' "$@")" /dev/null 2>/dev/null | tr -d '\r\004'
-  fi
+  {
+    if script -q /dev/null true >/dev/null 2>&1; then
+      script -q /dev/null "$@" 2>/dev/null                       # BSD/macOS
+    else
+      script -qec "$(printf '%q ' "$@")" /dev/null 2>/dev/null   # Linux
+    fi
+  # Cleanup: \r and EOT from the pty, backspaces + literal "^D" that macOS
+  # script echoes at session end, and SGR color codes — npm colorizes for the
+  # fake TTY, and escape bytes would break the greps/awk on this output.
+  } | tr -d '\r\004\010' | sed $'s/\x1b\\[[0-9;]*m//g; s/^\\^D//'
 }
 
-# Does this package already trust the workflow we are targeting?
+# Does this package already trust exactly what we are targeting? File alone is
+# not enough — release.yml is everyone's default name, and a trust pointing at
+# a fork or pre-rename repo must be replaced, not skipped. `npm trust list`
+# prints "file: <name>" and "repository: <owner/repo>" lines.
 trusts_workflow() { # <trust-list-output>
-  printf '%s' "$1" | grep -qE "file:[[:space:]]*$(printf '%s' "$WORKFLOW" | sed 's/\./\\./g')([[:space:]]|$)"
+  local wf_re repo_re
+  wf_re="$(printf '%s' "$WORKFLOW" | sed 's/\./\\./g')"
+  repo_re="$(printf '%s' "$REPO" | sed 's/\./\\./g')"
+  printf '%s' "$1" | grep -qE "file:[[:space:]]*$wf_re([[:space:]]|$)" && \
+    printf '%s' "$1" | grep -qiE "repository:[[:space:]]*$repo_re([[:space:]]|$)"
 }
 
 # pack_tarball <dir> — pack with the chosen packer, print the tarball path.
@@ -236,11 +338,23 @@ COUNT=${#PKGS[@]}
 say "  ${C_BOLD}repo${C_RESET}      $REPO"
 say "  ${C_BOLD}workflow${C_RESET}  $WORKFLOW"
 say "  ${C_BOLD}packer${C_RESET}    $PACKER $(dim_inline "($($PACKER --version 2>/dev/null))")"
+say "  ${C_BOLD}access${C_RESET}    $ACCESS"
 say "  ${C_BOLD}cargo${C_RESET}     $COUNT package(s), dependency order:"
 for line in "${PKGS[@]}"; do
   read -r _ name version <<< "$line"
   say "            ${C_ACCENT}📦 $name@$version${C_RESET}"
 done
+
+# Pre-flight: npm refuses --access restricted for unscoped names (they are
+# always public). Catch every offender before anything is published.
+if [ "$ACCESS" = "restricted" ]; then
+  unscoped=""
+  for line in "${PKGS[@]}"; do
+    read -r _ name _ <<< "$line"
+    case "$name" in @*/*) ;; *) unscoped="$unscoped $name" ;; esac
+  done
+  [ -z "$unscoped" ] || die "--access restricted needs scoped names (@scope/pkg) — unscoped:$unscoped"
+fi
 
 # Pre-flight: npm cannot resolve the workspace: protocol, so packing such a
 # package with npm would ship a literal "workspace:*" dependency. Catch it
@@ -283,6 +397,9 @@ if [ "$DRY_RUN" -eq 0 ]; then
     die "not logged in — run:  npm login --registry=$REGISTRY"
   ok "logged in as $(npm whoami --registry="$REGISTRY" 2>/dev/null)"
   [ -t 0 ] && [ -t 1 ] || warn "not a TTY — npm's browser 2FA prompt will not work here"
+  if [ "$ACCESS" = "restricted" ] && [ -z "$NPM_TOKEN" ] && [ "$SKIP_PUBLISH" -eq 0 ]; then
+    warn "no _authToken found for ${REGISTRY#*//} — already-published restricted versions cannot be detected, re-runs may fail"
+  fi
 fi
 
 # --- phase 1: publish --------------------------------------------------------
@@ -314,7 +431,7 @@ if [ "$SKIP_PUBLISH" -eq 0 ]; then
     # publish with npm and NOTHING piped: npm owns the browser 2FA flow and
     # needs both TTYs. Its auth URL is redacted in output, so it cannot be
     # driven from the outside — let npm drive it.
-    if ! npm publish "$tarball" --access public --registry="$REGISTRY"; then
+    if ! npm publish "$tarball" --access "$ACCESS" --registry="$REGISTRY"; then
       if version_on_npm "$name" "$version"; then
         warn "[$n/$COUNT] $name@$version landed after all — continuing"
       else
@@ -333,21 +450,25 @@ if [ "$SKIP_TRUST" -eq 0 ]; then
   step "Phase 2 of 2 — the handshake (trusted publishing)"
   dim "npm may ask for 2FA — 'skip for 5 minutes' covers the rest"
   n=0
+  log="$PACKDIR/trust.log"   # lives in PACKDIR so the EXIT trap cleans it up
   for line in "${PKGS[@]}"; do
     read -r _ name version <<< "$line"
     n=$((n + 1))
+    if [ "$DRY_RUN" -eq 1 ]; then
+      say "${C_BOLD}🤝 [$n/$COUNT] $name${C_RESET}"
+      dim "   (would check npm trust list, then npm trust github → $REPO/$WORKFLOW)"
+      continue
+    fi
     current="$(tty_capture npm trust list "$name" --registry="$REGISTRY" || true)"
     if trusts_workflow "$current"; then
       skip "[$n/$COUNT] $name already trusts $REPO/$WORKFLOW"
       continue
     fi
     say "${C_BOLD}🤝 [$n/$COUNT] trusting $name → $REPO ($WORKFLOW)${C_RESET}"
-    if [ "$DRY_RUN" -eq 1 ]; then dim "   (would npm trust github)"; continue; fi
     # Only stderr is redirected — stdout/stdin stay on the terminal so npm can
     # run its 2FA prompt. `npm trust list` above may fail silently for the same
     # 2FA reason, so also treat a 409 here as 'already configured' (npm allows
     # exactly one trusted publisher per package).
-    log="$(mktemp)"
     if npm trust github "$name" --file "$WORKFLOW" --repo "$REPO" --allow-publish --yes --registry="$REGISTRY" 2>"$log"; then
       ok "[$n/$COUNT] $name now publishes via OIDC"
     elif grep -q "E409\|409 Conflict" "$log"; then
@@ -359,21 +480,19 @@ if [ "$SKIP_TRUST" -eq 0 ]; then
         id="$(printf '%s' "$current" | awk '/^id:/{print $2; exit}')"
         warn "[$n/$COUNT] $name trusts something else — replacing it:"
         printf '%s\n' "$current" | sed 's/^/      /' >&2
-        [ -n "$id" ] || { rm -f "$log"; die "could not read the existing trust id for $name"; }
+        [ -n "$id" ] || die "could not read the existing trust id for $name"
         # No redirection: revoke needs 2FA too, so it must keep both TTYs.
         npm trust revoke "$name" --id="$id" --registry="$REGISTRY" || \
           die "could not revoke the stale trusted publisher for $name"
         npm trust github "$name" --file "$WORKFLOW" --repo "$REPO" --allow-publish --yes --registry="$REGISTRY" 2>"$log" || {
-          cat "$log" >&2; rm -f "$log"; die "re-trust failed for $name"
+          cat "$log" >&2; die "re-trust failed for $name"
         }
         ok "[$n/$COUNT] $name now publishes via OIDC ($REPO/$WORKFLOW)"
       fi
     else
       cat "$log" >&2
-      rm -f "$log"
       die "trust failed for $name"
     fi
-    rm -f "$log"
     sleep 2
   done
 else
