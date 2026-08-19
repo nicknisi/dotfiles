@@ -247,15 +247,11 @@ if.app-id = 'com.apple.Safari'
 run = 'move-node-to-workspace W'
 
 [[on-window-detected]]
-if.app-id = 'company.thebrowser.Browser'
-run = 'move-node-to-workspace W'
-
-[[on-window-detected]]
-if.app-id = 'app.zen-browser.zen'
-run = 'move-node-to-workspace W'
-
-[[on-window-detected]]
 if.app-id = 'com.google.Chrome.canary'
+run = 'move-node-to-workspace W'
+
+[[on-window-detected]]
+if.app-id = 'net.imput.helium'
 run = 'move-node-to-workspace W'
 
 # Productivity
@@ -301,13 +297,6 @@ run = 'move-node-to-workspace Z'
 ## Floaters
 
 [[on-window-detected]]
-if.during-aerospace-startup = false
-if.app-id = 'app.zen-browser.zen'
-if.window-title-regex-substring = 'Picture-in-Picture'
-run = ['layout floating']
-
-
-[[on-window-detected]]
 if.app-id = 'com.apple.Music'
 run = ['layout floating']
 
@@ -337,6 +326,10 @@ run = 'layout floating'
 
 [[on-window-detected]]
 if.app-id = 'com.apple.ScreenContinuity'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.raycast.macos'
 run = 'layout floating'
 
 [[on-window-detected]]
