@@ -146,14 +146,9 @@ run = """
 
 # `mise bootstrap` runs this after [tools] are installed.
 [tasks.bootstrap]
-description = "Install terminfo and register repo-local Git filters."
+description = "Register repo-local Git filters."
 run = """
   repo="$HOME/Developer/dotfiles"
-
-  echo "==> terminfo"
-  for file in "$repo"/resources/*.terminfo; do
-    tic -x "$file"
-  done
 
   echo "==> git filters"
   git -C "$repo" config filter.pi-settings.clean "jq 'del(.lastChangelogVersion)'"

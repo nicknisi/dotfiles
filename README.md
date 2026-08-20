@@ -78,7 +78,7 @@ The explicit `MISE_GLOBAL_CONFIG_FILE` is only needed before bootstrap creates `
 4. Applies the `[dotfiles]` symlinks.
 5. Writes the macOS defaults and changes the login shell.
 6. Installs the runtimes and command-line tools from `[tools]`.
-7. Runs the `bootstrap` task to compile terminfo entries and register the repository's Git clean filter.
+7. Runs the `bootstrap` task to register the repository's Git clean filter.
 
 The installer points Mise at the cloned config, so the same manifest handles the first run and every later run.
 
@@ -90,7 +90,7 @@ mise tasks
 
 | Task | Purpose |
 | --- | --- |
-| `mise run bootstrap` | Compile terminfo and register the `pi-settings` Git clean filter |
+| `mise run bootstrap` | Register the `pi-settings` Git clean filter |
 | `mise run install-homebrew` | Install Homebrew with the official installer if needed |
 | `mise run setup-mac` | Install the macOS apps, fonts, SketchyBar, and Borders |
 | `mise run setup-git` | Write the machine-local Git identity |
@@ -134,7 +134,6 @@ Bootstrap clones these over SSH:
 | `config/` | App configuration | `~/.config/*` |
 | `home/` | Home-directory configuration | `~/.claude`, `~/.pi`, and `~/.zshenv` |
 | `bin/` | Personal commands placed on `PATH` | Used directly from this checkout |
-| `resources/` | terminfo source files and static resources | Consumed by bootstrap and app configs |
 | `tools/` | Larger one-off tools and build helpers | Run from the repository |
 | `install.sh` | Bare-machine bootstrap | Run directly or through `curl` |
 | `Dockerfile` and `docker-compose.yml` | Limited Ubuntu sandbox | Local container only |
