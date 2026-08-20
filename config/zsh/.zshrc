@@ -17,6 +17,10 @@ else
   compinit -C
 fi
 
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^g' edit-command-line
+
 # register completions for directory nav functions (defined in .zsh_functions)
 compdef _c c
 compdef _h h
@@ -104,6 +108,14 @@ zstyle ':completion:*' group-name ''
 # Plugin setup
 ########################################################
 
+# mise: per-directory tool version switching (interactive shells)
+# For cron/scripts, set PATH=$HOME/.local/share/mise/shims:... in the crontab
+# or use `mise exec -- <cmd>` directly.
+if command -v mise &>/dev/null; then
+  eval "$(mise activate zsh)"
+fi
+
+
 export ZPLUGDIR="$CACHEDIR/zsh/plugins"
 [[ -d "$ZPLUGDIR" ]] || mkdir -p "$ZPLUGDIR"
 # array containing plugin information (managed by zfetch)
@@ -156,7 +168,7 @@ fi
 colorflag=$(ls --color &>/dev/null && echo "--color" || echo "-G")
 
 # source local and config files
-for file in ~/.zshrc.local "$ZDOTDIR/.zsh_prompt" "$ZDOTDIR/.zsh_aliases"; do
+for file in ~/.zshrc.local "$ZDOTDIR/.zsh_aliases"; do
   [[ -f "$file" ]] && source "$file"
 done
 
@@ -164,13 +176,6 @@ done
 if command -v pnpm &>/dev/null; then
   export PNPM_HOME="$HOME/Library/pnpm"
   [[ ":$PATH:" != *":$PNPM_HOME:"* ]] && export PATH="$PNPM_HOME:$PATH"
-fi
-
-# mise: per-directory tool version switching (interactive shells)
-# For cron/scripts, set PATH=$HOME/.local/share/mise/shims:... in the crontab
-# or use `mise exec -- <cmd>` directly.
-if command -v mise &>/dev/null; then
-  eval "$(mise activate zsh)"
 fi
 
 if command -v jj &>/dev/null; then
@@ -187,3 +192,7 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME/bin:$PATH" ;;
 esac
 # pnpm end
+
+if command -v starship &>/dev/null; then
+  eval "$(starship init zsh)"
+fi

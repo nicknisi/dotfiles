@@ -100,7 +100,7 @@
       "~/.claude/"
     ]
   },
-  "model": "claude-fable-5[1m]",
+  "model": "opus[1m]",
   "hooks": {
     "SessionEnd": [
       {
@@ -1316,5 +1316,6 @@
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true,
-  "defaultMode": "auto"
+  "defaultMode": "auto",
+  "fastMode": true
 }

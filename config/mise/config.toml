@@ -1,11 +1,128 @@
 [tools]
+# languages / runtimes
 node = "24"
-python = "3.14.4"
+python = "3.14.7"
+pnpm = "latest"
+bun = "latest"
+deno = "latest"
+lua = "latest"
+tree-sitter = "latest"
+
+# clis
+1password-cli = "latest"
+
+# npm packages
 "npm:@earendil-works/pi-coding-agent" = "latest"
 "npm:wrangler" = "latest"
 "npm:greptile" = "latest"
-"npm:openclaw" = "latest"
-pnpm = "latest"
+"npm:workos" = "latest"
+
+# dev tools
+bat = "latest"
+delta = "latest"
+eza = "latest"
+fd = "latest"
+fzf = "latest"
+github-cli = "latest"
+glow = "latest"
+gum = "latest"
+jq = "latest"
+lazygit = "latest"
+neovim = "latest"
+ripgrep = "latest"
+shellcheck = "latest"
+starship = "latest"
+stylua = "latest"
+tmux = "latest"
+zoxide = "latest"
+superfile = "latest"
+
+# git
+"github:nicknisi/diffdad" = "latest"
+"github:nicknisi/fleet" = "latest"
+"github:nicknisi/tm" = "latest"
+"github:nicknisi/sessions" = "latest"
+
+[bootstrap.packages]
+# core utilities newer than what macOS ships
+"brew:bash" = "latest"
+"brew:git" = "latest"        # mise has no git backend, this is the only source
+"brew:zsh" = "latest"        # login shell, see [bootstrap.user]
+"brew:grep" = "latest"
+"brew:vim" = "latest"
+
+# no mise backend: linux-only builds, perl scripts, or source-only releases
+"brew:btop" = "latest"       # a top alternative (aqua:btop is linux-only)
+"brew:cloc" = "latest"       # lines of code counter
+"brew:entr" = "latest"       # file watcher / command runner
+"brew:fswatch" = "latest"    # fs event watcher (pushes fleet state to sketchybar)
+"brew:gnupg" = "latest"      # GPG
+"brew:highlight" = "latest"  # code syntax highlighting
+"brew:tree" = "latest"       # pretty-print directory contents
+"brew:wdiff" = "latest"      # word differences in text files
+"brew:wget" = "latest"       # internet file retriever
+
+# macOS only
+"brew:noti" = { os = "macos" }                      # notifications from scripts
+"brew:trash" = { os = "macos" }                     # rm, but to the trash
+
+# Applications
+"brew-cask:ghostty" = { os = "macos" }
+"brew-cask:karabiner-elements" = { os = "macos" }
+
+[bootstrap.repos]
+"~/Developer/pi-extensions" = { url = "git@github.com:nicknisi/pi-extensions.git", ref = "main" }
+"~/Developer/ideation" = { url = "git@github.com:nicknisi/ideation.git", ref = "main" }
+"~/Developer/claude-plugins" = { url = "git@github.com:nicknisi/claude-plugins.git", ref = "main" }
+
+[tasks.install-homebrew]
+description = "Install homebrew onto the system."
+run = "/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+
+[tasks.setup-mac]
+description = "Install macOS-specific apps."
+depends = ["install-homebrew"]
+run = """
+  brew trust 'FelixKratz/formulae'
+  brew trust 'nikitabobko/tap'
+
+  brew tap 'FelixKratz/formulae'
+  brew tap 'nikitabobko/tap'
+
+  brew update
+
+  brew install borders sketchybar
+  brew install --cask nikitabobko/tap/aerospace wezterm font-symbols-only-nerd-font font-monaspace
+
+  brew services start borders
+"""
+
+[tasks.claude-install]
+description = "Install Claude Code (CLI)"
+run = "curl -fsSL https://claude.ai/install.sh | bash"
+
+[tasks.update-mac]
+description = "Update homebrew packages, mise tools, and zsh plugins."
+run = """
+  brew update
+  brew upgrade
+  mise self-update
+  mise up
+  # zfetch is a zsh function and its plugin list is built by .zshrc, so it needs
+  # an interactive zsh — mise runs tasks in sh.
+  zsh -ic 'zfetch update'
+"""
+
+# Sources are absolute: relative ones resolve against this file's directory, which
+# is the ~/.config/mise symlink, not the repo. Targets use .??* rather than .* so
+# the glob doesn't match . and .. and abort the apply.
+#
+# On a machine where ~/.config/mise doesn't exist yet:
+#   MISE_GLOBAL_CONFIG_FILE=<clone>/config/mise/config.toml mise bootstrap dotfiles apply
+[dotfiles]
+"~/.config/*" = "~/Developer/dotfiles/config/*"
+"~/.??*" = "~/Developer/dotfiles/home/.??*"
 
 [settings]
-idiomatic_version_file_enable_tools = ["terraform", "node"]
+idiomatic_version_file_enable_tools = ["node"]
+yes = true

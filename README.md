@@ -119,14 +119,16 @@ dot shell terminfo   # Install terminal information files
 
 These commands may not always be required. For example, macOS now sets the default shell to ZSH, and terminfo is only required if you want italic support in Neovim.
 
-#### Homebrew Management (`dot homebrew`)
+#### Homebrew Management (mise tasks)
 
 ```bash
-dot homebrew install    # Install Homebrew package manager
-dot homebrew bundle     # Install packages from Brewfile
+mise run install-homebrew   # Install the Homebrew package manager
+mise run setup-mac          # Tap and install the macOS-only packages
 ```
 
-Using this command is only needed if your machine does not currently have Homebrew installed. You can also install it the standard way by following the [instructions on their website](https://brew.sh).
+Most packages come from `[bootstrap.packages]` in `config/mise/config.toml`, applied with
+`mise bootstrap packages apply`. `setup-mac` covers the few whose taps publish no Homebrew
+API metadata, so mise cannot install them: borders, sketchybar, and aerospace.
 
 #### Legacy Cleanup (`dot legacy`)
 
@@ -196,7 +198,7 @@ The simplest way to install Neovim is to install it from Homebrew.
 brew install neovim
 ```
 
-However, it was likely installed already if you ran the `dot homebrew bundle` command provided in the dotfiles.
+However, it comes from mise's `[tools]`, so `mise install` will have set it up already.
 
 All of the configuration for Neovim starts at `config/nvim/init.lua`, which is symlinked into the `~/.config/nvim` directory.
 
