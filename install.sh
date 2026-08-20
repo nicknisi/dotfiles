@@ -12,7 +12,7 @@
 
 set -Eeuo pipefail
 
-DOTFILES="${DOTFILES:-$HOME/Developer/dotfiles}"
+DOTFILES="$HOME/Developer/dotfiles"
 DRY_RUN=false
 
 while [[ $# -gt 0 ]]; do
@@ -25,7 +25,7 @@ install.sh — set up this machine from scratch
   -n, --dry-run   print each command instead of running it
   -h, --help      this
 
-env: DOTFILES (default ~/Developer/dotfiles), NO_COLOR
+env: NO_COLOR
 USAGE
     exit 0
     ;;
@@ -99,28 +99,14 @@ if command -v mise &>/dev/null; then
 else
   run sh -c 'curl -fsSL https://mise.run | sh'
 fi
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 [[ "$DRY_RUN" == true ]] || command -v mise &>/dev/null || die "mise is still not on PATH"
 
-# The symlinks come first because one of them is ~/.config/mise -> this repo.
-# Until it exists, mise can't find the config on its own, so point at it directly.
-step "Linking dotfiles"
+# Until bootstrap creates ~/.config/mise, point mise at the cloned config.
+# Its pre-packages hook installs Homebrew before the brew package manager runs.
+step "Bootstrapping the machine"
 run env "MISE_GLOBAL_CONFIG_FILE=$DOTFILES/config/mise/config.toml" \
-  mise bootstrap dotfiles apply --yes
-
-# Real Homebrew before mise's brew manager, so the official installer isn't
-# handed a prefix mise already created. Only the tap-only packages need it.
-# setup-mac depends on install-homebrew, which no-ops when brew is already there.
-if [[ "$(uname)" == "Darwin" ]]; then
-  step "Installing Homebrew and the macOS apps"
-  run mise run setup-mac
-fi
-
-# [bootstrap.packages], [bootstrap.repos], then [tools]
-step "Installing packages, repos, and tools"
-run mise bootstrap --yes
-run mise install
-run "$DOTFILES/bin/dot" filters
+  mise bootstrap --yes
 
 # ── Done ────────────────────────────────────────────────────────
 
@@ -134,10 +120,8 @@ printf '\n %s✓%s %s%s%s\n' "$GREEN" "$RESET" "$BOLD" "${SIGNOFFS[RANDOM % ${#S
 
 cat <<EOF
 
- ${DIM}mise bootstrap handled the login shell and the macOS defaults. One thing left:${RESET}
+ ${DIM}Open a new login shell to pick up the chsh, then configure Git:${RESET}
 
-   ${CYAN}dot shell terminfo${RESET}    ${DIM}tic the tmux/ghostty terminfo entries${RESET}
-
- ${DIM}Then open a new login shell to pick up the chsh.${RESET}
+   ${CYAN}mise run setup-git${RESET}
 
 EOF

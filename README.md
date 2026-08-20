@@ -36,9 +36,9 @@ Prefer to do it by hand:
 xcode-select --install                                   # macOS, if git is missing
 git clone git@github.com:nicknisi/dotfiles.git ~/Developer/dotfiles
 curl https://mise.run | sh
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 MISE_GLOBAL_CONFIG_FILE=~/Developer/dotfiles/config/mise/config.toml \
-  mise bootstrap dotfiles apply     # creates ~/.config/mise -> the repo
-mise bootstrap && mise install
+  mise bootstrap --yes
 ```
 
 > [!important]
@@ -48,125 +48,89 @@ mise bootstrap && mise install
 > against `~/.config/mise`, which is itself a symlink into this repo. Cloning
 > elsewhere means editing those two lines.
 
-## The `dot` Command
+## Machine management with mise
 
-This repository includes a `dot` command for the machine setup that isn't
-symlinks or packages. `dot link` and `dot unlink` are wrappers over
-`mise bootstrap dotfiles apply|unapply`, so the layout is described once, in
-`[dotfiles]` in `config/mise/config.toml`.
+`config/mise/config.toml` owns packages, repositories, dotfile links, macOS
+defaults, the login shell, and machine setup tasks.
 
-### Configuration
+### Dotfiles
 
-The tool respects these environment variables:
-- `DOTFILES`: Path to your dotfiles directory
-- `PATH`: For discovering external commands
-
-Only `config/*` and `home/.??*` are linked, per the `[dotfiles]` globs in
-`config/mise/config.toml`. Everything else in the repo (`bin`, `resources`,
-`tools`) is left alone.
-
-### Basic Usage
+Only `config/*` and `home/.??*` are linked by the `[dotfiles]` globs. Everything
+else in the repo, including `bin`, `resources`, and `tools`, is left alone.
 
 ```bash
-dot help                    # Show help message and available commands
-dot link [package]          # Link all or a specific package (via mise)
-dot unlink [package]        # Unlink all or a specific package (via mise)
-dot link clean              # Remove broken symlinks
-dot filters                 # Register the repo's git clean filters
+mise bootstrap dotfiles status                         # Show link state
+mise bootstrap dotfiles apply --yes                    # Link everything
+mise bootstrap dotfiles apply --yes ~/.config/nvim     # Link one target
+mise bootstrap dotfiles unapply --yes                  # Remove every link
+mise bootstrap dotfiles unapply --yes ~/.config/nvim   # Remove one link
 ```
 
-> [!important]
->
-> This command won't be in the path until ZSH is properly configured.
-> Until that's the case, you can run the command from the dotfiles root.
-> ```bash
-> bin/dot <command> <subcommand>
->```
-
-### Link/Unlink Options
+Unapply a target before deleting or renaming its source. For an existing orphan,
+preview broken links and remove only those that point into this repo:
 
 ```bash
-dot link <package>         # Link a specific package
-dot link all               # Link all packages
-dot link clean -n          # Preview which broken symlinks would go
+find ~/.config -type l ! -exec test -e {} \; -print
+find ~ -maxdepth 1 -type l ! -exec test -e {} \; -print
 ```
 
-There's no backup command. mise refuses to replace a real file with a symlink,
-naming the paths that collide, so `mise bootstrap dotfiles apply --force` is the
-explicit opt-in rather than a tarball you have to remember to make.
+Mise refuses to replace a real file with a symlink. Use
+`mise bootstrap dotfiles apply --force` when replacement is intentional.
 
-### Built-in Commands
+### Git identity
 
-#### Git Configuration (`dot git`)
+Git identity stays machine-local and is not part of unattended bootstrap:
 
 ```bash
-dot git setup    # Configure git user settings interactively
+mise run setup-git
 ```
 
-Sets up personalized Git configuration, including name, email, and GitHub username. The configuration is saved to `~/.gitconfig-local`.
+The task prompts for name, email, and GitHub username, then writes
+`~/.gitconfig-local`.
 
-#### macOS Settings and Login Shell (mise)
+### macOS settings and login shell
 
 Both live in `config/mise/config.toml` and are applied by `mise bootstrap`:
 
 ```bash
-mise bootstrap macos defaults status   # show drift
-mise bootstrap macos defaults apply    # Finder, keyboard, trackpad, font smoothing
-mise bootstrap user apply              # add zsh to /etc/shells, then chsh
+mise bootstrap macos defaults status   # Show drift
+mise bootstrap macos defaults apply    # Apply Finder, keyboard, and trackpad settings
+mise bootstrap user apply              # Add zsh to /etc/shells, then run chsh
 ```
 
-`[bootstrap.macos.finder]`, `[bootstrap.macos.keyboard]`, and
-`[bootstrap.macos.trackpad]` cover the common preferences by name;
-`[bootstrap.macos.defaults]` holds the raw `(domain, key)` pairs for the rest. The
-`post-defaults` hook handles the two that aren't `defaults` writes at all — the
-Terminal.app encoding array and `chflags nohidden ~/Library` — plus the `killall`
-that makes Finder and the Dock notice.
+The `post-defaults` hook reveals `~/Library` and restarts affected applications.
 
-#### Shell Configuration (`dot shell`)
+### Final machine setup
+
+After installing `[tools]`, `mise bootstrap` runs the `bootstrap` task. It installs
+terminfo entries and registers this repo's Git clean filters. Both operations are
+idempotent and can be rerun directly:
 
 ```bash
-dot shell terminfo   # Install terminal information files
+mise run bootstrap
 ```
 
-Only needed if you want italic support in Neovim and correct behavior over SSH.
-
-#### Homebrew Management (mise tasks)
+### Homebrew management
 
 ```bash
-mise run install-homebrew   # Install the Homebrew package manager
-mise run setup-mac          # Tap and install the macOS-only packages
+mise run install-homebrew   # Install Homebrew
+mise run setup-mac          # Install tap-only macOS packages
 ```
 
-Most packages come from `[bootstrap.packages]` in `config/mise/config.toml`, applied with
-`mise bootstrap packages apply`. `setup-mac` covers the few whose taps publish no Homebrew
-API metadata, so mise cannot install them: borders, sketchybar, and aerospace.
+Most packages come from `[bootstrap.packages]`. The `pre-packages` hook runs
+`setup-mac` first so the official Homebrew install owns its prefix. It also
+installs borders, SketchyBar, and AeroSpace because their taps publish no API
+metadata for Mise.
 
-#### Updating (mise tasks)
+### Updating
 
 ```bash
 mise run update
 ```
 
-One task, in order: neovim plugins, Homebrew, zsh plugins, mise and everything in
-`[tools]`, uv tools, pi extensions, then a fast-forward of this repo. To update
-one thing, run the underlying command — `mise upgrade <tool>`, `brew upgrade`,
-`uv tool upgrade --all`.
-
-#### Legacy Cleanup (`dot legacy`)
-
-```bash
-dot legacy clean    # Clean up broken legacy symlinks
-```
-
-This legacy command specifically cleans up the old symlinks that might exist from previous iterations of this repository.
-
-### Extending with Custom Commands
-
-The `dot` command is extensible. You can add custom commands by:
-
-1. Creating executable scripts named `dot-<command>` in your `$PATH`
-2. Adding a "Description:" comment for help text
-3. The command will then be available as `dot <command>`
+The task updates Neovim plugins, Homebrew, zsh plugins, Mise tools, uv tools, Pi
+extensions, and this repository. Run the underlying command when updating only
+one component.
 
 ## ZSH Configuration
 

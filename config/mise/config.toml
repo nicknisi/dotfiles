@@ -72,12 +72,12 @@ superfile = "latest"
 "~/Developer/ideation" = { url = "git@github.com:nicknisi/ideation.git", ref = "main" }
 "~/Developer/claude-plugins" = { url = "git@github.com:nicknisi/claude-plugins.git", ref = "main" }
 
-# Login shell — replaces `dot shell change`. mise appends it to /etc/shells if
-# missing, then runs chsh. Absolute path required.
+# Login shell. Mise appends it to /etc/shells if missing, then runs chsh.
+# Absolute path required.
 [bootstrap.user]
 login_shell = "/opt/homebrew/bin/zsh"
 
-# macOS preferences — replaces `dot macos defaults`.
+# macOS preferences.
 [bootstrap.macos.finder]
 show_all_files = false
 show_pathbar = true
@@ -101,6 +101,15 @@ NSGlobalDomain = { AppleShowAllExtensions = true, NSNavPanelExpandedStateForSave
 run = """
   chflags nohidden ~/Library
   for app in Safari Finder Dock Mail SystemUIServer; do killall "$app" 2>/dev/null || true; done
+"""
+
+# The official Homebrew install must run before mise's brew package manager.
+# setup-mac also installs the tap-only macOS apps that mise cannot resolve.
+[bootstrap.hooks.pre-packages]
+run = """
+  if [ "$(uname)" = "Darwin" ]; then
+    mise run setup-mac
+  fi
 """
 
 [tasks.install-homebrew]
@@ -133,6 +142,50 @@ run = """
     font-symbols-only-nerd-font font-monaspace
 
   brew services start borders
+"""
+
+# `mise bootstrap` runs this after [tools] are installed.
+[tasks.bootstrap]
+description = "Install terminfo and register repo-local Git filters."
+run = """
+  repo="$HOME/Developer/dotfiles"
+
+  echo "==> terminfo"
+  for file in "$repo"/resources/*.terminfo; do
+    tic -x "$file"
+  done
+
+  echo "==> git filters"
+  git -C "$repo" config filter.pi-settings.clean "jq 'del(.lastChangelogVersion)'"
+  git -C "$repo" config filter.pi-settings.required false
+"""
+
+[tasks.setup-git]
+description = "Configure the local Git identity for this machine."
+run = """
+  default_name="$(git config --global --includes --get user.name || true)"
+  default_email="$(git config --global --includes --get user.email || true)"
+  default_github="$(git config --global --includes --get github.user || true)"
+
+  printf "Name [%s]: " "$default_name"
+  IFS= read -r name
+  printf "Email [%s]: " "$default_email"
+  IFS= read -r email
+  printf "GitHub username [%s]: " "$default_github"
+  IFS= read -r github
+
+  name="${name:-$default_name}"
+  email="${email:-$default_email}"
+  github="${github:-$default_github}"
+  if [ -z "$name" ] || [ -z "$email" ] || [ -z "$github" ]; then
+    echo "Name, email, and GitHub username are required." >&2
+    exit 1
+  fi
+
+  git config --file "$HOME/.gitconfig-local" user.name "$name"
+  git config --file "$HOME/.gitconfig-local" user.email "$email"
+  git config --file "$HOME/.gitconfig-local" github.user "$github"
+  echo "Wrote $HOME/.gitconfig-local"
 """
 
 [tasks.update]
