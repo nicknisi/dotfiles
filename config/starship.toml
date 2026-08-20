@@ -1,0 +1,65 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Port of config/zsh/.zsh_prompt. Two lines: path + node version on top, prompt
+# symbol below. Git status and branch on the right, same glyphs and 256-colors.
+add_newline = true
+format = "$directory$nodejs$line_break$character"
+right_format = "$git_status${custom.git_clean}$git_branch$jobs"
+
+# %~ — full path, no truncation
+[directory]
+format = "[$path]($style)"
+style = "bold 75"
+truncation_length = 0
+truncate_to_repo = false
+home_symbol = "~"
+
+# node_prompt(): only when there's a package.json or node_modules
+[nodejs]
+format = " [$symbol $version]($style)"
+symbol = ""
+style = "29"
+detect_extensions = []
+detect_files = ["package.json"]
+detect_folders = ["node_modules"]
+
+# %(?.%F{006}.%F{009}) — cyan on success, red on failure
+[character]
+format = "$symbol "
+success_symbol = "[](6)"
+error_symbol = "[](9)"
+
+# the GIT_STATUS_* glyphs, in the order .zsh_prompt's prepends produced.
+# bold lives on each variable: a module-level style = "bold" does not apply.
+[git_status]
+format = "([$ahead_behind$conflicted$stashed$deleted$renamed$modified$staged$untracked]($style))"
+style = ""
+ahead = "[ ](bold 12)"
+behind = "[ ](bold 11)"
+diverged = "[󰧈 ](bold 12)"
+up_to_date = ""
+conflicted = "[󰧁 ](bold 16)"
+stashed = "[ ](bold 3)"
+deleted = "[󰮉 ](bold 161)"
+renamed = "[ ](bold 208)"
+modified = "[ ](bold 3)"
+staged = "[ ](bold 2)"
+untracked = "[ ](bold 9)"
+
+# GIT_STATUS_CLEAN — starship has no clean-tree variable, so it needs a module
+[custom.git_clean]
+require_repo = true
+# .zsh_prompt only fell back to CLEAN when the whole status string was empty,
+# so this has to rule out a stash and an ahead/behind marker too.
+when = 'test -z "$(git status --porcelain)" && ! git status -sb | head -1 | grep -q "\[" && ! git rev-parse --verify -q refs/stash > /dev/null'
+format = "[ ](bold 2)"
+
+[git_branch]
+format = "[ $branch]($style)"
+style = "241"
+
+# suspended_jobs()
+[jobs]
+format = " [$symbol]($style)"
+symbol = "✱"
+style = "208"

@@ -7,6 +7,7 @@
   "hideThinkingBlock": true,
   "skills": [
     "~/Developer/claude-plugins/plugins/content/skills",
+    "~/Developer/nicknisi/skills",
     "~/Developer/claude-plugins/plugins/essentials/skills"
   ],
   "defaultThinkingLevel": "max",
@@ -46,7 +47,6 @@
     "../../Developer/claude-plugins",
     "../../Developer/ideation",
     "git:github.com/code-yeongyu/pi-lsp-client",
-    "npm:pi-hermes-memory",
     "npm:pi-simplify",
     "npm:pi-mcp-adapter",
     "npm:@juicesharp/rpiv-ask-user-question",
@@ -65,7 +65,7 @@
     "npm:@ff-labs/pi-fff"
   ],
   "tuiMode": "fullscreen",
-  "defaultModel": "claude-fable-5",
+  "defaultModel": "gpt-5.6-sol",
   "warnings": {
     "anthropicExtraUsage": false
   }

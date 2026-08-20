@@ -1,11 +1,240 @@
 [tools]
+# languages / runtimes
 node = "24"
-python = "3.14.4"
+python = "3.14.7"
+pnpm = "latest"
+bun = "latest"
+deno = "latest"
+lua = "latest"
+tree-sitter = "latest"
+
+# clis
+1password-cli = "latest"
+claude-code = "latest"
+
+# npm packages
 "npm:@earendil-works/pi-coding-agent" = "latest"
 "npm:wrangler" = "latest"
 "npm:greptile" = "latest"
-"npm:openclaw" = "latest"
-pnpm = "latest"
+"npm:workos" = "latest"
+
+# dev tools
+bat = "latest"
+delta = "latest"
+eza = "latest"
+fd = "latest"
+fzf = "latest"
+github-cli = "latest"
+glow = "latest"
+gum = "latest"
+jq = "latest"
+lazygit = "latest"
+neovim = "latest"
+ripgrep = "latest"
+shellcheck = "latest"
+starship = "latest"
+stylua = "latest"
+tmux = "latest"
+zoxide = "latest"
+superfile = "latest"
+
+# git
+"github:nicknisi/diffdad" = "latest"
+"github:nicknisi/fleet" = "latest"
+"github:nicknisi/tm" = "latest"
+"github:nicknisi/sessions" = "latest"
+
+[bootstrap.packages]
+# core utilities newer than what macOS ships
+"brew:bash" = "latest"
+"brew:git" = "latest"        # mise has no git backend, this is the only source
+"brew:zsh" = "latest"        # login shell, see [bootstrap.user]
+"brew:grep" = "latest"
+"brew:vim" = "latest"
+
+# no mise backend: linux-only builds, perl scripts, or source-only releases
+"brew:btop" = "latest"       # a top alternative (aqua:btop is linux-only)
+"brew:cloc" = "latest"       # lines of code counter
+"brew:entr" = "latest"       # file watcher / command runner
+"brew:fswatch" = "latest"    # fs event watcher (pushes fleet state to sketchybar)
+"brew:gnupg" = "latest"      # GPG
+"brew:highlight" = "latest"  # code syntax highlighting
+"brew:tree" = "latest"       # pretty-print directory contents
+"brew:wdiff" = "latest"      # word differences in text files
+"brew:wget" = "latest"       # internet file retriever
+
+# macOS only
+"brew:noti" = { os = "macos" }                      # notifications from scripts
+"brew:trash" = { os = "macos" }                     # rm, but to the trash
+
+[bootstrap.repos]
+"~/Developer/pi-extensions" = { url = "git@github.com:nicknisi/pi-extensions.git", ref = "main" }
+"~/Developer/ideation" = { url = "git@github.com:nicknisi/ideation.git", ref = "main" }
+"~/Developer/claude-plugins" = { url = "git@github.com:nicknisi/claude-plugins.git", ref = "main" }
+
+# Login shell. Mise appends it to /etc/shells if missing, then runs chsh.
+# Absolute path required.
+[bootstrap.user]
+login_shell = "/opt/homebrew/bin/zsh"
+
+# macOS preferences.
+[bootstrap.macos.finder]
+show_all_files = false
+show_pathbar = true
+show_status_bar = true
+
+[bootstrap.macos.keyboard]
+key_repeat = 1
+initial_key_repeat = 15
+press_and_hold = false
+
+[bootstrap.macos.trackpad]
+tap_to_click = true
+
+[bootstrap.macos.defaults]
+NSGlobalDomain = { AppleShowAllExtensions = true, NSNavPanelExpandedStateForSaveMode = true, AppleKeyboardUIMode = 3, AppleFontSmoothing = 2, NSWindowShouldDragOnGesture = true }
+"com.apple.finder" = { FXDefaultSearchScope = "SCcf" }
+
+# Defaults don't take effect until the app restarts, and these two aren't
+# `defaults` at all: an array value mise can't write, and a file flag.
+[bootstrap.hooks.post-defaults]
+run = """
+  chflags nohidden ~/Library
+  for app in Safari Finder Dock Mail SystemUIServer; do killall "$app" 2>/dev/null || true; done
+"""
+
+# The official Homebrew install must run before mise's brew package manager.
+# setup-mac also installs the tap-only macOS apps that mise cannot resolve.
+[bootstrap.hooks.pre-packages]
+run = """
+  if [ "$(uname)" = "Darwin" ]; then
+    mise run setup-mac
+  fi
+"""
+
+[tasks.install-homebrew]
+description = "Install homebrew onto the system."
+run = """
+  if command -v brew >/dev/null 2>&1; then
+    echo "homebrew already installed at $(brew --prefix)"
+    exit 0
+  fi
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+"""
+
+[tasks.setup-mac]
+description = "Install macOS-specific apps."
+depends = ["install-homebrew"]
+run = """
+  # install-homebrew just put brew on disk, but not on this shell's PATH
+  export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+  brew trust 'FelixKratz/formulae'
+  brew trust 'nikitabobko/tap'
+
+  brew tap 'FelixKratz/formulae'
+  brew tap 'nikitabobko/tap'
+
+  brew update
+
+  brew install borders sketchybar
+  brew install --cask nikitabobko/tap/aerospace ghostty wezterm karabiner-elements \
+    font-symbols-only-nerd-font font-monaspace
+
+  brew services start borders
+"""
+
+# `mise bootstrap` runs this after [tools] are installed.
+[tasks.bootstrap]
+description = "Install terminfo and register repo-local Git filters."
+run = """
+  repo="$HOME/Developer/dotfiles"
+
+  echo "==> terminfo"
+  for file in "$repo"/resources/*.terminfo; do
+    tic -x "$file"
+  done
+
+  echo "==> git filters"
+  git -C "$repo" config filter.pi-settings.clean "jq 'del(.lastChangelogVersion)'"
+  git -C "$repo" config filter.pi-settings.required false
+"""
+
+[tasks.setup-git]
+description = "Configure the local Git identity for this machine."
+run = """
+  default_name="$(git config --global --includes --get user.name || true)"
+  default_email="$(git config --global --includes --get user.email || true)"
+  default_github="$(git config --global --includes --get github.user || true)"
+
+  printf "Name [%s]: " "$default_name"
+  IFS= read -r name
+  printf "Email [%s]: " "$default_email"
+  IFS= read -r email
+  printf "GitHub username [%s]: " "$default_github"
+  IFS= read -r github
+
+  name="${name:-$default_name}"
+  email="${email:-$default_email}"
+  github="${github:-$default_github}"
+  if [ -z "$name" ] || [ -z "$email" ] || [ -z "$github" ]; then
+    echo "Name, email, and GitHub username are required." >&2
+    exit 1
+  fi
+
+  git config --file "$HOME/.gitconfig-local" user.name "$name"
+  git config --file "$HOME/.gitconfig-local" user.email "$email"
+  git config --file "$HOME/.gitconfig-local" github.user "$github"
+  echo "Wrote $HOME/.gitconfig-local"
+"""
+
+[tasks.update]
+description = "Update everything: brew, mise tools, nvim, zsh plugins, uv, pi, this repo."
+run = """
+  echo "==> neovim"
+  nvim --headless '+Lazy! sync' +qa
+
+  echo "==> homebrew"
+  brew update && brew upgrade
+
+  echo "==> zsh plugins"
+  # zfetch's plugin map is built by .zshrc, so read it from an interactive zsh
+  zsh -ic 'for k in ${(k)plugins}; do echo "$plugins[$k]"; done' |
+  while read -r dir; do
+    git -C "$dir" pull --quiet --recurse-submodules && echo "  $(basename "$dir")"
+  done
+
+  echo "==> mise"
+  # self-update only applies to the standalone installer, not a brew install
+  case "$(command -v mise)" in */homebrew/*) ;; *) mise self-update -y ;; esac
+  mise upgrade
+
+  echo "==> uv"
+  command -v uv >/dev/null 2>&1 && uv tool upgrade --all
+
+  echo "==> pi extensions"
+  pi update --extensions
+
+  echo "==> dotfiles"
+  # global config, so MISE_PROJECT_ROOT is wherever you're standing
+  repo="$HOME/Developer/dotfiles"
+  if [ "$(git -C "$repo" symbolic-ref --short HEAD)" = "main" ]; then
+    git -C "$repo" pull --ff-only origin main
+  else
+    echo "  not on main, skipping"
+  fi
+"""
+
+# Sources are absolute: relative ones resolve against this file's directory, which
+# is the ~/.config/mise symlink, not the repo. Targets use .??* rather than .* so
+# the glob doesn't match . and .. and abort the apply.
+#
+# On a machine where ~/.config/mise doesn't exist yet:
+#   MISE_GLOBAL_CONFIG_FILE=<clone>/config/mise/config.toml mise bootstrap dotfiles apply
+[dotfiles]
+"~/.config/*" = "~/Developer/dotfiles/config/*"
+"~/.??*" = "~/Developer/dotfiles/home/.??*"
 
 [settings]
-idiomatic_version_file_enable_tools = ["terraform", "node"]
+idiomatic_version_file_enable_tools = ["node"]
+yes = true

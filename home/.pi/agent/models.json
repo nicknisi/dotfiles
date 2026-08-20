@@ -47,7 +47,7 @@
     "fireworks": {
       "models": [
         {
-          "id": "firerouter",
+          "id": "accounts/fireworks/routers/firerouter",
           "name": "FireRouter",
           "reasoning": true,
           "input": [
@@ -58,14 +58,14 @@
           "maxTokens": 131072
         },
         {
-          "id": "deepseek-v4-flash",
-          "name": "DeepSeek V4 Flash",
-          "contextWindow": 1000000,
-          "maxTokens": 384000,
+          "id": "accounts/fireworks/routers/deepseek-flash-latest",
+          "name": "DeepSeek-V4-Flash-0731 (Latest)",
           "reasoning": true,
           "input": [
             "text"
           ],
+          "contextWindow": 1048576,
+          "maxTokens": 384000,
           "cost": {
             "input": 0.14,
             "output": 0.28,
@@ -74,23 +74,23 @@
           }
         },
         {
-          "id": "deepseek-v4-pro",
-          "name": "DeepSeek V4 Pro",
-          "contextWindow": 1000000,
-          "maxTokens": 384000,
+          "id": "accounts/fireworks/routers/deepseek-pro-latest",
+          "name": "DeepSeek-V4-Pro-0813 (Latest)",
           "reasoning": true,
           "input": [
             "text"
           ],
+          "contextWindow": 1048576,
+          "maxTokens": 384000,
           "cost": {
-            "input": 1.74,
-            "output": 3.48,
-            "cacheRead": 0.145,
+            "input": 1.32,
+            "output": 3.96,
+            "cacheRead": 0.044,
             "cacheWrite": 0
           }
         },
         {
-          "id": "glm-fast-latest",
+          "id": "accounts/fireworks/routers/glm-fast-latest",
           "name": "GLM 5.2 Fast (Latest)",
           "reasoning": true,
           "input": [
@@ -106,7 +106,7 @@
           }
         },
         {
-          "id": "glm-latest",
+          "id": "accounts/fireworks/routers/glm-latest",
           "name": "GLM 5.2 (Latest)",
           "reasoning": true,
           "input": [
@@ -122,23 +122,7 @@
           }
         },
         {
-          "id": "gpt-oss-120b",
-          "name": "GPT-OSS 120B",
-          "contextWindow": 131072,
-          "maxTokens": 32768,
-          "reasoning": true,
-          "input": [
-            "text"
-          ],
-          "cost": {
-            "input": 0.15,
-            "output": 0.6,
-            "cacheRead": 0.015,
-            "cacheWrite": 0
-          }
-        },
-        {
-          "id": "kimi-fast-latest",
+          "id": "accounts/fireworks/routers/kimi-fast-latest",
           "name": "Kimi K3 Fast (Latest)",
           "reasoning": true,
           "input": [
@@ -155,41 +139,7 @@
           }
         },
         {
-          "id": "kimi-k3",
-          "name": "Kimi K3",
-          "reasoning": true,
-          "input": [
-            "text",
-            "image"
-          ],
-          "contextWindow": 1048576,
-          "maxTokens": 131072,
-          "cost": {
-            "input": 3,
-            "output": 15,
-            "cacheRead": 0.3,
-            "cacheWrite": 0
-          }
-        },
-        {
-          "id": "kimi-k3-fast",
-          "name": "Kimi K3 Fast",
-          "reasoning": true,
-          "input": [
-            "text",
-            "image"
-          ],
-          "contextWindow": 1048576,
-          "maxTokens": 131072,
-          "cost": {
-            "input": 4.5,
-            "output": 22.5,
-            "cacheRead": 0.45,
-            "cacheWrite": 0
-          }
-        },
-        {
-          "id": "kimi-latest",
+          "id": "accounts/fireworks/routers/kimi-latest",
           "name": "Kimi K3 (Latest)",
           "reasoning": true,
           "input": [
@@ -206,7 +156,7 @@
           }
         },
         {
-          "id": "minimax-latest",
+          "id": "accounts/fireworks/routers/minimax-latest",
           "name": "Minimax M3 (Latest)",
           "reasoning": true,
           "input": [
@@ -221,23 +171,6 @@
             "cacheRead": 0.059,
             "cacheWrite": 0
           }
-        },
-        {
-          "id": "qwen-plus-latest",
-          "name": "Qwen3.7 Plus (Latest)",
-          "reasoning": true,
-          "input": [
-            "text",
-            "image"
-          ],
-          "contextWindow": 262144,
-          "maxTokens": 65536,
-          "cost": {
-            "input": 0.4,
-            "output": 1.6,
-            "cacheRead": 0.08,
-            "cacheWrite": 0
-          }
         }
       ],
       "compat": {
@@ -245,7 +178,7 @@
       },
       "headers": {
         "X-Title": "Pi",
-        "HTTP-Referer": "fireconnect/v0.9.2"
+        "HTTP-Referer": "fireconnect/v0.9.3"
       }
     }
   }

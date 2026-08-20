@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-echo -e "Updating Homebrew packages..."
-brew upgrade
-
-echo -e
-
-echo -e "Updating Neovim plugins..."
-nvim --headless "+Lazy! sync" +qa

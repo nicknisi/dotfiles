@@ -3,7 +3,7 @@
 # filters strip the volatile keys on the way into the index — the working tree
 # keeps them, but they never reach a commit, so the file reads as unmodified.
 #
-# The filter *definitions* live in .git/config, which isn't tracked. Run
-# `dot filters` after cloning to register them (dot link does it for you).
+# The filter *definitions* live in .git/config, which isn't tracked.
+# `mise bootstrap` registers them after installing the configured tools.
 
 home/.pi/agent/settings.json filter=pi-settings
