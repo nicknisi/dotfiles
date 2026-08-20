@@ -10,27 +10,50 @@ Welcome to my world! Here you'll find a collection of configuration files for va
 
 ## Initial Setup
 
-The first thing you need to do is clone this repo into a location of your choosing. For example, if you have a `~/Developer` directory where you clone all of your git repos, that's a good choice for this one, too. This repo is set up to not rely on the location of the dotfiles, so you can place it anywhere.
-
-> [!Note]
->
-> If you're on macOS, you'll also need to install the XCode CLI tools before continuing.
+One command on a bare machine:
 
 ```bash
-xcode-select --install
+curl -fsSL https://raw.githubusercontent.com/nicknisi/dotfiles/main/install.sh | bash
 ```
+
+It installs the Xcode CLI tools if git is missing, clones the repo, installs mise,
+links every dotfile, installs Homebrew and the macOS apps, installs the tools from
+`[tools]`, sets the login shell, and writes the macOS defaults. Every step is
+idempotent, so re-running it is safe.
+
+To see what it would do without writing anything:
 
 ```bash
-git clone git@github.com:nicknisi/dotfiles.git
+curl -fsSL https://raw.githubusercontent.com/nicknisi/dotfiles/main/install.sh | bash -s -- --dry-run
 ```
 
-> [!Note]
+Set `NO_COLOR=1` for plain output; it also drops the colors on its own when stdout
+isn't a terminal.
+
+Prefer to do it by hand:
+
+```bash
+xcode-select --install                                   # macOS, if git is missing
+git clone git@github.com:nicknisi/dotfiles.git ~/Developer/dotfiles
+curl https://mise.run | sh
+MISE_GLOBAL_CONFIG_FILE=~/Developer/dotfiles/config/mise/config.toml \
+  mise bootstrap dotfiles apply     # creates ~/.config/mise -> the repo
+mise bootstrap && mise install
+```
+
+> [!important]
 >
-> This dotfiles configuration is set up in such a way that it _shouldn't_ matter where the repo exists on your system.
+> Clone to `~/Developer/dotfiles`. The `[dotfiles]` entries in
+> `config/mise/config.toml` use absolute sources, because relative ones resolve
+> against `~/.config/mise`, which is itself a symlink into this repo. Cloning
+> elsewhere means editing those two lines.
 
 ## The `dot` Command
 
-This repository includes a powerful `dot` command for managing your dotfiles. It replaces the previous `install.sh` script with a more flexible and maintainable solution.
+This repository includes a `dot` command for the machine setup that isn't
+symlinks or packages. `dot link` and `dot unlink` are wrappers over
+`mise bootstrap dotfiles apply|unapply`, so the layout is described once, in
+`[dotfiles]` in `config/mise/config.toml`.
 
 ### Configuration
 
@@ -38,18 +61,18 @@ The tool respects these environment variables:
 - `DOTFILES`: Path to your dotfiles directory
 - `PATH`: For discovering external commands
 
-By default, the following directories are ignored when linking:
-- `bin`
-- `applescripts`
-- `resources`
+Only `config/*` and `home/.??*` are linked, per the `[dotfiles]` globs in
+`config/mise/config.toml`. Everything else in the repo (`bin`, `resources`,
+`tools`) is left alone.
 
 ### Basic Usage
 
 ```bash
 dot help                    # Show help message and available commands
-dot backup                  # Backup existing dotfiles
-dot link [package]          # Link all or a specific package
-dot unlink [package]        # Unlink all or a specific package
+dot link [package]          # Link all or a specific package (via mise)
+dot unlink [package]        # Unlink all or a specific package (via mise)
+dot link clean              # Remove broken symlinks
+dot filters                 # Register the repo's git clean filters
 ```
 
 > [!important]
@@ -60,28 +83,17 @@ dot unlink [package]        # Unlink all or a specific package
 > bin/dot <command> <subcommand>
 >```
 
-### Backup Options
-
-The backup command creates a backup of your existing dotfiles before installing new ones:
-
-```bash
-dot backup -d <directory>   # Specify backup directory (default: ~/dotfiles-backup)
-dot backup -v               # Verbose output
-```
-
-This will back up important files and directories, including:
-- Existing dotfiles in your home directory
-- Neovim configuration (`~/.config/nvim/`)
-- Vim configuration (`~/.vim/` and `~/.vimrc`)
-
 ### Link/Unlink Options
 
 ```bash
-dot link -v                # Verbose output
-dot link -t <target>       # Specify target directory
 dot link <package>         # Link a specific package
 dot link all               # Link all packages
+dot link clean -n          # Preview which broken symlinks would go
 ```
+
+There's no backup command. mise refuses to replace a real file with a symlink,
+naming the paths that collide, so `mise bootstrap dotfiles apply --force` is the
+explicit opt-in rather than a tarball you have to remember to make.
 
 ### Built-in Commands
 
@@ -93,31 +105,30 @@ dot git setup    # Configure git user settings interactively
 
 Sets up personalized Git configuration, including name, email, and GitHub username. The configuration is saved to `~/.gitconfig-local`.
 
-#### macOS Settings (`dot macos`)
+#### macOS Settings and Login Shell (mise)
+
+Both live in `config/mise/config.toml` and are applied by `mise bootstrap`:
 
 ```bash
-dot macos defaults    # Configure recommended macOS system defaults
+mise bootstrap macos defaults status   # show drift
+mise bootstrap macos defaults apply    # Finder, keyboard, trackpad, font smoothing
+mise bootstrap user apply              # add zsh to /etc/shells, then chsh
 ```
 
-Configures various macOS system settings, including:
-- Finder: show all filename extensions
-- Show hidden files by default
-- Only use UTF-8 in Terminal.app
-- Expand save dialog by default
-- Enable full keyboard access for all controls
-- Enable subpixel font rendering on non-Apple LCDs
-- Use current directory as default search scope in Finder
-- Show Path bar and Status bar in Finder
-- Optimize keyboard settings for development
+`[bootstrap.macos.finder]`, `[bootstrap.macos.keyboard]`, and
+`[bootstrap.macos.trackpad]` cover the common preferences by name;
+`[bootstrap.macos.defaults]` holds the raw `(domain, key)` pairs for the rest. The
+`post-defaults` hook handles the two that aren't `defaults` writes at all — the
+Terminal.app encoding array and `chflags nohidden ~/Library` — plus the `killall`
+that makes Finder and the Dock notice.
 
 #### Shell Configuration (`dot shell`)
 
 ```bash
-dot shell change     # Change default shell to zsh
 dot shell terminfo   # Install terminal information files
 ```
 
-These commands may not always be required. For example, macOS now sets the default shell to ZSH, and terminfo is only required if you want italic support in Neovim.
+Only needed if you want italic support in Neovim and correct behavior over SSH.
 
 #### Homebrew Management (mise tasks)
 
@@ -129,6 +140,17 @@ mise run setup-mac          # Tap and install the macOS-only packages
 Most packages come from `[bootstrap.packages]` in `config/mise/config.toml`, applied with
 `mise bootstrap packages apply`. `setup-mac` covers the few whose taps publish no Homebrew
 API metadata, so mise cannot install them: borders, sketchybar, and aerospace.
+
+#### Updating (mise tasks)
+
+```bash
+mise run update
+```
+
+One task, in order: neovim plugins, Homebrew, zsh plugins, mise and everything in
+`[tools]`, uv tools, pi extensions, then a fast-forward of this repo. To update
+one thing, run the underlying command — `mise upgrade <tool>`, `brew upgrade`,
+`uv tool upgrade --all`.
 
 #### Legacy Cleanup (`dot legacy`)
 

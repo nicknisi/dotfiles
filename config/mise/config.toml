@@ -10,6 +10,7 @@ tree-sitter = "latest"
 
 # clis
 1password-cli = "latest"
+claude-code = "latest"
 
 # npm packages
 "npm:@earendil-works/pi-coding-agent" = "latest"
@@ -66,23 +67,59 @@ superfile = "latest"
 "brew:noti" = { os = "macos" }                      # notifications from scripts
 "brew:trash" = { os = "macos" }                     # rm, but to the trash
 
-# Applications
-"brew-cask:ghostty" = { os = "macos" }
-"brew-cask:karabiner-elements" = { os = "macos" }
-
 [bootstrap.repos]
 "~/Developer/pi-extensions" = { url = "git@github.com:nicknisi/pi-extensions.git", ref = "main" }
 "~/Developer/ideation" = { url = "git@github.com:nicknisi/ideation.git", ref = "main" }
 "~/Developer/claude-plugins" = { url = "git@github.com:nicknisi/claude-plugins.git", ref = "main" }
 
+# Login shell — replaces `dot shell change`. mise appends it to /etc/shells if
+# missing, then runs chsh. Absolute path required.
+[bootstrap.user]
+login_shell = "/opt/homebrew/bin/zsh"
+
+# macOS preferences — replaces `dot macos defaults`.
+[bootstrap.macos.finder]
+show_all_files = false
+show_pathbar = true
+show_status_bar = true
+
+[bootstrap.macos.keyboard]
+key_repeat = 1
+initial_key_repeat = 15
+press_and_hold = false
+
+[bootstrap.macos.trackpad]
+tap_to_click = true
+
+[bootstrap.macos.defaults]
+NSGlobalDomain = { AppleShowAllExtensions = true, NSNavPanelExpandedStateForSaveMode = true, AppleKeyboardUIMode = 3, AppleFontSmoothing = 2, NSWindowShouldDragOnGesture = true }
+"com.apple.finder" = { FXDefaultSearchScope = "SCcf" }
+
+# Defaults don't take effect until the app restarts, and these two aren't
+# `defaults` at all: an array value mise can't write, and a file flag.
+[bootstrap.hooks.post-defaults]
+run = """
+  chflags nohidden ~/Library
+  for app in Safari Finder Dock Mail SystemUIServer; do killall "$app" 2>/dev/null || true; done
+"""
+
 [tasks.install-homebrew]
 description = "Install homebrew onto the system."
-run = "/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+run = """
+  if command -v brew >/dev/null 2>&1; then
+    echo "homebrew already installed at $(brew --prefix)"
+    exit 0
+  fi
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+"""
 
 [tasks.setup-mac]
 description = "Install macOS-specific apps."
 depends = ["install-homebrew"]
 run = """
+  # install-homebrew just put brew on disk, but not on this shell's PATH
+  export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+
   brew trust 'FelixKratz/formulae'
   brew trust 'nikitabobko/tap'
 
@@ -92,25 +129,47 @@ run = """
   brew update
 
   brew install borders sketchybar
-  brew install --cask nikitabobko/tap/aerospace wezterm font-symbols-only-nerd-font font-monaspace
+  brew install --cask nikitabobko/tap/aerospace ghostty wezterm karabiner-elements \
+    font-symbols-only-nerd-font font-monaspace
 
   brew services start borders
 """
 
-[tasks.claude-install]
-description = "Install Claude Code (CLI)"
-run = "curl -fsSL https://claude.ai/install.sh | bash"
-
-[tasks.update-mac]
-description = "Update homebrew packages, mise tools, and zsh plugins."
+[tasks.update]
+description = "Update everything: brew, mise tools, nvim, zsh plugins, uv, pi, this repo."
 run = """
-  brew update
-  brew upgrade
-  mise self-update
-  mise up
-  # zfetch is a zsh function and its plugin list is built by .zshrc, so it needs
-  # an interactive zsh — mise runs tasks in sh.
-  zsh -ic 'zfetch update'
+  echo "==> neovim"
+  nvim --headless '+Lazy! sync' +qa
+
+  echo "==> homebrew"
+  brew update && brew upgrade
+
+  echo "==> zsh plugins"
+  # zfetch's plugin map is built by .zshrc, so read it from an interactive zsh
+  zsh -ic 'for k in ${(k)plugins}; do echo "$plugins[$k]"; done' |
+  while read -r dir; do
+    git -C "$dir" pull --quiet --recurse-submodules && echo "  $(basename "$dir")"
+  done
+
+  echo "==> mise"
+  # self-update only applies to the standalone installer, not a brew install
+  case "$(command -v mise)" in */homebrew/*) ;; *) mise self-update -y ;; esac
+  mise upgrade
+
+  echo "==> uv"
+  command -v uv >/dev/null 2>&1 && uv tool upgrade --all
+
+  echo "==> pi extensions"
+  pi update --extensions
+
+  echo "==> dotfiles"
+  # global config, so MISE_PROJECT_ROOT is wherever you're standing
+  repo="$HOME/Developer/dotfiles"
+  if [ "$(git -C "$repo" symbolic-ref --short HEAD)" = "main" ]; then
+    git -C "$repo" pull --ff-only origin main
+  else
+    echo "  not on main, skipping"
+  fi
 """
 
 # Sources are absolute: relative ones resolve against this file's directory, which

@@ -38,9 +38,6 @@ Dotfiles management script.
 
 $(fmt_key "Available Commands:")
     help                          Show this help message
-    clean                         Clean up broken symlinks
-    backup                        Backup dotfiles
-        -d, --directory <dir>   Backup directory (default: ~/dotfiles-backup)
     link [pkg]                    Link packages (default: all)
         clean                     Remove broken symlinks
             -n, --dry-run         Preview without removing
@@ -85,209 +82,67 @@ cmd_filters() {
   done
 }
 
-cmd_clean() {
-  links=(
-    ".zshrc" ".zshenv" ".zprofile" ".zsh_aliases"
-    ".zsh_functions" ".zsh_prompt" ".config/aerospace"
-    ".config/git" ".config/karabiner" ".config/kitty"
-    ".config/lazygit" ".config/nvim" ".config/ripgrep"
-    ".config/tmux" ".config/wezterm" ".config/zsh"
-  )
+# ── Link / Unlink ───────────────────────────────────────────────
+#
+# The symlink layout lives in [dotfiles] in config/mise/config.toml. These stay
+# as wrappers so `dot link nvim` keeps working, but mise does the linking and
+# owns the state — there is one description of the layout, not two.
 
-  fmt_title_underline "Cleaning up broken legacy symlinks..."
-
-  for link in "${links[@]}"; do
-    path_link="$HOME/$link"
-    if [ -L "$path_link" ] && [ ! -e "$path_link" ]; then
-      log_success "Removing Broken symbolic link: $path_link"
-      rm "$path_link"
-    else
-      log_info "Link to $path_link not found or is not broken. Skipping..."
-    fi
-  done
-
-  # Clean up broken symlinks from home directory
-  if [ -d "$DOTFILES/home" ]; then
-    shopt -s dotglob
-    for entry in "$DOTFILES/home"/*; do
-      [ -e "$entry" ] || continue
-      local name="$(basename "$entry")"
-      [[ "$name" == ".DS_Store" ]] && continue
-      local target_path="$HOME/$name"
-      if [ -L "$target_path" ] && [ ! -e "$target_path" ]; then
-        log_success "Removing broken symbolic link: $target_path"
-        rm "$target_path"
-      fi
-    done
-    shopt -u dotglob
+# Target path that a package's [dotfiles] entry writes to.
+pkg_target() {
+  local pkg="$1"
+  if [ -e "$DOTFILES/config/$pkg" ]; then
+    echo "$CONFIG_HOME/$pkg"
+  elif [ -e "$DOTFILES/home/.$pkg" ]; then
+    echo "$HOME/.$pkg"
+  else
+    return 1
   fi
-
-  echo -e
-  log_success "Done."
 }
 
-cmd_backup() {
-  local backup_dir="$HOME/dotfiles-backup"
-  local verbose=false
+cmd_link() {
+  local operation="$1"
+  shift
 
+  # Handle 'dot link clean' — pass remaining args through
+  if [ "$operation" = "link" ] && [[ "${1:-}" == "clean" ]]; then
+    shift
+    cmd_link_clean "$@"
+    return
+  fi
+
+  if ! command -v mise &>/dev/null; then
+    log_error "mise not found — install it first: curl https://mise.run | sh"
+    return 1
+  fi
+
+  local pkg="all"
   while [[ $# -gt 0 ]]; do
     case "$1" in
-    -d | --directory)
-      if [[ -n "${2:-}" ]]; then
-        backup_dir="$2"
-        shift 2
-      else
-        log_error "Missing backup directory"
-        exit 1
-      fi
-      ;;
-    -v | --verbose)
-      verbose=true
-      shift
-      ;;
-    *)
-      log_error "Unknown argument: $1"
-      exit 1
-      ;;
+    -*) log_error "Unknown option: $1"; exit 1 ;;
+    *) pkg="$1"; shift ;;
     esac
   done
 
-  # Expand ~ in backup_dir
-  backup_dir="${backup_dir/#\~/$HOME}"
+  local subcommand="apply"
+  [ "$operation" = "unlink" ] && subcommand="unapply"
 
-  local timestamp=$(date +%Y%m%d_%H%M%S)
-  local backup_path="${backup_dir}/dotfiles_backup_${timestamp}"
-
-  log_info "Creating backup in: $backup_path"
-
-  files_to_backup=(
-    ".zshrc"
-    ".zprofile"
-    ".zsh_aliases"
-    ".zsh_functions"
-    ".zsh_prompt"
-    ".config/aerospace"
-    ".config/git"
-    ".config/ghostty"
-    ".config/karabiner"
-    ".config/kitty"
-    ".config/lazygit"
-    ".config/nvim"
-    ".config/ripgrep"
-    ".config/tmux"
-    ".config/wezterm"
-    ".config/zsh"
-  )
-
-  # Add home directory entries to backup
-  if [ -d "$DOTFILES/home" ]; then
-    shopt -s dotglob
-    for entry in "$DOTFILES/home"/*; do
-      [ -e "$entry" ] || continue
-      local name="$(basename "$entry")"
-      [[ "$name" == ".DS_Store" ]] && continue
-      files_to_backup+=("$name")
-    done
-    shopt -u dotglob
-  fi
-
-  tmpfile=$(mktemp)
-  trap 'rm -f "$tmpfile"' EXIT
-
-  for file in "${files_to_backup[@]}"; do
-    src_path="${HOME}/${file}"
-    if [[ -L "$src_path" ]]; then
-      [[ "$verbose" == true ]] && log_info "Skipping symlink: $file"
-      continue
-    elif [[ -e "$src_path" ]]; then
-      echo "$file" >>"$tmpfile"
-      [[ "$verbose" == true ]] && log_info "Found: $file"
-    else
-      log_warning "File not found: $src_path"
+  if [ "$pkg" = "all" ]; then
+    mise bootstrap dotfiles "$subcommand" --yes
+  else
+    local target
+    if ! target="$(pkg_target "$pkg")"; then
+      log_error "Package \"$pkg\" not found in config/ or home/"
+      return 1
     fi
-  done
-
-  if [[ -s "$tmpfile" ]]; then
-    tar -czf "${backup_path}.tar.gz" -C "$HOME" -T "$tmpfile" || {
-      log_error "Failed to create backup archive"
-      exit 1
-    }
-
-    if [[ "$verbose" == true ]]; then
-      log_info "Archive contents:"
-      tar -tvf "${backup_path}.tar.gz" | while read -r line; do
-        log_info "$line"
-      done
-    fi
-
-    log_success "Backup created successfully"
-  else
-    log_warning "No files to backup"
+    mise bootstrap dotfiles "$subcommand" --yes "$target"
   fi
-}
 
-# ── Symlink helpers ──────────────────────────────────────────────
+  # A full link is the closest thing to a bootstrap, so register the git
+  # clean filters here too — they're per-clone and easy to forget otherwise.
+  [ "$operation" = "link" ] && cmd_filters
 
-STAT_LINKED=0
-STAT_UNLINKED=0
-STAT_UNCHANGED=0
-STAT_SKIPPED=0
-
-stat_reset() { STAT_LINKED=0; STAT_UNLINKED=0; STAT_UNCHANGED=0; STAT_SKIPPED=0; }
-
-do_link() {
-  local src="$1" target="$2" label="$3"
-  local display="~${target#"$HOME"}"
-
-  if [ -L "$target" ]; then
-    if [ "$(readlink "$target")" = "$src" ]; then
-      STAT_UNCHANGED=$((STAT_UNCHANGED + 1))
-      return 0
-    fi
-    printf "  ${YELLOW}⚠ %-20s${RESET} ${DIM}symlink → wrong target${RESET}\n" "$label"
-    STAT_SKIPPED=$((STAT_SKIPPED + 1))
-  elif [ -e "$target" ]; then
-    printf "  ${YELLOW}⚠ %-20s${RESET} ${DIM}exists (not a symlink)${RESET}\n" "$label"
-    STAT_SKIPPED=$((STAT_SKIPPED + 1))
-  else
-    ln -s "$src" "$target"
-    printf "  ${GREEN}+ %-20s${RESET} ${DIM}→ %s${RESET}\n" "$label" "$display"
-    STAT_LINKED=$((STAT_LINKED + 1))
-  fi
-}
-
-do_unlink() {
-  local target="$1" label="$2"
-  local display="~${target#"$HOME"}"
-
-  if [ -L "$target" ]; then
-    rm "$target"
-    printf "  ${RED}- %-20s${RESET} ${DIM}%s${RESET}\n" "$label" "$display"
-    STAT_UNLINKED=$((STAT_UNLINKED + 1))
-  elif [ -e "$target" ]; then
-    printf "  ${YELLOW}⚠ %-20s${RESET} ${DIM}not a symlink${RESET}\n" "$label"
-    STAT_SKIPPED=$((STAT_SKIPPED + 1))
-  else
-    STAT_UNCHANGED=$((STAT_UNCHANGED + 1))
-  fi
-}
-
-print_summary() {
-  local operation="$1"
-  local parts=()
-
-  if [ "$operation" = "link" ]; then
-    [ "$STAT_LINKED" -gt 0 ] && parts+=("$(printf "${GREEN}%d linked${RESET}" "$STAT_LINKED")")
-  else
-    [ "$STAT_UNLINKED" -gt 0 ] && parts+=("$(printf "${RED}%d unlinked${RESET}" "$STAT_UNLINKED")")
-  fi
-  [ "$STAT_SKIPPED" -gt 0 ] && parts+=("$(printf "${YELLOW}%d skipped${RESET}" "$STAT_SKIPPED")")
-  [ "$STAT_UNCHANGED" -gt 0 ] && parts+=("$(printf "${DIM}%d unchanged${RESET}" "$STAT_UNCHANGED")")
-
-  if [ ${#parts[@]} -gt 0 ]; then
-    local IFS=", "
-    printf "\n  ${BOLD}${SUCCESS_ICON}${RESET} %s\n" "${parts[*]}"
-  fi
+  return 0
 }
 
 # ── Clean broken symlinks ───────────────────────────────────────
@@ -360,100 +215,6 @@ cmd_link_clean() {
   echo
 }
 
-# ── Link / Unlink ───────────────────────────────────────────────
-
-cmd_link() {
-  local operation="$1"
-  shift
-
-  # Handle 'dot link clean' — pass remaining args through
-  if [ "$operation" = "link" ] && [[ "${1:-}" == "clean" ]]; then
-    shift
-    cmd_link_clean "$@"
-    return
-  fi
-
-  local pkg="all"
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-    -v | --verbose) shift ;; # accepted for backwards compat, ignored
-    -*) log_error "Unknown option: $1"; exit 1 ;;
-    *) pkg="$1"; shift ;;
-    esac
-  done
-
-  stat_reset
-
-  # Title
-  local action_word
-  [ "$operation" = "link" ] && action_word="link" || action_word="unlink"
-
-  if [ "$pkg" = "all" ]; then
-    printf "\n  ${BOLD}dot %s${RESET}\n\n" "$action_word"
-  else
-    printf "\n  ${BOLD}dot %s${RESET} ${DIM}─${RESET} %s\n\n" "$action_word" "$pkg"
-  fi
-
-  if [ "$pkg" = "all" ]; then
-    # Config packages
-    for config in "$DOTFILES/config"/*; do
-      [ -d "$config" ] || continue
-      local name
-      name="$(basename "$config")"
-      if [ "$operation" = "link" ]; then
-        do_link "$config" "$CONFIG_HOME/$name" "$name"
-      else
-        do_unlink "$CONFIG_HOME/$name" "$name"
-      fi
-    done
-
-    # Home entries
-    if [ -d "$DOTFILES/home" ]; then
-      shopt -s dotglob
-      for entry in "$DOTFILES/home"/*; do
-        [ -e "$entry" ] || continue
-        local name
-        name="$(basename "$entry")"
-        [[ "$name" == ".DS_Store" ]] && continue
-        if [ "$operation" = "link" ]; then
-          do_link "$entry" "$HOME/$name" "$name"
-        else
-          do_unlink "$HOME/$name" "$name"
-        fi
-      done
-      shopt -u dotglob
-    fi
-
-    # A full link is the closest thing to a bootstrap, so register the git
-    # clean filters here too — they're per-clone and easy to forget otherwise.
-    [ "$operation" = "link" ] && cmd_filters
-  else
-    # Specific package — check config/ first, then home/
-    if [ -d "$DOTFILES/config/$pkg" ]; then
-      if [ "$operation" = "link" ]; then
-        do_link "$DOTFILES/config/$pkg" "$CONFIG_HOME/$pkg" "$pkg"
-      else
-        do_unlink "$CONFIG_HOME/$pkg" "$pkg"
-      fi
-    elif [ -e "$DOTFILES/home/.$pkg" ] || [ -e "$DOTFILES/home/$pkg" ]; then
-      local name="$pkg"
-      [ -e "$DOTFILES/home/.$pkg" ] && name=".$pkg"
-      if [ "$operation" = "link" ]; then
-        do_link "$DOTFILES/home/$name" "$HOME/$name" "$name"
-      else
-        do_unlink "$HOME/$name" "$name"
-      fi
-    else
-      log_error "Package \"$pkg\" not found in config/ or home/"
-      return 1
-    fi
-  fi
-
-  print_summary "$operation"
-  echo
-}
-
 main() {
   if [ $# -lt 1 ]; then
     usage
@@ -467,12 +228,6 @@ main() {
   case "$cmd" in
   help)
     usage
-    ;;
-  clean)
-    cmd_clean "$@"
-    ;;
-  backup)
-    cmd_backup "$@"
     ;;
   link)
     cmd_link "link" "$@"
