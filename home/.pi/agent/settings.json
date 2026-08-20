@@ -10,7 +10,7 @@
     "~/Developer/nicknisi/skills",
     "~/Developer/claude-plugins/plugins/essentials/skills"
   ],
-  "defaultThinkingLevel": "xhigh",
+  "defaultThinkingLevel": "max",
   "compaction": {
     "enabled": true,
     "reserveTokens": 16384,
@@ -65,7 +65,7 @@
     "npm:@ff-labs/pi-fff"
   ],
   "tuiMode": "fullscreen",
-  "defaultModel": "claude-opus-5",
+  "defaultModel": "gpt-5.6-sol",
   "warnings": {
     "anthropicExtraUsage": false
   }
