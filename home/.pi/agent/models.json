@@ -178,7 +178,7 @@
       },
       "headers": {
         "X-Title": "Pi",
-        "HTTP-Referer": "fireconnect/v0.9.3"
+        "HTTP-Referer": "fireconnect/v0.9.4"
       }
     }
   }

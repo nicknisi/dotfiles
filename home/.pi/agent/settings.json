@@ -1,5 +1,5 @@
 {
-  "defaultProvider": "cloudflare-ai-gateway",
+  "defaultProvider": "fireworks",
   "editorPaddingX": 1,
   "outputPad": 1,
   "theme": "workos",
@@ -65,8 +65,11 @@
     "npm:@ff-labs/pi-fff"
   ],
   "tuiMode": "fullscreen",
-  "defaultModel": "gpt-5.6-sol",
+  "defaultModel": "accounts/fireworks/routers/kimi-fast-latest",
   "warnings": {
     "anthropicExtraUsage": false
-  }
+  },
+  "enabledModels": [
+    "fireworks/accounts/fireworks/routers/*"
+  ]
 }
