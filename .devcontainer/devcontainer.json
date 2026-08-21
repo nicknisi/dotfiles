@@ -1,0 +1,17 @@
+{
+  "name": "dotfiles",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu24.04",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/Developer/dotfiles,type=bind",
+  "workspaceFolder": "/home/vscode/Developer/dotfiles",
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=/run/host-services/ssh-auth.sock,target=/run/host-services/ssh-auth.sock,type=bind"
+  ],
+  "containerEnv": {
+    "GIT_SSH_COMMAND": "ssh -o UserKnownHostsFile=/home/vscode/Developer/dotfiles/.devcontainer/github_known_hosts",
+    "MISE_ENV": "devcontainer",
+    "SSH_AUTH_SOCK": "/run/host-services/ssh-auth.sock"
+  },
+  "onCreateCommand": "sudo chown vscode:vscode /home/vscode/Developer && sudo chsh -s /usr/bin/zsh vscode",
+  "postCreateCommand": "NO_COLOR=1 bash install.sh && .devcontainer/smoke-test.sh"
+}

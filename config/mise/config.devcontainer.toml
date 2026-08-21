@@ -1,0 +1,2 @@
+[bootstrap.user]
+login_shell = "/usr/bin/zsh"

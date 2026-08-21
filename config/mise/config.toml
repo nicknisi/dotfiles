@@ -46,22 +46,40 @@ superfile = "latest"
 
 [bootstrap.packages]
 # core utilities newer than what macOS ships
-"brew:bash" = "latest"
-"brew:git" = "latest"        # mise has no git backend, this is the only source
-"brew:zsh" = "latest"        # login shell, see [bootstrap.user]
-"brew:grep" = "latest"
-"brew:vim" = "latest"
+"brew:bash" = { version = "latest", os = "macos" }
+"brew:git" = { version = "latest", os = "macos" }        # mise has no git backend, this is the only source
+"brew:zsh" = { version = "latest", os = "macos" }        # login shell, see [bootstrap.user]
+"brew:grep" = { version = "latest", os = "macos" }
+"brew:vim" = { version = "latest", os = "macos" }
 
 # no mise backend: linux-only builds, perl scripts, or source-only releases
-"brew:btop" = "latest"       # a top alternative (aqua:btop is linux-only)
-"brew:cloc" = "latest"       # lines of code counter
-"brew:entr" = "latest"       # file watcher / command runner
-"brew:fswatch" = "latest"    # fs event watcher (pushes fleet state to sketchybar)
-"brew:gnupg" = "latest"      # GPG
-"brew:highlight" = "latest"  # code syntax highlighting
-"brew:tree" = "latest"       # pretty-print directory contents
-"brew:wdiff" = "latest"      # word differences in text files
-"brew:wget" = "latest"       # internet file retriever
+"brew:btop" = { version = "latest", os = "macos" }       # a top alternative (aqua:btop is linux-only)
+"brew:cloc" = { version = "latest", os = "macos" }       # lines of code counter
+"brew:entr" = { version = "latest", os = "macos" }       # file watcher / command runner
+"brew:fswatch" = { version = "latest", os = "macos" }    # fs event watcher (pushes fleet state to sketchybar)
+"brew:gnupg" = { version = "latest", os = "macos" }      # GPG
+"brew:highlight" = { version = "latest", os = "macos" }  # code syntax highlighting
+"brew:tree" = { version = "latest", os = "macos" }       # pretty-print directory contents
+"brew:wdiff" = { version = "latest", os = "macos" }      # word differences in text files
+"brew:wget" = { version = "latest", os = "macos" }       # internet file retriever
+
+# Ubuntu devcontainer
+"apt:bash" = { version = "latest", os = "linux" }
+"apt:git" = { version = "latest", os = "linux" }
+"apt:zsh" = { version = "latest", os = "linux" }
+"apt:grep" = { version = "latest", os = "linux" }
+"apt:vim" = { version = "latest", os = "linux" }
+"apt:btop" = { version = "latest", os = "linux" }
+"apt:cloc" = { version = "latest", os = "linux" }
+"apt:entr" = { version = "latest", os = "linux" }
+"apt:fswatch" = { version = "latest", os = "linux" }
+"apt:gnupg" = { version = "latest", os = "linux" }
+"apt:highlight" = { version = "latest", os = "linux" }
+"apt:libreadline-dev" = { version = "latest", os = "linux" }
+"apt:pkg-config" = { version = "latest", os = "linux" }
+"apt:tree" = { version = "latest", os = "linux" }
+"apt:wdiff" = { version = "latest", os = "linux" }
+"apt:wget" = { version = "latest", os = "linux" }
 
 # macOS only
 "brew:noti" = { os = "macos" }                      # notifications from scripts
@@ -99,8 +117,10 @@ NSGlobalDomain = { AppleShowAllExtensions = true, NSNavPanelExpandedStateForSave
 # `defaults` at all: an array value mise can't write, and a file flag.
 [bootstrap.hooks.post-defaults]
 run = """
-  chflags nohidden ~/Library
-  for app in Safari Finder Dock Mail SystemUIServer; do killall "$app" 2>/dev/null || true; done
+  if [ "$(uname)" = "Darwin" ]; then
+    chflags nohidden ~/Library
+    for app in Safari Finder Dock Mail SystemUIServer; do killall "$app" 2>/dev/null || true; done
+  fi
 """
 
 # The official Homebrew install must run before mise's brew package manager.
@@ -232,4 +252,11 @@ run = """
 
 [settings]
 idiomatic_version_file_enable_tools = ["node"]
+minimum_release_age_excludes = [
+  "npm:@earendil-works/pi-coding-agent",
+  "github:nicknisi/diffdad",
+  "github:nicknisi/fleet",
+  "github:nicknisi/tm",
+  "github:nicknisi/sessions",
+]
 yes = true

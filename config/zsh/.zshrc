@@ -172,7 +172,11 @@ done
 
 
 if command -v pnpm &>/dev/null; then
-  export PNPM_HOME="$HOME/Library/pnpm"
+  if [[ "$OSTYPE" == darwin* ]]; then
+    export PNPM_HOME="$HOME/Library/pnpm"
+  else
+    export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
+  fi
   [[ ":$PATH:" != *":$PNPM_HOME:"* ]] && export PATH="$PNPM_HOME:$PATH"
 fi
 
@@ -181,15 +185,7 @@ if command -v jj &>/dev/null; then
 fi
 
 # bun completions
-[ -s "/Users/nicknisi/.bun/_bun" ] && source "/Users/nicknisi/.bun/_bun"
-
-# pnpm
-export PNPM_HOME="/Users/nicknisi/Library/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME/bin:"*) ;;
-  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
-esac
-# pnpm end
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 if command -v starship &>/dev/null; then
   eval "$(starship init zsh)"

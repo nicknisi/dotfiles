@@ -1,7 +1,7 @@
 return {
   {
     "junegunn/fzf.vim",
-    dependencies = { { dir = vim.env.HOMEBREW_PREFIX .. "/opt/fzf" } },
+    dependencies = vim.env.HOMEBREW_PREFIX and { { dir = vim.env.HOMEBREW_PREFIX .. "/opt/fzf" } } or nil,
     config = function()
       -- Insert mode completion
       vim.keymap.set("i", "<c-x><c-k>", "<plug>(fzf-complete-word)", { remap = true })

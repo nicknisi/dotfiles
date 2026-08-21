@@ -1,6 +1,6 @@
 # Dotfiles
 
-These are my actual dotfiles, not a starter kit. They assume Apple Silicon macOS, a checkout at `~/Developer/dotfiles`, and several of my other repositories under `~/Developer`. I keep them public so you can borrow the useful parts without pretending the whole setup is portable.
+These are my actual dotfiles, not a starter kit. The host setup assumes Apple Silicon macOS, a checkout at `~/Developer/dotfiles`, and several of my other repositories under `~/Developer`. The devcontainer runs the same bootstrap in Ubuntu so I can edit and check the portable terminal configuration without changing the host.
 
 > [!NOTE]
 > If you came here from my [vim + tmux](https://www.youtube.com/watch?v=5r6yzFEXajQ) talk, the repository at the time of that recording is [still available](https://github.com/nicknisi/dotfiles/tree/aa72bed5c4ecec540a31192581294818b69b93e2). The current setup is substantially different.
@@ -72,11 +72,11 @@ The explicit `MISE_GLOBAL_CONFIG_FILE` is only needed before bootstrap creates `
 
 `config/mise/config.toml` is the machine manifest. A full `mise bootstrap` does the following work:
 
-1. Runs the macOS pre-packages hook. That installs Homebrew, the macOS applications, and the fonts.
-2. Installs the system packages from `[bootstrap.packages]`.
+1. On macOS, runs the pre-packages hook that installs Homebrew, applications, and fonts.
+2. Installs the OS-specific packages from `[bootstrap.packages]` with Homebrew on macOS or apt in the Linux devcontainer.
 3. Clones the repositories from `[bootstrap.repos]`.
 4. Applies the `[dotfiles]` symlinks.
-5. Writes the macOS defaults and changes the login shell.
+5. Applies macOS defaults where available and sets the OS-specific login shell.
 6. Installs the runtimes and command-line tools from `[tools]`.
 7. Runs the `bootstrap` task to register the repository's Git clean filter.
 
@@ -109,13 +109,13 @@ mise tasks
 - 1Password CLI, Claude Code, Pi, Wrangler, Greptile, and the WorkOS CLI
 - bat, delta, eza, fd, fzf, GitHub CLI, glow, gum, jq, lazygit, ripgrep, shellcheck, Starship, StyLua, tmux, zoxide, and superfile
 - Neovim
-- `diffdad`, `fleet`, `tm`, and `sessions` from my GitHub repositories
+- `diffdad`, `fleet`, `tm`, and `sessions` from my GitHub repositories. Linux ARM skips these until their releases include ARM assets.
 
-### Homebrew packages and apps
+### System packages and macOS apps
 
 - newer Bash, Git, zsh, grep, and Vim builds
-- btop, cloc, entr, fswatch, GnuPG, highlight, tree, wdiff, wget, noti, and trash
-- AeroSpace, Ghostty, WezTerm, Karabiner-Elements, SketchyBar, Borders, Monaspace, and Symbols Nerd Font
+- btop, cloc, entr, fswatch, GnuPG, highlight, tree, wdiff, and wget through Homebrew or apt
+- noti, trash, AeroSpace, Ghostty, WezTerm, Karabiner-Elements, SketchyBar, Borders, Monaspace, and Symbols Nerd Font on macOS
 
 ### Additional repositories
 
@@ -136,7 +136,7 @@ Bootstrap clones these over SSH:
 | `bin/` | Personal commands placed on `PATH` | Used directly from this checkout |
 | `tools/` | Larger one-off tools and build helpers | Run from the repository |
 | `install.sh` | Bare-machine bootstrap | Run directly or through `curl` |
-| `Dockerfile` and `docker-compose.yml` | Limited Ubuntu sandbox | Local container only |
+| `.devcontainer/` | Ubuntu development environment and smoke test | Local Docker container |
 
 Mise links directories rather than copying individual files. The two declarations are intentionally broad:
 
@@ -324,16 +324,60 @@ The task runs these updates in order:
 
 For one component, call its native command instead. Examples include `mise upgrade <tool>`, `brew upgrade`, `uv tool upgrade --all`, and `pi update --extensions`.
 
-## Linux sandbox
+## Linux devcontainer
 
-The Docker files are a rough Ubuntu shell for checking portable pieces. They do not run `install.sh`, clone the repository, or reproduce the macOS setup. Compose mounts the current checkout at `/home/user/code/dotfiles`.
+The devcontainer is a disposable Ubuntu 24.04 environment that runs the real bootstrap. Docker bind-mounts this checkout at `/home/vscode/Developer/dotfiles`, so source edits persist on the Mac. Installed tools, cloned companion repositories, and editor plugins live in the container and disappear when it is replaced.
+
+### What the files do
+
+| File or service | Purpose |
+| --- | --- |
+| `.devcontainer/devcontainer.json` | Tells a Dev Container launcher which image, mount, environment, and lifecycle commands to use |
+| `mcr.microsoft.com/devcontainers/base:ubuntu24.04` | Supplies the Ubuntu image, Git, zsh, and the non-root `vscode` user |
+| `config/mise/config.devcontainer.toml` | Overrides the macOS login-shell path with `/usr/bin/zsh` |
+| `.devcontainer/github_known_hosts` | Pins GitHub's published SSH host key |
+| `.devcontainer/smoke-test.sh` | Checks packages, tools, repositories, links, SSH, zsh, Git, Neovim, and tmux |
+
+There is no custom Dockerfile. The official base image already has the prerequisites that `install.sh` needs, and Mise owns the rest.
+
+### Start and enter it
+
+Install the reference CLI once and start OrbStack or Docker Desktop:
 
 ```bash
-docker compose build
-docker compose run --rm dev_environment
+brew install devcontainer
+devcontainer up --workspace-folder .
 ```
 
-The Dockerfile accepts SSH keys as build arguments and writes them into an image layer. Do not pass real keys to it. This sandbox predates the Mise bootstrap and should not be treated as an installation path.
+The first `up` creates the container, forwards the macOS SSH agent without copying key files, runs `install.sh`, and runs the smoke test. Unlock 1Password if it asks to approve an SSH operation. Enter the resulting zsh login shell with:
+
+```bash
+devcontainer exec --workspace-folder . zsh -l
+```
+
+Inside that shell, use `nvim`, `tmux`, Git, and the other installed tools normally. Changes under `~/Developer/dotfiles` are changes to the host checkout.
+
+### Check, rerun, and rebuild
+
+Run the smoke test again:
+
+```bash
+devcontainer exec --workspace-folder . .devcontainer/smoke-test.sh
+```
+
+Rerun bootstrap after changing the Mise manifest or installer:
+
+```bash
+devcontainer exec --workspace-folder . zsh -lc 'NO_COLOR=1 bash install.sh'
+```
+
+Replace the container and prove setup works from an empty home directory:
+
+```bash
+devcontainer up --workspace-folder . --remove-existing-container
+```
+
+Docker is the verified container engine. OrbStack and Docker Desktop both expose the SSH agent at the mounted `/run/host-services/ssh-auth.sock` path. DevPod can read the same `devcontainer.json` with its Docker provider, but adds no value for this local workflow. Podman is not verified because it does not provide this Docker-specific SSH bridge.
 
 ## Local changes and forks
 
