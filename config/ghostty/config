@@ -11,6 +11,10 @@ bold-is-bright = true
 
 # window settings
 macos-titlebar-style = hidden
+# Pin new-window size in cells so spawns don't play their
+# open animation at full-screen before AeroSpace tiles them
+window-width = 100
+window-height = 30
 window-decoration = true
 window-theme = auto
 window-padding-color = background
@@ -81,4 +85,6 @@ keybind = cmd+s>e=equalize_splits
 copy-on-select = clipboard
 shell-integration-features = cursor,sudo,no-title
 
+# active named theme (symlink managed by bin/theme-set); overrides still wins
+config-file = ?./theme-current
 config-file = ?./overrides

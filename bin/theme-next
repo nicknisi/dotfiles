@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# theme-next — cycle to the next theme in themes/ (bound to alt-0 in aerospace)
+
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+[ -L "$SOURCE" ] && SOURCE="$(readlink "$SOURCE")"
+DOTFILES="$(cd "$(dirname "$SOURCE")/.." && pwd)"
+THEMES_DIR="$DOTFILES/themes"
+
+themes=()
+for t in "$THEMES_DIR"/*/; do themes+=("$(basename "$t")"); done
+
+current="$(basename "$(readlink "$HOME/.config/theme/current" 2>/dev/null || echo "${themes[0]}")")"
+
+next="${themes[0]}"
+for i in "${!themes[@]}"; do
+  if [ "${themes[$i]}" = "$current" ]; then
+    next="${themes[$(((i + 1) % ${#themes[@]}))]}"
+    break
+  fi
+done
+
+exec "$DOTFILES/bin/theme-set" "$next"

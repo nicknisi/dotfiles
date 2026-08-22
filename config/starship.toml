@@ -6,10 +6,59 @@ add_newline = true
 format = "$directory$nodejs$line_break$character"
 right_format = "$git_status${custom.git_clean}$git_branch$jobs"
 
+# Active named theme — bin/theme-set rewrites this line. Palette colors come
+# from each theme's colors.toml (accent/color1/2/3/5/6/8).
+palette = "shadesofjade"
+
+[palettes.tokyo-night]
+accent = "#7aa2f7"
+red = "#f7768e"
+green = "#9ece6a"
+yellow = "#e0af68"
+magenta = "#bb9af7"
+cyan = "#7dcfff"
+muted = "#414868"
+
+[palettes.catppuccin]
+accent = "#cba6f7"
+red = "#f38ba8"
+green = "#a6e3a1"
+yellow = "#f9e2af"
+magenta = "#f5c2e7"
+cyan = "#94e2d5"
+muted = "#585b70"
+
+[palettes.gruvbox]
+accent = "#fe8019"
+red = "#cc241d"
+green = "#98971a"
+yellow = "#d79921"
+magenta = "#b16286"
+cyan = "#689d6a"
+muted = "#928374"
+
+[palettes.shadesofjade]
+accent = "#D1FFb0"
+red = "#ff3370"
+green = "#00a86b"
+yellow = "#D1FFb0" # color3 doubles as the lime accent in this palette
+magenta = "#E25F4B"
+cyan = "#80d4b5"
+muted = "#5E8A72"
+
+[palettes.osaka-jade]
+accent = "#509475"
+red = "#ff5345"
+green = "#549e6a"
+yellow = "#e5c736" # color11; color3 is green in this palette
+magenta = "#d2689c"
+cyan = "#2dd5b7"
+muted = "#53685b"
+
 # %~ — full path, no truncation
 [directory]
 format = "[$path]($style)"
-style = "bold 75"
+style = "bold accent"
 truncation_length = 0
 truncate_to_repo = false
 home_symbol = "~"
@@ -18,33 +67,33 @@ home_symbol = "~"
 [nodejs]
 format = " [$symbol $version]($style)"
 symbol = ""
-style = "29"
+style = "green"
 detect_extensions = []
 detect_files = ["package.json"]
 detect_folders = ["node_modules"]
 
-# %(?.%F{006}.%F{009}) — cyan on success, red on failure
+# cyan on success, red on failure
 [character]
 format = "$symbol "
-success_symbol = "[](6)"
-error_symbol = "[](9)"
+success_symbol = "[](cyan)"
+error_symbol = "[](red)"
 
 # the GIT_STATUS_* glyphs, in the order .zsh_prompt's prepends produced.
 # bold lives on each variable: a module-level style = "bold" does not apply.
 [git_status]
 format = "([$ahead_behind$conflicted$stashed$deleted$renamed$modified$staged$untracked]($style))"
 style = ""
-ahead = "[ ](bold 12)"
-behind = "[ ](bold 11)"
-diverged = "[󰧈 ](bold 12)"
+ahead = "[ ](bold accent)"
+behind = "[ ](bold yellow)"
+diverged = "[󰧈 ](bold accent)"
 up_to_date = ""
-conflicted = "[󰧁 ](bold 16)"
-stashed = "[ ](bold 3)"
-deleted = "[󰮉 ](bold 161)"
-renamed = "[ ](bold 208)"
-modified = "[ ](bold 3)"
-staged = "[ ](bold 2)"
-untracked = "[ ](bold 9)"
+conflicted = "[󰧁 ](bold magenta)"
+stashed = "[ ](bold yellow)"
+deleted = "[󰮉 ](bold red)"
+renamed = "[ ](bold yellow)"
+modified = "[ ](bold yellow)"
+staged = "[ ](bold green)"
+untracked = "[ ](bold red)"
 
 # GIT_STATUS_CLEAN — starship has no clean-tree variable, so it needs a module
 [custom.git_clean]
@@ -52,14 +101,14 @@ require_repo = true
 # .zsh_prompt only fell back to CLEAN when the whole status string was empty,
 # so this has to rule out a stash and an ahead/behind marker too.
 when = 'test -z "$(git status --porcelain)" && ! git status -sb | head -1 | grep -q "\[" && ! git rev-parse --verify -q refs/stash > /dev/null'
-format = "[ ](bold 2)"
+format = "[ ](bold green)"
 
 [git_branch]
 format = "[ $branch]($style)"
-style = "241"
+style = "muted"
 
 # suspended_jobs()
 [jobs]
 format = " [$symbol]($style)"
 symbol = "✱"
-style = "208"
+style = "yellow"

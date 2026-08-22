@@ -2,15 +2,16 @@
   "defaultProvider": "fireworks",
   "editorPaddingX": 1,
   "outputPad": 1,
-  "theme": "workos",
+  "theme": "shadesofjade",
   "quietStartup": true,
   "hideThinkingBlock": true,
   "skills": [
     "~/Developer/claude-plugins/plugins/content/skills",
     "~/Developer/nicknisi/skills",
-    "~/Developer/claude-plugins/plugins/essentials/skills"
+    "~/Developer/claude-plugins/plugins/essentials/skills",
+    "../../Developer/claude-plugins-internal/plugins/agent-usage-survey/skills"
   ],
-  "defaultThinkingLevel": "max",
+  "defaultThinkingLevel": "xhigh",
   "compaction": {
     "enabled": true,
     "reserveTokens": 16384,
@@ -65,7 +66,7 @@
     "npm:@ff-labs/pi-fff"
   ],
   "tuiMode": "fullscreen",
-  "defaultModel": "accounts/fireworks/routers/kimi-fast-latest",
+  "defaultModel": "accounts/fireworks/routers/kimi-k3-fast",
   "warnings": {
     "anthropicExtraUsage": false
   },

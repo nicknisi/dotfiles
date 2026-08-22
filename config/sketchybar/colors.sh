@@ -44,3 +44,9 @@ export ORANGE_FILL=0x1fff8f40
 
 export INK=0xff0d1017        # dark text on inverted chips (service badge)
 export TRANSPARENT=0x00000000
+
+# Active named theme (bin/theme-set) overrides everything above. Lives here,
+# at the end of the shared palette, because every plugin sources this file.
+if [[ -f "$HOME/.config/theme/current/sketchybar.sh" ]]; then
+  source "$HOME/.config/theme/current/sketchybar.sh"
+fi

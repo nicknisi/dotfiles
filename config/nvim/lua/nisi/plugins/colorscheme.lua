@@ -171,4 +171,50 @@ return {
       },
     },
   },
+  -- named-theme switchable colorschemes (bin/theme-set)
+  {
+    "ellisonleao/gruvbox.nvim",
+    lazy = true,
+    opts = {
+      transparent_mode = config.transparent or false,
+      italic = { comments = true },
+    },
+  },
+  {
+    "bjarneo/aether.nvim",
+    branch = "v3",
+    name = "aether",
+    lazy = true,
+    opts = {
+      transparent = config.transparent or false,
+      colors = {
+        bg = "#00110b",
+        dark_bg = "#00110b",
+        darker_bg = "#000c06",
+        lighter_bg = "#0c1d17",
+        fg = "#e6f6f0",
+        dark_fg = "#98C48F",
+        light_fg = "#f4fbf7",
+        bright_fg = "#f4fbf7",
+        muted = "#5E8A72",
+        red = "#ff3370",
+        orange = "#FF6600",
+        yellow = "#D1FFb0",
+        green = "#00a86b",
+        cyan = "#80d4b5",
+        blue = "#8fc85c",
+        purple = "#E25F4B",
+      },
+    },
+  },
+  {
+    "craftzdog/solarized-osaka.nvim",
+    lazy = true,
+    opts = {
+      transparent = config.transparent or false,
+      styles = {
+        comments = { italic = true },
+      },
+    },
+  },
 }
