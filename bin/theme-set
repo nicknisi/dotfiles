@@ -73,12 +73,12 @@ cp -n "$DOTFILES"/home/.pi/agent/themes/*.json "$HOME/.pi/agent/themes/" 2>/dev/
 ln -sfn "$THEME_DIR/ghostty.conf" "$HOME/.config/ghostty/theme-current"
 pkill -USR2 ghostty 2>/dev/null || true
 
-# nvim: new instances read the theme file at startup; push to running ones
-CS_FILE="$THEME_DIR/nvim-$MODE"
-if [ -f "$CS_FILE" ]; then
-  CS="$(head -1 "$CS_FILE")"
+# nvim: new instances read the theme at startup; running ones call the
+# reload fn (re-reads colorscheme + aether palette through the symlink).
+# ponytail: sessions started before apply_named_theme existed skip the push.
+if [ -f "$THEME_DIR/nvim-$MODE" ]; then
   find "${TMPDIR:-/tmp}" -maxdepth 4 -type s -name 'nvim.*.0' 2>/dev/null | while read -r sock; do
-    nvim --server "$sock" --remote-expr "execute('set background=$MODE | colorscheme $CS')" 2>/dev/null || true
+    nvim --server "$sock" --remote-expr "execute('lua if _G.apply_named_theme then _G.apply_named_theme() end')" 2>/dev/null || true
   done
 fi
 

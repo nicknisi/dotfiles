@@ -26,17 +26,7 @@ local config = {
   proxy = nil,
   prefer_git = false,
   colorscheme = function()
-    local mode = utils.is_dark_mode() and "dark" or "light"
-    vim.o.background = mode
-
-    -- active named theme (bin/theme-set) wins over the default
-    local cs = "tokyonight"
-    local theme_file = vim.fn.expand("~/.config/theme/current/nvim-" .. mode)
-    if (vim.uv or vim.loop).fs_stat(theme_file) then
-      cs = vim.fn.readfile(theme_file)[1]
-    end
-
-    vim.cmd("colorscheme " .. cs)
+    _G.apply_named_theme()
   end,
   transparent = false,
 }
@@ -133,6 +123,31 @@ local function patch_syntax()
   -- vim.api.nvim_set_hl(0, "htmlArg", { italic = true })
   -- vim.api.nvim_set_hl(0, "xmlAttrib", { italic = true })
   -- vim.cmd([[highlight Normal ctermbg=none]])
+end
+
+---Re-apply the active named theme (bin/theme-set). Reads the colorscheme name
+---from ~/.config/theme/current/nvim-{dark,light}; aether-based themes also
+---carry their palette in nvim-aether.json since several omarchy themes share
+---the aether colorscheme name with different colors.
+function _G.apply_named_theme()
+  local mode = utils.is_dark_mode() and "dark" or "light"
+  vim.o.background = mode
+
+  local theme_dir = vim.fn.expand("~/.config/theme/current")
+  local cs = "tokyonight"
+  local theme_file = theme_dir .. "/nvim-" .. mode
+  if (vim.uv or vim.loop).fs_stat(theme_file) then
+    cs = vim.fn.readfile(theme_file)[1]
+  end
+
+  if cs == "aether" then
+    local palette_file = theme_dir .. "/nvim-aether.json"
+    if (vim.uv or vim.loop).fs_stat(palette_file) then
+      require("aether").setup({ colors = vim.json.decode(table.concat(vim.fn.readfile(palette_file), "\n")) })
+    end
+  end
+
+  vim.cmd("colorscheme " .. cs)
 end
 
 ---Apply the colorscheme setting
