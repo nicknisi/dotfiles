@@ -8,7 +8,7 @@ right_format = "$git_status${custom.git_clean}$git_branch$jobs"
 
 # Active named theme — bin/theme-set rewrites this line. Palette colors come
 # from each theme's colors.toml (accent/color1/2/3/5/6/8).
-palette = "shadesofjade"
+palette = "void"
 
 [palettes.tokyo-night]
 accent = "#7aa2f7"
@@ -54,6 +54,33 @@ yellow = "#e5c736" # color11; color3 is green in this palette
 magenta = "#d2689c"
 cyan = "#2dd5b7"
 muted = "#53685b"
+
+[palettes.sakura]
+accent = "#d9a56c"
+red = "#e85f6f"
+green = "#f29b9a"
+yellow = "#d4a882"
+magenta = "#ff77a9"
+cyan = "#e8c099"
+muted = "#7a5c66"
+
+[palettes.fireside]
+accent = "#b8b8b6"
+red = "#e06b58"
+green = "#889889"
+yellow = "#b8b5a2"
+magenta = "#e48b7a"
+cyan = "#d0cac7"
+muted = "#5a606b"
+
+[palettes.void]
+accent = "#BB9AF7"
+red = "#F07178"
+green = "#C2B8FF"
+yellow = "#DDCCFF"
+magenta = "#B49AE6"
+cyan = "#A6B8FF"
+muted = "#6B578F"
 
 # %~ — full path, no truncation
 [directory]

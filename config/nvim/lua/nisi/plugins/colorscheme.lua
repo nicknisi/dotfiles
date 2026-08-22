@@ -180,32 +180,13 @@ return {
       italic = { comments = true },
     },
   },
+  -- aether is the shared colorscheme for omarchy-style themes; the palette
+  -- comes from the active theme's nvim-aether.json (see apply_named_theme)
   {
     "bjarneo/aether.nvim",
     branch = "v3",
     name = "aether",
     lazy = true,
-    opts = {
-      transparent = config.transparent or false,
-      colors = {
-        bg = "#00110b",
-        dark_bg = "#00110b",
-        darker_bg = "#000c06",
-        lighter_bg = "#0c1d17",
-        fg = "#e6f6f0",
-        dark_fg = "#98C48F",
-        light_fg = "#f4fbf7",
-        bright_fg = "#f4fbf7",
-        muted = "#5E8A72",
-        red = "#ff3370",
-        orange = "#FF6600",
-        yellow = "#D1FFb0",
-        green = "#00a86b",
-        cyan = "#80d4b5",
-        blue = "#8fc85c",
-        purple = "#E25F4B",
-      },
-    },
   },
   {
     "craftzdog/solarized-osaka.nvim",

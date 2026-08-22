@@ -1,22 +1,10 @@
 #!/usr/bin/env bash
-# theme-set <name> — switch the whole desktop theme in one move.
+# theme-set — switch the whole desktop theme in one move.
+# The ~/.config/theme/current symlink swap IS the switch; the rest of this
+# file makes running apps re-read it (ghostty, nvim, tmux, sketchybar,
+# borders, wallpaper, pi, claude code, starship, slack).
 #
-# Swaps the ~/.config/theme/current symlink to themes/<name>/ in this repo,
-# then nudges every consumer. Consumers read through the symlink, so the swap
-# IS the switch; the nudges just make running apps re-read:
-#
-#   ghostty    SIGUSR2 config reload (reads ./theme-current -> ghostty.conf)
-#   nvim       remote-expr colorscheme into every running server socket
-#   tmux       source-file tmux.conf (theme.tmux re-sources tmux-{dark,light}.sh)
-#   sketchybar --reload (sketchybarrc sources sketchybar.sh)
-#   borders    brew services restart (bordersrc sources borders.sh)
-#   wallpaper  backgrounds/ image N (theme-set <name> [N], default 1), every desktop
-#   pi         settings.json theme key (applies on next launch)
-#   claude     settings.json theme key (applies on next launch)
-#
-# Dark/light: ghostty and nvim handle both variants; pi/claude/tmux get the
-# variant matching macOS appearance at switch time.
-# ponytail: appearance flips after theme-set don't re-run it — re-run by hand.
+# ponytail: appearance flips after a switch don't re-run this — re-run by hand.
 
 set -euo pipefail
 
@@ -27,15 +15,150 @@ THEMES_DIR="$DOTFILES/themes"
 STATE_DIR="$HOME/.config/theme"
 
 list_themes() { for t in "$THEMES_DIR"/*/; do basename "$t"; done; }
+current_theme() { basename "$(readlink "$STATE_DIR/current" 2>/dev/null || echo none)"; }
 
-NAME="${1:-list}"
-BG_INDEX="${2:-1}"
-case "$NAME" in
-list | --list | -l) list_themes; exit 0 ;;
--h | --help)
-  sed -n '2,20p' "$0"
-  exit 0
-  ;;
+usage() {
+  cat <<'USAGE'
+theme-set — switch the whole desktop theme in one move
+
+usage:
+  theme-set               pick a theme (and wallpaper) interactively
+  theme-set <theme> [bg]  switch directly; bg = Nth wallpaper (default 1)
+  theme-set next          cycle to the next theme
+  theme-set list          list themes with their palettes
+  theme-set current       print the active theme
+  theme-set -h, --help    this
+
+switches: ghostty, nvim, tmux, sketchybar, borders, wallpaper,
+          pi, claude code, starship, slack (clipboard)
+
+pi and claude apply on next launch; the ghostty dock icon needs an
+app restart; the wallpaper repaints a few seconds after switching.
+USAGE
+}
+
+# ── Palette helpers ─────────────────────────────────────────────
+
+hex() { grep -E "^$1 = " "$2/colors.toml" 2>/dev/null | head -1 | cut -d'"' -f2; }
+rgb() { local h="${1#\#}"; printf '%d;%d;%d' "0x${h:0:2}" "0x${h:2:2}" "0x${h:4:2}"; }
+
+swatches() { # theme dir -> truecolor ██ row (accent + color1-6)
+  local dir="$1" key c out=""
+  for key in accent color1 color2 color3 color4 color5 color6; do
+    c="$(hex "$key" "$dir")"
+    [ -n "$c" ] && out+=$'\033[38;2;'"$(rgb "$c")"$'m██\033[0m '
+  done
+  printf '%s' "$out"
+}
+
+tagline() { (source "$1/theme.conf" 2>/dev/null; printf '%s' "${TAGLINE:-}"); }
+
+name_painted() { # theme name in its accent color
+  local dir="$1" name="$2" accent
+  accent="$(hex accent "$dir")"
+  if [ -n "$accent" ]; then
+    printf '\033[1m\033[38;2;%sm%s\033[0m' "$(rgb "$accent")" "$name"
+  else
+    printf '\033[1m%s\033[0m' "$name"
+  fi
+}
+
+# ── Interactive picking (fzf) ───────────────────────────────────
+
+preview_theme() { # fzf --preview for theme names
+  local dir="$THEMES_DIR/$1"
+  [ -d "$dir" ] || exit 0
+  name_painted "$dir" "$1"
+  local t; t="$(tagline "$dir")"
+  [ -n "$t" ] && printf '  \033[2m%s\033[0m' "$t"
+  printf '\n%s\n' "$(swatches "$dir")"
+  local n; n="$(ls "$dir"/backgrounds/* 2>/dev/null | wc -l | tr -d ' ')"
+  printf '\033[2m%s wallpaper%s\033[0m\n' "$n" "$([ "$n" = 1 ] && printf '' || printf 's')"
+}
+
+preview_bg() { # fzf --preview for a theme's Nth wallpaper
+  local img; img="$(ls "$THEMES_DIR/$1"/backgrounds/* 2>/dev/null | sed -n "$2p")"
+  [ -n "$img" ] || exit 0
+  printf '\033[1m%s\033[0m\n' "$(basename "$img")"
+  local kitten=/Applications/kitty.app/Contents/MacOS/kitten
+  if [ -x "$kitten" ] && [ "${TERM_PROGRAM:-}" = ghostty -o "${TERM_PROGRAM:-}" = kitty ]; then
+    # kitty graphics protocol (ghostty speaks it); must bypass fzf's capture
+    "$kitten" icat --clear --transfer-mode=memory --stdin=no --scale-up \
+      --place "${FZF_PREVIEW_COLUMNS:-80}x$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))@0x2" "$img" >/dev/tty 2>/dev/null || true
+  elif command -v img2txt >/dev/null 2>&1; then
+    img2txt -W "${FZF_PREVIEW_COLUMNS:-80}" -H "$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))" "$img" 2>/dev/null || true
+  else
+    sips -g pixelWidth -g pixelHeight "$img" 2>/dev/null | awk '/pixel/{printf "%s ", $2} END {print "px"}'
+  fi
+}
+
+pick_theme() {
+  command -v fzf >/dev/null 2>&1 && [ -t 0 ] || {
+    list_themes
+    echo "theme-set: pass a name, e.g. theme-set $(current_theme)" >&2
+    exit 2
+  }
+  local name n bg=1
+  name="$(list_themes | fzf --prompt='theme ❯ ' --reverse --height=~60% \
+    --preview="'$DOTFILES'/bin/theme-set _preview-theme {}" \
+    --preview-window='right,50%,border-left')" || exit 130
+  [ -n "$name" ] || exit 130
+  n="$(ls "$THEMES_DIR/$name"/backgrounds/* 2>/dev/null | wc -l | tr -d ' ')"
+  if [ "$n" -gt 1 ]; then
+    bg="$(seq 1 "$n" | fzf --prompt='wallpaper ❯ ' --reverse --height=~40% \
+      --preview="'$DOTFILES'/bin/theme-set _preview-bg $name {}" \
+      --preview-window='right,60%,border-left')" || exit 130
+    [ -n "$bg" ] || exit 130
+  fi
+  NAME="$name"
+  BG_INDEX="$bg"
+}
+
+next_theme() {
+  local cur themes=() i
+  cur="$(current_theme)"
+  while read -r t; do themes+=("$t"); done < <(list_themes)
+  for i in "${!themes[@]}"; do
+    [ "${themes[$i]}" = "$cur" ] && { echo "${themes[$(((i + 1) % ${#themes[@]}))]}"; return; }
+  done
+  echo "${themes[0]}"
+}
+
+# ── Args ────────────────────────────────────────────────────────
+
+NAME=""
+BG_INDEX=1
+case "${1:-}" in
+  -h | --help | help) usage; exit 0 ;;
+  list | -l | --list)
+    if [ -t 1 ]; then
+      list_themes | while read -r t; do
+        printf '%s\033[1m%s\033[0m \033[2m%s\033[0m\n' "$(swatches "$THEMES_DIR/$t")" "$t" "$(tagline "$THEMES_DIR/$t")"
+      done
+    else
+      list_themes
+    fi
+    exit 0
+    ;;
+  current) current_theme; exit 0 ;;
+  next) NAME="$(next_theme)" ;;
+  _preview-theme) preview_theme "$2"; exit 0 ;;
+  _preview-bg) preview_bg "$2" "$3"; exit 0 ;;
+  "") pick_theme ;;
+  -*)
+    echo "theme-set: unknown flag '$1'" >&2
+    usage >&2
+    exit 2
+    ;;
+  *)
+    NAME="$1"
+    BG_INDEX="${2:-1}"
+    case "$BG_INDEX" in *[!0-9]* | "")
+      echo "theme-set: bg must be a number, got '$BG_INDEX'" >&2
+      exit 2
+      ;;
+    esac
+    ;;
 esac
 
 THEME_DIR="$THEMES_DIR/$NAME"
@@ -60,6 +183,9 @@ pick() {
   if [ "$MODE" = light ] && [ -n "$light_val" ]; then echo "$light_val"; else echo "$dark_val"; fi
 }
 
+# ── The switch ──────────────────────────────────────────────────
+# everything below reports to stderr; stdout gets the finale only
+
 mkdir -p "$STATE_DIR"
 ln -sfn "$THEME_DIR" "$STATE_DIR/current"
 
@@ -73,12 +199,12 @@ cp -n "$DOTFILES"/home/.pi/agent/themes/*.json "$HOME/.pi/agent/themes/" 2>/dev/
 ln -sfn "$THEME_DIR/ghostty.conf" "$HOME/.config/ghostty/theme-current"
 pkill -USR2 ghostty 2>/dev/null || true
 
-# nvim: new instances read the theme file at startup; push to running ones
-CS_FILE="$THEME_DIR/nvim-$MODE"
-if [ -f "$CS_FILE" ]; then
-  CS="$(head -1 "$CS_FILE")"
+# nvim: new instances read the theme at startup; running ones call the
+# reload fn (re-reads colorscheme + aether palette through the symlink).
+# ponytail: sessions started before apply_named_theme existed skip the push.
+if [ -f "$THEME_DIR/nvim-$MODE" ]; then
   find "${TMPDIR:-/tmp}" -maxdepth 4 -type s -name 'nvim.*.0' 2>/dev/null | while read -r sock; do
-    nvim --server "$sock" --remote-expr "execute('set background=$MODE | colorscheme $CS')" 2>/dev/null || true
+    nvim --server "$sock" --remote-expr "execute('lua if _G.apply_named_theme then _G.apply_named_theme() end')" 2>/dev/null || true
   done
 fi
 
@@ -91,11 +217,11 @@ pgrep -x sketchybar >/dev/null 2>&1 && sketchybar --reload || true
 # borders (runs as a brew service on this machine)
 brew services restart borders >/dev/null 2>&1 || true
 
-# wallpaper: Nth image in backgrounds/ (default first), every screen
+# wallpaper: Nth image in backgrounds/ (default first), every screen.
+# macOS applies wallpaper async — expect a few seconds of lag.
 WALL="$(ls "$THEME_DIR"/backgrounds/* 2>/dev/null | sed -n "${BG_INDEX}p")"
 if [ -n "$WALL" ]; then
-  # path stays an ARGUMENT, never spliced into script text. macOS applies
-  # wallpaper async — expect a few seconds of lag before it repaints.
+  # path stays an ARGUMENT, never spliced into script text
   if ! osascript - "$WALL" >/dev/null 2>&1 <<'APPLESCRIPT'; then
 on run argv
   tell application "System Events" to tell every desktop to set picture to (item 1 of argv)
@@ -103,7 +229,7 @@ end run
 APPLESCRIPT
     echo "theme-set: wallpaper failed (Automation permission for System Events?)" >&2
   else
-    echo "wallpaper: $(basename "$WALL") (applies in a few seconds)"
+    echo "wallpaper: $(basename "$WALL") (applies in a few seconds)" >&2
   fi
 fi
 
@@ -125,22 +251,17 @@ sed -i '' "s/^palette = \".*\"/palette = \"$NAME\"/" "$DOTFILES/config/starship.
 # slack: no API for this — put the sidebar theme string on the clipboard
 if [ -f "$THEME_DIR/slack.txt" ]; then
   pbcopy <"$THEME_DIR/slack.txt"
-  echo "slack theme on clipboard — Slack > Settings > Appearance > Custom theme > Import, then paste"
+  echo "slack theme on clipboard — Slack > Settings > Appearance > Custom theme > Import, then paste" >&2
 fi
 
-# whimsy: paint the palette in its own colors
-if [ -f "$THEME_DIR/colors.toml" ] && [ -t 1 ]; then
-  hex() { grep -E "^$1 = " "$THEME_DIR/colors.toml" | head -1 | cut -d'"' -f2; }
-  rgb() { local h="${1#\#}"; printf '%d;%d;%d' "0x${h:0:2}" "0x${h:2:2}" "0x${h:4:2}"; }
-  ACCENT="$(hex accent)"
-  SWATCHES=""
-  for c in "$ACCENT" "$(hex color1)" "$(hex color2)" "$(hex color3)" "$(hex color4)" "$(hex color5)" "$(hex color6)"; do
-    [ -n "$c" ] && SWATCHES+=$'\033[38;2;'"$(rgb "$c")"$'m██\033[0m '
-  done
-  printf '%s\n' "$SWATCHES"
-  printf '\033[1m\033[38;2;%sm%s\033[0m' "$(rgb "$ACCENT")" "$NAME"
-  [ -n "${TAGLINE:-}" ] && printf ' \033[2m— %s\033[0m' "$TAGLINE"
-  printf ' \033[2m(%s)\033[0m\n' "$MODE"
+# ── Finale ──────────────────────────────────────────────────────
+
+if [ -t 1 ] && [ -f "$THEME_DIR/colors.toml" ]; then
+  swatches "$THEME_DIR"
+  printf '\n'
+  name_painted "$THEME_DIR" "$NAME"
+  [ -n "${TAGLINE:-}" ] && printf '  \033[2m%s\033[0m' "$TAGLINE"
+  printf '  \033[2m(%s)\033[0m\n' "$MODE"
 else
   echo "theme: $NAME ($MODE)"
 fi
