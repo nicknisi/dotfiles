@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+# theme-from-image — extract a theme palette from a wallpaper.
+#
+#   theme-from-image <name> <image>
+#
+# Writes themes/<name>/colors.toml and copies the image to
+# backgrounds/1-<slug>.<ext>. Everything else (ghostty, nvim, tmux,
+# sketchybar, borders, slack, pi, claude, starship) is generated from
+# colors.toml by the add-theme skill — this command is step 0 of it.
+#
+# ponytail: heuristic hue mapping, not a perceptual model. If a slot
+# looks off, edit colors.toml by hand — that file is the contract.
+
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+[ -L "$SOURCE" ] && SOURCE="$(readlink "$SOURCE")"
+DOTFILES="$(cd "$(dirname "$SOURCE")/.." && pwd)"
+
+usage() {
+  cat <<'USAGE'
+theme-from-image — grow a theme from a wallpaper
+
+usage:
+  theme-from-image <name> <image>   extract palette, scaffold the pack
+  theme-from-image -h, --help       this
+
+writes themes/<name>/colors.toml + backgrounds/, prints the palette.
+the add-theme skill authors the rest of the pack from colors.toml.
+USAGE
+}
+
+[ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ] && { usage; exit 0; }
+[ $# -eq 2 ] || { usage >&2; exit 2; }
+NAME="$1"
+IMG="$2"
+command -v magick >/dev/null 2>&1 || { echo "theme-from-image: needs ImageMagick (brew install imagemagick)" >&2; exit 1; }
+[ -f "$IMG" ] || { echo "theme-from-image: no such image: $IMG" >&2; exit 1; }
+[ -d "$DOTFILES/themes/$NAME" ] && { echo "theme-from-image: themes/$NAME already exists" >&2; exit 1; }
+
+PYSCRIPT="$(cat <<'PYEOF'
+import colorsys, re, sys
+
+name = sys.argv[1]
+entries = []  # (count, r, g, b) 0-255
+for line in sys.stdin:
+    m = re.match(r"\s*(\d+):.*?#([0-9A-Fa-f]{6})", line)
+    if m:
+        h = m.group(2)
+        entries.append((int(m.group(1)), int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)))
+if not entries:
+    sys.exit("theme-from-image: no colors extracted")
+
+def hls(r, g, b):
+    return colorsys.rgb_to_hls(r / 255, g / 255, b / 255)  # h, l, s
+
+def rgb_hex(r, g, b):
+    return "#%02X%02X%02X" % (max(0, min(255, round(r))), max(0, min(255, round(g))), max(0, min(255, round(b))))
+
+def mix(c, t, f):  # toward t by f
+    return tuple(a + (b - a) * f for a, b in zip(c, t))
+
+def shift_hue(c, target_deg):
+    h, l, s = hls(*c)
+    r, g, b = colorsys.hls_to_rgb(target_deg / 360, max(0.3, min(0.7, l)), max(0.4, s))
+    return (r * 255, g * 255, b * 255)
+
+C = [(n, (r, g, b)) for n, r, g, b in entries]
+
+def best(pred, fallback_key):
+    pool = [(n, c) for n, c in C if pred(*hls(*c))]
+    if pool:
+        return max(pool)[1]
+    return max(C, key=lambda nc: fallback_key(*hls(*nc[1])))[1]
+
+bg = best(lambda h, l, s: l < 0.28, lambda h, l, s: -l)
+fg = best(lambda h, l, s: l > 0.72, lambda h, l, s: l)
+if hls(*fg)[1] - hls(*bg)[1] < 0.5:  # unreadable pair: force extremes
+    bg = tuple(x * 0.4 for x in bg) if hls(*bg)[1] > 0.15 else bg
+    fg = mix(fg, (255, 255, 255), 0.6)
+
+accent = best(lambda h, l, s: s > 0.3 and 0.3 < l < 0.75, lambda h, l, s: s - abs(l - 0.5))
+
+FAMILIES = {  # ansi slot -> hue center
+    1: 0,    # red
+    2: 120,  # green
+    3: 55,   # yellow
+    4: 230,  # blue
+    5: 285,  # magenta
+    6: 185,  # cyan
+}
+
+def family(center):
+    lo, hi = (center - 30) % 360, (center + 30) % 360
+    pool = [(n, c) for n, c in C
+            if (lambda h, l, s: (lo <= h * 360 <= hi if lo < hi else h * 360 >= lo or h * 360 <= hi)
+                and s > 0.15 and 0.25 < l < 0.8)(*hls(*c))]
+    if pool:
+        return max(pool)[1]
+    return shift_hue(accent, center)  # hue family absent: rotate the accent
+
+slots = {i: family(FAMILIES[i]) for i in FAMILIES}
+neutral = max(C, key=lambda nc: -abs(hls(*nc[1])[1] - 0.5) - hls(*nc[1])[2])[1]
+
+def lighten(c):
+    h, l, s = hls(*c)
+    r, g, b = colorsys.hls_to_rgb(h, l + (1 - l) * 0.25, s * 0.95)
+    return (r * 255, g * 255, b * 255)
+
+hexes = {
+    "accent": rgb_hex(*accent),
+    "cursor": rgb_hex(*accent),
+    "foreground": rgb_hex(*fg),
+    "background": rgb_hex(*bg),
+    "selection_foreground": rgb_hex(*bg),
+    "selection_background": rgb_hex(*accent),
+    "color0": rgb_hex(*mix(bg, fg, 0.12)),
+    "color7": rgb_hex(*mix(fg, bg, 0.15)),
+    "color8": rgb_hex(*mix(bg, fg, 0.4)),
+    "color15": rgb_hex(*fg),
+}
+for i, c in slots.items():
+    hexes["color%d" % i] = rgb_hex(*c)
+    hexes["color%d" % (i + 8)] = rgb_hex(*lighten(c))
+
+print("# extracted from a wallpaper by theme-from-image")
+for k in ("accent", "cursor", "foreground", "background", "selection_foreground", "selection_background"):
+    print('%s = "%s"' % (k, hexes[k]))
+print()
+for i in range(16):
+    print('color%d = "%s"' % (i, hexes["color%d" % i]))
+PYEOF
+)"
+COLORS_TOML="$(magick "$IMG" -dither None -resize 240x240 -colors 24 -format %c histogram:info:- 2>/dev/null | python3 -c "$PYSCRIPT" "$NAME")" || exit 1
+
+DIR="$DOTFILES/themes/$NAME"
+mkdir -p "$DIR/backgrounds"
+echo "$COLORS_TOML" >"$DIR/colors.toml"
+slug="$(basename "$IMG" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9.]\+/-/g')"
+cp "$IMG" "$DIR/backgrounds/1-$slug"
+
+rgb() { local h="${1#\#}"; printf '%d;%d;%d' "0x${h:0:2}" "0x${h:2:2}" "0x${h:4:2}"; }
+echo "themes/$NAME/colors.toml:"
+echo "$COLORS_TOML"
+if [ -t 1 ]; then
+  echo
+  for key in accent color1 color2 color3 color4 color5 color6; do
+    c="$(echo "$COLORS_TOML" | grep -E "^$key = " | cut -d'"' -f2)"
+    [ -n "$c" ] && printf '\033[38;2;%sm██\033[0m ' "$(rgb "$c")"
+  done
+  printf '\n'
+fi
+echo "next: the add-theme skill authors the rest of the pack from colors.toml"

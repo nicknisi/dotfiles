@@ -6,18 +6,9 @@ add_newline = true
 format = "$directory$nodejs$line_break$character"
 right_format = "$git_status${custom.git_clean}$git_branch$jobs"
 
-# Active named theme — bin/theme-set rewrites this line. Palette colors come
-# from each theme's colors.toml (accent/color1/2/3/5/6/8).
-palette = "void"
-
-[palettes.tokyo-night]
-accent = "#7aa2f7"
-red = "#f7768e"
-green = "#9ece6a"
-yellow = "#e0af68"
-magenta = "#bb9af7"
-cyan = "#7dcfff"
-muted = "#414868"
+# Active named theme — bin/theme-set rewrites this line and regenerates the
+# [palettes.*] blocks below from each themes/<name>/starship.palette.
+palette = "tokyo-night"
 
 [palettes.catppuccin]
 accent = "#cba6f7"
@@ -28,41 +19,6 @@ magenta = "#f5c2e7"
 cyan = "#94e2d5"
 muted = "#585b70"
 
-[palettes.gruvbox]
-accent = "#fe8019"
-red = "#cc241d"
-green = "#98971a"
-yellow = "#d79921"
-magenta = "#b16286"
-cyan = "#689d6a"
-muted = "#928374"
-
-[palettes.shadesofjade]
-accent = "#D1FFb0"
-red = "#ff3370"
-green = "#00a86b"
-yellow = "#D1FFb0" # color3 doubles as the lime accent in this palette
-magenta = "#E25F4B"
-cyan = "#80d4b5"
-muted = "#5E8A72"
-
-[palettes.osaka-jade]
-accent = "#509475"
-red = "#ff5345"
-green = "#549e6a"
-yellow = "#e5c736" # color11; color3 is green in this palette
-magenta = "#d2689c"
-cyan = "#2dd5b7"
-muted = "#53685b"
-
-[palettes.sakura]
-accent = "#d9a56c"
-red = "#e85f6f"
-green = "#f29b9a"
-yellow = "#d4a882"
-magenta = "#ff77a9"
-cyan = "#e8c099"
-muted = "#7a5c66"
 
 [palettes.fireside]
 accent = "#b8b8b6"
@@ -73,6 +29,57 @@ magenta = "#e48b7a"
 cyan = "#d0cac7"
 muted = "#5a606b"
 
+
+[palettes.gruvbox]
+accent = "#fe8019"
+red = "#cc241d"
+green = "#98971a"
+yellow = "#d79921"
+magenta = "#b16286"
+cyan = "#689d6a"
+muted = "#928374"
+
+
+[palettes.osaka-jade]
+accent = "#509475"
+red = "#ff5345"
+green = "#549e6a"
+yellow = "#e5c736" # color11; color3 is green in this palette
+magenta = "#d2689c"
+cyan = "#2dd5b7"
+muted = "#53685b"
+
+
+[palettes.sakura]
+accent = "#d9a56c"
+red = "#e85f6f"
+green = "#f29b9a"
+yellow = "#d4a882"
+magenta = "#ff77a9"
+cyan = "#e8c099"
+muted = "#7a5c66"
+
+
+[palettes.shadesofjade]
+accent = "#D1FFb0"
+red = "#ff3370"
+green = "#00a86b"
+yellow = "#D1FFb0" # color3 doubles as the lime accent in this palette
+magenta = "#E25F4B"
+cyan = "#80d4b5"
+muted = "#5E8A72"
+
+
+[palettes.tokyo-night]
+accent = "#7aa2f7"
+red = "#f7768e"
+green = "#9ece6a"
+yellow = "#e0af68"
+magenta = "#bb9af7"
+cyan = "#7dcfff"
+muted = "#414868"
+
+
 [palettes.void]
 accent = "#BB9AF7"
 red = "#F07178"
@@ -82,7 +89,7 @@ magenta = "#B49AE6"
 cyan = "#A6B8FF"
 muted = "#6B578F"
 
-# %~ — full path, no truncation
+
 [directory]
 format = "[$path]($style)"
 style = "bold accent"

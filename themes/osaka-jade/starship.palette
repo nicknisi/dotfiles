@@ -1,0 +1,8 @@
+accent = "#509475"
+red = "#ff5345"
+green = "#549e6a"
+yellow = "#e5c736" # color11; color3 is green in this palette
+magenta = "#d2689c"
+cyan = "#2dd5b7"
+muted = "#53685b"
+
