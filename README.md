@@ -6,7 +6,7 @@ These are my actual dotfiles, not a starter kit. The host setup assumes Apple Si
 > If you came here from my [vim + tmux](https://www.youtube.com/watch?v=5r6yzFEXajQ) talk, the repository at the time of that recording is [still available](https://github.com/nicknisi/dotfiles/tree/aa72bed5c4ecec540a31192581294818b69b93e2). The current setup is substantially different.
 
 
-<img width="6524" height="3588" alt="capture_20260820_163631" src="https://github.com/user-attachments/assets/0f751c92-3949-41dc-a62a-0a6187ec6160" />
+<img width="3600" height="2338" alt="capture_20260822_095935" src="https://github.com/user-attachments/assets/96e69aca-610c-4679-9bb7-b03014cda3b4" />
 
 ## What this sets up
 
