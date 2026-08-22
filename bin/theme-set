@@ -76,12 +76,18 @@ preview_theme() { # fzf --preview for theme names
   printf '\033[2m%s wallpaper%s\033[0m\n' "$n" "$([ "$n" = 1 ] && printf '' || printf 's')"
 }
 
+kitty_graphics() { # kitty protocol usable: direct, or through tmux passthrough
+  case "${TERM_PROGRAM:-}" in ghostty | kitty) return 0 ;; esac
+  case "$(tmux display -p '#{client_termname}' 2>/dev/null)" in *ghostty* | *kitty*) return 0 ;; esac
+  return 1
+}
+
 preview_bg() { # fzf --preview for a theme's Nth wallpaper
   local img; img="$(ls "$THEMES_DIR/$1"/backgrounds/* 2>/dev/null | sed -n "$2p")"
   [ -n "$img" ] || exit 0
   printf '\033[1m%s\033[0m\n' "$(basename "$img")"
   local kitten=/Applications/kitty.app/Contents/MacOS/kitten
-  if [ -x "$kitten" ] && [ "${TERM_PROGRAM:-}" = ghostty -o "${TERM_PROGRAM:-}" = kitty ]; then
+  if [ -x "$kitten" ] && kitty_graphics; then
     # kitty graphics protocol (ghostty speaks it); must bypass fzf's capture
     "$kitten" icat --clear --transfer-mode=memory --stdin=no --scale-up \
       --place "${FZF_PREVIEW_COLUMNS:-80}x$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))@0x2" "$img" >/dev/tty 2>/dev/null || true
