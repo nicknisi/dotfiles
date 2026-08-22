@@ -192,8 +192,8 @@ alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 # Mode changes also notify the SketchyBar badge (plugins/aerospace_mode.sh)
 alt-shift-semicolon = ['mode service', 'exec-and-forget sketchybar --trigger aerospace_mode_change MODE=service']
 
-# Cycle desktop themes (bin/theme-next)
-alt-0 = 'exec-and-forget /Users/nicknisi/Developer/dotfiles/bin/theme-next'
+# Cycle desktop themes (theme-set next)
+alt-0 = 'exec-and-forget /Users/nicknisi/Developer/dotfiles/bin/theme-set next'
 
 # Note: this is extremely inflexible, locking specific workspaces to specific monitors.
 # [workspace-to-monitor-force-assignment]
