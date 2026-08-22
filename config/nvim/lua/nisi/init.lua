@@ -26,13 +26,17 @@ local config = {
   proxy = nil,
   prefer_git = false,
   colorscheme = function()
-    if utils.is_dark_mode() then
-      vim.o.background = "dark"
-    else
-      vim.o.background = "light"
+    local mode = utils.is_dark_mode() and "dark" or "light"
+    vim.o.background = mode
+
+    -- active named theme (bin/theme-set) wins over the default
+    local cs = "tokyonight"
+    local theme_file = vim.fn.expand("~/.config/theme/current/nvim-" .. mode)
+    if (vim.uv or vim.loop).fs_stat(theme_file) then
+      cs = vim.fn.readfile(theme_file)[1]
     end
 
-    vim.cmd("colorscheme tokyonight")
+    vim.cmd("colorscheme " .. cs)
   end,
   transparent = false,
 }

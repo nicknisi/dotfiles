@@ -20,6 +20,7 @@
 CONFIG_DIR="${CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/sketchybar}"
 PLUGIN_DIR="$CONFIG_DIR/plugins"
 DOTFILES_BIN="$HOME/Developer/dotfiles/bin"
+# colors.sh itself sources the active named theme (bin/theme-set) at the end
 source "$CONFIG_DIR/colors.sh"
 
 GAUGE=$(printf '\xf3\xb0\x89\x81')  # nf-md-gauge  U+F0241

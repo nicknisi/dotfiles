@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# theme-set <name> — switch the whole desktop theme in one move.
+#
+# Swaps the ~/.config/theme/current symlink to themes/<name>/ in this repo,
+# then nudges every consumer. Consumers read through the symlink, so the swap
+# IS the switch; the nudges just make running apps re-read:
+#
+#   ghostty    SIGUSR2 config reload (reads ./theme-current -> ghostty.conf)
+#   nvim       remote-expr colorscheme into every running server socket
+#   tmux       source-file tmux.conf (theme.tmux re-sources tmux-{dark,light}.sh)
+#   sketchybar --reload (sketchybarrc sources sketchybar.sh)
+#   borders    brew services restart (bordersrc sources borders.sh)
+#   wallpaper  first image in the theme's backgrounds/ dir, every desktop
+#   pi         settings.json theme key (applies on next launch)
+#   claude     settings.json theme key (applies on next launch)
+#
+# Dark/light: ghostty and nvim handle both variants; pi/claude/tmux get the
+# variant matching macOS appearance at switch time.
+# ponytail: appearance flips after theme-set don't re-run it — re-run by hand.
+
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+[ -L "$SOURCE" ] && SOURCE="$(readlink "$SOURCE")"
+DOTFILES="$(cd "$(dirname "$SOURCE")/.." && pwd)"
+THEMES_DIR="$DOTFILES/themes"
+STATE_DIR="$HOME/.config/theme"
+
+list_themes() { for t in "$THEMES_DIR"/*/; do basename "$t"; done; }
+
+NAME="${1:-list}"
+case "$NAME" in
+list | --list | -l) list_themes; exit 0 ;;
+-h | --help)
+  sed -n '2,20p' "$0"
+  exit 0
+  ;;
+esac
+
+THEME_DIR="$THEMES_DIR/$NAME"
+if [ ! -d "$THEME_DIR" ]; then
+  echo "theme-set: unknown theme '$NAME'. Available:" >&2
+  list_themes >&2
+  exit 1
+fi
+
+# shellcheck disable=SC1091
+source "$THEME_DIR/theme.conf"
+
+if defaults read -g AppleInterfaceStyle >/dev/null 2>&1; then
+  MODE=dark
+else
+  MODE=light
+fi
+
+# pick PI_/CLAUDE_ variant, falling back to dark when a theme has no light
+pick() {
+  local dark_val="$1" light_val="$2"
+  if [ "$MODE" = light ] && [ -n "$light_val" ]; then echo "$light_val"; else echo "$dark_val"; fi
+}
+
+mkdir -p "$STATE_DIR"
+ln -sfn "$THEME_DIR" "$STATE_DIR/current"
+
+# make pi/claude theme JSONs available in the live config dirs (the repo's
+# home/ copies are not symlinked on every machine)
+mkdir -p "$HOME/.claude/themes" "$HOME/.pi/agent/themes"
+cp -n "$DOTFILES"/home/.claude/themes/*.json "$HOME/.claude/themes/" 2>/dev/null || true
+cp -n "$DOTFILES"/home/.pi/agent/themes/*.json "$HOME/.pi/agent/themes/" 2>/dev/null || true
+
+# ghostty: include file + SIGUSR2 live reload
+ln -sfn "$THEME_DIR/ghostty.conf" "$HOME/.config/ghostty/theme-current"
+pkill -USR2 ghostty 2>/dev/null || true
+
+# nvim: new instances read the theme file at startup; push to running ones
+CS_FILE="$THEME_DIR/nvim-$MODE"
+if [ -f "$CS_FILE" ]; then
+  CS="$(head -1 "$CS_FILE")"
+  find "${TMPDIR:-/tmp}" -maxdepth 4 -type s -name 'nvim.*.0' 2>/dev/null | while read -r sock; do
+    nvim --server "$sock" --remote-expr "execute('set background=$MODE | colorscheme $CS')" 2>/dev/null || true
+  done
+fi
+
+# tmux
+tmux has-session 2>/dev/null && tmux source-file "$HOME/.config/tmux/tmux.conf" || true
+
+# sketchybar
+pgrep -x sketchybar >/dev/null 2>&1 && sketchybar --reload || true
+
+# borders (runs as a brew service on this machine)
+brew services restart borders >/dev/null 2>&1 || true
+
+# wallpaper: first image in backgrounds/, every screen
+WALL="$(ls "$THEME_DIR"/backgrounds/* 2>/dev/null | head -1)"
+if [ -n "$WALL" ]; then
+  # path stays an ARGUMENT, never spliced into script text. macOS applies
+  # wallpaper async — expect a few seconds of lag before it repaints.
+  if ! osascript - "$WALL" >/dev/null 2>&1 <<'APPLESCRIPT'; then
+on run argv
+  tell application "System Events" to tell every desktop to set picture to (item 1 of argv)
+end run
+APPLESCRIPT
+    echo "theme-set: wallpaper failed (Automation permission for System Events?)" >&2
+  else
+    echo "wallpaper: $(basename "$WALL") (applies in a few seconds)"
+  fi
+fi
+
+# pi + claude: point settings.json at the theme (next launch)
+set_json_theme() { # file, value
+  local file="$1" value="$2" tmp
+  [ -f "$file" ] || return 0
+  tmp="$(mktemp)"
+  jq --arg t "$value" '.theme = $t' "$file" >"$tmp" && mv "$tmp" "$file"
+}
+PI_THEME="$(pick "${PI_DARK:-}" "${PI_LIGHT:-}")"
+CLAUDE_THEME="$(pick "${CLAUDE_DARK:-}" "${CLAUDE_LIGHT:-}")"
+[ -n "$PI_THEME" ] && for f in "$HOME/.pi/agent/settings.json" "$DOTFILES/home/.pi/agent/settings.json"; do set_json_theme "$f" "$PI_THEME"; done
+[ -n "$CLAUDE_THEME" ] && for f in "$HOME/.claude/settings.json" "$DOTFILES/home/.claude/settings.json"; do set_json_theme "$f" "custom:$CLAUDE_THEME"; done
+
+# starship: flip the palette line (it re-reads config every prompt, no reload)
+sed -i '' "s/^palette = \".*\"/palette = \"$NAME\"/" "$DOTFILES/config/starship.toml"
+
+# slack: no API for this — put the sidebar theme string on the clipboard
+if [ -f "$THEME_DIR/slack.txt" ]; then
+  pbcopy <"$THEME_DIR/slack.txt"
+  echo "slack theme on clipboard — Slack > Settings > Appearance > Custom theme > Import, then paste"
+fi
+
+echo "theme: $NAME ($MODE)"

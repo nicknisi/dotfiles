@@ -75,13 +75,15 @@ PATH = '/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 #                 See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [gaps]
 # Allow for more space on smaller screens
-inner.horizontal = [ { monitor."Built-in Retina Display" = 15 }, 20  ]
-inner.vertical =   [ { monitor."Built-in Retina Display" = 15 }, 20  ]
-outer.left =       [ { monitor."Built-in Retina Display" = 20 }, 25  ]
-outer.bottom =     [ { monitor."Built-in Retina Display" = 20 }, 25  ]
-# outer.top clears the floating SketchyBar: y_offset 6 + height 36 + inner gap
-outer.top =        [ { monitor."Built-in Retina Display" = 57 }, 62  ]
-outer.right =      [ { monitor."Built-in Retina Display" = 20 }, 25  ]
+# Tight 8px gaps. Built-in top=10 assumes a bar inside the notch strip;
+# assumes a bar inside the notch strip; ours floats below it, so keep the
+# bar clearance (36 + y_offset 6) plus the 8px rhythm: 50/44.
+inner.horizontal = 8
+inner.vertical =   8
+outer.left =       8
+outer.bottom =     8
+outer.top =        [ { monitor."Built-in Retina Display" = 50 }, 44  ]
+outer.right =      8
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -189,6 +191,9 @@ alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
 # Mode changes also notify the SketchyBar badge (plugins/aerospace_mode.sh)
 alt-shift-semicolon = ['mode service', 'exec-and-forget sketchybar --trigger aerospace_mode_change MODE=service']
+
+# Cycle desktop themes (bin/theme-next)
+alt-0 = 'exec-and-forget /Users/nicknisi/Developer/dotfiles/bin/theme-next'
 
 # Note: this is extremely inflexible, locking specific workspaces to specific monitors.
 # [workspace-to-monitor-force-assignment]

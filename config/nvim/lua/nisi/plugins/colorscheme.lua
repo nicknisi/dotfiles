@@ -171,4 +171,23 @@ return {
       },
     },
   },
+  -- named-theme switchable colorschemes (bin/theme-set)
+  {
+    "ellisonleao/gruvbox.nvim",
+    lazy = true,
+    opts = {
+      transparent_mode = config.transparent or false,
+      italic = { comments = true },
+    },
+  },
+  {
+    "craftzdog/solarized-osaka.nvim",
+    lazy = true,
+    opts = {
+      transparent = config.transparent or false,
+      styles = {
+        comments = { italic = true },
+      },
+    },
+  },
 }

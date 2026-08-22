@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
+# active named theme (bin/theme-set) overrides the defaults below
+if [[ -f "$HOME/.config/theme/current/borders.sh" ]]; then
+  source "$HOME/.config/theme/current/borders.sh"
+fi
+
 options=(
   style=round
   width=6
-  # active_color=0xff8839ef
-  # active_color=0xff88c0d0
-  # active_color=0xffe91e63
-  inactive_color=0xff5C6773
-  active_color="glow(0xFF59C2FF)" # Ayu entity blue with glow effect
+  inactive_color="${INACTIVE_COLOR:-0xff5C6773}"
+  active_color="${ACTIVE_COLOR:-glow(0xFF59C2FF)}" # default: Ayu entity blue glow
   hidpi=on
 )
 
