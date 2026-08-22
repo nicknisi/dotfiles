@@ -10,7 +10,7 @@
 #   tmux       source-file tmux.conf (theme.tmux re-sources tmux-{dark,light}.sh)
 #   sketchybar --reload (sketchybarrc sources sketchybar.sh)
 #   borders    brew services restart (bordersrc sources borders.sh)
-#   wallpaper  first image in the theme's backgrounds/ dir, every desktop
+#   wallpaper  backgrounds/ image N (theme-set <name> [N], default 1), every desktop
 #   pi         settings.json theme key (applies on next launch)
 #   claude     settings.json theme key (applies on next launch)
 #
@@ -29,6 +29,7 @@ STATE_DIR="$HOME/.config/theme"
 list_themes() { for t in "$THEMES_DIR"/*/; do basename "$t"; done; }
 
 NAME="${1:-list}"
+BG_INDEX="${2:-1}"
 case "$NAME" in
 list | --list | -l) list_themes; exit 0 ;;
 -h | --help)
@@ -90,8 +91,8 @@ pgrep -x sketchybar >/dev/null 2>&1 && sketchybar --reload || true
 # borders (runs as a brew service on this machine)
 brew services restart borders >/dev/null 2>&1 || true
 
-# wallpaper: first image in backgrounds/, every screen
-WALL="$(ls "$THEME_DIR"/backgrounds/* 2>/dev/null | head -1)"
+# wallpaper: Nth image in backgrounds/ (default first), every screen
+WALL="$(ls "$THEME_DIR"/backgrounds/* 2>/dev/null | sed -n "${BG_INDEX}p")"
 if [ -n "$WALL" ]; then
   # path stays an ARGUMENT, never spliced into script text. macOS applies
   # wallpaper async — expect a few seconds of lag before it repaints.
@@ -127,4 +128,19 @@ if [ -f "$THEME_DIR/slack.txt" ]; then
   echo "slack theme on clipboard — Slack > Settings > Appearance > Custom theme > Import, then paste"
 fi
 
-echo "theme: $NAME ($MODE)"
+# whimsy: paint the palette in its own colors
+if [ -f "$THEME_DIR/colors.toml" ] && [ -t 1 ]; then
+  hex() { grep -E "^$1 = " "$THEME_DIR/colors.toml" | head -1 | cut -d'"' -f2; }
+  rgb() { local h="${1#\#}"; printf '%d;%d;%d' "0x${h:0:2}" "0x${h:2:2}" "0x${h:4:2}"; }
+  ACCENT="$(hex accent)"
+  SWATCHES=""
+  for c in "$ACCENT" "$(hex color1)" "$(hex color2)" "$(hex color3)" "$(hex color4)" "$(hex color5)" "$(hex color6)"; do
+    [ -n "$c" ] && SWATCHES+=$'\033[38;2;'"$(rgb "$c")"$'m██\033[0m '
+  done
+  printf '%s\n' "$SWATCHES"
+  printf '\033[1m\033[38;2;%sm%s\033[0m' "$(rgb "$ACCENT")" "$NAME"
+  [ -n "${TAGLINE:-}" ] && printf ' \033[2m— %s\033[0m' "$TAGLINE"
+  printf ' \033[2m(%s)\033[0m\n' "$MODE"
+else
+  echo "theme: $NAME ($MODE)"
+fi
