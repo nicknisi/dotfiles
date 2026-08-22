@@ -1,0 +1,91 @@
+{
+  "name": "sakura",
+  "base": "dark",
+  "overrides": {
+    "text": "rgb(240,234,237)",
+    "inverseText": "rgb(13,5,9)",
+    "inactive": "rgb(74,60,69)",
+    "inactiveShimmer": "rgb(122,92,102)",
+    "subtle": "rgb(122,92,102)",
+
+    "claude": "rgb(217,165,108)",
+    "claudeShimmer": "rgb(232,192,153)",
+    "claudeBlue_FOR_SYSTEM_SPINNER": "rgb(217,165,108)",
+    "claudeBlueShimmer_FOR_SYSTEM_SPINNER": "rgb(232,192,153)",
+
+    "permission": "rgb(255,119,169)",
+    "permissionShimmer": "rgb(255,143,188)",
+    "suggestion": "rgb(217,165,108)",
+    "remember": "rgb(255,119,169)",
+    "skill": "rgb(255,143,188)",
+    "effortUltra": "rgb(255,119,169)",
+
+    "autoAccept": "rgb(242,155,154)",
+    "autoAcceptShimmer": "rgb(255,181,180)",
+    "merged": "rgb(255,119,169)",
+    "planMode": "rgb(247,179,215)",
+    "ide": "rgb(232,192,153)",
+    "bashBorder": "rgb(232,95,111)",
+
+    "promptBorder": "rgb(74,60,69)",
+    "promptBorderShimmer": "rgb(232,192,153)",
+
+    "background": "rgb(217,165,108)",
+    "success": "rgb(242,155,154)",
+    "error": "rgb(232,95,111)",
+    "warning": "rgb(212,168,130)",
+    "warningShimmer": "rgb(230,186,148)",
+
+    "diffAdded": "rgb(40,26,30)",
+    "diffRemoved": "rgb(52,26,34)",
+    "diffAddedDimmed": "rgb(30,20,24)",
+    "diffRemovedDimmed": "rgb(42,22,28)",
+    "diffAddedWord": "rgb(255,181,180)",
+    "diffRemovedWord": "rgb(255,140,155)",
+
+    "red_FOR_SUBAGENTS_ONLY": "rgb(232,95,111)",
+    "blue_FOR_SUBAGENTS_ONLY": "rgb(217,165,108)",
+    "green_FOR_SUBAGENTS_ONLY": "rgb(242,155,154)",
+    "yellow_FOR_SUBAGENTS_ONLY": "rgb(212,168,130)",
+    "purple_FOR_SUBAGENTS_ONLY": "rgb(255,119,169)",
+    "orange_FOR_SUBAGENTS_ONLY": "rgb(255,142,124)",
+    "pink_FOR_SUBAGENTS_ONLY": "rgb(242,155,154)",
+    "cyan_FOR_SUBAGENTS_ONLY": "rgb(232,192,153)",
+
+    "professionalBlue": "rgb(217,165,108)",
+    "chromeYellow": "rgb(212,168,130)",
+    "clawd_body": "rgb(217,165,108)",
+    "clawd_background": "rgb(13,5,9)",
+
+    "userMessageBackground": "rgb(22,10,16)",
+    "userMessageBackgroundHover": "rgb(35,14,24)",
+    "composerSidebarBackground": "rgb(10,4,7)",
+    "selectionBg": "rgb(35,14,24)",
+    "bashMessageBackgroundColor": "rgb(45,27,38)",
+    "memoryBackgroundColor": "rgb(22,10,16)",
+
+    "rate_limit_fill": "rgb(217,165,108)",
+    "rate_limit_empty": "rgb(74,60,69)",
+
+    "fastMode": "rgb(255,142,124)",
+    "fastModeShimmer": "rgb(255,175,150)",
+
+    "briefLabelYou": "rgb(255,119,169)",
+    "briefLabelClaude": "rgb(217,165,108)",
+
+    "rainbow_red": "rgb(232,95,111)",
+    "rainbow_orange": "rgb(255,142,124)",
+    "rainbow_yellow": "rgb(212,168,130)",
+    "rainbow_green": "rgb(242,155,154)",
+    "rainbow_blue": "rgb(217,165,108)",
+    "rainbow_indigo": "rgb(209,179,153)",
+    "rainbow_violet": "rgb(255,119,169)",
+    "rainbow_red_shimmer": "rgb(255,122,138)",
+    "rainbow_orange_shimmer": "rgb(255,175,150)",
+    "rainbow_yellow_shimmer": "rgb(230,186,148)",
+    "rainbow_green_shimmer": "rgb(255,181,180)",
+    "rainbow_blue_shimmer": "rgb(232,192,153)",
+    "rainbow_indigo_shimmer": "rgb(227,197,171)",
+    "rainbow_violet_shimmer": "rgb(255,143,188)"
+  }
+}

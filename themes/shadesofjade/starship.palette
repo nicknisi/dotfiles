@@ -1,0 +1,8 @@
+accent = "#D1FFb0"
+red = "#ff3370"
+green = "#00a86b"
+yellow = "#D1FFb0" # color3 doubles as the lime accent in this palette
+magenta = "#E25F4B"
+cyan = "#80d4b5"
+muted = "#5E8A72"
+

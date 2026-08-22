@@ -7,9 +7,10 @@ description: Add a new named theme pack to the dotfiles theme system (bin/theme-
 
 One command themes everything: `bin/theme-set <name>` swaps
 `~/.config/theme/current` -> `themes/<name>/` and nudges consumers.
-A pack is a directory in `themes/` plus three files outside it
-(pi/claude theme JSONs, starship palette). ALL steps are required —
-every past pack forgot one (starship was missed for shadesofjade).
+A pack is FULLY self-contained in `themes/<name>/` — deleting the
+directory deletes the theme (theme-set regenerates starship palettes
+from whatever packs remain). ALL files below are required — every
+past pack forgot one (starship was missed for shadesofjade).
 
 Work directly in the repo (subagent worktrees don't see uncommitted
 theme files and have flipped the user's live theme by running
@@ -73,15 +74,24 @@ reference, shadesofjade = dark-only reference):
   activeItem (accent), activeItemText (bg), hoverItem, text (fg),
   presence (green), mentionBadge (red)
 
-## 3. Outside themes/
+## 3. In-pack consumer JSONs
 
-- `home/.pi/agent/themes/<name>.json` — copy shape of
-  tokyonight-night.json (vars block + every colors key)
-- `home/.claude/themes/<name>.json` — copy shape of tokyo-night.json,
-  every override key, colors as rgb(r,g,b); base dark. Light variant
-  file only if the theme has one (see tokyo-night-day.json)
-- `config/starship.toml` — add `[palettes.<name>]` with keys accent,
-  red, green, yellow, magenta, cyan, muted. Do not touch others.
+Named by variant, installed by theme-set into the live dirs under the
+name theme.conf points at (PI_DARK=tokyonight-night <- pi-dark.json):
+
+- `pi-dark.json` (and `pi-light.json` if a light variant exists) —
+  copy shape of themes/tokyo-night/pi-dark.json (vars block + every
+  colors key)
+- `claude-dark.json` (and `claude-light.json` likewise) — copy shape
+  of themes/tokyo-night/claude-dark.json, every override key, colors
+  as rgb(r,g,b); base dark
+- `starship.palette` — 7 lines: accent, red, green, yellow, magenta,
+  cyan, muted (hex values). theme-set rebuilds the [palettes.*]
+  section of config/starship.toml from these — never edit that
+  section by hand.
+
+Do NOT add JSONs to home/.pi/agent/themes or home/.claude/themes for
+packs — those dirs are for standalone (non-pack) themes only.
 
 ## 4. Validate (no theme-set run)
 
@@ -98,3 +108,9 @@ possible on rapid switches); `jq -r .theme` on both settings.json.
 Ghostty needs restart for dock icon; pi/claude apply next launch.
 
 ## 6. Commit on the active theme branch and push.
+
+## Removing a theme
+
+`git rm -r themes/<name>/` + `rm ~/.pi/agent/themes/<pi-name>.json
+~/.claude/themes/<claude-name>.json`, then run theme-set once (any
+theme) — starship.toml self-heals without it.

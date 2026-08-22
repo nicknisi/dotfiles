@@ -195,6 +195,14 @@ mkdir -p "$HOME/.claude/themes" "$HOME/.pi/agent/themes"
 cp -n "$DOTFILES"/home/.claude/themes/*.json "$HOME/.claude/themes/" 2>/dev/null || true
 cp -n "$DOTFILES"/home/.pi/agent/themes/*.json "$HOME/.pi/agent/themes/" 2>/dev/null || true
 
+# packs own their JSONs (pi-dark.json, claude-light.json, ...): install the
+# active variant into the live dir under the name theme.conf points at
+install_pack_json() { # kind(pi|claude), live dir, theme name
+  local f="$THEME_DIR/$1-$MODE.json"
+  [ -f "$f" ] || f="$THEME_DIR/$1-dark.json"
+  [ ! -f "$f" ] || cp "$f" "$2/$3.json"
+}
+
 # ghostty: include file + SIGUSR2 live reload
 ln -sfn "$THEME_DIR/ghostty.conf" "$HOME/.config/ghostty/theme-current"
 pkill -USR2 ghostty 2>/dev/null || true
@@ -242,11 +250,29 @@ set_json_theme() { # file, value
 }
 PI_THEME="$(pick "${PI_DARK:-}" "${PI_LIGHT:-}")"
 CLAUDE_THEME="$(pick "${CLAUDE_DARK:-}" "${CLAUDE_LIGHT:-}")"
+[ -n "$PI_THEME" ] && install_pack_json pi "$HOME/.pi/agent/themes" "$PI_THEME"
+[ -n "$CLAUDE_THEME" ] && install_pack_json claude "$HOME/.claude/themes" "$CLAUDE_THEME"
 [ -n "$PI_THEME" ] && for f in "$HOME/.pi/agent/settings.json" "$DOTFILES/home/.pi/agent/settings.json"; do set_json_theme "$f" "$PI_THEME"; done
 [ -n "$CLAUDE_THEME" ] && for f in "$HOME/.claude/settings.json" "$DOTFILES/home/.claude/settings.json"; do set_json_theme "$f" "custom:$CLAUDE_THEME"; done
 
-# starship: flip the palette line (it re-reads config every prompt, no reload)
-sed -i '' "s/^palette = \".*\"/palette = \"$NAME\"/" "$DOTFILES/config/starship.toml"
+# starship: rebuild the palettes section from every pack's starship.palette
+# (deleted packs drop out), then point at the active one. Re-read every
+# prompt, so no reload needed.
+if [ -f "$THEME_DIR/starship.palette" ]; then
+  stripped="$(mktemp)"; blocks="$(mktemp)"
+  awk '/^\[palettes\./{skip=1; next} /^\[/{skip=0} !skip' "$DOTFILES/config/starship.toml" >"$stripped"
+  for p in "$THEMES_DIR"/*/starship.palette; do
+    [ -f "$p" ] || continue
+    printf '\n[palettes.%s]\n' "$(basename "$(dirname "$p")")" >>"$blocks"
+    cat "$p" >>"$blocks"
+  done
+  sed -i '' -e "/^palette = /r $blocks" "$stripped"
+  sed -i '' "s/^palette = \".*\"/palette = \"$NAME\"/" "$stripped"
+  cmp -s "$stripped" "$DOTFILES/config/starship.toml" || mv "$stripped" "$DOTFILES/config/starship.toml"
+  rm -f "$stripped" "$blocks"
+else
+  echo "theme-set: no starship.palette in $NAME — prompt colors stale" >&2
+fi
 
 # slack: no API for this — put the sidebar theme string on the clipboard
 if [ -f "$THEME_DIR/slack.txt" ]; then
