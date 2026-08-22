@@ -30,7 +30,12 @@ Copy from the closest existing pack (tokyo-night = dark+light
 reference, shadesofjade = dark-only reference):
 
 - `colors.toml` — copied verbatim from upstream
-- `backgrounds/` — all images (theme-set <name> [N] picks one)
+- `backgrounds/` — all images (theme-set <name> [N] picks one).
+  Rename each to `<index>-<description>.<ext>` (1-first keeps the
+  upstream default first): read every image and describe its content,
+  e.g. `1-jade-dragon-statue.jpg`, `2-monk-moon-umbrella.jpg`.
+  The fzf wallpaper picker previews the filename, so numbered-only
+  names (BG1, 1.jpg) are a miss.
 - `theme.conf` — PI_DARK, PI_LIGHT, CLAUDE_DARK, CLAUDE_LIGHT, TAGLINE
   (one-line whimsy, printed on switch). Dark-only: PI_LIGHT= and
   CLAUDE_LIGHT= empty.
