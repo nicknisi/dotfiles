@@ -70,6 +70,11 @@ reference, shadesofjade = dark-only reference):
   hues with _BORDER 0xe6 / _FILL 0x1f, CALM_GREEN 0x8c+green,
   INK 0xff+bg, TRANSPARENT). Accent = colors.toml accent.
 - `borders.sh` — ACTIVE_COLOR=0xff<accent>, INACTIVE_COLOR=0xff<color8>
+- `wezterm.lua` — `return { foreground, background, cursor_bg,
+  cursor_border, cursor_fg, selection_bg, selection_fg, ansi =
+  {color0-7}, brights = {color8-15} }` — straight from colors.toml
+  (copy themes/sakura/wezterm.lua's shape). theme-set copies it to
+  ~/.config/wezterm/theme-current.lua, which wezterm.lua watches.
 - `slack.txt` — 8 comma-separated hexes: columnBG, menuBGHover,
   activeItem (accent), activeItemText (bg), hoverItem, text (fg),
   presence (green), mentionBadge (red)

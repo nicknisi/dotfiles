@@ -16,6 +16,17 @@ config.colors = {
   indexed = { [239] = "lightslategray" },
 }
 
+-- named theme: bin/theme-set copies themes/<name>/wezterm.lua here;
+-- watching the file makes switches live-reload
+local theme_current = wezterm.config_dir .. "/theme-current.lua"
+wezterm.add_to_config_reload_watch_list(theme_current)
+local ok, named_theme = pcall(dofile, theme_current)
+if ok then
+  for k, v in pairs(named_theme) do
+    config.colors[k] = v
+  end
+end
+
 config.macos_window_background_blur = 30
 config.enable_tab_bar = false
 config.window_decorations = "RESIZE"
