@@ -18,9 +18,18 @@ until told, and never from a worktree).
 
 ## 1. Source the palette
 
-Fetch the upstream theme repo (fetch_content clones it to
-/tmp/pi-github-repos/). Take `colors.toml` (accent, background,
-foreground, color0-15) and `backgrounds/`. If it ships a `neovim.lua`
+Two entry points:
+
+- **Upstream repo** (the common case): fetch it (fetch_content clones
+  to /tmp/pi-github-repos/), take `colors.toml` and `backgrounds/`.
+- **Just a wallpaper, no repo**: run `bin/theme-from-image <name>
+  <image>` first. It extracts colors.toml + backgrounds/ from the
+  image; continue below with what it wrote. Eyeball the palette
+  first — the hue mapping is heuristic, hand-tune colors.toml if a
+  slot looks wrong.
+
+The repo's `colors.toml` (accent, background,
+foreground, color0-15) drives everything. If it ships a `neovim.lua`
 using `bjarneo/aether.nvim`, that file holds the extended palette
 (bg variants, muted, bright_*) needed for nvim + pi + claude JSONs.
 
