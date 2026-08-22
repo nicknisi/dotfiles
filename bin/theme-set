@@ -80,8 +80,16 @@ preview_bg() { # fzf --preview for a theme's Nth wallpaper
   local img; img="$(ls "$THEMES_DIR/$1"/backgrounds/* 2>/dev/null | sed -n "$2p")"
   [ -n "$img" ] || exit 0
   printf '\033[1m%s\033[0m\n' "$(basename "$img")"
-  # no chafa/viu on this machine: file info beats nothing
-  sips -g pixelWidth -g pixelHeight "$img" 2>/dev/null | awk '/pixel/{printf "%s ", $2} END {print "px"}'
+  local kitten=/Applications/kitty.app/Contents/MacOS/kitten
+  if [ -x "$kitten" ] && [ "${TERM_PROGRAM:-}" = ghostty -o "${TERM_PROGRAM:-}" = kitty ]; then
+    # kitty graphics protocol (ghostty speaks it); must bypass fzf's capture
+    "$kitten" icat --clear --transfer-mode=memory --stdin=no --scale-up \
+      --place "${FZF_PREVIEW_COLUMNS:-80}x$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))@0x2" "$img" >/dev/tty 2>/dev/null || true
+  elif command -v img2txt >/dev/null 2>&1; then
+    img2txt -W "${FZF_PREVIEW_COLUMNS:-80}" -H "$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))" "$img" 2>/dev/null || true
+  else
+    sips -g pixelWidth -g pixelHeight "$img" 2>/dev/null | awk '/pixel/{printf "%s ", $2} END {print "px"}'
+  fi
 }
 
 pick_theme() {
