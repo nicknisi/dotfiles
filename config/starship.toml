@@ -37,6 +37,15 @@ magenta = "#b16286"
 cyan = "#689d6a"
 muted = "#928374"
 
+[palettes.shadesofjade]
+accent = "#D1FFb0"
+red = "#ff3370"
+green = "#00a86b"
+yellow = "#D1FFb0" # color3 doubles as the lime accent in this palette
+magenta = "#E25F4B"
+cyan = "#80d4b5"
+muted = "#5E8A72"
+
 [palettes.osaka-jade]
 accent = "#509475"
 red = "#ff5345"
