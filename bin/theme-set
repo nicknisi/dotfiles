@@ -207,6 +207,15 @@ install_pack_json() { # kind(pi|claude), live dir, theme name
   local f="$THEME_DIR/$1-$MODE.json"
   [ -f "$f" ] || f="$THEME_DIR/$1-dark.json"
   [ ! -f "$f" ] || cp "$f" "$2/$3.json"
+  # on machines where ~/.pi / ~/.claude are symlinked into this repo, the
+  # install lands in the working tree — keep it out of git status
+  local real; real="$(cd "$2" 2>/dev/null && pwd -P)" || return 0
+  case "$real" in
+    "$DOTFILES"/home/*)
+      local rel="${real#$DOTFILES/}/$3.json"
+      grep -qxF "$rel" "$DOTFILES/.git/info/exclude" 2>/dev/null || echo "$rel" >>"$DOTFILES/.git/info/exclude"
+      ;;
+  esac
 }
 
 # ghostty: include file + SIGUSR2 live reload
