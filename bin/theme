@@ -58,13 +58,7 @@ swatches() { # theme dir -> truecolor ██ row (accent + color1-6)
 tagline() { (source "$1/theme.conf" 2>/dev/null; printf '%s' "${TAGLINE:-}"); }
 
 name_painted() { # theme name in its accent color
-  local dir="$1" name="$2" accent
-  accent="$(hex accent "$dir")"
-  if [ -n "$accent" ]; then
-    printf '\033[1m\033[38;2;%sm%s\033[0m' "$(rgb "$accent")" "$name"
-  else
-    printf '\033[1m%s\033[0m' "$name"
-  fi
+  printf '\033[1m\033[38;2;%sm%s\033[0m' "$(rgb "$(hex accent "$1")")" "$2"
 }
 
 # ── Interactive picking (fzf) ───────────────────────────────────
@@ -77,7 +71,7 @@ preview_theme() { # fzf --preview for theme names
   [ -n "$t" ] && printf '  \033[2m%s\033[0m' "$t"
   printf '\n%s\n' "$(swatches "$dir")"
   local n; n="$(ls "$dir"/backgrounds/* 2>/dev/null | wc -l | tr -d ' ')"
-  printf '\033[2m%s wallpaper%s\033[0m\n' "$n" "$([ "$n" = 1 ] && printf '' || printf 's')"
+  printf '\033[2m%s wallpaper(s)\033[0m\n' "$n"
 }
 
 preview_bg() { # fzf --preview for a theme's Nth wallpaper
@@ -91,8 +85,6 @@ preview_bg() { # fzf --preview for a theme's Nth wallpaper
       --place "${FZF_PREVIEW_COLUMNS:-80}x$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))@0x2" "$img" >/dev/tty 2>/dev/null || true
   elif command -v img2txt >/dev/null 2>&1; then
     img2txt -W "${FZF_PREVIEW_COLUMNS:-80}" -H "$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))" "$img" 2>/dev/null || true
-  else
-    sips -g pixelWidth -g pixelHeight "$img" 2>/dev/null | awk '/pixel/{printf "%s ", $2} END {print "px"}'
   fi
 }
 
@@ -257,6 +249,8 @@ PYEOF
 
 # ── Args ────────────────────────────────────────────────────────
 
+[ "${1:-}" = set ] && shift
+
 NAME=""
 BG_INDEX=1
 case "${1:-}" in
@@ -276,13 +270,6 @@ case "${1:-}" in
   from-image) shift; cmd_from_image "$@"; exit $? ;;
   _preview-theme) preview_theme "$2"; exit 0 ;;
   _preview-bg) preview_bg "$2" "$3"; exit 0 ;;
-  set)
-    shift
-    NAME="${1:-}"
-    BG_INDEX="${2:-1}"
-    [ "$NAME" = "-h" ] || [ "$NAME" = "--help" ] && { usage; exit 0; }
-    [ -n "$NAME" ] || { echo "theme: set needs a name (theme set <theme> [bg])" >&2; exit 2; }
-    ;;
   "") pick_theme ;;
   -*)
     echo "theme: unknown flag '$1'" >&2
@@ -360,11 +347,13 @@ if [ -f "$THEME_DIR/wezterm.lua" ] && [ -d "$HOME/.config/wezterm" ]; then
   cp "$THEME_DIR/wezterm.lua" "$HOME/.config/wezterm/theme-current.lua"
 fi
 
-# btop: install the theme + point btop.conf at it (applies on next launch)
+# btop: install the theme + point btop.conf at it (applies on next launch).
+# a running btop rewrites btop.conf from memory on exit and would clobber this.
 if [ -f "$THEME_DIR/btop.theme" ] && [ -f "$HOME/.config/btop/btop.conf" ]; then
   mkdir -p "$HOME/.config/btop/themes"
   cp "$THEME_DIR/btop.theme" "$HOME/.config/btop/themes/$NAME.theme"
   sed -i '' "s|^color_theme = .*|color_theme = \"$HOME/.config/btop/themes/$NAME.theme\"|" "$HOME/.config/btop/btop.conf"
+  pgrep -x btop >/dev/null 2>&1 && echo "theme: btop is running — quit and reopen it, it re-reads the theme at launch" >&2
 fi
 
 # nvim: new instances read the theme at startup; running ones call the
@@ -387,12 +376,13 @@ brew services restart borders >/dev/null 2>&1 || true
 
 # wallpaper: Nth image in backgrounds/ (default first), every screen.
 # macOS applies wallpaper async — expect a few seconds of lag.
-BG_COUNT="$(ls "$THEME_DIR"/backgrounds/* 2>/dev/null | wc -l | tr -d ' ')"
-if [ "$BG_COUNT" -gt 0 ] && [ "$BG_INDEX" -gt "$BG_COUNT" ]; then
-  echo "theme: $NAME has $BG_COUNT wallpaper(s), no number $BG_INDEX" >&2
+BGS=()
+while IFS= read -r b; do BGS+=("$b"); done < <(ls "$THEME_DIR"/backgrounds/* 2>/dev/null)
+if [ "${#BGS[@]}" -gt 0 ] && [ "$BG_INDEX" -gt "${#BGS[@]}" ]; then
+  echo "theme: $NAME has ${#BGS[@]} wallpaper(s), no number $BG_INDEX" >&2
   exit 2
 fi
-WALL="$(ls "$THEME_DIR"/backgrounds/* 2>/dev/null | sed -n "${BG_INDEX}p")"
+WALL="${BGS[$((BG_INDEX - 1))]:-}"
 if [ -n "$WALL" ]; then
   # path stays an ARGUMENT, never spliced into script text
   if ! osascript - "$WALL" >/dev/null 2>&1 <<'APPLESCRIPT'; then
