@@ -125,7 +125,7 @@ local function patch_syntax()
   -- vim.cmd([[highlight Normal ctermbg=none]])
 end
 
----Re-apply the active named theme (bin/theme-set). Reads the colorscheme name
+---Re-apply the active named theme (bin/theme). Reads the colorscheme name
 ---from ~/.config/theme/current/nvim-{dark,light}; aether-based themes also
 ---carry their palette in nvim-aether.json since several omarchy themes share
 ---the aether colorscheme name with different colors.

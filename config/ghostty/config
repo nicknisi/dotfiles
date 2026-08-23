@@ -85,6 +85,6 @@ keybind = cmd+s>e=equalize_splits
 copy-on-select = clipboard
 shell-integration-features = cursor,sudo,no-title
 
-# active named theme (symlink managed by bin/theme-set); overrides still wins
+# active named theme (symlink managed by bin/theme); overrides still wins
 config-file = ?./theme-current
 config-file = ?./overrides

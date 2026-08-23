@@ -16,7 +16,7 @@ config.colors = {
   indexed = { [239] = "lightslategray" },
 }
 
--- named theme: bin/theme-set copies themes/<name>/wezterm.lua here;
+-- named theme: bin/theme copies themes/<name>/wezterm.lua here;
 -- watching the file makes switches live-reload
 local theme_current = wezterm.config_dir .. "/theme-current.lua"
 wezterm.add_to_config_reload_watch_list(theme_current)

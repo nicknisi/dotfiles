@@ -6,7 +6,7 @@ add_newline = true
 format = "$directory$nodejs$line_break$character"
 right_format = "$git_status${custom.git_clean}$git_branch$jobs"
 
-# Active named theme — bin/theme-set rewrites this line and regenerates the
+# Active named theme — bin/theme rewrites this line and regenerates the
 # [palettes.*] blocks below from each themes/<name>/starship.palette.
 palette = "void"
 

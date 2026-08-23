@@ -171,7 +171,7 @@ return {
       },
     },
   },
-  -- named-theme switchable colorschemes (bin/theme-set)
+  -- named-theme switchable colorschemes (bin/theme)
   {
     "ellisonleao/gruvbox.nvim",
     lazy = true,

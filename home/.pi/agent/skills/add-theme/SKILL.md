@@ -1,20 +1,20 @@
 ---
 name: add-theme
-description: Add a new named theme pack to the dotfiles theme system (bin/theme-set). Use when the user pastes an omarchy/omacosy-style theme repo URL, says "add this theme", "new theme pack", or wants another entry for theme-set/theme-next to cycle.
+description: Add a new named theme pack to the dotfiles theme system (bin/theme). Use when the user pastes an omarchy/omacosy-style theme repo URL, says "add this theme", "new theme pack", or wants another entry for theme next to cycle.
 ---
 
 # Add a theme pack
 
-One command themes everything: `bin/theme-set <name>` swaps
+One command themes everything: `bin/theme <name>` swaps
 `~/.config/theme/current` -> `themes/<name>/` and nudges consumers.
 A pack is FULLY self-contained in `themes/<name>/` — deleting the
-directory deletes the theme (theme-set regenerates starship palettes
+directory deletes the theme (theme regenerates starship palettes
 from whatever packs remain). ALL files below are required — every
 past pack forgot one (starship was missed for shadesofjade).
 
 Work directly in the repo (subagent worktrees don't see uncommitted
 theme files and have flipped the user's live theme by running
-theme-set from the wrong tree — do NOT run theme-set for validation
+theme from the wrong tree — do NOT run theme for validation
 until told, and never from a worktree).
 
 ## 1. Source the palette
@@ -23,7 +23,7 @@ Two entry points:
 
 - **Upstream repo** (the common case): fetch it (fetch_content clones
   to /tmp/pi-github-repos/), take `colors.toml` and `backgrounds/`.
-- **Just a wallpaper, no repo**: run `bin/theme-from-image <name>
+- **Just a wallpaper, no repo**: run `bin/theme from-image <name>
   <image>` first. It extracts colors.toml + backgrounds/ from the
   image; continue below with what it wrote. Eyeball the palette
   first — the hue mapping is heuristic, hand-tune colors.toml if a
@@ -40,7 +40,7 @@ Copy from the closest existing pack (tokyo-night = dark+light
 reference, shadesofjade = dark-only reference):
 
 - `colors.toml` — copied verbatim from upstream
-- `backgrounds/` — all images (theme-set <name> [N] picks one).
+- `backgrounds/` — all images (theme <name> [N] picks one).
   Rename each to `<index>-<description>.<ext>` (1-first keeps the
   upstream default first): read every image and describe its content,
   e.g. `1-jade-dragon-statue.jpg`, `2-monk-moon-umbrella.jpg`.
@@ -78,7 +78,7 @@ reference, shadesofjade = dark-only reference):
 - `wezterm.lua` — `return { foreground, background, cursor_bg,
   cursor_border, cursor_fg, selection_bg, selection_fg, ansi =
   {color0-7}, brights = {color8-15} }` — straight from colors.toml
-  (copy themes/sakura/wezterm.lua's shape). theme-set copies it to
+  (copy themes/sakura/wezterm.lua's shape). theme copies it to
   ~/.config/wezterm/theme-current.lua, which wezterm.lua watches.
 - `slack.txt` — 8 comma-separated hexes: columnBG, menuBGHover,
   activeItem (accent), activeItemText (bg), hoverItem, text (fg),
@@ -86,7 +86,7 @@ reference, shadesofjade = dark-only reference):
 
 ## 3. In-pack consumer JSONs
 
-Named by variant, installed by theme-set into the live dirs under the
+Named by variant, installed by theme into the live dirs under the
 name theme.conf points at (PI_DARK=tokyonight-night <- pi-dark.json):
 
 - `pi-dark.json` (and `pi-light.json` if a light variant exists) —
@@ -99,14 +99,14 @@ name theme.conf points at (PI_DARK=tokyonight-night <- pi-dark.json):
   of themes/tokyo-night/claude-dark.json, every override key, colors
   as rgb(r,g,b); base dark
 - `starship.palette` — 7 lines: accent, red, green, yellow, magenta,
-  cyan, muted (hex values). theme-set rebuilds the [palettes.*]
+  cyan, muted (hex values). theme rebuilds the [palettes.*]
   section of config/starship.toml from these — never edit that
   section by hand.
 
 Do NOT add JSONs to home/.pi/agent/themes or home/.claude/themes for
 packs — those dirs are for standalone (non-pack) themes only.
 
-## 4. Validate (no theme-set run)
+## 4. Validate (no theme run)
 
 `bash -n` every .sh; `jq empty` every .json; `starship explain
 >/dev/null`. For ghostty: `ghostty +validate-config
@@ -114,7 +114,7 @@ packs — those dirs are for standalone (non-pack) themes only.
 
 ## 5. Hand verification to the user or ask before switching
 
-`./bin/theme-set <name> [N]`, then confirm: `tmux show-option -gqv
+`./bin/theme <name> [N]`, then confirm: `tmux show-option -gqv
 @thm_blue` == accent; `sketchybar --query bar | jq -r .border_color`
 == 0x3d<accent>; wallpaper takes ~5s (async, out-of-order applies
 possible on rapid switches); `jq -r .theme` on both settings.json.
@@ -125,5 +125,5 @@ Ghostty needs restart for dock icon; pi/claude apply next launch.
 ## Removing a theme
 
 `git rm -r themes/<name>/` + `rm ~/.pi/agent/themes/<pi-name>.json
-~/.claude/themes/<claude-name>.json`, then run theme-set once (any
+~/.claude/themes/<claude-name>.json`, then run theme once (any
 theme) — starship.toml self-heals without it.

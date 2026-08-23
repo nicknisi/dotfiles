@@ -4,7 +4,7 @@
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Load color scheme based on macOS appearance; active named theme
-# (bin/theme-set) wins over the checked-in defaults
+# (bin/theme) wins over the checked-in defaults
 if [[ "$(defaults read -g AppleInterfaceStyle 2>/dev/null)" == "Dark" ]]; then
   THEME_COLORS="$HOME/.config/theme/current/tmux-dark.sh"
   [[ -f "$THEME_COLORS" ]] || THEME_COLORS="$CURRENT_DIR/colors/dark.sh"

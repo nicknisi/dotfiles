@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# active named theme (bin/theme-set) overrides the defaults below
+# active named theme (bin/theme) overrides the defaults below
 if [[ -f "$HOME/.config/theme/current/borders.sh" ]]; then
   source "$HOME/.config/theme/current/borders.sh"
 fi

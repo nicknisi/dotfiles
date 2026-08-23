@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# theme-set — switch the whole desktop theme in one move.
+# theme — the whole desktop theme, one command.
+#
 # The ~/.config/theme/current symlink swap IS the switch; the rest of this
-# file makes running apps re-read it (ghostty, nvim, tmux, sketchybar,
-# borders, wallpaper, pi, claude code, starship, slack).
+# file makes running apps re-read it (ghostty, wezterm, nvim, tmux,
+# sketchybar, borders, btop, wallpaper, pi, claude code, starship, slack).
 #
 # ponytail: appearance flips after a switch don't re-run this — re-run by hand.
 
@@ -19,21 +20,24 @@ current_theme() { basename "$(readlink "$STATE_DIR/current" 2>/dev/null || echo 
 
 usage() {
   cat <<'USAGE'
-theme-set — switch the whole desktop theme in one move
+theme — the whole desktop theme, one command
 
 usage:
-  theme-set               pick a theme (and wallpaper) interactively
-  theme-set <theme> [bg]  switch directly; bg = Nth wallpaper (default 1)
-  theme-set next          cycle to the next theme
-  theme-set list          list themes with their palettes
-  theme-set current       print the active theme
-  theme-set -h, --help    this
+  theme                       pick a theme (and wallpaper) interactively
+  theme set <theme> [bg]      switch; bg = Nth wallpaper (default 1)
+  theme next                  cycle to the next theme
+  theme list                  list themes with their palettes
+  theme current               print the active theme
+  theme from-image <name> <image>
+                              grow a new pack from a wallpaper (writes
+                              colors.toml + backgrounds/, prints palette)
+  theme -h, --help            this
 
-switches: ghostty, nvim, tmux, sketchybar, borders, wallpaper,
-          pi, claude code, starship, slack (clipboard)
+switches: ghostty, wezterm, nvim, tmux, sketchybar, borders, btop,
+          wallpaper, pi, claude code, starship, slack (clipboard)
 
-pi and claude apply on next launch; the ghostty dock icon needs an
-app restart; the wallpaper repaints a few seconds after switching.
+pi and claude apply on next launch; btop too; the ghostty dock icon
+needs an app restart; the wallpaper repaints a few seconds after.
 USAGE
 }
 
@@ -76,18 +80,12 @@ preview_theme() { # fzf --preview for theme names
   printf '\033[2m%s wallpaper%s\033[0m\n' "$n" "$([ "$n" = 1 ] && printf '' || printf 's')"
 }
 
-kitty_graphics() { # kitty protocol usable: direct, or through tmux passthrough
-  case "${TERM_PROGRAM:-}" in ghostty | kitty) return 0 ;; esac
-  case "$(tmux display -p '#{client_termname}' 2>/dev/null)" in *ghostty* | *kitty*) return 0 ;; esac
-  return 1
-}
-
 preview_bg() { # fzf --preview for a theme's Nth wallpaper
   local img; img="$(ls "$THEMES_DIR/$1"/backgrounds/* 2>/dev/null | sed -n "$2p")"
   [ -n "$img" ] || exit 0
   printf '\033[1m%s\033[0m\n' "$(basename "$img")"
   local kitten=/Applications/kitty.app/Contents/MacOS/kitten
-  if [ -x "$kitten" ] && kitty_graphics; then
+  if [ -x "$kitten" ] && [ "${TERM_PROGRAM:-}" = ghostty -o "${TERM_PROGRAM:-}" = kitty ]; then
     # kitty graphics protocol (ghostty speaks it); must bypass fzf's capture
     "$kitten" icat --clear --transfer-mode=memory --stdin=no --scale-up \
       --place "${FZF_PREVIEW_COLUMNS:-80}x$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))@0x2" "$img" >/dev/tty 2>/dev/null || true
@@ -101,18 +99,18 @@ preview_bg() { # fzf --preview for a theme's Nth wallpaper
 pick_theme() {
   command -v fzf >/dev/null 2>&1 && [ -t 0 ] || {
     list_themes
-    echo "theme-set: pass a name, e.g. theme-set $(current_theme)" >&2
+    echo "theme: pass a name, e.g. theme set $(current_theme)" >&2
     exit 2
   }
   local name n bg=1
   name="$(list_themes | fzf --prompt='theme ❯ ' --reverse --height=~60% \
-    --preview="'$DOTFILES'/bin/theme-set _preview-theme {}" \
+    --preview="'$DOTFILES'/bin/theme _preview-theme {}" \
     --preview-window='right,50%,border-left')" || exit 130
   [ -n "$name" ] || exit 130
   n="$(ls "$THEMES_DIR/$name"/backgrounds/* 2>/dev/null | wc -l | tr -d ' ')"
   if [ "$n" -gt 1 ]; then
     bg="$(seq 1 "$n" | fzf --prompt='wallpaper ❯ ' --reverse --height=~40% \
-      --preview="'$DOTFILES'/bin/theme-set _preview-bg $name {}" \
+      --preview="'$DOTFILES'/bin/theme _preview-bg $name {}" \
       --preview-window='right,60%,border-left')" || exit 130
     [ -n "$bg" ] || exit 130
   fi
@@ -128,6 +126,133 @@ next_theme() {
     [ "${themes[$i]}" = "$cur" ] && { echo "${themes[$(((i + 1) % ${#themes[@]}))]}"; return; }
   done
   echo "${themes[0]}"
+}
+
+# ── from-image: extract a palette from a wallpaper ─────────────
+# ponytail: heuristic hue mapping, not a perceptual model. If a slot
+# looks off, edit colors.toml by hand — that file is the contract.
+
+cmd_from_image() {
+  [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ] && { usage; exit 0; }
+  [ $# -eq 2 ] || { usage >&2; exit 2; }
+  local NAME="$1" IMG="$2"
+  command -v magick >/dev/null 2>&1 || { echo "theme: from-image needs ImageMagick (brew install imagemagick)" >&2; exit 1; }
+  [ -f "$IMG" ] || { echo "theme: no such image: $IMG" >&2; exit 1; }
+  [ -d "$THEMES_DIR/$NAME" ] && { echo "theme: themes/$NAME already exists" >&2; exit 1; }
+
+  local PYSCRIPT COLORS_TOML
+  PYSCRIPT="$(cat <<'PYEOF'
+import colorsys, re, sys
+
+name = sys.argv[1]
+entries = []  # (count, r, g, b) 0-255
+for line in sys.stdin:
+    m = re.match(r"\s*(\d+):.*?#([0-9A-Fa-f]{6})", line)
+    if m:
+        h = m.group(2)
+        entries.append((int(m.group(1)), int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)))
+if not entries:
+    sys.exit("theme: no colors extracted")
+
+def hls(r, g, b):
+    return colorsys.rgb_to_hls(r / 255, g / 255, b / 255)  # h, l, s
+
+def rgb_hex(r, g, b):
+    return "#%02X%02X%02X" % (max(0, min(255, round(r))), max(0, min(255, round(g))), max(0, min(255, round(b))))
+
+def mix(c, t, f):  # toward t by f
+    return tuple(a + (b - a) * f for a, b in zip(c, t))
+
+def shift_hue(c, target_deg):
+    h, l, s = hls(*c)
+    r, g, b = colorsys.hls_to_rgb(target_deg / 360, max(0.3, min(0.7, l)), max(0.4, s))
+    return (r * 255, g * 255, b * 255)
+
+C = [(n, (r, g, b)) for n, r, g, b in entries]
+
+def best(pred, fallback_key):
+    pool = [(n, c) for n, c in C if pred(*hls(*c))]
+    if pool:
+        return max(pool)[1]
+    return max(C, key=lambda nc: fallback_key(*hls(*nc[1])))[1]
+
+bg = best(lambda h, l, s: l < 0.28, lambda h, l, s: -l)
+fg = best(lambda h, l, s: l > 0.72, lambda h, l, s: l)
+if hls(*fg)[1] - hls(*bg)[1] < 0.5:  # unreadable pair: force extremes
+    bg = tuple(x * 0.4 for x in bg) if hls(*bg)[1] > 0.15 else bg
+    fg = mix(fg, (255, 255, 255), 0.6)
+
+accent = best(lambda h, l, s: s > 0.3 and 0.3 < l < 0.75, lambda h, l, s: s - abs(l - 0.5))
+
+FAMILIES = {  # ansi slot -> hue center
+    1: 0,    # red
+    2: 120,  # green
+    3: 55,   # yellow
+    4: 230,  # blue
+    5: 285,  # magenta
+    6: 185,  # cyan
+}
+
+def family(center):
+    lo, hi = (center - 30) % 360, (center + 30) % 360
+    pool = [(n, c) for n, c in C
+            if (lambda h, l, s: (lo <= h * 360 <= hi if lo < hi else h * 360 >= lo or h * 360 <= hi)
+                and s > 0.15 and 0.25 < l < 0.8)(*hls(*c))]
+    if pool:
+        return max(pool)[1]
+    return shift_hue(accent, center)  # hue family absent: rotate the accent
+
+slots = {i: family(FAMILIES[i]) for i in FAMILIES}
+
+def lighten(c):
+    h, l, s = hls(*c)
+    r, g, b = colorsys.hls_to_rgb(h, l + (1 - l) * 0.25, s * 0.95)
+    return (r * 255, g * 255, b * 255)
+
+hexes = {
+    "accent": rgb_hex(*accent),
+    "cursor": rgb_hex(*accent),
+    "foreground": rgb_hex(*fg),
+    "background": rgb_hex(*bg),
+    "selection_foreground": rgb_hex(*bg),
+    "selection_background": rgb_hex(*accent),
+    "color0": rgb_hex(*mix(bg, fg, 0.12)),
+    "color7": rgb_hex(*mix(fg, bg, 0.15)),
+    "color8": rgb_hex(*mix(bg, fg, 0.4)),
+    "color15": rgb_hex(*fg),
+}
+for i, c in slots.items():
+    hexes["color%d" % i] = rgb_hex(*c)
+    hexes["color%d" % (i + 8)] = rgb_hex(*lighten(c))
+
+print("# extracted from a wallpaper by theme from-image")
+for k in ("accent", "cursor", "foreground", "background", "selection_foreground", "selection_background"):
+    print('%s = "%s"' % (k, hexes[k]))
+print()
+for i in range(16):
+    print('color%d = "%s"' % (i, hexes["color%d" % i]))
+PYEOF
+)"
+  COLORS_TOML="$(magick "$IMG" -dither None -resize 240x240 -colors 24 -format %c histogram:info:- 2>/dev/null | python3 -c "$PYSCRIPT" "$NAME")" || exit 1
+
+  local DIR="$THEMES_DIR/$NAME" slug
+  mkdir -p "$DIR/backgrounds"
+  echo "$COLORS_TOML" >"$DIR/colors.toml"
+  slug="$(basename "$IMG" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9.]\+/-/g')"
+  cp "$IMG" "$DIR/backgrounds/1-$slug"
+
+  echo "themes/$NAME/colors.toml:"
+  echo "$COLORS_TOML"
+  if [ -t 1 ]; then
+    echo
+    local key c
+    for key in accent color1 color2 color3 color4 color5 color6; do
+      c="$(echo "$COLORS_TOML" | grep -E "^$key = " | cut -d'"' -f2)"
+      [ -n "$c" ] && printf '\033[38;2;%sm██\033[0m ' "$(rgb "$c")"
+    done
+    printf '\n'
+  fi
+  echo "next: the add-theme skill authors the rest of the pack from colors.toml"
 }
 
 # ── Args ────────────────────────────────────────────────────────
@@ -148,11 +273,18 @@ case "${1:-}" in
     ;;
   current) current_theme; exit 0 ;;
   next) NAME="$(next_theme)" ;;
+  from-image) shift; cmd_from_image "$@"; exit $? ;;
   _preview-theme) preview_theme "$2"; exit 0 ;;
   _preview-bg) preview_bg "$2" "$3"; exit 0 ;;
+  set)
+    shift
+    NAME="${1:-}"
+    BG_INDEX="${2:-1}"
+    [ -n "$NAME" ] || { echo "theme: set needs a name (theme set <theme> [bg])" >&2; exit 2; }
+    ;;
   "") pick_theme ;;
   -*)
-    echo "theme-set: unknown flag '$1'" >&2
+    echo "theme: unknown flag '$1'" >&2
     usage >&2
     exit 2
     ;;
@@ -160,7 +292,7 @@ case "${1:-}" in
     NAME="$1"
     BG_INDEX="${2:-1}"
     case "$BG_INDEX" in *[!0-9]* | "")
-      echo "theme-set: bg must be a number, got '$BG_INDEX'" >&2
+      echo "theme: bg must be a number, got '$BG_INDEX'" >&2
       exit 2
       ;;
     esac
@@ -169,7 +301,7 @@ esac
 
 THEME_DIR="$THEMES_DIR/$NAME"
 if [ ! -d "$THEME_DIR" ]; then
-  echo "theme-set: unknown theme '$NAME'. Available:" >&2
+  echo "theme: unknown theme '$NAME'. Available:" >&2
   list_themes >&2
   exit 1
 fi
@@ -195,8 +327,8 @@ pick() {
 mkdir -p "$STATE_DIR"
 ln -sfn "$THEME_DIR" "$STATE_DIR/current"
 
-# make pi/claude theme JSONs available in the live config dirs (the repo's
-# home/ copies are not symlinked on every machine)
+# make standalone (non-pack) pi/claude themes available in the live config
+# dirs — no-op when those dirs are symlinked into this repo
 mkdir -p "$HOME/.claude/themes" "$HOME/.pi/agent/themes"
 cp -n "$DOTFILES"/home/.claude/themes/*.json "$HOME/.claude/themes/" 2>/dev/null || true
 cp -n "$DOTFILES"/home/.pi/agent/themes/*.json "$HOME/.pi/agent/themes/" 2>/dev/null || true
@@ -262,7 +394,7 @@ on run argv
   tell application "System Events" to tell every desktop to set picture to (item 1 of argv)
 end run
 APPLESCRIPT
-    echo "theme-set: wallpaper failed (Automation permission for System Events?)" >&2
+    echo "theme: wallpaper failed (Automation permission for System Events?)" >&2
   else
     echo "wallpaper: $(basename "$WALL") (applies in a few seconds)" >&2
   fi
@@ -298,7 +430,7 @@ if [ -f "$THEME_DIR/starship.palette" ]; then
   cmp -s "$stripped" "$DOTFILES/config/starship.toml" || mv "$stripped" "$DOTFILES/config/starship.toml"
   rm -f "$stripped" "$blocks"
 else
-  echo "theme-set: no starship.palette in $NAME — prompt colors stale" >&2
+  echo "theme: no starship.palette in $NAME — prompt colors stale" >&2
 fi
 
 # slack: no API for this — put the sidebar theme string on the clipboard
