@@ -227,6 +227,13 @@ if [ -f "$THEME_DIR/wezterm.lua" ] && [ -d "$HOME/.config/wezterm" ]; then
   cp "$THEME_DIR/wezterm.lua" "$HOME/.config/wezterm/theme-current.lua"
 fi
 
+# btop: install the theme + point btop.conf at it (applies on next launch)
+if [ -f "$THEME_DIR/btop.theme" ] && [ -f "$HOME/.config/btop/btop.conf" ]; then
+  mkdir -p "$HOME/.config/btop/themes"
+  cp "$THEME_DIR/btop.theme" "$HOME/.config/btop/themes/$NAME.theme"
+  sed -i '' "s|^color_theme = .*|color_theme = \"$HOME/.config/btop/themes/$NAME.theme\"|" "$HOME/.config/btop/btop.conf"
+fi
+
 # nvim: new instances read the theme at startup; running ones call the
 # reload fn (re-reads colorscheme + aether palette through the symlink).
 # ponytail: sessions started before apply_named_theme existed skip the push.

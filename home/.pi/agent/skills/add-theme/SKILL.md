@@ -70,6 +70,11 @@ reference, shadesofjade = dark-only reference):
   hues with _BORDER 0xe6 / _FILL 0x1f, CALM_GREEN 0x8c+green,
   INK 0xff+bg, TRANSPARENT). Accent = colors.toml accent.
 - `borders.sh` — ACTIVE_COLOR=0xff<accent>, INACTIVE_COLOR=0xff<color8>
+- `btop.theme` — `theme[key]="#hex"` rows, mechanical from
+  colors.toml (copy themes/void/btop.theme's shape): main_bg/bg,
+  main_fg+title/fg, hi_fg+selected_fg/accent, selected_bg+meter_bg/
+  color0, boxes+div_line+inactive_fg+graph_text/color8, every
+  meter+graph trio start=colorN, mid=color3, end=color1
 - `wezterm.lua` — `return { foreground, background, cursor_bg,
   cursor_border, cursor_fg, selection_bg, selection_fg, ansi =
   {color0-7}, brights = {color8-15} }` — straight from colors.toml
