@@ -12,7 +12,9 @@
     },
     "sessions": {
       "command": "/opt/homebrew/bin/sessions",
-      "args": ["--mcp"],
+      "args": [
+        "--mcp"
+      ],
       "cwd": "/Users/nicknisi/Developer/sessions"
     },
     "ctx": {
@@ -23,11 +25,13 @@
     },
     "notion": {
       "url": "https://mcp.notion.com/mcp",
-      "auth": "oauth"
+      "auth": "oauth",
+      "directTools": true
     },
     "granola": {
       "url": "https://mcp.granola.ai/mcp",
-      "auth": "oauth"
+      "auth": "oauth",
+      "directTools": true
     },
     "excalidraw": {
       "url": "https://api.excalidraw.com/api/v1/mcp",
@@ -45,7 +49,8 @@
       "oauth": {
         "clientId": "1601185624273.8899143856786",
         "redirectUri": "http://localhost:3118/callback"
-      }
+      },
+      "directTools": true
     }
   }
 }
