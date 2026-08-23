@@ -280,6 +280,7 @@ case "${1:-}" in
     shift
     NAME="${1:-}"
     BG_INDEX="${2:-1}"
+    [ "$NAME" = "-h" ] || [ "$NAME" = "--help" ] && { usage; exit 0; }
     [ -n "$NAME" ] || { echo "theme: set needs a name (theme set <theme> [bg])" >&2; exit 2; }
     ;;
   "") pick_theme ;;
@@ -386,6 +387,11 @@ brew services restart borders >/dev/null 2>&1 || true
 
 # wallpaper: Nth image in backgrounds/ (default first), every screen.
 # macOS applies wallpaper async — expect a few seconds of lag.
+BG_COUNT="$(ls "$THEME_DIR"/backgrounds/* 2>/dev/null | wc -l | tr -d ' ')"
+if [ "$BG_COUNT" -gt 0 ] && [ "$BG_INDEX" -gt "$BG_COUNT" ]; then
+  echo "theme: $NAME has $BG_COUNT wallpaper(s), no number $BG_INDEX" >&2
+  exit 2
+fi
 WALL="$(ls "$THEME_DIR"/backgrounds/* 2>/dev/null | sed -n "${BG_INDEX}p")"
 if [ -n "$WALL" ]; then
   # path stays an ARGUMENT, never spliced into script text
