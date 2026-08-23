@@ -24,7 +24,7 @@
   },
   "colors": {
     "accent": "blue",
-    "border": "blue",
+    "border": "fgDark",
     "borderAccent": "cyan",
     "borderMuted": "terminal_black",
     "success": "green",
@@ -34,20 +34,17 @@
     "dim": "dark5",
     "text": "",
     "thinkingText": "dark3",
-
     "selectedBg": "bgHighlight",
     "userMessageBg": "#160a10",
     "userMessageText": "",
     "customMessageBg": "#160a10",
     "customMessageText": "",
     "customMessageLabel": "blue",
-
     "toolPendingBg": "#0a0407",
     "toolSuccessBg": "#0a0407",
     "toolErrorBg": "#2d1b23",
     "toolTitle": "",
     "toolOutput": "dark3",
-
     "mdHeading": "blue",
     "mdLink": "cyan",
     "mdLinkUrl": "dark5",
@@ -58,11 +55,9 @@
     "mdQuoteBorder": "terminal_black",
     "mdHr": "terminal_black",
     "mdListBullet": "cyan",
-
     "toolDiffAdded": "green",
     "toolDiffRemoved": "red",
     "toolDiffContext": "comment",
-
     "syntaxComment": "comment",
     "syntaxKeyword": "magenta",
     "syntaxFunction": "blue",
@@ -72,14 +67,12 @@
     "syntaxType": "blue1",
     "syntaxOperator": "blue5",
     "syntaxPunctuation": "dark5",
-
     "thinkingOff": "terminal_black",
     "thinkingMinimal": "dark3",
     "thinkingLow": "dark5",
     "thinkingMedium": "blue",
     "thinkingHigh": "magenta",
     "thinkingXhigh": "orange",
-
     "bashMode": "orange"
   },
   "export": {

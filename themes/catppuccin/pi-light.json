@@ -31,7 +31,7 @@
   },
   "colors": {
     "accent": "lavender",
-    "border": "lavender",
+    "border": "fgDark",
     "borderAccent": "mauve",
     "borderMuted": "surface1",
     "success": "green",
@@ -41,20 +41,17 @@
     "dim": "overlay0",
     "text": "",
     "thinkingText": "overlay1",
-
     "selectedBg": "surface0",
     "userMessageBg": "#e2e5ed",
     "userMessageText": "",
     "customMessageBg": "#e2e5ed",
     "customMessageText": "",
     "customMessageLabel": "lavender",
-
     "toolPendingBg": "mantle",
     "toolSuccessBg": "#e4ecdf",
     "toolErrorBg": "#f0dde0",
     "toolTitle": "",
     "toolOutput": "overlay1",
-
     "mdHeading": "blue",
     "mdLink": "sapphire",
     "mdLinkUrl": "overlay0",
@@ -65,11 +62,9 @@
     "mdQuoteBorder": "surface0",
     "mdHr": "surface1",
     "mdListBullet": "teal",
-
     "toolDiffAdded": "green",
     "toolDiffRemoved": "red",
     "toolDiffContext": "overlay0",
-
     "syntaxComment": "overlay0",
     "syntaxKeyword": "mauve",
     "syntaxFunction": "blue",
@@ -79,14 +74,12 @@
     "syntaxType": "yellow",
     "syntaxOperator": "sapphire",
     "syntaxPunctuation": "overlay2",
-
     "thinkingOff": "surface0",
     "thinkingMinimal": "surface1",
     "thinkingLow": "surface2",
     "thinkingMedium": "blue",
     "thinkingHigh": "mauve",
     "thinkingXhigh": "red",
-
     "bashMode": "peach"
   },
   "export": {

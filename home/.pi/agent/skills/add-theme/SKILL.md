@@ -91,7 +91,10 @@ name theme.conf points at (PI_DARK=tokyonight-night <- pi-dark.json):
 
 - `pi-dark.json` (and `pi-light.json` if a light variant exists) —
   copy shape of themes/tokyo-night/pi-dark.json (vars block + every
-  colors key)
+  colors key). `colors.border` MUST differ from `colors.accent`
+  (border=fgDark, accent=the loud color): the composer extension's
+  focus indicator flips border->accent on pane focus; equal values
+  silently kill it.
 - `claude-dark.json` (and `claude-light.json` likewise) — copy shape
   of themes/tokyo-night/claude-dark.json, every override key, colors
   as rgb(r,g,b); base dark
