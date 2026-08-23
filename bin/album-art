@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Fetch + normalize album artwork for the sketchybar music chip.
+# Usage: album-art <app> <cache key...>
+# Prints a 48px PNG path on success; exits 1 silently on any failure
+# (no player, no artwork, no network) — the chip just skips the thumb.
+# Results cache in ~/.cache/sketchybar-artwork by md5 of the key.
+
+APP=$1
+shift
+[ -n "$APP" ] && [ -n "$*" ] || exit 1
+
+KEY=$(md5 -q -s "$*")
+DIR="$HOME/.cache/sketchybar-artwork"
+OUT="$DIR/$KEY.png"
+RAW="$DIR/$KEY.raw"
+mkdir -p "$DIR"
+
+[ -f "$OUT" ] && { echo "$OUT"; exit 0; }
+
+case "$(tr '[:upper:]' '[:lower:]' <<<"$APP")" in
+*spotify*)
+  URL=$(osascript -e 'tell application "Spotify" to artwork url of current track' 2>/dev/null)
+  [ -n "$URL" ] || exit 1
+  curl -sfL "$URL" -o "$RAW" || { rm -f "$RAW"; exit 1; }
+  ;;
+*music*)
+  osascript - "$RAW" <<'EOF' >/dev/null 2>&1 || exit 1
+on run argv
+  tell application "Music"
+    if not (exists artwork 1 of current track) then error "no artwork"
+    set d to data of artwork 1 of current track
+  end tell
+  set fh to open for access POSIX file (item 1 of argv) with write permission
+  write d to fh
+  close access fh
+end run
+EOF
+  ;;
+*)
+  exit 1
+  ;;
+esac
+
+sips -s format png -z 48 48 "$RAW" --out "$OUT" >/dev/null 2>&1 || { rm -f "$RAW"; exit 1; }
+rm -f "$RAW"
+echo "$OUT"

@@ -6,7 +6,7 @@ get_music_track() {
   let output = "";
   try {
     const musicApp = Application('Music');
-    if (musicApp.running()) {
+    if (musicApp.running() && musicApp.playerState() === 'playing') {
       try {
         const track = musicApp.currentTrack;
         const artist = track.artist();
@@ -23,7 +23,7 @@ get_music_track() {
 if (output === "") {
   try {
     const spotifyApp = Application('Spotify');
-    if (spotifyApp.running()) {
+    if (spotifyApp.running() && spotifyApp.playerState() === 'playing') {
       try {
         const track = spotifyApp.currentTrack;
         const artist = track.artist();

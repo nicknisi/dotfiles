@@ -170,6 +170,7 @@ sketchybar --add item spend right \
   icon.font="$MONO:Bold:12.0" \
   update_freq=900 \
   drawing=off \
+  click_script="$PLUGIN_DIR/spend_click.sh" \
   script="$PLUGIN_DIR/spend.sh"
 
 # The agent instrument cluster shares one shelf outline, mirroring the
@@ -182,13 +183,29 @@ sketchybar --add bracket agent_cluster spend attention agents \
   background.corner_radius=6 \
   background.height=28
 
+# github: review-requested count; left-click drops down the PR list
+# (rows open their PR), right-click opens the pulls page.
 sketchybar --add item github right \
+  --subscribe github mouse.exited.global \
   --set github \
   icon="$GITHUB" \
   icon.color="$FG" \
   update_freq=300 \
-  click_script="aerospace workspace W; open https://github.com/pulls/review-requested" \
+  popup.align=right \
+  click_script="$PLUGIN_DIR/github_click.sh" \
   script="$PLUGIN_DIR/github.sh"
+
+# Dropdown rows: pre-allocated slots filled by github.sh in one batch
+# (up to 9 PRs; the 10th becomes an overflow row when count > slots).
+for i in $(seq 0 9); do
+  sketchybar --add item github.popup.$i popup.github \
+    --set github.popup.$i \
+    icon="$GITHUB" \
+    icon.color="$GREY" \
+    label.max_chars=48 \
+    label.color="$FG_DIM" \
+    drawing=off
+done
 
 # usage: hidden until the 5h Claude window runs hot (>=70%)
 sketchybar --add item usage right \
@@ -199,16 +216,35 @@ sketchybar --add item usage right \
   drawing=off \
   script="$PLUGIN_DIR/usage.sh"
 
-# now-playing: added last so it sits innermost, nearest the center
+# now-playing: added last so it sits innermost, nearest the center.
+# Primary path is the native media_change push event; update_freq=60 is
+# only a fallback in case MediaRemote events don't fire on this OS build.
 sketchybar --add item music right \
+  --subscribe music media_change \
   --set music \
   icon="♪" \
   icon.color="$MAGENTA" \
   label.max_chars=28 \
   scroll_texts=on \
-  update_freq=10 \
+  update_freq=60 \
   drawing=off \
   script="$PLUGIN_DIR/music.sh"
+
+# Album-art thumb, drawn just inward of the text chip (added after it).
+# The 48px cached PNG renders at scale=0.5 → a crisp 24pt square.
+sketchybar --add item music_art right \
+  --set music_art \
+  icon.drawing=off \
+  label.drawing=off \
+  width=24 \
+  padding_left=0 \
+  padding_right=0 \
+  background.height=24 \
+  background.color="$TRANSPARENT" \
+  background.border_color="$HAIRLINE" \
+  background.image.drawing=on \
+  updates=when_shown \
+  drawing=off
 
 # ── AeroSpace lifeline ───────────────────────────────────────────
 # The bar only exists alongside the WM: AeroSpace launches it
@@ -217,6 +253,13 @@ sketchybar --add item music right \
 sketchybar --add item aerospace_watchdog left \
   --set aerospace_watchdog drawing=off width=0 update_freq=10 \
   script="pgrep -xq AeroSpace || { pkill -f 'fswatch.*claude-status'; pkill -x sketchybar; }"
+
+# Wake refresh: after lid-open, force every chip to re-render immediately
+# instead of sitting stale for the remainder of its update_freq.
+sketchybar --add item wake_refresher left \
+  --subscribe wake_refresher system_woke \
+  --set wake_refresher drawing=off width=0 \
+  script="sketchybar --update"
 
 # ── Fleet push watcher ───────────────────────────────────────────
 pkill -f 'fswatch.*claude-status' 2>/dev/null
