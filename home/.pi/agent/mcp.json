@@ -11,16 +11,23 @@
       }
     },
     "sessions": {
-      "command": "/opt/homebrew/bin/sessions",
+      "command": "/Users/nicknisi/.local/share/mise/installs/github-nicknisi-sessions/latest/sessions",
       "args": [
         "--mcp"
       ],
-      "cwd": "/Users/nicknisi/Developer/sessions"
+      "cwd": "/Users/nicknisi/Developer/sessions",
+      "type": "stdio"
     },
     "ctx": {
       "url": "https://ctx.nicknisi.com/mcp",
       "headers": {
         "Authorization": "Bearer ${CTX_TOKEN}"
+      }
+    },
+    "claude-design": {
+      "url": "https://api.anthropic.com/v1/design/mcp",
+      "headers": {
+        "Authorization": "!node /Users/nicknisi/Developer/pi-extensions/packages/claude-design/bin/claude-design-auth.mjs token"
       }
     },
     "notion": {

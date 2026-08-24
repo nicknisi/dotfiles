@@ -1311,11 +1311,10 @@
   "effortLevel": "xhigh",
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
-  "theme": "custom:void",
+  "theme": "custom:shadesofjade",
   "teammateMode": "in-process",
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true,
-  "defaultMode": "auto",
-  "fastMode": true
+  "defaultMode": "auto"
 }
