@@ -1,26 +1,33 @@
 #!/bin/bash
-# Prints the currently PLAYING track ("Title - Artist"), empty when
-# nothing is actively playing (paused/stopped players don't count).
-# --json emits {"app":"Music|Spotify","song":"Title - Artist"} for
-# consumers that also need the player (sketchybar album art).
+# Reports the current track from a RUNNING player (Music or Spotify).
+# Default: prints "Title - Artist" only while actually playing (empty
+# when paused/stopped) — the audible truth, for statusline-style uses.
+# --json: {"app","song","state"} whenever a player is open with a track,
+# state = playing|paused, playing app preferred over a paused one — lets
+# consumers (sketchybar) show a dimmed paused chip instead of hiding.
 
 get_now_playing() {
   osascript -l JavaScript <<'EOF'
-  let out = "";
+  let playing = null, paused = null;
   const grab = (name) => {
-    if (out !== "") return;
     try {
       const app = Application(name);
-      if (app.running() && app.playerState() === "playing") {
-        const t = app.currentTrack;
-        const song = `${t.name()} - ${t.artist()}`.substr(0, 50);
-        out = JSON.stringify({ app: name, song: song });
-      }
+      if (!app.running()) return;
+      const state = app.playerState();
+      if (state !== "playing" && state !== "paused") return;
+      const t = app.currentTrack;
+      const rec = JSON.stringify({
+        app: name,
+        song: `${t.name()} - ${t.artist()}`.substr(0, 50),
+        state: state,
+      });
+      if (state === "playing") playing = playing || rec;
+      else paused = paused || rec;
     } catch (e) {}
   };
   grab("Music");
   grab("Spotify");
-  out;
+  playing || paused || "";
 EOF
 }
 
@@ -30,5 +37,5 @@ np=$(get_now_playing)
 if [ "$1" = "--json" ]; then
   echo "$np"
 else
-  echo "$np" | /usr/bin/python3 -c 'import json,sys; print(json.load(sys.stdin)["song"])' 2>/dev/null
+  jq -r 'select(.state == "playing").song // empty' <<<"$np"
 fi

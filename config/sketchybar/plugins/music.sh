@@ -12,15 +12,21 @@ source "$CONFIG_DIR/colors.sh"
 NP=$("$HOME/Developer/dotfiles/bin/current-song" --json 2>/dev/null)
 SONG=$(jq -r '.song // empty' <<<"$NP" 2>/dev/null)
 APP=$(jq -r '.app // empty' <<<"$NP" 2>/dev/null)
+STATE=$(jq -r '.state // empty' <<<"$NP" 2>/dev/null)
 
+# Hide only when no player is open with a track; paused stays, dimmed.
 if [ -z "$SONG" ]; then
   sketchybar --set "$NAME" drawing=off
   exit 0
 fi
 
+LABEL_COLOR="$FG" NOTE_COLOR="$MAGENTA"
+[ "$STATE" = "paused" ] && LABEL_COLOR="$FG_DIM" NOTE_COLOR="$GREY"
+
 ART=$("$HOME/Developer/dotfiles/bin/album-art" "$APP" "$SONG" 2>/dev/null)
 if [ -n "$ART" ]; then
-  sketchybar --animate tanh 30 --set "$NAME" drawing=on label="$SONG" \
+  sketchybar --animate tanh 30 --set "$NAME" drawing=on \
+    label="$SONG" label.color="$LABEL_COLOR" \
     icon="" icon.width=30 \
     icon.background.drawing=on \
     icon.background.image="$ART" \
@@ -28,6 +34,7 @@ if [ -n "$ART" ]; then
     icon.background.corner_radius=4 \
     icon.background.height=24
 else
-  sketchybar --animate tanh 30 --set "$NAME" drawing=on label="$SONG" \
-    icon="♪" icon.width=dynamic icon.background.drawing=off
+  sketchybar --animate tanh 30 --set "$NAME" drawing=on \
+    label="$SONG" label.color="$LABEL_COLOR" \
+    icon="♪" icon.color="$NOTE_COLOR" icon.width=dynamic icon.background.drawing=off
 fi
