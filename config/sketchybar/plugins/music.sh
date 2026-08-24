@@ -1,44 +1,33 @@
 #!/usr/bin/env bash
-# Now-playing chip + album-art thumb, hidden when silent or paused.
-# Primary path: the native media_change event pushes $INFO JSON
-# (state/title/artist/app) on every playback change — no polling. The slow
-# update_freq=60 runs the old current-song AppleScript path as a fallback
-# in case MediaRemote events don't fire on this macOS build (flaky for
-# unsigned processes since 14.4). Artwork comes from bin/album-art and is
-# cached per track; on the fallback path the playing app is sniffed first.
+# Now-playing chip: album art rendered inside the chip (as the icon's
+# background image) + "Title - Artist". Hidden when silent or paused.
+# Polls every 5s — probed 2026-08: the native media_change event never
+# fires on this unsigned patched build (macOS MediaRemote lockdown), so
+# an AppleScript poll is the honest path. One JXA call returns app+song;
+# artwork comes from bin/album-art, cached per track so repeats are free.
+# Clicks: left = play/pause, right = next track (music_click.sh).
 
 source "$CONFIG_DIR/colors.sh"
 
-ART_ITEM="${NAME}_art"
-ALBUM_ART="$HOME/Developer/dotfiles/bin/album-art"
-
-if [ "$SENDER" = "media_change" ]; then
-  STATE=$(jq -r '.state // empty' <<<"$INFO" 2>/dev/null)
-  TITLE=$(jq -r '.title // empty' <<<"$INFO" 2>/dev/null)
-  ARTIST=$(jq -r '.artist // empty' <<<"$INFO" 2>/dev/null)
-  APP=$(jq -r '.app // empty' <<<"$INFO" 2>/dev/null)
-  SONG=""
-  [ "$STATE" = "playing" ] && [ -n "$TITLE" ] && SONG="$TITLE - $ARTIST"
-else
-  SONG=$("$HOME/Developer/dotfiles/bin/current-song" 2>/dev/null)
-  APP=$(osascript -l JavaScript -e '
-    let r = "";
-    try { const s = Application("Spotify"); if (s.running() && s.playerState() === "playing") r = "Spotify"; } catch (e) {}
-    try { const m = Application("Music"); if (r === "" && m.running() && m.playerState() === "playing") r = "Music"; } catch (e) {}
-    r;' 2>/dev/null)
-fi
+NP=$("$HOME/Developer/dotfiles/bin/current-song" --json 2>/dev/null)
+SONG=$(jq -r '.song // empty' <<<"$NP" 2>/dev/null)
+APP=$(jq -r '.app // empty' <<<"$NP" 2>/dev/null)
 
 if [ -z "$SONG" ]; then
-  sketchybar --set "$NAME" drawing=off --set "$ART_ITEM" drawing=off
+  sketchybar --set "$NAME" drawing=off
   exit 0
 fi
 
-ART=$("$ALBUM_ART" "$APP" "$SONG" 2>/dev/null)
-ARGS=(--animate tanh 30 --set "$NAME" drawing=on label="$SONG")
+ART=$("$HOME/Developer/dotfiles/bin/album-art" "$APP" "$SONG" 2>/dev/null)
 if [ -n "$ART" ]; then
-  ARGS+=(--set "$ART_ITEM" drawing=on
-    background.image="$ART" background.image.scale=0.5)
+  sketchybar --animate tanh 30 --set "$NAME" drawing=on label="$SONG" \
+    icon="" icon.width=30 \
+    icon.background.drawing=on \
+    icon.background.image="$ART" \
+    icon.background.image.scale=0.5 \
+    icon.background.corner_radius=4 \
+    icon.background.height=24
 else
-  ARGS+=(--set "$ART_ITEM" drawing=off)
+  sketchybar --animate tanh 30 --set "$NAME" drawing=on label="$SONG" \
+    icon="♪" icon.width=dynamic icon.background.drawing=off
 fi
-sketchybar "${ARGS[@]}"

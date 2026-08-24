@@ -1,51 +1,34 @@
 #!/bin/bash
+# Prints the currently PLAYING track ("Title - Artist"), empty when
+# nothing is actively playing (paused/stopped players don't count).
+# --json emits {"app":"Music|Spotify","song":"Title - Artist"} for
+# consumers that also need the player (sketchybar album art).
 
-# Function to get Music app track info
-get_music_track() {
-  osascript -l JavaScript <<EOF
-  let output = "";
-  try {
-    const musicApp = Application('Music');
-    if (musicApp.running() && musicApp.playerState() === 'playing') {
-      try {
-        const track = musicApp.currentTrack;
-        const artist = track.artist();
-        const title = track.name();
-        output = \`\${title} - \${artist}\`.substr(0, 50);
-      } catch (e) {
-        // Handle case where track info can't be accessed
+get_now_playing() {
+  osascript -l JavaScript <<'EOF'
+  let out = "";
+  const grab = (name) => {
+    if (out !== "") return;
+    try {
+      const app = Application(name);
+      if (app.running() && app.playerState() === "playing") {
+        const t = app.currentTrack;
+        const song = `${t.name()} - ${t.artist()}`.substr(0, 50);
+        out = JSON.stringify({ app: name, song: song });
       }
-  }
-} catch (e) {
-  // Music app not found, try Spotify
-}
-
-if (output === "") {
-  try {
-    const spotifyApp = Application('Spotify');
-    if (spotifyApp.running() && spotifyApp.playerState() === 'playing') {
-      try {
-        const track = spotifyApp.currentTrack;
-        const artist = track.artist();
-        const title = track.name();
-        output = \`\${title} - \${artist}\`.substr(0, 50);
-      } catch (e) {
-        // Handle case where track info can't be accessed
-      }
-  }
-} catch (e) {
-  // Spotify app not found
-}
-}
-
-output;
+    } catch (e) {}
+  };
+  grab("Music");
+  grab("Spotify");
+  out;
 EOF
 }
 
-# Try to get track info
-track_info=$(get_music_track)
+np=$(get_now_playing)
+[ -n "$np" ] || exit 0
 
-# Output the result
-if [ -n "$track_info" ]; then
-  echo "$track_info"
+if [ "$1" = "--json" ]; then
+  echo "$np"
+else
+  echo "$np" | /usr/bin/python3 -c 'import json,sys; print(json.load(sys.stdin)["song"])' 2>/dev/null
 fi
