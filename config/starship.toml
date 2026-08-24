@@ -8,7 +8,7 @@ right_format = "$git_status${custom.git_clean}$git_branch$jobs"
 
 # Active named theme — bin/theme rewrites this line and regenerates the
 # [palettes.*] blocks below from each themes/<name>/starship.palette.
-palette = "shadesofjade"
+palette = "osaka-jade"
 
 [palettes.catppuccin]
 accent = "#cba6f7"
