@@ -35,7 +35,7 @@ sketchybar --bar \
   margin=10 \
   y_offset=6 \
   corner_radius=10 \
-  blur_radius=30 \
+  blur_radius=0 \
   color="$BAR_COLOR" \
   border_width=1 \
   border_color="$BAR_BORDER" \
