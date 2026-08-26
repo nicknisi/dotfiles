@@ -1,13 +1,13 @@
--- osaka-jade theme for wezterm (generated from colors.toml)
+-- void theme for wezterm (generated from colors.toml)
 return {
-  foreground = "#c1c497",
-  background = "#111c18",
-  cursor_bg = "#d7c995",
-  cursor_border = "#d7c995",
-  cursor_fg = "#111c18",
-  selection_bg = "#c1c497",
-  selection_fg = "#111c18",
-  ansi = { "#23372b", "#ff5345", "#549e6a", "#459451", "#509475", "#d2689c", "#2dd5b7", "#f6f5dd" },
-  brights = { "#53685b", "#db9f9c", "#63b07a", "#e5c736", "#acd4cf", "#75bbb3", "#8cd3cb", "#9eebb3" },
+  foreground = "#FFFFFF",
+  background = "#05010C",
+  cursor_bg = "#814DDE",
+  cursor_border = "#814DDE",
+  cursor_fg = "#05010C",
+  selection_bg = "#FFFFFF",
+  selection_fg = "#05010C",
+  ansi = { "#382952", "#F07178", "#C2B8FF", "#DDCCFF", "#BB9AF7", "#B49AE6", "#A6B8FF", "#DECCFF" },
+  brights = { "#6B578F", "#FF8A95", "#B3A8F7", "#D1BFF7", "#CBA6F8", "#C4AAF0", "#C2CCFF", "#C3AAF0" },
 }
 
