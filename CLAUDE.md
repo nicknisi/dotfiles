@@ -12,7 +12,7 @@ Nick Nisi's dotfiles repo. Manages configs for zsh, neovim, tmux, ghostty, git, 
 ## Setup
 
 ```bash
-mise bootstrap --yes                              # Converge the machine
+mise bootstrap --yes --skip-dirty                 # Converge the machine
 mise bootstrap dotfiles apply                     # Link all packages
 mise bootstrap dotfiles apply ~/.config/nvim      # Link one package
 mise bootstrap dotfiles unapply                   # Remove links

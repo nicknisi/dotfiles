@@ -63,7 +63,7 @@ curl -fsSL https://mise.run | sh
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 MISE_GLOBAL_CONFIG_FILE=~/Developer/dotfiles/config/mise/config.toml \
-  mise bootstrap --yes
+  mise bootstrap --yes --skip-dirty
 ```
 
 The explicit `MISE_GLOBAL_CONFIG_FILE` is only needed before bootstrap creates `~/.config/mise`.
@@ -72,9 +72,9 @@ The explicit `MISE_GLOBAL_CONFIG_FILE` is only needed before bootstrap creates `
 
 `config/mise/config.toml` is the machine manifest. A full `mise bootstrap` does the following work:
 
-1. On macOS, runs the pre-packages hook that installs Homebrew, applications, and fonts.
-2. Installs the OS-specific packages from `[bootstrap.packages]` with Homebrew on macOS or apt in the Linux devcontainer.
-3. Clones the repositories from `[bootstrap.repos]`.
+1. On macOS, runs the pre-packages hook that installs Homebrew and the tap packages mise cannot resolve.
+2. Installs the remaining OS-specific packages and macOS apps from `[bootstrap.packages]`.
+3. Clones missing repositories from `[bootstrap.repos]` without changing existing checkouts.
 4. Applies the `[dotfiles]` symlinks.
 5. Applies macOS defaults where available and sets the OS-specific login shell.
 6. Installs the runtimes and command-line tools from `[tools]`.
@@ -92,9 +92,13 @@ mise tasks
 | --- | --- |
 | `mise run bootstrap` | Register the `pi-settings` Git clean filter |
 | `mise run install-homebrew` | Install Homebrew with the official installer if needed |
-| `mise run setup-mac` | Install the macOS apps, fonts, SketchyBar, and Borders |
+| `mise run install-tap-packages` | Install the macOS packages unavailable to mise |
 | `mise run setup-git` | Write the machine-local Git identity |
-| `mise run update` | Update Neovim plugins, Homebrew, zsh plugins, Mise tools, uv tools, Pi extensions, and this repo |
+| `mise run update-all` | Run every scoped update task in sequence |
+| `mise run update:system` | Update Homebrew packages |
+| `mise run update:tools` | Update mise-managed tools, uv tools, and Pi extensions |
+| `mise run update:plugins` | Update Neovim and zsh plugins |
+| `mise run update:dotfiles` | Fast-forward this repo when it is on `main` |
 
 <details>
 <summary>Software managed by Mise</summary>
@@ -182,7 +186,7 @@ The shell config:
 - installs the local zsh plugins with the `zfetch` function
 - loads `~/.zshenv.local`, `~/.localrc`, and `~/.zshrc.local` when present
 
-The configured plugins are zsh-async, zsh-syntax-highlighting, zsh-autosuggestions, zsh-npm-scripts-autocomplete, and fzf-tab. `mise run update` pulls their Git checkouts.
+The configured plugins are zsh-async, zsh-syntax-highlighting, zsh-autosuggestions, zsh-npm-scripts-autocomplete, and fzf-tab. `mise run update:plugins` pulls their Git checkouts.
 
 Starship renders a two-line prompt. The left side shows the full directory and a Node version when the directory contains `package.json` or `node_modules`. The right side shows Git state, the branch, and suspended jobs. The prompt symbol is cyan after success and red after failure.
 
@@ -307,22 +311,13 @@ Read a script before running it. Some are one-off commands and do not implement 
 
 ## Updating
 
-Run the whole update sequence with:
+Run every update in sequence with:
 
 ```bash
-mise run update
+mise run update-all
 ```
 
-The task runs these updates in order:
-
-1. lazy.nvim plugins
-2. Homebrew metadata and packages
-3. zsh plugin repositories
-4. Mise itself and every tool from `[tools]`
-5. uv tools and Pi extensions
-6. this repository, but only when it is on `main`
-
-For one component, call its native command instead. Examples include `mise upgrade <tool>`, `brew upgrade`, `uv tool upgrade --all`, and `pi update --extensions`.
+Run one area with `mise run update:system`, `mise run update:tools`, `mise run update:plugins`, or `mise run update:dotfiles`. The wrapper stops when a task fails.
 
 ## Linux devcontainer
 

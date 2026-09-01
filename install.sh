@@ -106,7 +106,7 @@ export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 # Its pre-packages hook installs Homebrew before the brew package manager runs.
 step "Bootstrapping the machine"
 run env "MISE_GLOBAL_CONFIG_FILE=$DOTFILES/config/mise/config.toml" \
-  mise bootstrap --yes
+  mise bootstrap --yes --skip-dirty
 
 # ── Done ────────────────────────────────────────────────────────
 

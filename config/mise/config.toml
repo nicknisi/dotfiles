@@ -84,11 +84,16 @@ superfile = "latest"
 # macOS only
 "brew:noti" = { os = "macos" }                      # notifications from scripts
 "brew:trash" = { os = "macos" }                     # rm, but to the trash
+"brew-cask:ghostty" = { os = "macos" }
+"brew-cask:wezterm" = { os = "macos" }
+"brew-cask:karabiner-elements" = { os = "macos" }
+"brew-cask:font-symbols-only-nerd-font" = { os = "macos" }
+"brew-cask:font-monaspace" = { os = "macos" }
 
 [bootstrap.repos]
-"~/Developer/pi-extensions" = { url = "git@github.com:nicknisi/pi-extensions.git", ref = "main" }
-"~/Developer/ideation" = { url = "git@github.com:nicknisi/ideation.git", ref = "main" }
-"~/Developer/claude-plugins" = { url = "git@github.com:nicknisi/claude-plugins.git", ref = "main" }
+"~/Developer/pi-extensions" = { url = "git@github.com:nicknisi/pi-extensions.git" }
+"~/Developer/ideation" = { url = "git@github.com:nicknisi/ideation.git" }
+"~/Developer/claude-plugins" = { url = "git@github.com:nicknisi/claude-plugins.git" }
 
 # Login shell. Mise appends it to /etc/shells if missing, then runs chsh.
 # Absolute path required.
@@ -123,12 +128,11 @@ run = """
   fi
 """
 
-# The official Homebrew install must run before mise's brew package manager.
-# setup-mac also installs the tap-only macOS apps that mise cannot resolve.
+# These taps do not publish the API metadata required by mise's brew manager.
 [bootstrap.hooks.pre-packages]
 run = """
   if [ "$(uname)" = "Darwin" ]; then
-    mise run setup-mac
+    mise run install-tap-packages
   fi
 """
 
@@ -142,25 +146,19 @@ run = """
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 """
 
-[tasks.setup-mac]
-description = "Install macOS-specific apps."
+[tasks.install-tap-packages]
+description = "Install macOS packages that mise cannot resolve."
 depends = ["install-homebrew"]
 run = """
-  # install-homebrew just put brew on disk, but not on this shell's PATH
   export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
   brew trust 'FelixKratz/formulae'
   brew trust 'nikitabobko/tap'
-
   brew tap 'FelixKratz/formulae'
   brew tap 'nikitabobko/tap'
 
-  brew update
-
   brew install borders sketchybar
-  brew install --cask nikitabobko/tap/aerospace ghostty wezterm karabiner-elements \
-    font-symbols-only-nerd-font font-monaspace
-
+  brew install --cask nikitabobko/tap/aerospace
   brew services start borders
 """
 
@@ -203,22 +201,13 @@ run = """
   echo "Wrote $HOME/.gitconfig-local"
 """
 
-[tasks.update]
-description = "Update everything: brew, mise tools, nvim, zsh plugins, uv, pi, this repo."
+[tasks."update:system"]
+description = "Update Homebrew packages."
+run = "brew update && brew upgrade"
+
+[tasks."update:tools"]
+description = "Update mise, managed tools, uv tools, and Pi extensions."
 run = """
-  echo "==> neovim"
-  nvim --headless '+Lazy! sync' +qa
-
-  echo "==> homebrew"
-  brew update && brew upgrade
-
-  echo "==> zsh plugins"
-  # zfetch's plugin map is built by .zshrc, so read it from an interactive zsh
-  zsh -ic 'for k in ${(k)plugins}; do echo "$plugins[$k]"; done' |
-  while read -r dir; do
-    git -C "$dir" pull --quiet --recurse-submodules && echo "  $(basename "$dir")"
-  done
-
   echo "==> mise"
   # self-update only applies to the standalone installer, not a brew install
   case "$(command -v mise)" in */homebrew/*) ;; *) mise self-update -y ;; esac
@@ -229,16 +218,42 @@ run = """
 
   echo "==> pi extensions"
   pi update --extensions
+"""
 
-  echo "==> dotfiles"
+[tasks."update:plugins"]
+description = "Update Neovim and zsh plugins."
+run = """
+  echo "==> neovim"
+  nvim --headless '+Lazy! sync' +qa
+
+  echo "==> zsh plugins"
+  # zfetch's plugin map is built by .zshrc, so read it from an interactive zsh
+  zsh -ic 'for k in ${(k)plugins}; do echo "$plugins[$k]"; done' |
+  while read -r dir; do
+    git -C "$dir" pull --quiet --recurse-submodules && echo "  $(basename "$dir")"
+  done
+"""
+
+[tasks."update:dotfiles"]
+description = "Fast-forward this repository when it is on main."
+run = """
   # global config, so MISE_PROJECT_ROOT is wherever you're standing
   repo="$HOME/Developer/dotfiles"
   if [ "$(git -C "$repo" symbolic-ref --short HEAD)" = "main" ]; then
     git -C "$repo" pull --ff-only origin main
   else
-    echo "  not on main, skipping"
+    echo "not on main, skipping"
   fi
 """
+
+[tasks."update:all"]
+description = "Update system packages, tools, plugins, and this repository."
+run = [
+  { task = "update:system" },
+  { task = "update:tools" },
+  { task = "update:plugins" },
+  { task = "update:dotfiles" },
+]
 
 # Sources are absolute: relative ones resolve against this file's directory, which
 # is the ~/.config/mise symlink, not the repo. Targets use .??* rather than .* so
@@ -258,5 +273,5 @@ minimum_release_age_excludes = [
   "github:nicknisi/fleet",
   "github:nicknisi/tm",
   "github:nicknisi/sessions",
+  "claude-code",
 ]
-yes = true
