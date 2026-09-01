@@ -1,5 +1,6 @@
 {
   "tui.input.newLine": ["shift+enter", "ctrl+j"],
+  "app.message.followUp": ["super+enter", "alt+enter"],
   "app.thinking.cycle": ["shift+tab"],
   "app.model.cycleForward": ["ctrl+p", "ctrl+shift+m"],
   "app.models.save": ["ctrl+shift+v"],

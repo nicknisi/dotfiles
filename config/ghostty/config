@@ -51,6 +51,7 @@ clipboard-trim-trailing-spaces = true
 
 # Terminal input keybindings
 keybind = shift+enter=csi:13;2u
+keybind = super+enter=csi:13;9u
 keybind = shift+space=text:\x20
 
 # Split keybindings
