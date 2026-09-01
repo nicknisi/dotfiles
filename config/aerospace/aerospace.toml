@@ -78,12 +78,12 @@ PATH = '/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 # Tight 8px gaps. Built-in top=10 assumes a bar inside the notch strip;
 # assumes a bar inside the notch strip; ours floats below it, so keep the
 # bar clearance (36 + y_offset 6) plus the 8px rhythm: 50/44.
-inner.horizontal = 8
-inner.vertical =   8
-outer.left =       8
-outer.bottom =     8
-outer.top =        [ { monitor."Built-in Retina Display" = 50 }, 44  ]
-outer.right =      8
+inner.horizontal = 12
+inner.vertical =   12
+outer.left =       12
+outer.bottom =     12
+outer.top =        [ { monitor."Built-in Retina Display" = 50 }, 50  ]
+outer.right =      12
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -321,18 +321,9 @@ if.app-id = 'com.apple.FaceTime'
 run = 'layout floating'
 
 [[on-window-detected]]
-if.app-id = 'com.macpaw.CleanMyMac-setapp'
-run = 'layout floating'
-
-[[on-window-detected]]
 if.app-id = 'com.apple.ScreenContinuity'
 run = 'layout floating'
 
 [[on-window-detected]]
 if.app-id = 'com.raycast.macos'
 run = 'layout floating'
-
-[[on-window-detected]]
-if.app-id = 'com.rogueamoeba.audiohijack'
-run = 'layout floating'
-
