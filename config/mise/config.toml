@@ -11,6 +11,8 @@ tree-sitter = "latest"
 # clis
 1password-cli = "latest"
 claude-code = "latest"
+codex = "latest"
+pi = "latest"
 
 # npm packages
 "npm:@earendil-works/pi-coding-agent" = "latest"
@@ -43,8 +45,6 @@ superfile = "latest"
 "github:nicknisi/fleet" = "latest"
 "github:nicknisi/tm" = "latest"
 "github:nicknisi/sessions" = "latest"
-codex = "latest"
-pi = "latest"
 
 [bootstrap.packages]
 # core utilities newer than what macOS ships
@@ -83,27 +83,9 @@ pi = "latest"
 "apt:wdiff" = { version = "latest", os = "linux" }
 "apt:wget" = { version = "latest", os = "linux" }
 
-# Omarchy (Arch) — pacman backend. Distro names ("arch") aren't valid os
-# filters, so gate by linux and let the manager skip gracefully when its CLI
-# is missing (verified: apt skips on Arch, pacman skips on Ubuntu).
-# Differences from the apt list: no libreadline-dev (Arch readline ships
-# headers) and pkgconf instead of pkg-config (Arch package name; Provides
-# satisfies pkg-config).
-"pacman:bash" = { version = "latest", os = "linux" }
-"pacman:git" = { version = "latest", os = "linux" }
-"pacman:zsh" = { version = "latest", os = "linux" }
-"pacman:grep" = { version = "latest", os = "linux" }
 "pacman:vim" = { version = "latest", os = "linux" }
 "pacman:btop" = { version = "latest", os = "linux" }
 "pacman:cloc" = { version = "latest", os = "linux" }
-"pacman:entr" = { version = "latest", os = "linux" }
-"pacman:fswatch" = { version = "latest", os = "linux" }
-"pacman:gnupg" = { version = "latest", os = "linux" }
-"pacman:highlight" = { version = "latest", os = "linux" }
-"pacman:pkgconf" = { version = "latest", os = "linux" }
-"pacman:tree" = { version = "latest", os = "linux" }
-"pacman:wdiff" = { version = "latest", os = "linux" }
-"pacman:wget" = { version = "latest", os = "linux" }
 
 # macOS only
 "brew:noti" = { os = "macos" }                      # notifications from scripts
