@@ -1,18 +1,95 @@
 #!/usr/bin/env bash
-# Tmux theme plugin - handles dark/light mode automatically
+# Tmux theme — follows the active desktop theme.
+#
+# Source priority:
+#   1. Omarchy (Linux): ~/.local/state/omarchy/current/theme/colors.toml —
+#      rewritten by `omarchy theme set`; the palette below is derived from it.
+#   2. macOS: ~/.config/theme/current/tmux-{dark,light}.sh — hand-tuned
+#      scripts shipped in bin/theme packs.
+#   3. Checked-in fallback: colors/{dark,light}.sh.
+#
+# Live reload: bin/theme re-sources tmux.conf on macOS. On Omarchy install the
+# hook shipped next to this file (it re-sources tmux.conf on theme changes):
+#   omarchy hook install theme-set <dotfiles>/config/tmux/theme/omarchy-hook.sh
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Load color scheme based on macOS appearance; active named theme
-# (bin/theme) wins over the checked-in defaults
-if [[ "$(defaults read -g AppleInterfaceStyle 2>/dev/null)" == "Dark" ]]; then
-  THEME_COLORS="$HOME/.config/theme/current/tmux-dark.sh"
-  [[ -f "$THEME_COLORS" ]] || THEME_COLORS="$CURRENT_DIR/colors/dark.sh"
+# read `key = "value"` from a colors.toml
+toml_get() {
+  sed -n 's/^'"$2"'[[:space:]]*=[[:space:]]*"\(.*\)".*$/\1/p' "$1" 2>/dev/null | head -n1
+}
+
+# print $1 unless empty, else $2
+or_default() {
+  if [[ -n "$1" ]]; then printf '%s' "$1"; else printf '%s' "$2"; fi
+}
+
+set_thm() { tmux set-option -gq "@thm_$1" "$2"; }
+
+OMARCHY_COLORS="$HOME/.local/state/omarchy/current/theme/colors.toml"
+
+if [[ -f "$OMARCHY_COLORS" ]]; then
+  # ── Omarchy: derive the palette from the active theme ────────────────────
+  g() { toml_get "$OMARCHY_COLORS" "$1"; }
+
+  thm_bg=$(g background)
+  thm_fg=$(g foreground)
+  accent=$(or_default "$(g accent)" "$thm_fg")
+  muted=$(or_default "$(g muted)" "$thm_bg")
+  dark_bg=$(or_default "$(g dark_background)" "$thm_bg")
+  magenta=$(or_default "$(g magenta)" "$accent")
+  red=$(or_default "$(g red)" "$thm_fg")
+  green=$(or_default "$(g green)" "$thm_fg")
+
+  set_thm bg              "$thm_bg"
+  set_thm bg_dark         "$dark_bg"
+  set_thm bg_dark1        "$(or_default "$(g darker_background)" "$dark_bg")"
+  set_thm bg_highlight    "$(or_default "$(g lighter_background)" "$thm_bg")"
+  set_thm fg              "$thm_fg"
+  set_thm fg_dark         "$(or_default "$(g dark_foreground)" "$thm_fg")"
+  set_thm fg_gutter       "$muted"
+  set_thm cyan            "$(or_default "$(g bright_cyan)" "$(or_default "$(g cyan)" "$thm_fg")")"
+  set_thm black           "$dark_bg"
+  set_thm magenta         "$magenta"
+  set_thm magenta2        "$(or_default "$(g bright_magenta)" "$magenta")"
+  set_thm pink            "$accent"
+  set_thm red             "$red"
+  set_thm red1            "$(or_default "$(g bright_red)" "$red")"
+  set_thm green           "$green"
+  set_thm green1          "$(or_default "$(g bright_green)" "$green")"
+  set_thm green2          "$(or_default "$(g bright_green)" "$green")"
+  set_thm yellow          "$(or_default "$(g bright_yellow)" "$(or_default "$(g yellow)" "$thm_fg")")"
+  set_thm blue            "$(or_default "$(g bright_blue)" "$(or_default "$(g blue)" "$accent")")"
+  set_thm blue0           "$dark_bg"
+  set_thm blue1           "$(or_default "$(g bright_blue)" "$(or_default "$(g blue)" "$accent")")"
+  set_thm blue2           "$(or_default "$(g bright_blue)" "$(or_default "$(g blue)" "$accent")")"
+  set_thm blue5           "$(or_default "$(g light_foreground)" "$thm_fg")"
+  set_thm blue6           "$(or_default "$(g bright_foreground)" "$thm_fg")"
+  set_thm blue7           "$dark_bg"
+  set_thm orange          "$(or_default "$(g orange)" "$(or_default "$(g bright_yellow)" "$thm_fg")")"
+  set_thm purple          "$accent"
+  set_thm black4          "$muted"
+  set_thm comment         "$muted"
+  set_thm dark3           "$muted"
+  set_thm dark5           "$muted"
+  set_thm teal            "$(or_default "$(g cyan)" "$thm_fg")"
+  set_thm terminal_black  "$dark_bg"
+elif [[ "$(uname -s)" == "Darwin" ]]; then
+  # ── macOS: hand-tuned scripts from the active bin/theme pack ─────────────
+  if [[ "$(defaults read -g AppleInterfaceStyle 2>/dev/null)" == "Dark" ]]; then
+    MODE=dark
+  else
+    MODE=light
+  fi
+  THEME_COLORS="$HOME/.config/theme/current/tmux-$MODE.sh"
+  [[ -f "$THEME_COLORS" ]] || THEME_COLORS="$CURRENT_DIR/colors/$MODE.sh"
+  # shellcheck disable=SC1090
+  source "$THEME_COLORS"
 else
-  THEME_COLORS="$HOME/.config/theme/current/tmux-light.sh"
-  [[ -f "$THEME_COLORS" ]] || THEME_COLORS="$CURRENT_DIR/colors/light.sh"
+  # ── Neither: checked-in fallback (assume dark) ───────────────────────────
+  # shellcheck disable=SC1091
+  source "$CURRENT_DIR/colors/dark.sh"
 fi
-source "$THEME_COLORS"
 
 # Get colors from tmux user options
 get_tmux_option() {
@@ -77,10 +154,10 @@ tmux setw -g window-status-separator " #[fg=${thm_fg_gutter}]│ "
 tmux set -g status-style "bg=default,fg=white"
 
 # Icons and separators (Powerline symbols) - define first
-tm_separator_left=""
-tm_separator_right=""
-tm_icon=""
-tm_music_icon=""
+tm_separator_left=""
+tm_separator_right=""
+tm_icon=""
+tm_music_icon=""
 
 # Create a formatted section with powerline separators
 # Usage: create_section "left|right" "icon" "text" "bg_color" "fg_color" ["no-start"|"no-end"|"no-separators"]
@@ -117,7 +194,7 @@ create_section() {
 create_tunes_section() {
   local tunes_result="$(current-song)"
   if [[ -n "$tunes_result" ]]; then
-    echo -e "$(create_section "right" " " "${tunes_result}" "${thm_blue7}" "${thm_blue6}")"
+    echo -e "$(create_section "right" " " "${tunes_result}" "${thm_blue7}" "${thm_blue6}")"
   fi
 }
 
@@ -128,7 +205,7 @@ tm_tunes_display="#(song=\$(current-song); if [[ -n \"\$song\" ]]; then echo \"#
 # Status line components
 session="$(create_section "left" "$tm_icon" "#S" "${thm_purple}" "${thm_bg}" "no-start")"
 tm_agent_display="#(fleet status --tmux #{session_name})"
-tm_git_status="$(create_section "right" "" "#(tmux-git-status '#{pane_current_path}')" "${thm_bg}" "${thm_fg}" "no-end")"
+tm_git_status="$(create_section "right" "" "#(tmux-git-status '#{pane_current_path}')" "${thm_bg}" "${thm_fg}" "no-end")"
 
 # Status left and right - using the exact original syntax
 tmux set -g status-left "$session"
