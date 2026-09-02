@@ -111,6 +111,14 @@ export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 # Until bootstrap creates ~/.config/mise, point mise at the cloned config.
 # Its pre-packages hook installs Homebrew before the brew package manager runs.
+step "Aligning the dev directory"
+# Bootstrap repos and pi extension paths reference ~/Developer on every
+# machine; on Linux the native convention is ~/code, so symlink instead of
+# forking the config. Run before bootstrap, which clones into ~/Developer.
+if [[ "$(uname -s)" == "Linux" && ! -e "$HOME/Developer" && -d "$HOME/code" ]]; then
+  run ln -s code "$HOME/Developer"
+fi
+
 step "Bootstrapping the machine"
 run env "MISE_GLOBAL_CONFIG_FILE=$DOTFILES/config/mise/config.toml" \
   mise bootstrap --yes --skip-dirty
