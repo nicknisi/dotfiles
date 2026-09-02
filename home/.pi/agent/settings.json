@@ -2,7 +2,7 @@
   "defaultProvider": "fireworks",
   "editorPaddingX": 1,
   "outputPad": 1,
-  "theme": "void",
+  "theme": "dark",
   "quietStartup": true,
   "hideThinkingBlock": true,
   "skills": [
@@ -17,6 +17,7 @@
     "keepRecentTokens": 50000
   },
   "packages": [
+    "../../Developer/pi-extensions/packages/adr",
     "../../Developer/pi-extensions/packages/agent-urls",
     "../../Developer/pi-extensions/packages/answer",
     "../../Developer/pi-extensions/packages/artifacts",
@@ -47,8 +48,7 @@
     "../../Developer/pi-extensions/packages/workflows",
     "npm:pi-prompt-template-model",
     "../../Developer/claude-plugins",
-    "../../Developer/ideation",
-    "git:github.com/code-yeongyu/pi-lsp-client",
+    "../../Developer/ideation/packages/pi",
     "npm:pi-simplify",
     "npm:pi-mcp-adapter",
     "npm:@juicesharp/rpiv-ask-user-question",
@@ -60,11 +60,11 @@
     "npm:@injaneity/pi-computer-use",
     "../../Developer/bosun",
     "../../Developer/pi-mg",
-    "npm:pi-claude-bridge",
     "../../Developer/ctx/extensions/ctx-sync",
     "../../Developer/riker/packages/pi-client",
     "git:github.com/DietrichGebert/ponytail",
-    "npm:@ff-labs/pi-fff"
+    "npm:@ff-labs/pi-fff",
+    "npm:pi-context-view"
   ],
   "tuiMode": "fullscreen",
   "defaultModel": "accounts/fireworks/routers/kimi-k3-fast",
