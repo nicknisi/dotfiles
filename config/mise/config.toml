@@ -174,7 +174,13 @@ run = """
 [tasks.bootstrap]
 description = "Register repo-local Git filters."
 run = """
-  repo="${DOTFILES_DIR:-${DOTFILES:-$HOME/Developer/dotfiles}}"
+  # DOTFILES_DIR/DOTFILES come from zshenv; fall back per-OS when absent
+  # (e.g. bootstrap running under bash before zsh is set up)
+  if [[ "$(uname -s)" == "Linux" ]]; then
+    repo="${DOTFILES_DIR:-${DOTFILES:-$HOME/code/dotfiles}}"
+  else
+    repo="${DOTFILES_DIR:-${DOTFILES:-$HOME/Developer/dotfiles}}"
+  fi
 
   echo "==> git filters"
   git -C "$repo" config filter.pi-settings.clean "jq 'del(.lastChangelogVersion)'"
@@ -246,7 +252,12 @@ run = """
 description = "Fast-forward this repository when it is on main."
 run = """
   # global config, so MISE_PROJECT_ROOT is wherever you're standing
-  repo="${DOTFILES_DIR:-${DOTFILES:-$HOME/Developer/dotfiles}}"
+  # DOTFILES_DIR/DOTFILES come from zshenv; fall back per-OS when absent
+  if [[ "$(uname -s)" == "Linux" ]]; then
+    repo="${DOTFILES_DIR:-${DOTFILES:-$HOME/code/dotfiles}}"
+  else
+    repo="${DOTFILES_DIR:-${DOTFILES:-$HOME/Developer/dotfiles}}"
+  fi
   if [ "$(git -C "$repo" symbolic-ref --short HEAD)" = "main" ]; then
     git -C "$repo" pull --ff-only origin main
   else
