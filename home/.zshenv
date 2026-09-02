@@ -10,6 +10,7 @@ HISTSIZE=10000
 SAVEHIST=10000
 
 export DOTFILES="$(dirname "$(dirname "$(readlink -f "${(%):-%N}")")")"
+export DOTFILES_DIR="$DOTFILES"
 
 export CACHEDIR="$HOME/.local/share"
 export VIM_TMP="$HOME/.vim-tmp"

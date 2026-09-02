@@ -12,7 +12,14 @@
 
 set -Eeuo pipefail
 
-DOTFILES="$HOME/Developer/dotfiles"
+# Honors $DOTFILES_DIR; otherwise per-OS default (~/Developer on macOS, ~/code on Linux)
+if [[ -n "${DOTFILES_DIR:-}" ]]; then
+  DOTFILES="$DOTFILES_DIR"
+elif [[ "$(uname -s)" == "Linux" ]]; then
+  DOTFILES="$HOME/code/dotfiles"
+else
+  DOTFILES="$HOME/Developer/dotfiles"
+fi
 DRY_RUN=false
 
 while [[ $# -gt 0 ]]; do
@@ -107,6 +114,12 @@ export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 step "Bootstrapping the machine"
 run env "MISE_GLOBAL_CONFIG_FILE=$DOTFILES/config/mise/config.toml" \
   mise bootstrap --yes --skip-dirty
+
+step "Applying dotfiles"
+# [dotfiles] lives in the repo-root mise.toml; its relative sources resolve
+# against the repo, so this must run from inside the clone.
+run mise trust "$DOTFILES"
+run mise -C "$DOTFILES" bootstrap dotfiles apply --yes
 
 # ── Done ────────────────────────────────────────────────────────
 
