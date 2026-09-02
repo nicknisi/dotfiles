@@ -9,6 +9,12 @@
 
 set -euo pipefail
 
+# Guard: this script is macOS-only (uses osascript, brew, pbcopy, etc.)
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  echo "theme: this script is macOS-only. On Omarchy (Linux) use: omarchy theme set <name>" >&2
+  exit 1
+fi
+
 SOURCE="${BASH_SOURCE[0]}"
 [ -L "$SOURCE" ] && SOURCE="$(readlink "$SOURCE")"
 DOTFILES="$(cd "$(dirname "$SOURCE")/.." && pwd)"
@@ -356,14 +362,10 @@ if [ -f "$THEME_DIR/btop.theme" ] && [ -f "$HOME/.config/btop/btop.conf" ]; then
   pgrep -x btop >/dev/null 2>&1 && echo "theme: btop is running — quit and reopen it, it re-reads the theme at launch" >&2
 fi
 
-# nvim: new instances read the theme at startup; running ones call the
-# reload fn (re-reads colorscheme + aether palette through the symlink).
-# ponytail: sessions started before apply_named_theme existed skip the push.
-if [ -f "$THEME_DIR/nvim-$MODE" ]; then
-  find "${TMPDIR:-/tmp}" -maxdepth 4 -type s -name 'nvim.*.0' 2>/dev/null | while read -r sock; do
-    nvim --server "$sock" --remote-expr "execute('lua if _G.apply_named_theme then _G.apply_named_theme() end')" 2>/dev/null || true
-  done
-fi
+# nvim: always reload aether — we no longer use per-theme named colorschemes.
+find "${TMPDIR:-/tmp}" -maxdepth 4 -type s -name 'nvim.*.0' 2>/dev/null | while read -r sock; do
+  nvim --server "$sock" --remote-expr "execute('lua if _G.apply_named_theme then _G.apply_named_theme() end')" 2>/dev/null || true
+done
 
 # tmux
 tmux has-session 2>/dev/null && tmux source-file "$HOME/.config/tmux/tmux.conf" || true
