@@ -43,6 +43,8 @@ superfile = "latest"
 "github:nicknisi/fleet" = "latest"
 "github:nicknisi/tm" = "latest"
 "github:nicknisi/sessions" = "latest"
+codex = "latest"
+pi = "latest"
 
 [bootstrap.packages]
 # core utilities newer than what macOS ships
