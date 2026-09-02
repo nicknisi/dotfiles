@@ -43,3 +43,6 @@ home/.pi/remote-control/
 home/.pi/agent/fff/
 ctx-sync.log
 config/ghostty/theme-current
+home/.pi/agent/skills/omarchy
+home/.pi/agent/skills/diagnose-crash
+home/.pi/agent/themes/omarchy-system.json
