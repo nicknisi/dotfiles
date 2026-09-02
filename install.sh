@@ -12,14 +12,9 @@
 
 set -Eeuo pipefail
 
-# Honors $DOTFILES_DIR; otherwise per-OS default (~/Developer on macOS, ~/code on Linux)
-if [[ -n "${DOTFILES_DIR:-}" ]]; then
-  DOTFILES="$DOTFILES_DIR"
-elif [[ "$(uname -s)" == "Linux" ]]; then
-  DOTFILES="$HOME/code/dotfiles"
-else
-  DOTFILES="$HOME/Developer/dotfiles"
-fi
+# Honors $DOTFILES_DIR; otherwise the canonical dev dir ("Aligning" below
+# guarantees it resolves on every machine)
+DOTFILES="${DOTFILES_DIR:-$HOME/Developer/dotfiles}"
 DRY_RUN=false
 
 while [[ $# -gt 0 ]]; do
@@ -93,6 +88,18 @@ else
   die "re-run this script once the Command Line Tools finish installing"
 fi
 
+step "Aligning the dev directory"
+# Config references ~/Developer everywhere (pi extensions, bootstrap.repos).
+# Whichever dev dir exists becomes physical and the other name symlinks to
+# it, so both paths resolve on every machine and either convention works.
+if [[ ! -e "$HOME/Developer" && -d "$HOME/code" ]]; then
+  run ln -s code "$HOME/Developer"
+elif [[ ! -e "$HOME/code" && -d "$HOME/Developer" ]]; then
+  run ln -s Developer "$HOME/code"
+elif [[ ! -e "$HOME/Developer" && ! -e "$HOME/code" ]]; then
+  run mkdir "$HOME/Developer"
+fi
+
 step "Cloning the repo"
 if [[ -d "$DOTFILES" ]]; then
   note "already at $DOTFILES"
@@ -111,14 +118,6 @@ export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 # Until bootstrap creates ~/.config/mise, point mise at the cloned config.
 # Its pre-packages hook installs Homebrew before the brew package manager runs.
-step "Aligning the dev directory"
-# Bootstrap repos and pi extension paths reference ~/Developer on every
-# machine; on Linux the native convention is ~/code, so symlink instead of
-# forking the config. Run before bootstrap, which clones into ~/Developer.
-if [[ "$(uname -s)" == "Linux" && ! -e "$HOME/Developer" && -d "$HOME/code" ]]; then
-  run ln -s code "$HOME/Developer"
-fi
-
 step "Bootstrapping the machine"
 run env "MISE_GLOBAL_CONFIG_FILE=$DOTFILES/config/mise/config.toml" \
   mise bootstrap --yes --skip-dirty

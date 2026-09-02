@@ -2,7 +2,7 @@
   "defaultProvider": "fireworks",
   "editorPaddingX": 1,
   "outputPad": 1,
-  "theme": "dark",
+  "theme": "tokyonight-night",
   "quietStartup": true,
   "hideThinkingBlock": true,
   "skills": [
