@@ -83,6 +83,7 @@ superfile = "latest"
 "apt:wdiff" = { version = "latest", os = "linux" }
 "apt:wget" = { version = "latest", os = "linux" }
 
+"pacman:zsh" = { version = "latest", os = "linux" }
 "pacman:vim" = { version = "latest", os = "linux" }
 "pacman:btop" = { version = "latest", os = "linux" }
 "pacman:cloc" = { version = "latest", os = "linux" }
