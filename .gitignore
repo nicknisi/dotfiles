@@ -46,3 +46,4 @@ config/ghostty/theme-current
 home/.pi/agent/skills/omarchy
 home/.pi/agent/skills/diagnose-crash
 home/.pi/agent/themes/omarchy-system.json
+home/.pi/agent/helpers/pi-computer-use/linux-bridge
