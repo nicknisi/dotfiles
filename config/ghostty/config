@@ -92,6 +92,11 @@ keybind = cmd+s>e=equalize_splits
 copy-on-select = clipboard
 shell-integration-features = cursor,sudo,no-title
 
+custom-shader-animation = true
+
+custom-shader = shaders/cursor_smear.glsl
+custom-shader = shaders/cursor_blaze_no_trail.glsl
+
 # active named theme (symlink managed by bin/theme); overrides still wins
 config-file = ?./theme-current
 config-file = ?./overrides
