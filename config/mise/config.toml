@@ -50,7 +50,7 @@ superfile = "latest"
 # core utilities newer than what macOS ships
 "brew:bash" = { version = "latest", os = "macos" }
 "brew:git" = { version = "latest", os = "macos" }        # mise has no git backend, this is the only source
-"brew:zsh" = { version = "latest", os = "macos" }        # login shell, see [bootstrap.user]
+"brew:zsh" = { version = "latest", os = "macos" }        # newer than system /bin/zsh; see [bootstrap.user]
 "brew:grep" = { version = "latest", os = "macos" }
 "brew:vim" = { version = "latest", os = "macos" }
 
@@ -102,10 +102,11 @@ superfile = "latest"
 "~/Developer/ideation" = { url = "git@github.com:nicknisi/ideation.git" }
 "~/Developer/claude-plugins" = { url = "git@github.com:nicknisi/claude-plugins.git" }
 
-# Login shell. Mise appends it to /etc/shells if missing, then runs chsh.
-# Absolute path required.
+# Login shell. /bin/zsh works on both platforms: macOS ships zsh there, and
+# on Arch /bin is a symlink to /usr/bin. Mise appends it to /etc/shells if
+# missing, then runs chsh (mise bootstrap user apply). Absolute path required.
 [bootstrap.user]
-login_shell = "/opt/homebrew/bin/zsh"
+login_shell = "/bin/zsh"
 
 # macOS preferences.
 [bootstrap.macos.finder]
