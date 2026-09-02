@@ -1,5 +1,5 @@
 {
-  "defaultProvider": "fireworks",
+  "defaultProvider": "openrouter",
   "editorPaddingX": 1,
   "outputPad": 1,
   "theme": "tokyonight-night",
@@ -67,7 +67,7 @@
     "npm:pi-context-view"
   ],
   "tuiMode": "fullscreen",
-  "defaultModel": "accounts/fireworks/routers/kimi-k3-fast",
+  "defaultModel": "z-ai/glm-5.3-flash",
   "warnings": {
     "anthropicExtraUsage": false
   },
