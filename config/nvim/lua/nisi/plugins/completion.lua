@@ -11,7 +11,7 @@ return {
 
     event = "InsertEnter",
 
-    version = "*",
+    version = "1.*",
 
     ---@module 'blink.cmp'
     opts = {
