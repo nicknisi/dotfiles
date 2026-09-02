@@ -1,0 +1,13 @@
+# Dotfiles are managed with `mise bootstrap dotfiles apply` run from inside
+# this repo (or `mise -C <repo> bootstrap dotfiles …`).
+#
+# Sources are relative on purpose: they resolve against the directory of THIS
+# file, so the clone can live anywhere — ~/Developer/dotfiles on macOS,
+# ~/code/dotfiles on Linux — with zero per-machine config.
+#
+# The global ~/.config/mise/config.toml intentionally has no [dotfiles]:
+# relative sources there would resolve against ~/.config (through the
+# ~/.config/mise symlink), not this repo.
+[dotfiles]
+"~/.config/*" = "config/*"
+"~/.??*" = "home/.??*"

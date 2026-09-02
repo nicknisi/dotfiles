@@ -166,7 +166,7 @@ run = """
 [tasks.bootstrap]
 description = "Register repo-local Git filters."
 run = """
-  repo="$HOME/Developer/dotfiles"
+  repo="${DOTFILES_DIR:-${DOTFILES:-$HOME/Developer/dotfiles}}"
 
   echo "==> git filters"
   git -C "$repo" config filter.pi-settings.clean "jq 'del(.lastChangelogVersion)'"
@@ -238,7 +238,7 @@ run = """
 description = "Fast-forward this repository when it is on main."
 run = """
   # global config, so MISE_PROJECT_ROOT is wherever you're standing
-  repo="$HOME/Developer/dotfiles"
+  repo="${DOTFILES_DIR:-${DOTFILES:-$HOME/Developer/dotfiles}}"
   if [ "$(git -C "$repo" symbolic-ref --short HEAD)" = "main" ]; then
     git -C "$repo" pull --ff-only origin main
   else
@@ -255,15 +255,12 @@ run = [
   { task = "update:dotfiles" },
 ]
 
-# Sources are absolute: relative ones resolve against this file's directory, which
-# is the ~/.config/mise symlink, not the repo. Targets use .??* rather than .* so
-# the glob doesn't match . and .. and abort the apply.
-#
-# On a machine where ~/.config/mise doesn't exist yet:
-#   MISE_GLOBAL_CONFIG_FILE=<clone>/config/mise/config.toml mise bootstrap dotfiles apply
-[dotfiles]
-"~/.config/*" = "~/Developer/dotfiles/config/*"
-"~/.??*" = "~/Developer/dotfiles/home/.??*"
+# [dotfiles] lives in the repo-root mise.toml, NOT here: its sources are
+# relative to the declaring file's directory, so from the global config they'd
+# resolve against ~/.config (through the ~/.config/mise symlink) instead of the
+# repo. From the repo-root mise.toml they resolve against the clone itself,
+# wherever it lives. Run dotfiles commands from inside the repo:
+#   mise bootstrap dotfiles status|diff|apply
 
 [settings]
 idiomatic_version_file_enable_tools = ["node"]
