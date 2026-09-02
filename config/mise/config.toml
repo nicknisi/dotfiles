@@ -12,7 +12,6 @@ tree-sitter = "latest"
 1password-cli = "latest"
 claude-code = "latest"
 codex = "latest"
-pi = "latest"
 
 # npm packages
 "npm:@earendil-works/pi-coding-agent" = "latest"
