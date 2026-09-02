@@ -6,6 +6,7 @@ pnpm = "latest"
 bun = "latest"
 deno = "latest"
 lua = "latest"
+go = "latest"
 tree-sitter = "latest"
 
 # clis
