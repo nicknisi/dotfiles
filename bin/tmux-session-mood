@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# tmux-session-mood — status-left's session prefix (see theme.tmux).
+# When an agent in this session wants you, relay fleet's attention fragment
+# (◉ ⚠ ? ● — fleet colors flood the session cluster). Otherwise the session
+# wears its own color: a stable pick from the theme's palette, hashed from
+# the session name, so every session has an identity you can spot at a
+# glance and switching sessions changes the bar's mood.
+out="$(fleet status --tmux "$1" 2>/dev/null)"
+[[ -n "$out" ]] && { printf '%s' "$out"; exit 0; }
+
+opts=$(tmux show -g 2>/dev/null)
+palette=()
+for v in cyan orange green magenta blue yellow; do
+  c=$(awk -v o="@thm_$v" '$1 == o { gsub(/"/, "", $2); print $2; exit }' <<<"$opts")
+  [[ -n "$c" ]] && palette+=("$c")
+done
+((${#palette[@]})) || exit 0
+
+h=$(cksum <<<"$1" | cut -d' ' -f1)
+printf '#[fg=%s]' "${palette[$(( h % ${#palette[@]} ))]}"

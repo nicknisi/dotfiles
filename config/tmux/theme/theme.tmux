@@ -143,78 +143,66 @@ tmux set -g status-right-length 100
 tmux set -g message-style "fg=${thm_cyan},bg=${thm_fg_gutter},align=centre"
 tmux set -g message-command-style "fg=${thm_cyan},bg=${thm_fg_gutter},align=centre"
 
+# Canonical palette — packs name their knobs differently (catppuccin ships
+# pink/mauve/subtext_0, tokyo-night purple/fg_dark/fg_gutter, omarchy
+# derives pink from the theme accent), so fall down each chain to a value.
+sl_accent=$(or_default "$(get_tmux_option "@thm_pink" "")" \
+  "$(or_default "$(get_tmux_option "@thm_mauve" "")" \
+  "$(or_default "$thm_purple" "$(or_default "$thm_magenta" "$thm_cyan")")")")
+sl_dim=$(or_default "$thm_fg_dark" \
+  "$(or_default "$(get_tmux_option "@thm_subtext_0" "")" "$thm_fg")")
+sl_muted=$(or_default "$thm_fg_gutter" \
+  "$(or_default "$(get_tmux_option "@thm_overlay_0" "")" "$sl_dim")")
+
+# Publish for downstream helpers (bin/tmux-git-status reads these).
+set_thm sl_accent "$sl_accent"
+set_thm sl_dim    "$sl_dim"
+set_thm sl_muted  "$sl_muted"
+
 # Pane borders
 tmux set-window-option -g pane-active-border-style "fg=${thm_fg_gutter},bg=${thm_fg_gutter}"
 tmux set-window-option -g pane-border-style "fg=${thm_fg_gutter},bg=${thm_fg_gutter}"
 tmux set-window-option -g pane-border-lines simple
 
-# Window status
-tmux setw -g window-status-activity-style "fg=${thm_fg},none"
-tmux setw -g window-status-separator " #[fg=${thm_fg_gutter}]│ "
-tmux set -g status-style "bg=default,fg=white"
+# Status line — a quiet, glyph-driven bar on a transparent canvas:
+#
+#   projects ◉ │ ◇ dotfiles  ◆ π statusline  ◇ notes          main ✓
+#
+# No pills, no powerline: bg=default keeps the terminal's own background as
+# the canvas, so emoji and nerd-font icons in session/window names can't
+# punch holes in a background that isn't there. Every mark earns its keep:
+# fleet's glyph (◉ working, ⚠ waiting, ? asking, ● ready — fleet-colored)
+# appears beside the session only when an agent in it wants you; row 2
+# (fleet statusline --inject) carries the per-agent detail. ◆ marks the
+# current window, ◇ the others, a bell paints a window red.
 
-# Icons and separators (Powerline symbols) - define first
-tm_separator_left=""
-tm_separator_right=""
-tm_icon=""
-tm_music_icon=""
+tmux set -g status-style "bg=default,fg=${thm_fg}"
 
-# Create a formatted section with powerline separators
-# Usage: create_section "left|right" "icon" "text" "bg_color" "fg_color" ["no-start"|"no-end"|"no-separators"]
-create_section() {
-  local direction=$1
-  local icon=$2
-  local text=$3
-  local bg_color=$4
-  local fg_color=$5
-  local separator_mode=${6:-""}
+# The canvas is the canvas — panes never paint over the terminal's own
+# background (ghostty runs at 0.85 opacity; an opaque pane bg kills it).
+tmux set -g window-style "fg=default,bg=default"
+tmux set -g window-active-style "fg=default,bg=default"
+tmux setw -g window-status-separator "  "
+bell_name="#{?window_bell_flag,#[fg=${thm_red}]#[bold],}"
+tmux setw -g window-status-format \
+  "#[fg=${sl_dim}]◇ ${bell_name}#{?#{window_name},#{=/32/…:window_name},#{b:pane_current_path}}"
+tmux setw -g window-status-current-format \
+  "#[fg=${sl_accent},bold]◆ ${bell_name}#[bold,fg=${thm_fg}]#{?#{window_name},#{=/32/…:window_name},#{b:pane_current_path}}#{?window_zoomed_flag,#[fg=${thm_orange}]#[nobold]⊕,}#{?pane_synchronized,#[fg=${thm_red}]#[nobold]⇄,}"
 
-  if [[ "$direction" == "left" ]]; then
-    local result="#[bg=${bg_color},fg=${fg_color},bold] ${icon} ${text} "
-    if [[ "$separator_mode" != "no-end" && "$separator_mode" != "no-separators" ]]; then
-      result+="#[bg=default]#[fg=${bg_color}]${tm_separator_left}"
-    fi
-    result+="#[bg=default,fg=default]"
-    echo -e "$result"
-  else
-    local result=""
-    if [[ "$separator_mode" != "no-start" && "$separator_mode" != "no-separators" ]]; then
-      result+="#[bg=default]#[fg=${bg_color}]${tm_separator_right}"
-    fi
-    result+="#[bg=${bg_color}]#[fg=${fg_color}] ${icon} #[bold]${text} "
-    if [[ "$separator_mode" != "no-end" && "$separator_mode" != "no-separators" ]]; then
-      result+="#[bg=default]#[fg=${bg_color}]${tm_separator_left}"
-    fi
-    result+="#[bg=default,fg=default]"
-    echo -e "$result"
-  fi
-}
+# Left: the italic session name in its own color (hashed from the name
+# against the theme palette — every session carries an identity; switching
+# sessions changes the bar's mood), then a hairline before the window
+# list. fleet's glyph floods the cluster in fleet's colors only when an
+# agent in this session wants you. Holding prefix lights a yellow ^A.
+# NB: inside #{?...} branches, never put a comma inside a #[style] — tmux
+# splits branches on every comma and silently eats what follows.
+tmux set -g status-left "#{?client_prefix,#[fg=${thm_yellow}]#[bold]^^A #[nobold],}#($HOME/.config/tmux/../../bin/tmux-session-mood '#{session_name}')#[italics]#S#[noitalics,nobold,fg=${sl_muted}]│ "
 
-# Tunes component
-create_tunes_section() {
-  local tunes_result="$(current-song)"
-  if [[ -n "$tunes_result" ]]; then
-    echo -e "$(create_section "right" " " "${tunes_result}" "${thm_blue7}" "${thm_blue6}")"
-  fi
-}
-
-# Tunes component
-# tm_tunes_display="$(create_tunes_section)"
-tm_tunes_display="#(song=\$(current-song); if [[ -n \"\$song\" ]]; then echo \"#[bg=default]#[fg=${thm_blue7}]${tm_separator_right}#[bg=${thm_blue7}]#[fg=${thm_blue6}] ${tm_music_icon}  \$song #[bg=default]#[fg=${thm_blue7}]${tm_separator_left}#[bg=default,fg=default]\"; fi)"
-
-# Status line components
-session="$(create_section "left" "$tm_icon" "#S" "${thm_purple}" "${thm_bg}" "no-start")"
-tm_agent_display="#(fleet status --tmux #{session_name})"
-tm_git_status="$(create_section "right" "" "#(tmux-git-status '#{pane_current_path}')" "${thm_bg}" "${thm_fg}" "no-end")"
-
-# Status left and right - using the exact original syntax
-tmux set -g status-left "$session"
-tmux set -g status-right "${tm_agent_display}${tm_git_status}"
-
-# Window status formats — names capped at 32 cells so app-set titles
-# (Claude tasks, fleet status) can't flood the status bar
-tmux setw -g window-status-format "#[fg=${thm_black4}]#{?#{window_name},#{=/32/…:window_name},#{b:pane_current_path}}"
-tmux setw -g window-status-current-format "#[fg=${thm_magenta},bold]#{?#{window_name},#{=/32/…:window_name},#{b:pane_current_path}}"
+# Right: git — branch + status glyphs, self-styled by bin/tmux-git-status
+# against this same palette. Called through the ~/.config/tmux symlink
+# because #(...) inherits the tmux *server's* PATH, which can go stale
+# (run `tmux display -p '#{T;=/100:status-right}'` to see it live).
+tmux set -g status-right "#($HOME/.config/tmux/../../bin/tmux-git-status '#{pane_current_path}')"
 
 # Clock mode
 tmux setw -g clock-mode-colour "${thm_blue0}"

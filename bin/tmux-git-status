@@ -14,6 +14,22 @@ fi
 # Get branch name
 branch=$(git symbolic-ref --short HEAD 2>/dev/null || git describe --tags --exact-match 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)
 
+# Palette — read the active theme's @thm_* options (published by
+# config/tmux/theme/theme.tmux); fall back to a catppuccin-ish set when
+# run outside a themed tmux.
+OPTS=$(tmux show -g 2>/dev/null)
+thm() { printf '%s\n' "$OPTS" | sed -n "s/^$1 \"\(.*\)\"\$/\1/p" | head -n1; }
+pick() { local v o; for o in "${@:1:$#-1}"; do v=$(thm "$o"); [ -n "$v" ] && { printf '%s' "$v"; return; }; done; printf '%s' "${@: -1}"; }
+
+GREEN=$(pick @thm_green '#a6da95')
+YELLOW=$(pick @thm_yellow '#eed49f')
+RED=$(pick @thm_red '#ed8796')
+ORANGE=$(pick @thm_orange @thm_peach '#f5a97f')
+BLUE=$(pick @thm_blue '#8aadf4')
+CYAN=$(pick @thm_cyan @thm_sky '#91d7e3')
+PURPLE=$(pick @thm_magenta @thm_mauve '#c6a0f6')
+DIM=$(pick @thm_sl_dim @thm_fg_dark @thm_subtext_0 '#a5adcb')
+
 # Get git status indicators
 git_status=""
 INDEX=$(git --no-optional-locks status --porcelain -b 2>/dev/null)
@@ -31,51 +47,47 @@ GIT_DIVERGED='󰧈'
 GIT_CLEAN=''
 
 # Check for untracked files
-[[ $(echo "$INDEX" | grep -E '^\?\? ' 2>/dev/null) ]] && git_status="${git_status}#[fg=#fab387,bold]${GIT_UNTRACKED} #[fg=default,nobold]"
+[[ $(echo "$INDEX" | grep -E '^\?\? ' 2>/dev/null) ]] && git_status="${git_status}#[fg=${ORANGE},bold]${GIT_UNTRACKED} #[fg=default,nobold]"
 
 # Check for staged files
 if [[ $(echo "$INDEX" | grep '^A[ MDAU] ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^M[ MD] ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^UA' 2>/dev/null) ]]; then
-  git_status="${git_status}#[fg=#a6e3a1,bold]${GIT_ADDED} #[fg=default,nobold]"
+  git_status="${git_status}#[fg=${GREEN},bold]${GIT_ADDED} #[fg=default,nobold]"
 fi
 
 # Check for modified files
-[[ $(echo "$INDEX" | grep '^[ MARC ]M ' 2>/dev/null) ]] && git_status="${git_status}#[fg=#f9e2af,bold]${GIT_MODIFIED} #[fg=default,nobold]"
+[[ $(echo "$INDEX" | grep '^[ MARC ]M ' 2>/dev/null) ]] && git_status="${git_status}#[fg=${YELLOW},bold]${GIT_MODIFIED} #[fg=default,nobold]"
 
 # Check for renamed files
-[[ $(echo "$INDEX" | grep '^R[ MD] ' 2>/dev/null) ]] && git_status="${git_status}#[fg=#fab387,bold]${GIT_RENAMED} #[fg=default,nobold]"
+[[ $(echo "$INDEX" | grep '^R[ MD] ' 2>/dev/null) ]] && git_status="${git_status}#[fg=${ORANGE},bold]${GIT_RENAMED} #[fg=default,nobold]"
 
 # Check for deleted files
 if [[ $(echo "$INDEX" | grep '^[MARCDU ]D ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^D[ UM] ' 2>/dev/null) ]]; then
-  git_status="${git_status}#[fg=#f38ba8,bold]${GIT_DELETED} #[fg=default,nobold]"
+  git_status="${git_status}#[fg=${RED},bold]${GIT_DELETED} #[fg=default,nobold]"
 fi
 
 # Check for stashes
-[[ $(git rev-parse --verify refs/stash >/dev/null 2>&1) ]] && git_status="${git_status}#[fg=#cba6f7,bold]${GIT_STASHED} #[fg=default,nobold]"
+[[ -n $(git rev-parse --verify refs/stash 2>/dev/null) ]] && git_status="${git_status}#[fg=${PURPLE},bold]${GIT_STASHED} #[fg=default,nobold]"
 
 # Check for unmerged files
 if [[ $(echo "$INDEX" | grep '^U[UDA] ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^AA ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^DD ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^[DA]U ' 2>/dev/null) ]]; then
-  git_status="${git_status}#[fg=#f38ba8,bold]${GIT_UNMERGED} #[fg=default,nobold]"
+  git_status="${git_status}#[fg=${RED},bold]${GIT_UNMERGED} #[fg=default,nobold]"
 fi
 
 # Check if ahead/behind/diverged
-local is_ahead=false
-local is_behind=false
+is_ahead=false
+is_behind=false
 [[ $(echo "$INDEX" | grep '^## [^ ]\+ .*ahead' 2>/dev/null) ]] && is_ahead=true
 [[ $(echo "$INDEX" | grep '^## [^ ]\+ .*behind' 2>/dev/null) ]] && is_behind=true
 
 if [[ "$is_ahead" == true && "$is_behind" == true ]]; then
-  git_status="${git_status}#[fg=#89b4fa,bold]${GIT_DIVERGED} #[fg=default,nobold]"
+  git_status="${git_status}#[fg=${BLUE},bold]${GIT_DIVERGED} #[fg=default,nobold]"
 else
-  [[ "$is_ahead" == true ]] && git_status="${git_status}#[fg=#89b4fa,bold]${GIT_AHEAD} #[fg=default,nobold]"
-  [[ "$is_behind" == true ]] && git_status="${git_status}#[fg=#89dceb,bold]${GIT_BEHIND} #[fg=default,nobold]"
+  [[ "$is_ahead" == true ]] && git_status="${git_status}#[fg=${BLUE},bold]${GIT_AHEAD} #[fg=default,nobold]"
+  [[ "$is_behind" == true ]] && git_status="${git_status}#[fg=${CYAN},bold]${GIT_BEHIND} #[fg=default,nobold]"
 fi
 
 # If no status, show clean
-[[ -z "$git_status" ]] && git_status="#[fg=#a6e3a1,bold]${GIT_CLEAN} #[fg=default,nobold]"
+[[ -z "$git_status" ]] && git_status="#[fg=${GREEN},bold]${GIT_CLEAN} #[fg=default,nobold]"
 
-# Output format
-if [[ -n "$git_status" ]]; then
-  echo " $branch $git_status"
-else
-  echo " $branch"
-fi
+# Output: dim branch first, then the color-styled glyphs
+printf '#[fg=%s,nobold] %s %s#[fg=default,nobold]\n' "$DIM" "$branch" "$git_status"

@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Smart tmux window naming with worktree detection
 
+# Resolve nerdwin next to this script: tmux runs us via an absolute path,
+# but the server's PATH can be stale and wouldn't find nerdwin anyway.
+BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 COMMAND="$1"
 CURRENT_PATH="$2"
 PANE_TTY="$3"
@@ -25,7 +29,7 @@ if [ "$COMMAND" = "node" ] && [ -n "$PANE_TTY" ]; then
 fi
 
 # Get icon from nerdwin
-ICON=$(nerdwin "$COMMAND")
+ICON=$("$BIN_DIR/nerdwin" "$COMMAND")
 
 # Get smart directory name
 get_smart_name() {
