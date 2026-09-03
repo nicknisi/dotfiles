@@ -384,7 +384,7 @@ fi
 # nvim: always reload aether — we no longer use per-theme named colorschemes.
 find "${TMPDIR:-/tmp}" -maxdepth 4 -type s -name 'nvim.*.0' 2>/dev/null | while read -r sock; do
   nvim --server "$sock" --remote-expr "execute('lua if _G.apply_named_theme then _G.apply_named_theme() end')" 2>/dev/null || true
-done
+done || true  # find exits 1 on /tmp permission-denied dirs; pipefail + set -e would otherwise kill the script
 
 # tmux
 tmux has-session 2>/dev/null && tmux source-file "$HOME/.config/tmux/tmux.conf" || true
