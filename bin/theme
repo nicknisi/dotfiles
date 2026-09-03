@@ -417,10 +417,19 @@ APPLESCRIPT
       echo "wallpaper: $(basename "$WALL") (applies in a few seconds)" >&2
     fi
   elif command -v caelestia >/dev/null 2>&1; then
-    # caelestia repaints + feeds its dynamic scheme from the same image
-    caelestia wallpaper -f "$WALL" >/dev/null 2>&1 \
-      && echo "wallpaper: $(basename "$WALL") (via caelestia)" >&2 \
-      || echo "theme: caelestia wallpaper failed" >&2
+    # caelestia updates its state + recolors the shell from the image; the
+    # actual painting is hyprpaper's job: rewrite its conf and restart it.
+    # (hyprpaper 0.8 has no text IPC; conf file is the interface.)
+    if caelestia wallpaper -f "$WALL" >/dev/null 2>&1; then
+      mkdir -p "$HOME/.config/hypr"
+      conf_tmp="$(mktemp)"
+      printf 'splash = false\n\nwallpaper {\n    monitor = \n    path = %s\n    fit_mode = cover\n}\n' "$WALL" >"$conf_tmp"
+      mv "$conf_tmp" "$HOME/.config/hypr/hyprpaper.conf"
+      pkill hyprpaper 2>/dev/null || true
+      echo "wallpaper: $(basename "$WALL") (via caelestia + hyprpaper)" >&2
+    else
+      echo "theme: caelestia wallpaper failed" >&2
+    fi
   else
     echo "theme: no wallpaper setter on this system (caelestia/hyprpaper?)" >&2
   fi
