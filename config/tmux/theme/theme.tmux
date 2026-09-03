@@ -2,8 +2,8 @@
 # Tmux theme — follows the active desktop theme.
 #
 # Source priority:
-#   1. Omarchy (Linux): ~/.local/state/omarchy/current/theme/colors.toml —
-#      rewritten by `omarchy theme set`; the palette below is derived from it.
+#   1. Linux: ~/.local/state/theme/current/colors.toml — rewritten by
+#      bin/theme (this repo owns the state path now, not Omarchy).
 #   2. macOS: ~/.config/theme/current/tmux-{dark,light}.sh — hand-tuned
 #      scripts shipped in bin/theme packs.
 #   3. Checked-in fallback: colors/{dark,light}.sh.
@@ -38,7 +38,7 @@ stale=()
 while read -r key _; do stale+=(set-option -gqu "$key" \;); done < <(tmux show-options -g 2>/dev/null | grep '^@thm_')
 ((${#stale[@]})) && tmux "${stale[@]:0:${#stale[@]}-1}"
 
-OMARCHY_COLORS="$HOME/.local/state/omarchy/current/theme/colors.toml"
+OMARCHY_COLORS="$HOME/.local/state/theme/current/colors.toml"
 
 if [[ -f "$OMARCHY_COLORS" ]]; then
   # ── Omarchy: derive the palette from the active theme ────────────────────

@@ -9,10 +9,13 @@
 
 set -euo pipefail
 
-# Guard: this script is macOS-only (uses osascript, brew, pbcopy, etc.)
-if [[ "$(uname -s)" != "Darwin" ]]; then
-  echo "theme: this script is macOS-only. On Omarchy (Linux) use: omarchy theme set <name>" >&2
-  exit 1
+# Platform: macOS keeps the osascript/brew/pbcopy paths; Linux (the Omarchy
+# exit plan) writes the state files that config/ghostty and the tmux theme
+# loader read, sets the wallpaper via Caelestia, and skips mac-only targets.
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  IS_MAC=true
+else
+  IS_MAC=false
 fi
 
 SOURCE="${BASH_SOURCE[0]}"
@@ -39,8 +42,8 @@ usage:
                               colors.toml + backgrounds/, prints palette)
   theme -h, --help            this
 
-switches: ghostty, wezterm, nvim, tmux, sketchybar, borders, btop,
-          wallpaper, pi, claude code, starship, slack (clipboard)
+switches: ghostty, wezterm, nvim, tmux, btop, wallpaper (caelestia on Linux),
+          pi, claude code, starship; macOS adds sketchybar, borders, slack
 
 pi and claude apply on next launch; btop too; the ghostty dock icon
 needs an app restart; the wallpaper repaints a few seconds after.
@@ -303,10 +306,14 @@ fi
 # shellcheck disable=SC1091
 source "$THEME_DIR/theme.conf"
 
-if defaults read -g AppleInterfaceStyle >/dev/null 2>&1; then
-  MODE=dark
+if [[ "$IS_MAC" == true ]]; then
+  if defaults read -g AppleInterfaceStyle >/dev/null 2>&1; then
+    MODE=dark
+  else
+    MODE=light
+  fi
 else
-  MODE=light
+  MODE="${THEME_MODE:-dark}"
 fi
 
 # pick PI_/CLAUDE_ variant, falling back to dark when a theme has no light
@@ -326,6 +333,16 @@ ln -sfn "$THEME_DIR" "$STATE_DIR/current"
 mkdir -p "$HOME/.claude/themes" "$HOME/.pi/agent/themes"
 cp -n "$DOTFILES"/home/.claude/themes/*.json "$HOME/.claude/themes/" 2>/dev/null || true
 cp -n "$DOTFILES"/home/.pi/agent/themes/*.json "$HOME/.pi/agent/themes/" 2>/dev/null || true
+
+# linux: state copy for consumers that read it (tmux theme loader reads
+# colors.toml; ghostty includes ghostty.conf). Same contract Omarchy's
+# `omarchy theme` fulfilled, now owned by this repo.
+if [[ "$IS_MAC" != true ]]; then
+  STATE_LINUX="$HOME/.local/state/theme/current"
+  mkdir -p "$STATE_LINUX"
+  cp "$THEME_DIR/colors.toml" "$STATE_LINUX/colors.toml"
+  [ -f "$THEME_DIR/ghostty.conf" ] && cp "$THEME_DIR/ghostty.conf" "$STATE_LINUX/ghostty.conf"
+fi
 
 # packs own their JSONs (pi-dark.json, claude-light.json, ...): install the
 # active variant into the live dir under the name theme.conf points at
@@ -358,7 +375,9 @@ fi
 if [ -f "$THEME_DIR/btop.theme" ] && [ -f "$HOME/.config/btop/btop.conf" ]; then
   mkdir -p "$HOME/.config/btop/themes"
   cp "$THEME_DIR/btop.theme" "$HOME/.config/btop/themes/$NAME.theme"
-  sed -i '' "s|^color_theme = .*|color_theme = \"$HOME/.config/btop/themes/$NAME.theme\"|" "$HOME/.config/btop/btop.conf"
+  btop_tmp=$(mktemp)
+  sed "s|^color_theme = .*|color_theme = \"$HOME/.config/btop/themes/$NAME.theme\"|" \
+    "$HOME/.config/btop/btop.conf" >"$btop_tmp" && mv "$btop_tmp" "$HOME/.config/btop/btop.conf"
   pgrep -x btop >/dev/null 2>&1 && echo "theme: btop is running — quit and reopen it, it re-reads the theme at launch" >&2
 fi
 
@@ -386,15 +405,24 @@ if [ "${#BGS[@]}" -gt 0 ] && [ "$BG_INDEX" -gt "${#BGS[@]}" ]; then
 fi
 WALL="${BGS[$((BG_INDEX - 1))]:-}"
 if [ -n "$WALL" ]; then
-  # path stays an ARGUMENT, never spliced into script text
-  if ! osascript - "$WALL" >/dev/null 2>&1 <<'APPLESCRIPT'; then
+  if [[ "$IS_MAC" == true ]]; then
+    # path stays an ARGUMENT, never spliced into script text
+    if ! osascript - "$WALL" >/dev/null 2>&1 <<'APPLESCRIPT'; then
 on run argv
   tell application "System Events" to tell every desktop to set picture to (item 1 of argv)
 end run
 APPLESCRIPT
-    echo "theme: wallpaper failed (Automation permission for System Events?)" >&2
+      echo "theme: wallpaper failed (Automation permission for System Events?)" >&2
+    else
+      echo "wallpaper: $(basename "$WALL") (applies in a few seconds)" >&2
+    fi
+  elif command -v caelestia >/dev/null 2>&1; then
+    # caelestia repaints + feeds its dynamic scheme from the same image
+    caelestia wallpaper -f "$WALL" >/dev/null 2>&1 \
+      && echo "wallpaper: $(basename "$WALL") (via caelestia)" >&2 \
+      || echo "theme: caelestia wallpaper failed" >&2
   else
-    echo "wallpaper: $(basename "$WALL") (applies in a few seconds)" >&2
+    echo "theme: no wallpaper setter on this system (caelestia/hyprpaper?)" >&2
   fi
 fi
 
@@ -402,6 +430,7 @@ fi
 set_json_theme() { # file, value
   local file="$1" value="$2" tmp
   [ -f "$file" ] || return 0
+  command -v jq >/dev/null 2>&1 || { echo "theme: jq missing — $file theme not updated" >&2; return 0; }
   tmp="$(mktemp)"
   jq --arg t "$value" '.theme = $t' "$file" >"$tmp" && mv "$tmp" "$file"
 }
@@ -416,23 +445,23 @@ CLAUDE_THEME="$(pick "${CLAUDE_DARK:-}" "${CLAUDE_LIGHT:-}")"
 # (deleted packs drop out), then point at the active one. Re-read every
 # prompt, so no reload needed.
 if [ -f "$THEME_DIR/starship.palette" ]; then
-  stripped="$(mktemp)"; blocks="$(mktemp)"
+  stripped="$(mktemp)"; blocks="$(mktemp)"; stripped2="$(mktemp)"
   awk '/^\[palettes\./{skip=1; next} /^\[/{skip=0} !skip' "$DOTFILES/config/starship.toml" >"$stripped"
   for p in "$THEMES_DIR"/*/starship.palette; do
     [ -f "$p" ] || continue
     printf '\n[palettes.%s]\n' "$(basename "$(dirname "$p")")" >>"$blocks"
     cat "$p" >>"$blocks"
   done
-  sed -i '' -e "/^palette = /r $blocks" "$stripped"
-  sed -i '' "s/^palette = \".*\"/palette = \"$NAME\"/" "$stripped"
+  sed -e "/^palette = /r $blocks" "$stripped" >"$stripped2" && mv "$stripped2" "$stripped"
+  sed "s/^palette = \".*\"/palette = \"$NAME\"/" "$stripped" >"$stripped2" && mv "$stripped2" "$stripped"
   cmp -s "$stripped" "$DOTFILES/config/starship.toml" || mv "$stripped" "$DOTFILES/config/starship.toml"
-  rm -f "$stripped" "$blocks"
+  rm -f "$stripped" "$blocks" "$stripped2"
 else
   echo "theme: no starship.palette in $NAME — prompt colors stale" >&2
 fi
 
 # slack: no API for this — put the sidebar theme string on the clipboard
-if [ -f "$THEME_DIR/slack.txt" ]; then
+if [ -f "$THEME_DIR/slack.txt" ] && [[ "$IS_MAC" == true ]]; then
   pbcopy <"$THEME_DIR/slack.txt"
   echo "slack theme on clipboard — Slack > Settings > Appearance > Custom theme > Import, then paste" >&2
 fi

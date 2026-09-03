@@ -1,8 +1,8 @@
 # ── Theme ───────────────────────────────────────────────────────
 # macOS: bin/theme manages theme-current (symlinked to the active pack).
-# Omarchy (Linux): omarchy theme generates the current palette here.
+# Linux: bin/theme copies the active pack into ~/.local/state/theme/current.
 # The ? prefix makes both optional — missing files are silently ignored.
-config-file = ?"~/.local/state/omarchy/current/theme/ghostty.conf"
+config-file = ?"~/.local/state/theme/current/ghostty.conf"
 
 # Theme settings
 # theme = dark:catppuccin-macchiato,light:catppuccin-latte
