@@ -423,7 +423,7 @@ APPLESCRIPT
     if caelestia wallpaper -f "$WALL" >/dev/null 2>&1; then
       mkdir -p "$HOME/.config/hypr"
       conf_tmp="$(mktemp)"
-      printf 'splash = false\n\nwallpaper {\n    monitor = \n    path = %s\n    fit_mode = cover\n}\n' "$WALL" >"$conf_tmp"
+      printf 'splash = false\n\nwallpaper {\n    monitor = *\n    path = %s\n    fit_mode = cover\n}\n' "$WALL" >"$conf_tmp"
       mv "$conf_tmp" "$HOME/.config/hypr/hyprpaper.conf"
       pkill hyprpaper 2>/dev/null || true
       echo "wallpaper: $(basename "$WALL") (via caelestia + hyprpaper)" >&2
