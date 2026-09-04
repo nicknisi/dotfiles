@@ -1,93 +1,111 @@
 #!/usr/bin/env bash
-# Get git status for tmux status bar
+# tmux-git-status — the status line's git segment.
+#
+#    main                       clean
+#    main  ?2 󰧁1               untracked 2, deleted 1
+#    main merging  1 1        mid-merge with a conflict and an autostash
+#    feat/x  3 2 1           staged 3, modified 2, ahead of upstream by 1
+#
+# Branch first in dim, then a red word if the repo is mid-operation (merging,
+# rebasing, cherry-picking, reverting, bisecting), then one coloured glyph per
+# kind of change, each carrying its count so the row reads as numbers, not runes.
+#
+# Styled from the canonical palette theme.tmux publishes (@thm_sl_*), falling
+# back to raw @thm_* keys and then ANSI names so it renders on any theme.
+# Nerd-font glyphs are spelled as UTF-8 bytes: private-use characters don't
+# survive every editor/agent pipeline, and the comment names each one.
 
-# Get the current pane's working directory from argument
 pane_pwd="$1"
 [[ -z "$pane_pwd" ]] && exit 0
 cd "$pane_pwd" 2>/dev/null || exit 0
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
 
-# Check if we're in a git repo
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  exit 0
-fi
-
-# Get branch name
 branch=$(git symbolic-ref --short HEAD 2>/dev/null || git describe --tags --exact-match 2>/dev/null || git rev-parse --short HEAD 2>/dev/null)
 
-# Palette — read the active theme's @thm_* options (published by
-# config/tmux/theme/theme.tmux); fall back to a catppuccin-ish set when
-# run outside a themed tmux.
-OPTS=$(tmux show -g 2>/dev/null)
-thm() { printf '%s\n' "$OPTS" | sed -n "s/^$1 \"\(.*\)\"\$/\1/p" | head -n1; }
-pick() { local v o; for o in "${@:1:$#-1}"; do v=$(thm "$o"); [ -n "$v" ] && { printf '%s' "$v"; return; }; done; printf '%s' "${@: -1}"; }
+OPTS=$(tmux show-options -g 2>/dev/null)
+opt() { awk -v k="$1" '$1 == k { $1 = ""; sub(/^ "?/, ""); sub(/"$/, ""); print; exit }' <<<"$OPTS"; }
+pick() { # pick KEY... LITERAL → first non-empty @thm_KEY, else LITERAL
+  local v
+  while (($# > 1)); do
+    v=$(opt "@thm_$1")
+    [[ -n $v ]] && { printf '%s' "$v"; return; }
+    shift
+  done
+  printf '%s' "$1"
+}
 
-GREEN=$(pick @thm_green '#a6da95')
-YELLOW=$(pick @thm_yellow '#eed49f')
-RED=$(pick @thm_red '#ed8796')
-ORANGE=$(pick @thm_orange @thm_peach '#f5a97f')
-BLUE=$(pick @thm_blue '#8aadf4')
-CYAN=$(pick @thm_cyan @thm_sky '#91d7e3')
-PURPLE=$(pick @thm_magenta @thm_mauve '#c6a0f6')
-DIM=$(pick @thm_sl_dim @thm_fg_dark @thm_subtext_0 '#a5adcb')
+GREEN=$(pick sl_green green green)
+YELLOW=$(pick sl_yellow yellow yellow)
+RED=$(pick sl_red red red)
+ORANGE=$(pick sl_orange orange peach yellow)
+BLUE=$(pick sl_blue blue blue)
+CYAN=$(pick sl_cyan cyan sky cyan)
+PURPLE=$(pick sl_magenta magenta mauve magenta)
+DIM=$(pick sl_dim fg_dark subtext_0 colour245)
 
-# Get git status indicators
+GIT_BRANCH=$'\xee\x82\xa0'       # U+E0A0  nf-pl-branch
+GIT_STAGED=$'\xee\xab\x9c'       # U+EADC  nf-cod-diff_added
+GIT_MODIFIED=$'\xef\x91\x80'     # U+F440  nf-oct-diff
+GIT_UNTRACKED=$'\xef\x84\xa8'    # U+F128  nf-fa-question
+GIT_RENAMED=$'\xee\xab\xa0'      # U+EAE0  nf-cod-diff_renamed
+GIT_DELETED=$'\xf3\xb0\xae\x89'  # U+F0B89 nf-md-delete_forever_outline
+GIT_STASHED=$'\xee\xb0\xa6'      # U+EC26  nf-cod-git_stash
+GIT_CONFLICT=$'\xef\x90\x99'     # U+F419  nf-oct-git_merge
+GIT_AHEAD=$'\xef\x81\xa2'        # U+F062  nf-fa-arrow_up
+GIT_BEHIND=$'\xef\x81\xa3'       # U+F063  nf-fa-arrow_down
+GIT_DIVERGED=$'\xf3\xb0\xa7\x88' # U+F09C8 nf-md-arrow_up_down_bold_outline
+GIT_CLEAN=$'\xef\x85\x8a'        # U+F14A  nf-fa-check_square
+
+# What is the repo in the middle of? git keeps a marker file per operation.
+gitdir=$(git rev-parse --git-dir 2>/dev/null)
+state=""
+if [[ -d $gitdir/rebase-merge || -d $gitdir/rebase-apply ]]; then
+  state="rebasing"
+  # HEAD is detached mid-rebase; git remembers the branch being rebased here.
+  for f in "$gitdir/rebase-merge/head-name" "$gitdir/rebase-apply/head-name"; do
+    [[ -f $f ]] && branch=$(sed 's#^refs/heads/##' "$f") && break
+  done
+elif [[ -f $gitdir/MERGE_HEAD ]]; then state="merging"
+elif [[ -f $gitdir/CHERRY_PICK_HEAD ]]; then state="cherry-picking"
+elif [[ -f $gitdir/REVERT_HEAD ]]; then state="reverting"
+elif [[ -f $gitdir/BISECT_LOG ]]; then state="bisecting"
+fi
+
+INDEX=$(git --no-optional-locks status --porcelain 2>/dev/null)
+count() { grep -cE "$1" <<<"$INDEX"; }
+
+mark() { # COLOUR GLYPH COUNT → nothing when COUNT is 0, else one styled glyph+count
+  (($3 == 0)) && return
+  printf '#[fg=%s,bold]%s%s #[fg=default,nobold]' "$1" "$2" "$3"
+}
+
 git_status=""
-INDEX=$(git --no-optional-locks status --porcelain -b 2>/dev/null)
+git_status+=$(mark "$RED" "$GIT_CONFLICT" "$(count '^(U[UDA]|AA|DD|[DA]U) ')")
+git_status+=$(mark "$GREEN" "$GIT_STAGED" "$(count '^(A[ MD]|M[ MD]|R[ MD]|C[ MD]) ')")
+git_status+=$(mark "$YELLOW" "$GIT_MODIFIED" "$(count '^[ MARC]M ')")
+git_status+=$(mark "$ORANGE" "$GIT_RENAMED" "$(count '^R[ MD] ')")
+git_status+=$(mark "$RED" "$GIT_DELETED" "$(count '^([MARC ]D|D[ M]) ')")
+git_status+=$(mark "$ORANGE" "$GIT_UNTRACKED" "$(count '^\?\? ')")
+stashes=$(git rev-list --walk-reflogs --count refs/stash 2>/dev/null || echo 0)
+git_status+=$(mark "$PURPLE" "$GIT_STASHED" "${stashes:-0}")
 
-GIT_ADDED=''
-GIT_MODIFIED=''
-GIT_UNTRACKED=''
-GIT_RENAMED=''
-GIT_DELETED='󰮉'
-GIT_STASHED=''
-GIT_UNMERGED='󰧁'
-GIT_AHEAD=''
-GIT_BEHIND=''
-GIT_DIVERGED='󰧈'
-GIT_CLEAN=''
-
-# Check for untracked files
-[[ $(echo "$INDEX" | grep -E '^\?\? ' 2>/dev/null) ]] && git_status="${git_status}#[fg=${ORANGE},bold]${GIT_UNTRACKED} #[fg=default,nobold]"
-
-# Check for staged files
-if [[ $(echo "$INDEX" | grep '^A[ MDAU] ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^M[ MD] ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^UA' 2>/dev/null) ]]; then
-  git_status="${git_status}#[fg=${GREEN},bold]${GIT_ADDED} #[fg=default,nobold]"
+# Ahead/behind carry their counts: left of ... is HEAD (ahead), right is the
+# upstream (behind). Diverged shows both as ahead:behind.
+ahead=0 behind=0
+if counts=$(git rev-list --left-right --count 'HEAD...@{upstream}' 2>/dev/null); then
+  read -r ahead behind <<<"$counts"
+fi
+if ((ahead > 0 && behind > 0)); then
+  git_status+=$(printf '#[fg=%s,bold]%s%s:%s #[fg=default,nobold]' "$BLUE" "$GIT_DIVERGED" "$ahead" "$behind")
+elif ((ahead > 0)); then
+  git_status+=$(mark "$BLUE" "$GIT_AHEAD" "$ahead")
+elif ((behind > 0)); then
+  git_status+=$(mark "$CYAN" "$GIT_BEHIND" "$behind")
 fi
 
-# Check for modified files
-[[ $(echo "$INDEX" | grep '^[ MARC ]M ' 2>/dev/null) ]] && git_status="${git_status}#[fg=${YELLOW},bold]${GIT_MODIFIED} #[fg=default,nobold]"
+[[ -z "$git_status" && -z "$state" ]] && git_status=$(printf '#[fg=%s]%s#[fg=default]' "$GREEN" "$GIT_CLEAN")
+[[ -n "$state" ]] && state=" #[fg=${RED},bold]${state}#[fg=default,nobold]"
 
-# Check for renamed files
-[[ $(echo "$INDEX" | grep '^R[ MD] ' 2>/dev/null) ]] && git_status="${git_status}#[fg=${ORANGE},bold]${GIT_RENAMED} #[fg=default,nobold]"
-
-# Check for deleted files
-if [[ $(echo "$INDEX" | grep '^[MARCDU ]D ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^D[ UM] ' 2>/dev/null) ]]; then
-  git_status="${git_status}#[fg=${RED},bold]${GIT_DELETED} #[fg=default,nobold]"
-fi
-
-# Check for stashes
-[[ -n $(git rev-parse --verify refs/stash 2>/dev/null) ]] && git_status="${git_status}#[fg=${PURPLE},bold]${GIT_STASHED} #[fg=default,nobold]"
-
-# Check for unmerged files
-if [[ $(echo "$INDEX" | grep '^U[UDA] ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^AA ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^DD ' 2>/dev/null) ]] || [[ $(echo "$INDEX" | grep '^[DA]U ' 2>/dev/null) ]]; then
-  git_status="${git_status}#[fg=${RED},bold]${GIT_UNMERGED} #[fg=default,nobold]"
-fi
-
-# Check if ahead/behind/diverged
-is_ahead=false
-is_behind=false
-[[ $(echo "$INDEX" | grep '^## [^ ]\+ .*ahead' 2>/dev/null) ]] && is_ahead=true
-[[ $(echo "$INDEX" | grep '^## [^ ]\+ .*behind' 2>/dev/null) ]] && is_behind=true
-
-if [[ "$is_ahead" == true && "$is_behind" == true ]]; then
-  git_status="${git_status}#[fg=${BLUE},bold]${GIT_DIVERGED} #[fg=default,nobold]"
-else
-  [[ "$is_ahead" == true ]] && git_status="${git_status}#[fg=${BLUE},bold]${GIT_AHEAD} #[fg=default,nobold]"
-  [[ "$is_behind" == true ]] && git_status="${git_status}#[fg=${CYAN},bold]${GIT_BEHIND} #[fg=default,nobold]"
-fi
-
-# If no status, show clean
-[[ -z "$git_status" ]] && git_status="#[fg=${GREEN},bold]${GIT_CLEAN} #[fg=default,nobold]"
-
-# Output: dim branch first, then the color-styled glyphs
-printf '#[fg=%s,nobold] %s %s#[fg=default,nobold]\n' "$DIM" "$branch" "$git_status"
+# dim branch first, the operation word, then the coloured counts
+out=$(printf '#[fg=%s,nobold]%s %s%s  %s' "$DIM" "$GIT_BRANCH" "$branch" "$state" "$git_status")
+printf '%s' "${out% }" # marks end in a space; drop the last so callers control the gap

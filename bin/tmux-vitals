@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# tmux-vitals — small machine facts for the status line.
+#
+#   tmux-vitals music  →  󰎇 Timecop1983 – Tonight      what's playing, only while it plays
+#   tmux-vitals moon   →  󰽧                           tonight's moon, the cheat sheet's signature
+#   tmux-vitals load   →  󰾆 23%                      load / cores as a gauge (not mounted)
+#
+# Music comes from nowplaying-cli on macOS and playerctl on Linux; a paused
+# player shows nothing. The moon is the nearest of eight phases counted from
+# the 2000-01-06 new moon by the synodic month; a full moon glows. Load is the
+# 1-minute average divided by the CPU count (100% = one runnable process per
+# core), needle and colour stepping at 50% and 100%; kept for anyone who wants
+# it, but theme.tmux no longer mounts it.
+#
+# Nerd-font glyphs are spelled as UTF-8 bytes so they survive every pipeline.
+
+OPTS=$(tmux show-options -g 2>/dev/null)
+opt() { awk -v k="$1" '$1 == k { $1 = ""; sub(/^ "?/, ""); sub(/"$/, ""); print; exit }' <<<"$OPTS"; }
+pick() { # pick KEY... LITERAL → first non-empty @thm_sl_KEY, else LITERAL
+  local v
+  while (($# > 1)); do
+    v=$(opt "@thm_sl_$1")
+    [[ -n $v ]] && { printf '%s' "$v"; return; }
+    shift
+  done
+  printf '%s' "$1"
+}
+MUTED=$(pick muted brightblack)
+GREEN=$(pick green green)
+YELLOW=$(pick yellow yellow)
+RED=$(pick red red)
+DIM=$(pick dim colour245)
+ACCENT=$(pick accent magenta)
+
+load() {
+  local load ncpu pct tone needle
+  if [[ -r /proc/loadavg ]]; then
+    load=$(awk '{ print $1 }' /proc/loadavg)
+    ncpu=$(nproc 2>/dev/null)
+  else
+    load=$(sysctl -n vm.loadavg 2>/dev/null | awk '{ print $2 }')
+    ncpu=$(sysctl -n hw.ncpu 2>/dev/null)
+  fi
+  pct=$(awk -v l="${load:-0}" -v n="${ncpu:-1}" 'BEGIN { printf "%d", (l / n) * 100 }')
+  if ((pct < 50)); then
+    tone=$GREEN needle=$'\xf3\xb0\xbe\x86' # U+F0F86 nf-md-speedometer_slow
+  elif ((pct < 100)); then
+    tone=$YELLOW needle=$'\xf3\xb0\xbe\x85' # U+F0F85 nf-md-speedometer_medium
+  else
+    tone=$RED needle=$'\xf3\xb0\x93\x85' # U+F04C5 nf-md-speedometer
+  fi
+  printf '#[fg=%s]%s #[fg=%s]%s%%#[fg=default]' "$tone" "$needle" "$MUTED" "$pct"
+}
+
+music() {
+  local title artist state text
+  if command -v nowplaying-cli >/dev/null 2>&1; then
+    { read -r title; read -r artist; read -r state; } < <(nowplaying-cli get title artist playbackRate 2>/dev/null)
+    [[ $state == 1 ]] || return 0
+  elif command -v playerctl >/dev/null 2>&1; then
+    { read -r state; read -r title; read -r artist; } < <(playerctl metadata --format $'{{status}}\n{{title}}\n{{artist}}' 2>/dev/null)
+    [[ $state == Playing ]] || return 0
+  else
+    return 0
+  fi
+  [[ -n $title && $title != null ]] || return 0
+  text=$title
+  [[ -n $artist && $artist != null ]] && text="$artist – $title"
+  ((${#text} > 44)) && text="${text:0:43}…"
+  text=${text//#/##} # a literal # must be doubled for tmux
+  printf '#[fg=%s]%s #[fg=%s,italics]%s#[noitalics,fg=default]   ' "$ACCENT" $'\xf3\xb0\x8e\x87' "$DIM" "$text" # U+F0387 nf-md-music_note
+}
+
+moon() {
+  local ref=947182440 syn=2551443 age phase style # 2000-01-06 18:14 UTC new moon; synodic month in seconds
+  age=$((($(date +%s) - ref) % syn))
+  phase=$((((age * 8 + syn / 2) / syn) % 8))
+  local moons=(
+    $'\xf3\xb0\xbd\xa4' # U+F0F64 nf-md-moon_new
+    $'\xf3\xb0\xbd\xa7' # U+F0F67 nf-md-moon_waxing_crescent
+    $'\xf3\xb0\xbd\xa1' # U+F0F61 nf-md-moon_first_quarter
+    $'\xf3\xb0\xbd\xa8' # U+F0F68 nf-md-moon_waxing_gibbous
+    $'\xf3\xb0\xbd\xa2' # U+F0F62 nf-md-moon_full
+    $'\xf3\xb0\xbd\xa6' # U+F0F66 nf-md-moon_waning_gibbous
+    $'\xf3\xb0\xbd\xa3' # U+F0F63 nf-md-moon_last_quarter
+    $'\xf3\xb0\xbd\xa5' # U+F0F65 nf-md-moon_waning_crescent
+  )
+  if ((phase == 4)); then style="#[fg=${YELLOW},bold]"; else style="#[fg=${MUTED}]"; fi
+  printf '%s%s#[fg=default,nobold]' "$style" "${moons[phase]}"
+}
+
+case "${1:-music}" in
+  load) load ;;
+  music) music ;;
+  moon) moon ;;
+  *) echo "usage: tmux-vitals load|music|moon" >&2; exit 2 ;;
+esac

@@ -61,7 +61,19 @@ get_icon() {
   rustc | rustup)
     echo ""
     ;;
-  Python)
+  codex | aider | gemini | amp | goose)
+    echo $'\xf3\xb0\x9a\xa9' # U+F06A9 nf-md-robot
+    ;;
+  opencode)
+    echo $'\xf3\xb1\x9c\x99' # U+F1719 nf-md-robot_happy
+    ;;
+  bun | deno)
+    echo $'\xf3\xb0\x8e\x99' # U+F0399 nf-md-nodejs (same family as node)
+    ;;
+  docker | docker-compose | lazydocker)
+    echo $'\xf3\xb0\xa1\xa8' # U+F0868 nf-md-docker
+    ;;
+  Python | python | python3)
     echo ""
     ;;
   *)

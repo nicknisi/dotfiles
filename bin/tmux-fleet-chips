@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# tmux-fleet-chips — fleet's clickable agent chips, tidied for a one-row bar.
+#
+# `fleet status --statusline` renders one chip per agent that wants a look
+# (⚠ waiting, ? asking, ● ready), each wrapped in a #[range=user|%pane] so a
+# click jumps there (tmux.conf's MouseDown1Status binding hands those ranges to
+# `fleet switch`), plus the ☰ sidebar toggle and a ✕ clear chip. Running it also
+# paints @fleet_state on every window (the rollup theme.tmux reads), so this is
+# what keeps the window digits and session pills coloured — it has to run even
+# when there is nothing to show. Fleet separates chips with │; the bar has no
+# pipes, so they become gaps.
+out=$(fleet status --statusline 2>/dev/null) || exit 0
+out=${out//│/ }
+printf '%s' "$out"

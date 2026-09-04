@@ -1,52 +1,81 @@
 #!/usr/bin/env bash
-# Smart tmux window naming with worktree detection
+# tmux-smart-name — name a window after what matters in it.
+#
+#   tmux-smart-name <pane_current_command> <pane_current_path> <pane_tty> [<window_id>]
+#
+# tmux hands us the *active* pane, but a window's identity is the most
+# interesting thing running anywhere in it: with a window id we look at every
+# pane and rank them — agents (claude, pi, codex, opencode) beat editors beat
+# TUIs beat plain commands beat shells, and fleet's sidebar ranks below
+# everything so opening it never renames the window. The icon is the winner's
+# (bin/nerdwin), the name is the winner's project: the git toplevel of its cwd
+# (so a shell parked in a subdirectory doesn't rename the window), with
+# worktrees shown as "project (branch)" and $HOME as "~". Focus changes no
+# longer flip the name; only the mix of what's running does.
+#
+# Without a window id (old callers, or list-panes failing) it names from the
+# one pane it was given, exactly as before.
 
 # Resolve nerdwin next to this script: tmux runs us via an absolute path,
 # but the server's PATH can be stale and wouldn't find nerdwin anyway.
-BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# -P matters: tmux.conf calls us as ~/.config/tmux/../../bin/tmux-smart-name,
+# and a logical cd collapses that to ~/bin before following the symlink —
+# nerdwin vanishes and every window gets an empty icon.
+BIN_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
-COMMAND="$1"
-CURRENT_PATH="$2"
-PANE_TTY="$3"
+ACTIVE_CMD="$1"
+ACTIVE_PATH="$2"
+ACTIVE_TTY="$3"
+WINDOW_ID="$4"
 
-# Claude sets its process title to its version number (e.g. 2.1.197 or
-# 2_1_197 depending on version), map it back to "claude"
-if [[ "$COMMAND" =~ ^[0-9]+[._][0-9]+[._][0-9]+$ ]]; then
-  COMMAND="claude"
-fi
+export GIT_OPTIONAL_LOCKS=0
 
-# pi ships as a node shim, so tmux reports pane_current_command as "node".
-# pi sets its own process title to "pi" (Node's process.title), which
-# `ps -t <tty> -o comm=` exposes. Use that to tell pi apart from any other
-# node process so it gets a proper icon below instead of the generic node
-# glyph. Degrades gracefully: no tty / ps failure / non-pi node -> falls
-# through to the node path.
-if [ "$COMMAND" = "node" ] && [ -n "$PANE_TTY" ]; then
-  TTY_BASE=${PANE_TTY#/dev/}
-  if [ -n "$TTY_BASE" ] && ps -t "$TTY_BASE" -o comm= 2>/dev/null | grep -qx pi; then
-    COMMAND="pi"
+# What a pane is really running. Claude Code titles its process with its
+# version (2.1.197 or 2_1_197); pi ships as a node shim and only stands out via
+# the process title on its tty (`ps -t <tty> -o comm=`). Degrades gracefully:
+# no tty / ps failure / other node -> stays "node".
+resolve_cmd() { # CMD TTY → canonical command
+  local cmd=$1 tty=${2#/dev/}
+  if [[ $cmd =~ ^[0-9]+[._][0-9]+[._][0-9]+$ ]]; then
+    cmd=claude
+  elif [[ $cmd == node && -n $tty ]] && ps -t "$tty" -o comm= 2>/dev/null | grep -qx pi; then
+    cmd=pi
   fi
-fi
+  printf '%s' "$cmd"
+}
 
-# Get icon from nerdwin
-ICON=$("$BIN_DIR/nerdwin" "$COMMAND")
+rank_of() { # command → how much it deserves to name the window
+  case $1 in
+    claude | pi | codex | opencode | aider | gemini | amp | goose) echo 90 ;;
+    nvim | vim | vi | lvim | hx | helix | emacs | nano) echo 70 ;;
+    lazygit | tig | htop | btop | top | yazi | lf | lfcd | ranger | k9s | lazydocker) echo 50 ;;
+    zsh | bash | fish | sh | tcsh | nu) echo 10 ;;
+    fleet) echo 5 ;; # the sidebar never names the window
+    *) echo 40 ;;    # an unknown command still beats a bare shell
+  esac
+}
 
-# Get smart directory name
-get_smart_name() {
-  local path="$1"
-  local dir_name=$(basename "$path")
+smart_name() { # PATH → project name
+  local path=$1 root dir_name parent_dir parent_name grandparent_dir branch project
+  [[ -n $path ]] || return 0
+  [[ $path == "$HOME" ]] && { echo "~"; return; }
 
-  # Check if we're in a git worktree (where .git is a file, not a directory)
-  if [ -f "$path/.git" ]; then
-    local parent_dir=$(dirname "$path")
-    local parent_name=$(basename "$parent_dir")
-    local branch=$(cd "$path" && git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  # Inside a repo, name the repo, not whatever subdirectory a pane sits in.
+  root=$(git -C "$path" rev-parse --show-toplevel 2>/dev/null)
+  [[ -n $root ]] && path=$root
+  dir_name=$(basename "$path")
 
-    # claude --work-tree pattern: <project>/.claude/worktrees/<worktree>
-    local grandparent_dir=$(dirname "$parent_dir")
-    if [ "$parent_name" = "worktrees" ] && [ "$(basename "$grandparent_dir")" = ".claude" ]; then
-      local project=$(basename "$(dirname "$grandparent_dir")")
-      if [ -n "$branch" ] && [ "$branch" != "HEAD" ]; then
+  # A worktree keeps a .git *file*; show it as "project (branch)".
+  if [[ -f "$path/.git" ]]; then
+    parent_dir=$(dirname "$path")
+    parent_name=$(basename "$parent_dir")
+    branch=$(git -C "$path" rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+    # claude --worktree pattern: <project>/.claude/worktrees/<worktree>
+    grandparent_dir=$(dirname "$parent_dir")
+    if [[ $parent_name == worktrees && $(basename "$grandparent_dir") == .claude ]]; then
+      project=$(basename "$(dirname "$grandparent_dir")")
+      if [[ -n $branch && $branch != HEAD ]]; then
         echo "$project ($branch)"
       else
         echo "$project ($dir_name)"
@@ -55,20 +84,44 @@ get_smart_name() {
     fi
 
     # Bare-repo worktree pattern: <project>/.bare + <project>/<worktree>
-    if [ -d "$parent_dir/.bare" ]; then
-      local project=$(basename "$parent_dir")
-      if [ -n "$branch" ]; then
-        echo "$project ($branch)"
-        return
-      fi
+    if [[ -d "$parent_dir/.bare" && -n $branch ]]; then
+      echo "$parent_name ($branch)"
+      return
     fi
   fi
 
-  # Default: just show directory name
   echo "$dir_name"
 }
 
-NAME=$(get_smart_name "$CURRENT_PATH")
+# Pick the pane that names the window: highest rank wins, the active pane wins
+# ties (it is listed first), then pane order.
+best_cmd="" best_path="" best_rank=-1
+consider() { # CMD PATH TTY
+  local cmd rank
+  cmd=$(resolve_cmd "$1" "$3")
+  rank=$(rank_of "$cmd")
+  if ((rank > best_rank)); then
+    best_rank=$rank
+    best_cmd=$cmd
+    best_path=$2
+  fi
+}
 
-# Output icon and name
+panes=""
+[[ -n $WINDOW_ID ]] && panes=$(tmux list-panes -t "$WINDOW_ID" -F $'#{pane_active}\t#{pane_current_command}\t#{pane_current_path}\t#{pane_tty}' 2>/dev/null)
+if [[ -n $panes ]]; then
+  while IFS=$'\t' read -r active cmd path tty; do
+    [[ $active == 1 ]] && consider "$cmd" "$path" "$tty"
+  done <<<"$panes"
+  while IFS=$'\t' read -r active cmd path tty; do
+    [[ $active == 1 ]] || consider "$cmd" "$path" "$tty"
+  done <<<"$panes"
+else
+  consider "$ACTIVE_CMD" "$ACTIVE_PATH" "$ACTIVE_TTY"
+fi
+
+ICON=$("$BIN_DIR/nerdwin" "$best_cmd" 2>/dev/null)
+[[ -n $ICON ]] || ICON=$'\xf3\xb0\x86\x8d' # U+F018D nf-md-console, if nerdwin is missing
+NAME=$(smart_name "$best_path")
+
 echo "$ICON $NAME"

@@ -1,20 +1,127 @@
 #!/usr/bin/env bash
-# tmux-session-mood — status-left's session prefix (see theme.tmux).
-# When an agent in this session wants you, relay fleet's attention fragment
-# (◉ ⚠ ? ● — fleet colors flood the session cluster). Otherwise the session
-# wears its own color: a stable pick from the theme's palette, hashed from
-# the session name, so every session has an identity you can spot at a
-# glance and switching sessions changes the bar's mood.
-out="$(fleet status --tmux "$1" 2>/dev/null)"
-[[ -n "$out" ]] && { printf '%s' "$out"; exit 0; }
+# tmux-session-mood — session pills for the status line (see theme.tmux).
+#
+#   tmux-session-mood pill   <session> [shared]   status-left  →   ✦ alto ⧉    filled pill, session colour
+#   tmux-session-mood others <client_session>     status-right →   ❖ alto   ✹ coherence   two-tone mini pills, clickable
+#   tmux-session-mood crest  <session>            scripts      →  "#[fg=…]✦ "
+#
+# Every session wears a crest: a sigil and a colour hashed from its name against
+# the theme palette (@thm_sl_* published by theme.tmux), so each one has an
+# identity you can spot at a glance and switching sessions changes the bar's
+# mood. Attention beats identity: when fleet's window rollup (@fleet_state, set
+# per window by `fleet status --statusline`) says an agent in a session wants
+# you, the pill takes fleet's colour and glyph — ⚠ waiting (yellow), ? asking
+# (magenta), ● ready (green). With the rollup off, the current session falls
+# back to `fleet status --tmux`, fleet's own (slower) relay.
+#
+# Pills are drawn with the half-circle glyphs from the nerd-font powerline-extra
+# block, spelled as bytes because private-use characters don't survive every
+# editor. #() output is spliced after tmux splits #{?} branches, so the commas
+# in #[fg=…,bg=…] here are safe.
 
-opts=$(tmux show -g 2>/dev/null)
+cmd=${1:-pill}
+target=${2:-}
+
+OPTS=$(tmux show-options -g 2>/dev/null)
+opt() { awk -v k="$1" '$1 == k { $1 = ""; sub(/^ "?/, ""); sub(/"$/, ""); print; exit }' <<<"$OPTS"; }
+
 palette=()
-for v in cyan orange green magenta blue yellow; do
-  c=$(awk -v o="@thm_$v" '$1 == o { gsub(/"/, "", $2); print $2; exit }' <<<"$opts")
-  [[ -n "$c" ]] && palette+=("$c")
+for k in cyan orange green magenta blue yellow teal pink lavender purple; do
+  c=$(opt "@thm_sl_$k")
+  [[ -n $c ]] && palette+=("$c")
 done
-((${#palette[@]})) || exit 0
+((${#palette[@]})) || palette=(cyan yellow green magenta blue)
+dim=$(opt @thm_sl_dim)         dim=${dim:-colour245}
+ink=$(opt @thm_sl_ink)         ink=${ink:-black}
+surface=$(opt @thm_sl_surface) surface=${surface:-colour236}
 
-h=$(cksum <<<"$1" | cut -d' ' -f1)
-printf '#[fg=%s]' "${palette[$(( h % ${#palette[@]} ))]}"
+CAP_L=$'\xee\x82\xb6' # U+E0B6 nf-ple-left_half_circle_thick
+CAP_R=$'\xee\x82\xb4' # U+E0B4 nf-ple-right_half_circle_thick
+
+# Dingbats block only (U+2700–27BF): one cell wide in every font tmux meets.
+sigils=(✦ ❖ ✧ ✱ ✶ ✹ ❋ ❂ ✺ ✤ ❉ ✿)
+
+crest_parts() { # NAME → "COLOUR<TAB>SIGIL" — stable per name; colour and sigil hashed apart
+  local hc hs
+  hc=$(cksum <<<"$1" | cut -d' ' -f1)
+  hs=$(cksum <<<"sigil:$1" | cut -d' ' -f1)
+  printf '%s\t%s' "${palette[hc % ${#palette[@]}]}" "${sigils[hs % ${#sigils[@]}]}"
+}
+
+# fleet's rollup: one tmux call gives every window's attention colour.
+rollup=$(opt @fleet_rollup)
+STATES=""
+[[ $rollup == 1 ]] && STATES=$(tmux list-windows -a -F $'#{session_name}\t#{@fleet_state}' 2>/dev/null)
+
+rank() { case $1 in yellow) echo 3 ;; magenta) echo 2 ;; green) echo 1 ;; '') echo 0 ;; *) echo 1 ;; esac; }
+attention_parts() { # SESSION → "COLOUR<TAB>GLYPH" for its most urgent window, or nothing
+  local best=0 colour="" s c r glyph
+  if [[ $rollup == 1 ]]; then
+    while IFS=$'\t' read -r s c; do
+      [[ $s == "$1" && -n $c ]] || continue
+      r=$(rank "$c")
+      ((r > best)) && { best=$r; colour=$c; }
+    done <<<"$STATES"
+    [[ -n $colour ]] || return 0
+    case $colour in yellow) glyph='⚠' ;; magenta) glyph='?' ;; *) glyph='●' ;; esac
+  elif [[ $2 == current ]]; then
+    # fleet emits "#[fg=yellow] ⚠ " for the session it was asked about
+    local frag
+    frag=$(fleet status --tmux "$1" 2>/dev/null)
+    colour=$(sed -n 's/.*fg=\([^],]*\).*/\1/p' <<<"$frag")
+    glyph=$(sed 's/#\[[^]]*\]//g; s/ //g' <<<"$frag")
+    [[ -n $colour && -n $glyph ]] || return 0
+  else
+    return 0
+  fi
+  printf '%s\t%s' "$colour" "$glyph"
+}
+
+identity() { # SESSION [current] → "COLOUR<TAB>GLYPH<TAB>attn|crest"
+  local p
+  if p=$(attention_parts "$1" "${2:-}") && [[ -n $p ]]; then
+    printf '%s\tattn' "$p"
+  else
+    printf '%s\tcrest' "$(crest_parts "$1")"
+  fi
+}
+
+case $cmd in
+  crest)
+    IFS=$'\t' read -r colour glyph _ <<<"$(identity "$target" current)"
+    printf '#[fg=%s]%s ' "$colour" "$glyph"
+    ;;
+  pill)
+    IFS=$'\t' read -r colour glyph _ <<<"$(identity "$target" current)"
+    label=${target//#/##} # a literal # in a name must be doubled for tmux
+    shared=""
+    [[ ${3:-0} == 1 ]] && shared=" ⧉"
+    printf '#[fg=%s,bg=default]%s#[fg=%s,bg=%s,bold] %s %s%s #[fg=%s,bg=default]%s#[default]' \
+      "$colour" "$CAP_L" "$ink" "$colour" "$glyph" "$label" "$shared" "$colour" "$CAP_R"
+    ;;
+  others)
+    out="" n=0 shown=0 max=5
+    while IFS= read -r s; do
+      [[ -n $s && $s != "$target" ]] || continue
+      n=$((n + 1))
+      ((shown >= max)) && continue
+      shown=$((shown + 1))
+      label=${s//#/##}
+      IFS=$'\t' read -r colour glyph kind <<<"$(identity "$s")"
+      if [[ $kind == attn ]]; then
+        name_style="#[fg=${colour},bg=${surface},bold]"
+      else
+        name_style="#[fg=${dim},bg=${surface}]"
+      fi
+      # coloured cap + sigil block, then the name on a surface block. The range
+      # makes the pill a click target: tmux.conf's MouseDown1Status binding
+      # switches to any range named sess-<session>. (A colon in the prefix
+      # would break tmux's s/// modifier that strips it.)
+      out+=$(printf '#[range=user|sess-%s]#[fg=%s,bg=default]%s#[fg=%s,bg=%s]%s %s %s #[fg=%s,bg=default]%s#[default]#[norange]' \
+        "$s" "$colour" "$CAP_L" "$ink" "$colour" "$glyph" "$name_style" "$label" "$surface" "$CAP_R")
+      out+="  "
+    done < <(tmux list-sessions -F '#{session_name}' 2>/dev/null)
+    ((n > max)) && out+="#[fg=${dim}]+$((n - max))  "
+    [[ -n $out ]] && printf '%s' "$out"
+    ;;
+esac
