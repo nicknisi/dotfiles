@@ -212,8 +212,11 @@ run = """
 """
 
 [tasks."update:system"]
-description = "Update Homebrew packages."
-run = "brew update && brew upgrade"
+description = "Update Homebrew packages (macOS only)."
+run = """
+  command -v brew >/dev/null 2>&1 || { echo "no brew, skipping"; exit 0; }
+  brew update && brew upgrade
+"""
 
 [tasks."update:tools"]
 description = "Update mise, managed tools, uv tools, and Pi extensions."
