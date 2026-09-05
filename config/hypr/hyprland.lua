@@ -91,6 +91,11 @@ hl.config({
   misc = { disable_hyprland_logo = true, disable_splash_rendering = true },
 })
 
+hl.device({
+  name = "protoarc-xk01-tp-mouse",
+  natural_scroll = true,
+})
+
 hl.on("hyprland.start", function()
   -- Hand WAYLAND_DISPLAY & co. to the user manager and D-Bus; uwsm then
   -- activates graphical-session.target. Hyprland does not do this by itself.
