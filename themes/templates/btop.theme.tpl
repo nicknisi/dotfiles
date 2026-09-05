@@ -1,5 +1,4 @@
 # {{ name }} — rendered by bin/theme from themes/templates/btop.theme.tpl
-# (the mapping is Omarchy's default/themed/btop.theme.tpl)
 
 # Main background, empty for terminal default, need to be empty if you want transparent background
 theme[main_bg]="{{ background }}"

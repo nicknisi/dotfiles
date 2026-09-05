@@ -3,9 +3,8 @@
 // slices to either side, dimmed. Left/Right/Tab move, typing filters, Enter
 // applies, Esc clears the filter and then closes, a click outside closes.
 //
-// A port of Omarchy's image picker (shell/plugins/image-picker, MIT) drawn
-// with this bar's Theme tokens. Their cards are desktop screenshots; ours are
-// wallpapers, so the palette swatches and the tagline sit under the label.
+// Drawn with this bar's Theme tokens. Each card is a wallpaper, with the pack's
+// palette swatches and its tagline under the label.
 //
 // Opened over IPC, which is what `theme picker [themes|backgrounds]` does
 // (and what the "Theme" / "Wallpaper" entries in wofi run):
@@ -85,7 +84,7 @@ Scope {
         }
     }
 
-    // ── Model helpers (Omarchy's ImagePickerModel.js, inlined) ──────────
+    // ── Model helpers ──────────────────────────────────────────────────
 
     function matches(i) {
         if (i < 0 || i >= rows.length) return false

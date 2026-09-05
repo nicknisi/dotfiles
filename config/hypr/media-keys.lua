@@ -57,7 +57,7 @@ hl.bind("XF86KbdLightOnOff", cmd(string.format(
 hl.bind("XF86KbdBrightnessUp",   cmd(kbd .. "set " .. kbd_step .. "+"), locked_repeating)
 hl.bind("XF86KbdBrightnessDown", cmd(kbd .. "set " .. kbd_step .. "-"), locked_repeating)
 
--- Volume, capped at 100%. Raising also unmutes, like Omarchy did.
+-- Volume, capped at 100%. Raising also unmutes.
 local sink = "@DEFAULT_AUDIO_SINK@"
 local function vol_up(step)
   return cmd("sh -c 'wpctl set-mute " .. sink .. " 0; wpctl set-volume -l 1.0 " .. sink .. " " .. step .. "+'")

@@ -1,6 +1,6 @@
 ---
 name: add-theme
-description: Add a new theme pack to the dotfiles theme system (bin/theme). Use when the user pastes an omarchy-style theme repo URL, says "add this theme", "new theme pack", or wants another entry for theme next to cycle.
+description: Add a new theme pack to the dotfiles theme system (bin/theme). Use when the user pastes a theme repo URL, says "add this theme", "new theme pack", or wants another entry for theme next to cycle.
 ---
 
 # Add a theme pack
@@ -9,7 +9,7 @@ One command themes everything: `bin/theme <name>` renders the pack into
 `~/.local/state/theme/current/theme/` and nudges every consumer. A pack is
 `themes/<name>/` and needs only:
 
-- `colors.toml` — the contract. Omarchy's format, either style:
+- `colors.toml` — the contract. Either style:
   semantic (`mode`, `accent`, `background`, `foreground`, `muted`, `red`,
   `bright_red`, `dark_background`, ...) or ANSI (`accent`, `background`,
   `foreground`, `color0`-`color15`). `bin/theme-color -f colors.toml --all`
@@ -20,7 +20,7 @@ One command themes everything: `bin/theme <name>` renders the pack into
   the fzf picker previews the filename.
 - `theme.conf` — `TAGLINE="one line of whimsy"` (printed on switch, shown
   in the tmux cheat sheet). Optional but every pack has one.
-- `icons.theme` — optional, a GTK icon theme name (omarchy ships Yaru-*);
+- `icons.theme` — optional, a GTK icon theme name (Yaru-* is common);
   applied on Linux only if that icon set is installed.
 
 Every app file (ghostty, kitty, wezterm, tmux, nvim, btop, starship, pi,
@@ -36,12 +36,13 @@ from a worktree).
 
 ## Sources
 
-- **Omarchy theme** (github.com/basecamp/omarchy `themes/<name>/`, or a
-  third-party omarchy theme repo): copy `colors.toml`, `backgrounds/`,
+- **An existing theme repo** (any `themes/<name>/` laid out as above):
+  copy `colors.toml`, `backgrounds/`,
   `icons.theme`. Skip `neovim.lua`, `vscode.json`, `preview*.png`,
   `unlock.png`, `shell*.toml`, `keyboard.rgb`, `chromium.theme`. Keep a
   shipped `btop.theme`; keep a shipped `hyprland.lua` only if it is plain
-  `hl.config` (omarchy's `o.window(...)` helpers do not exist here). An
+  `hl.config` (the `o.window(...)` helper style some repos use does not
+  exist here). An
   older theme with only `alacritty.toml` and no `colors.toml`: transcribe
   its `[colors.*]` into ANSI-style `colors.toml`.
 - **Just a wallpaper**: `bin/theme from-image <name> <image>` writes

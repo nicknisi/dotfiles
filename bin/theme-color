@@ -8,13 +8,12 @@
   theme-color [...] --stdout TPL              one template to stdout
 
 colors.toml is flat `key = "#rrggbb"` lines. A pack may be ANSI-style (accent,
-foreground, background, color0-15 — what this repo's packs and Omarchy's older
-themes carry) or semantic (red, muted, dark_background, ... — Omarchy's newer
-themes). Either resolves to the full key set the templates use; anything a
-pack does not name is aliased from the other style or mixed from what it has.
+foreground, background, color0-15, which is what this repo's packs carry) or
+semantic (red, muted, dark_background, ...). Either resolves to the full key
+set the templates use; anything a pack does not name is aliased from the other
+style or mixed from what it has.
 
-Template tokens (a superset of Omarchy's default/themed/*.tpl, so those port
-verbatim):
+Template tokens:
   {{ key }}            #rrggbb
   {{ key_strip }}      rrggbb        hypr rgba(..ff), Qt #aarrggbb, sketchybar 0xaa..
   {{ key_rgb }}        r,g,b         css rgb(), claude themes
@@ -42,7 +41,7 @@ ANSI = {
     "bright_blue": "color12", "bright_magenta": "color13", "bright_cyan": "color14",
     "bright_foreground": "color15",
 }
-# Omarchy's short spellings
+# Short spellings
 SHORT = {
     "background": "bg", "foreground": "fg", "dark_background": "dark_bg",
     "darker_background": "darker_bg", "lighter_background": "lighter_bg",

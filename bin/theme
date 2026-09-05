@@ -5,9 +5,8 @@
 # optionally theme.conf (TAGLINE="..."), icons.theme, and any app file it
 # wants to hand-tune. Everything else an app reads is rendered from
 # themes/templates/*.tpl by bin/theme-color at switch time; a file the pack
-# ships under the same name wins over the template. Omarchy's themes
-# (github.com/basecamp/omarchy, MIT) drop in unchanged — colors.toml and
-# templates are its design, ported here so it runs on plain Arch and macOS.
+# ships under the same name wins over the template. A theme repo laid out this
+# way drops in unchanged, on plain Arch and on macOS.
 #
 # State (the only paths consumers read):
 #   ~/.local/state/theme/current/theme/      the rendered pack, swapped atomically
@@ -442,7 +441,7 @@ btop_point() { # btop.conf names the rendered theme once; btop rewrites the file
 }
 
 install_agent_themes() { # pi + claude read one fixed theme, "system", rewritten on every switch
-  # (Omarchy's trick: claude hot-reloads the file, settings.json never changes again,
+  # (claude hot-reloads that file, so settings.json never has to change again,
   # and the standalone themes in home/.claude/themes keep their names)
   local T="$STATE/theme" f
   mkdir -p "$HOME/.claude/themes" "$HOME/.pi/agent/themes"
@@ -694,7 +693,7 @@ Icon=$4
 Exec=$5
 Terminal=false
 Categories=Settings;DesktopSettings;
-Keywords=theme;colors;wallpaper;omarchy;
+Keywords=theme;colors;wallpaper;
 EOF
   if cmp -s "$tmp" "$1"; then rm -f "$tmp"; else mv "$tmp" "$1"; fi
 }

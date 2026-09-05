@@ -12,9 +12,8 @@
 -- and systemctl would then write its .wants links back into the repo.
 -- Exit with SUPER+SHIFT+Escape (`uwsm stop`), not by killing Hyprland.
 --
--- Reference for the hl.* API: Omarchy's default/hypr/*.lua
--- (github.com/omacom/omarchy, branch quattro) is the largest example of
--- hl.config / hl.bind / hl.dsp.* in the wild. Two things worth knowing:
+-- The hl.* API here (hl.config / hl.bind / hl.dsp.*) is Hyprland 0.56's Lua
+-- config. Two things worth knowing:
 --   * `hyprctl dispatch` takes Lua too:  hyprctl dispatch 'hl.dsp.dpms({ action = "off" })'
 --     The old `hyprctl dispatch dpms off` form is a parse error on 0.56.
 --   * Launch apps through `uwsm-app -- <cmd>` so they get their own scope and
@@ -25,7 +24,7 @@
 local hypr = (debug and debug.getinfo(1, "S").source:match("^@(.*)/[^/]*$"))
   or (os.getenv("HOME") .. "/.config/hypr")
 
--- 2880x1800 OLED at 1.6 = 1800x1125 logical, GDK_SCALE 2 (what the Omarchy config used).
+-- 2880x1800 OLED at 1.6 = 1800x1125 logical, GDK_SCALE 2.
 hl.env("GDK_SCALE", "2")
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1.6 })
 
