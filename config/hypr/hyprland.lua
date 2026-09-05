@@ -117,14 +117,14 @@ hl.bind("SUPER + COMMA", hl.dsp.group.toggle())
 
 -- alt-shift-minus / alt-shift-equal, aerospace's `resize smart -+100`.
 --
--- relative = true is required, same as on window.move. Without it the call is an
--- absolute size: on a tiled window it does nothing at all, and on a floating one
--- it snaps the window to roughly 100x50 rather than growing it.
---
--- x and y are both passed because aerospace's `smart` picks the axis for you.
--- Dwindle only has one axis free per split, so the other value is a no-op.
-hl.bind("SUPER + SHIFT + MINUS", hl.dsp.window.resize({ x = -100, y = -100, relative = true }))
-hl.bind("SUPER + SHIFT + EQUAL", hl.dsp.window.resize({ x = 100, y = 100, relative = true }))
+-- These go through bin/hypr-resize rather than calling window.resize directly,
+-- because the dispatcher is border-relative rather than focus-relative: a
+-- positive x always pushes the shared border rightward, so on a right-hand
+-- window "+" makes it SMALLER. splitratio gets this wrong in the same direction.
+-- The helper picks the sign from the window's position so "+" always grows
+-- whatever is focused, on either side of the split.
+hl.bind("SUPER + SHIFT + MINUS", hl.dsp.exec_cmd("hypr-resize -100"))
+hl.bind("SUPER + SHIFT + EQUAL", hl.dsp.exec_cmd("hypr-resize 100"))
 
 -- Floating windows. Nothing above moves one: SUPER+SHIFT+hjkl is a tiling
 -- operation, and a floating window has no place in the tree to be moved to.
