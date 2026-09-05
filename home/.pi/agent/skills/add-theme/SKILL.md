@@ -1,129 +1,79 @@
 ---
 name: add-theme
-description: Add a new named theme pack to the dotfiles theme system (bin/theme). Use when the user pastes an omarchy/omacosy-style theme repo URL, says "add this theme", "new theme pack", or wants another entry for theme next to cycle.
+description: Add a new theme pack to the dotfiles theme system (bin/theme). Use when the user pastes an omarchy-style theme repo URL, says "add this theme", "new theme pack", or wants another entry for theme next to cycle.
 ---
 
 # Add a theme pack
 
-One command themes everything: `bin/theme <name>` swaps
-`~/.config/theme/current` -> `themes/<name>/` and nudges consumers.
-A pack is FULLY self-contained in `themes/<name>/` — deleting the
-directory deletes the theme (theme regenerates starship palettes
-from whatever packs remain). ALL files below are required — every
-past pack forgot one (starship was missed for shadesofjade).
+One command themes everything: `bin/theme <name>` renders the pack into
+`~/.local/state/theme/current/theme/` and nudges every consumer. A pack is
+`themes/<name>/` and needs only:
+
+- `colors.toml` — the contract. Omarchy's format, either style:
+  semantic (`mode`, `accent`, `background`, `foreground`, `muted`, `red`,
+  `bright_red`, `dark_background`, ...) or ANSI (`accent`, `background`,
+  `foreground`, `color0`-`color15`). `bin/theme-color -f colors.toml --all`
+  shows the full set after aliasing and derivation; anything missing is
+  mixed from what is there.
+- `backgrounds/` — images. `theme <name> [N]` picks the Nth (sorted by
+  name), `theme bg next` cycles. Name them `<index>-<description>.<ext>`;
+  the fzf picker previews the filename.
+- `theme.conf` — `TAGLINE="one line of whimsy"` (printed on switch, shown
+  in the tmux cheat sheet). Optional but every pack has one.
+- `icons.theme` — optional, a GTK icon theme name (omarchy ships Yaru-*);
+  applied on Linux only if that icon set is installed.
+
+Every app file (ghostty, kitty, wezterm, tmux, nvim, btop, starship, pi,
+claude, hyprland borders, hyprlock, wofi, sketchybar, borders, slack) is
+rendered from `themes/templates/*.tpl`. A pack may ship a file under the
+same name to hand-tune one app (`hyprland.lua` for a gradient border,
+`btop.theme`, ...); it wins over the template. Do NOT hand-author the rest.
 
 Work directly in the repo (subagent worktrees don't see uncommitted
-theme files and have flipped the user's live theme by running
-theme from the wrong tree — do NOT run theme for validation
-until told, and never from a worktree).
+theme files and have flipped the user's live theme by running theme from
+the wrong tree — do NOT run theme for validation until told, and never
+from a worktree).
 
-## 1. Source the palette
+## Sources
 
-Two entry points:
+- **Omarchy theme** (github.com/basecamp/omarchy `themes/<name>/`, or a
+  third-party omarchy theme repo): copy `colors.toml`, `backgrounds/`,
+  `icons.theme`. Skip `neovim.lua`, `vscode.json`, `preview*.png`,
+  `unlock.png`, `shell*.toml`, `keyboard.rgb`, `chromium.theme`. Keep a
+  shipped `btop.theme`; keep a shipped `hyprland.lua` only if it is plain
+  `hl.config` (omarchy's `o.window(...)` helpers do not exist here). An
+  older theme with only `alacritty.toml` and no `colors.toml`: transcribe
+  its `[colors.*]` into ANSI-style `colors.toml`.
+- **Just a wallpaper**: `bin/theme from-image <name> <image>` writes
+  `colors.toml` + `backgrounds/` + an empty `theme.conf`. The hue mapping
+  is heuristic — eyeball the swatches it prints and hand-tune slots.
 
-- **Upstream repo** (the common case): fetch it (fetch_content clones
-  to /tmp/pi-github-repos/), take `colors.toml` and `backgrounds/`.
-- **Just a wallpaper, no repo**: run `bin/theme from-image <name>
-  <image>` first. It extracts colors.toml + backgrounds/ from the
-  image; continue below with what it wrote. Eyeball the palette
-  first — the hue mapping is heuristic, hand-tune colors.toml if a
-  slot looks wrong.
+Then write `theme.conf` with a TAGLINE in the house style (see
+`themes/*/theme.conf`: short, lower-case, a little wry).
 
-The repo's `colors.toml` (accent, background,
-foreground, color0-15) drives everything. If it ships a `neovim.lua`
-using `bjarneo/aether.nvim`, that file holds the extended palette
-(bg variants, muted, bright_*) needed for nvim + pi + claude JSONs.
+## Validate (no theme run)
 
-## 2. themes/<name>/ files
+```
+bin/theme-color -f themes/<name>/colors.toml --all        # no error, sane mode
+bin/theme-color -f themes/<name>/colors.toml --name <name> --render /tmp/x themes/templates/*.tpl
+jq empty /tmp/x/*.json; bash -n /tmp/x/*.sh
+ghostty +validate-config --config-file=/tmp/x/ghostty.conf
+```
+A rendered file containing `{{` means a template names a key the resolver
+does not produce; fix the template, not the pack.
 
-Copy from the closest existing pack (tokyo-night = dark+light
-reference, shadesofjade = dark-only reference):
+## Hand verification to the user or ask before switching
 
-- `colors.toml` — copied verbatim from upstream
-- `backgrounds/` — all images (theme <name> [N] picks one).
-  Rename each to `<index>-<description>.<ext>` (1-first keeps the
-  upstream default first): read every image and describe its content,
-  e.g. `1-jade-dragon-statue.jpg`, `2-monk-moon-umbrella.jpg`.
-  The fzf wallpaper picker previews the filename, so numbered-only
-  names (BG1, 1.jpg) are a miss.
-- `theme.conf` — PI_DARK, PI_LIGHT, CLAUDE_DARK, CLAUDE_LIGHT, TAGLINE
-  (one-line whimsy, printed on switch). Dark-only: PI_LIGHT= and
-  CLAUDE_LIGHT= empty.
-- `ghostty.conf` — check `ghostty +list-themes | grep -i <name>`:
-  built-in exists -> `theme = dark:X,light:Y` line; no built-in ->
-  inline keys (background, foreground, cursor-color,
-  selection-background/foreground, `palette = N=#hex` for 0-15).
-  Always append the dock icon block: macos-icon = custom-style,
-  ghost-color = accent, screen-color = background.
-- `nvim-dark` — one line: the colorscheme name. `nvim-light` too if
-  the theme has a light variant. If upstream uses aether.nvim, the
-  name is `aether` AND you must write `nvim-aether.json` (the full
-  colors table from upstream neovim.lua) — aether is shared by several
-  packs, the palette lives in the pack, not the plugin spec. Other
-  colorschemes need their plugin present in
-  config/nvim/lua/nisi/plugins/colorscheme.lua (lazy); add if missing.
-- `tmux-dark.sh` — `tmux set -g @thm_*` setters, exact style of
-  themes/tokyo-night/tmux-dark.sh (thm_blue <- accent). tmux-light.sh
-  only if a light variant exists.
-- `sketchybar.sh` — FULL var set from themes/tokyo-night/sketchybar.sh
-  (FG, GLOW_* = accent at ff/d9/40/24/14 alphas, BAR_COLOR 0xcc+bg,
-  hues with _BORDER 0xe6 / _FILL 0x1f, CALM_GREEN 0x8c+green,
-  INK 0xff+bg, TRANSPARENT). Accent = colors.toml accent.
-- `borders.sh` — ACTIVE_COLOR=0xff<accent>, INACTIVE_COLOR=0xff<color8>
-- `btop.theme` — `theme[key]="#hex"` rows, mechanical from
-  colors.toml (copy themes/void/btop.theme's shape): main_bg/bg,
-  main_fg+title/fg, hi_fg+selected_fg/accent, selected_bg+meter_bg/
-  color0, boxes+div_line+inactive_fg+graph_text/color8, every
-  meter+graph trio start=colorN, mid=color3, end=color1
-- `wezterm.lua` — `return { foreground, background, cursor_bg,
-  cursor_border, cursor_fg, selection_bg, selection_fg, ansi =
-  {color0-7}, brights = {color8-15} }` — straight from colors.toml
-  (copy themes/sakura/wezterm.lua's shape). theme copies it to
-  ~/.config/wezterm/theme-current.lua, which wezterm.lua watches.
-- `slack.txt` — 8 comma-separated hexes: columnBG, menuBGHover,
-  activeItem (accent), activeItemText (bg), hoverItem, text (fg),
-  presence (green), mentionBadge (red)
+`theme <name> [N]`, then: `tmux show-option -gqv @thm_pink` == accent;
+`cat ~/.local/state/theme/current/mode`; `jq -r .theme ~/.claude/settings.json`
+== `custom:<name>`. Linux: `hyprctl getoption general:col.active_border`,
+`gsettings get org.gnome.desktop.interface color-scheme`. macOS: sketchybar
+border colour, wallpaper after a few seconds. Pi applies on next launch.
 
-## 3. In-pack consumer JSONs
-
-Named by variant, installed by theme into the live dirs under the
-name theme.conf points at (PI_DARK=tokyonight-night <- pi-dark.json):
-
-- `pi-dark.json` (and `pi-light.json` if a light variant exists) —
-  copy shape of themes/tokyo-night/pi-dark.json (vars block + every
-  colors key). `colors.border` MUST differ from `colors.accent`
-  (border=fgDark, accent=the loud color): the composer extension's
-  focus indicator flips border->accent on pane focus; equal values
-  silently kill it.
-- `claude-dark.json` (and `claude-light.json` likewise) — copy shape
-  of themes/tokyo-night/claude-dark.json, every override key, colors
-  as rgb(r,g,b); base dark
-- `starship.palette` — 7 lines: accent, red, green, yellow, magenta,
-  cyan, muted (hex values). theme rebuilds the [palettes.*]
-  section of config/starship.toml from these — never edit that
-  section by hand.
-
-Do NOT add JSONs to home/.pi/agent/themes or home/.claude/themes for
-packs — those dirs are for standalone (non-pack) themes only.
-
-## 4. Validate (no theme run)
-
-`bash -n` every .sh; `jq empty` every .json; `starship explain
->/dev/null`. For ghostty: `ghostty +validate-config
---config-file=themes/<name>/ghostty.conf`.
-
-## 5. Hand verification to the user or ask before switching
-
-`./bin/theme <name> [N]`, then confirm: `tmux show-option -gqv
-@thm_blue` == accent; `sketchybar --query bar | jq -r .border_color`
-== 0x3d<accent>; wallpaper takes ~5s (async, out-of-order applies
-possible on rapid switches); `jq -r .theme` on both settings.json.
-Ghostty needs restart for dock icon; pi/claude apply next launch.
-
-## 6. Commit on the active theme branch and push.
+## Commit on the active theme branch and push.
 
 ## Removing a theme
 
-`git rm -r themes/<name>/` + `rm ~/.pi/agent/themes/<pi-name>.json
-~/.claude/themes/<claude-name>.json`, then run theme once (any
-theme) — starship.toml self-heals without it.
+`git rm -r themes/<name>/`, then `theme <other>`. The rendered
+`~/.pi/agent/themes/<name>.json` and `~/.claude/themes/<name>.json` can go
+too.

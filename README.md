@@ -208,6 +208,23 @@ AeroSpace starts at login and launches SketchyBar. The basic movement scheme is:
 
 The AeroSpace rules route terminals, browsers, chat apps, mail, and other applications to named workspaces. SketchyBar shows those workspaces with app icons, the focused window title, the current layout, Fleet state, GitHub review requests, agent spend, Claude usage, and now-playing information. Borders runs as a Homebrew service.
 
+## Themes
+
+`theme` switches the whole desktop at once, on Linux and macOS:
+
+```bash
+theme                 # pick a theme and wallpaper with fzf
+theme nord 2          # switch; 2 = second wallpaper
+theme next            # cycle (SUPER+0 under Hyprland)
+theme bg next         # only the wallpaper (SUPER+CTRL+0)
+theme picker          # the carousel overlay; "Theme" and "Wallpaper" in wofi open it
+theme list            # every pack with its swatches and tagline
+```
+
+The overlay is `config/quickshell/ThemePicker.qml`, a port of Omarchy's image picker: the chosen wallpaper expanded in the middle, the rest as skewed slices, type to filter, Enter to apply. `bin/theme` feeds it rows over `qs ipc` and caches thumbnails under `~/.cache/theme/thumbs`.
+
+A pack is `themes/<name>/colors.toml` plus `backgrounds/`, the same format as [Omarchy's](https://github.com/basecamp/omarchy) themes, all of which are included; an Omarchy theme repo drops in unchanged. On a switch, `bin/theme` renders `themes/templates/*.tpl` from the palette into `~/.local/state/theme/current/theme/` and every app reads from there: ghostty, kitty, wezterm, tmux, nvim (aether), btop, starship, pi, and Claude Code on both platforms; Hyprland borders, hyprlock, wofi, the Quickshell bar, and GTK dark/light on Linux; the system appearance, SketchyBar, Borders, and Slack on macOS. A pack may ship a file under a template's name to hand-tune that one app. `bin/theme-color` resolves a `colors.toml` into the full palette (`--all`, `--json`) and is the renderer. Run `theme <name>` once on a fresh machine: hyprlock and hyprpaper read the state dir and have nothing until then.
+
 ## tmux
 
 The prefix is `control-a`. I remap Caps Lock to Control, so this is less awkward than the default `control-b`.

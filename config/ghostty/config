@@ -1,8 +1,8 @@
 # ── Theme ───────────────────────────────────────────────────────
-# macOS: bin/theme manages theme-current (symlinked to the active pack).
-# Linux: bin/theme copies the active pack into ~/.local/state/theme/current.
-# The ? prefix makes both optional — missing files are silently ignored.
-config-file = ?"~/.local/state/theme/current/ghostty.conf"
+# bin/theme renders the active pack's palette to the state dir (Linux and
+# macOS). The ? prefix makes the include optional. The `theme` line below is
+# only the look before theme has ever run: explicit colours in the include
+# override whatever a named theme sets.
 
 # Theme settings
 # theme = dark:catppuccin-macchiato,light:catppuccin-latte
@@ -97,6 +97,6 @@ custom-shader-animation = true
 custom-shader = shaders/cursor_smear.glsl
 custom-shader = shaders/cursor_blaze_no_trail.glsl
 
-# active named theme (symlink managed by bin/theme); overrides still wins
-config-file = ?./theme-current
+# the active theme (rendered by bin/theme); overrides still wins
+config-file = ?"~/.local/state/theme/current/theme/ghostty.conf"
 config-file = ?./overrides

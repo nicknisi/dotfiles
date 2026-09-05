@@ -1,31 +1,35 @@
 #!/usr/bin/env bash
 # theme — the whole desktop theme, one command.
 #
-# The ~/.config/theme/current symlink swap IS the switch; the rest of this
-# file makes running apps re-read it (ghostty, wezterm, nvim, tmux,
-# sketchybar, borders, btop, wallpaper, pi, claude code, starship, slack).
+# A pack is themes/<name>/: colors.toml (the contract), backgrounds/, and
+# optionally theme.conf (TAGLINE="..."), icons.theme, and any app file it
+# wants to hand-tune. Everything else an app reads is rendered from
+# themes/templates/*.tpl by bin/theme-color at switch time; a file the pack
+# ships under the same name wins over the template. Omarchy's themes
+# (github.com/basecamp/omarchy, MIT) drop in unchanged — colors.toml and
+# templates are its design, ported here so it runs on plain Arch and macOS.
 #
-# ponytail: appearance flips after a switch don't re-run this — re-run by hand.
+# State (the only paths consumers read):
+#   ~/.local/state/theme/current/theme/      the rendered pack, swapped atomically
+#   ~/.local/state/theme/current/background  -> the active wallpaper
+#   ~/.local/state/theme/current/theme.name
+#   ~/.local/state/theme/current/mode        dark | light
+#   ~/.local/state/theme/current/colors.json the resolved palette (quickshell watches it)
 
 set -euo pipefail
 
-# Platform: macOS keeps the osascript/brew/pbcopy paths; Linux (the Omarchy
-# exit plan) writes the state files that config/ghostty and the tmux theme
-# loader read, sets the wallpaper via Caelestia, and skips mac-only targets.
-if [[ "$(uname -s)" == "Darwin" ]]; then
-  IS_MAC=true
-else
-  IS_MAC=false
-fi
+case "$(uname -s)" in Darwin) IS_MAC=true ;; *) IS_MAC=false ;; esac
 
 SOURCE="${BASH_SOURCE[0]}"
 [ -L "$SOURCE" ] && SOURCE="$(readlink "$SOURCE")"
 DOTFILES="$(cd "$(dirname "$SOURCE")/.." && pwd)"
 THEMES_DIR="$DOTFILES/themes"
-STATE_DIR="$HOME/.config/theme"
+TEMPLATES_DIR="$THEMES_DIR/templates"
+STATE="$HOME/.local/state/theme/current"
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/theme"
+COLOR="$DOTFILES/bin/theme-color"
 
-list_themes() { for t in "$THEMES_DIR"/*/; do basename "$t"; done; }
-current_theme() { basename "$(readlink "$STATE_DIR/current" 2>/dev/null || echo none)"; }
+die() { echo "theme: $1" >&2; exit "${2:-1}"; }
 
 usage() {
   cat <<'USAGE'
@@ -33,98 +37,143 @@ theme — the whole desktop theme, one command
 
 usage:
   theme                       pick a theme (and wallpaper) interactively
-  theme set <theme> [bg]      switch; bg = Nth wallpaper (default 1)
-  theme next                  cycle to the next theme
-  theme list                  list themes with their palettes
-  theme current               print the active theme
+  theme <name> [N]            switch; N = Nth wallpaper (default 1)
+  theme set <name> [N]        same
+  theme next | prev           cycle themes
+  theme bg [next|prev|N|path] change only the wallpaper
+  theme picker [themes|backgrounds]
+                              the carousel overlay (quickshell); what the "Theme"
+                              and "Wallpaper" entries in wofi run
+  theme menu                  plain wofi list (the fallback when no shell runs)
+  theme thumbs                cache picker thumbnails (runs itself after a switch)
+  theme refresh               re-render the current theme (after editing a template)
+  theme list                  themes with their palettes and taglines
+  theme current               the active theme
   theme from-image <name> <image>
-                              grow a new pack from a wallpaper (writes
-                              colors.toml + backgrounds/, prints palette)
+                              grow a new pack from a wallpaper
   theme -h, --help            this
 
-switches: ghostty, wezterm, nvim, tmux, btop, wallpaper (caelestia on Linux),
-          pi, claude code, starship; macOS adds sketchybar, borders, slack
+A pack is themes/<name>/colors.toml + backgrounds/. Every app file is
+rendered from themes/templates/*.tpl into ~/.local/state/theme/current/theme/.
 
-pi and claude apply on next launch; btop too; the ghostty dock icon
-needs an app restart; the wallpaper repaints a few seconds after.
+switches: ghostty, kitty, wezterm, tmux, nvim, btop, starship, pi, claude code,
+          wallpaper; Linux adds hyprland borders, hyprlock, wofi, quickshell,
+          GTK dark/light + icons; macOS adds appearance, sketchybar, borders, slack.
 USAGE
 }
 
-# ── Palette helpers ─────────────────────────────────────────────
+# ── Packs ────────────────────────────────────────────────────────
 
-hex() { grep -E "^$1 = " "$2/colors.toml" 2>/dev/null | head -1 | cut -d'"' -f2; }
+list_themes() {
+  local d
+  for d in "$THEMES_DIR"/*/; do
+    [ -f "$d/colors.toml" ] && basename "$d"
+  done
+}
+current_theme() { cat "$STATE/theme.name" 2>/dev/null || echo none; }
+current_mode() { cat "$STATE/mode" 2>/dev/null || echo dark; }
+backgrounds() { # theme -> image paths, sorted
+  find -L "$THEMES_DIR/$1/backgrounds" -maxdepth 1 -type f \
+    \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' -o -iname '*.bmp' \) \
+    2>/dev/null | sort
+}
+tagline() { (source "$1/theme.conf" 2>/dev/null; printf '%s' "${TAGLINE:-}"); }
+
+# ── Palette helpers (grep, not theme-color: `theme list` runs these 26×7 times) ─
+
+hex() { # KEY... DIR -> first key present in DIR/colors.toml
+  local dir="${*: -1}" k v
+  for k in "${@:1:$#-1}"; do
+    v="$(sed -n "s/^${k}[[:space:]]*=[[:space:]]*\"\(#[0-9A-Fa-f]\{6\}\)\".*/\1/p" "$dir/colors.toml" 2>/dev/null | head -1)"
+    [ -n "$v" ] && { printf '%s' "$v"; return; }
+  done
+}
 rgb() { local h="${1#\#}"; printf '%d;%d;%d' "0x${h:0:2}" "0x${h:2:2}" "0x${h:4:2}"; }
 
-swatches() { # theme dir -> truecolor ██ row (accent + color1-6)
-  local dir="$1" key c out=""
-  for key in accent color1 color2 color3 color4 color5 color6; do
-    c="$(hex "$key" "$dir")"
+swatches() { # DIR -> truecolor ██ row (accent + six hues)
+  local dir="$1" c out=""
+  for c in "$(hex accent blue "$dir")" "$(hex red color1 "$dir")" "$(hex green color2 "$dir")" \
+    "$(hex yellow color3 "$dir")" "$(hex blue color4 "$dir")" "$(hex magenta color5 "$dir")" "$(hex cyan color6 "$dir")"; do
     [ -n "$c" ] && out+=$'\033[38;2;'"$(rgb "$c")"$'m██\033[0m '
   done
   printf '%s' "$out"
 }
 
-tagline() { (source "$1/theme.conf" 2>/dev/null; printf '%s' "${TAGLINE:-}"); }
-
-name_painted() { # theme name in its accent color
-  printf '\033[1m\033[38;2;%sm%s\033[0m' "$(rgb "$(hex accent "$1")")" "$2"
+name_painted() { # DIR NAME -> name in its accent colour
+  printf '\033[1m\033[38;2;%sm%s\033[0m' "$(rgb "$(hex accent blue "$1")")" "$2"
 }
 
-# ── Interactive picking (fzf) ───────────────────────────────────
+# ── Interactive picking (fzf) ────────────────────────────────────
 
-preview_theme() { # fzf --preview for theme names
+preview_theme() {
   local dir="$THEMES_DIR/$1"
   [ -d "$dir" ] || exit 0
   name_painted "$dir" "$1"
   local t; t="$(tagline "$dir")"
   [ -n "$t" ] && printf '  \033[2m%s\033[0m' "$t"
   printf '\n%s\n' "$(swatches "$dir")"
-  local n; n="$(ls "$dir"/backgrounds/* 2>/dev/null | wc -l | tr -d ' ')"
-  printf '\033[2m%s wallpaper(s)\033[0m\n' "$n"
+  printf '\033[2m%s wallpaper(s)\033[0m\n' "$(backgrounds "$1" | wc -l | tr -d ' ')"
 }
 
-preview_bg() { # fzf --preview for a theme's Nth wallpaper
-  local img; img="$(ls "$THEMES_DIR/$1"/backgrounds/* 2>/dev/null | sed -n "$2p")"
+preview_bg() { # THEME N
+  local img; img="$(backgrounds "$1" | sed -n "$2p")"
   [ -n "$img" ] || exit 0
   printf '\033[1m%s\033[0m\n' "$(basename "$img")"
-  local kitten=/Applications/kitty.app/Contents/MacOS/kitten
-  if [ -x "$kitten" ] && [ "${TERM_PROGRAM:-}" = ghostty -o "${TERM_PROGRAM:-}" = kitty ]; then
+  local kitten cols="${FZF_PREVIEW_COLUMNS:-80}" rows=$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))
+  kitten="$(command -v kitten || true)"
+  [ -x /Applications/kitty.app/Contents/MacOS/kitten ] && kitten=/Applications/kitty.app/Contents/MacOS/kitten
+  if [ -n "$kitten" ] && { [ "${TERM_PROGRAM:-}" = ghostty ] || [ "${TERM_PROGRAM:-}" = kitty ]; }; then
     # kitty graphics protocol (ghostty speaks it); must bypass fzf's capture
     "$kitten" icat --clear --transfer-mode=memory --stdin=no --scale-up \
-      --place "${FZF_PREVIEW_COLUMNS:-80}x$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))@0x2" "$img" >/dev/tty 2>/dev/null || true
+      --place "${cols}x${rows}@0x2" "$img" >/dev/tty 2>/dev/null || true
+  elif command -v chafa >/dev/null 2>&1; then
+    chafa -s "${cols}x${rows}" "$img" 2>/dev/null || true
   elif command -v img2txt >/dev/null 2>&1; then
-    img2txt -W "${FZF_PREVIEW_COLUMNS:-80}" -H "$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))" "$img" 2>/dev/null || true
+    img2txt -W "$cols" -H "$rows" "$img" 2>/dev/null || true
   fi
 }
 
 pick_theme() {
   command -v fzf >/dev/null 2>&1 && [ -t 0 ] || {
     list_themes
-    echo "theme: pass a name, e.g. theme set $(current_theme)" >&2
-    exit 2
+    die "pass a name, e.g. theme $(current_theme)" 2
   }
   local name n bg=1
   name="$(list_themes | fzf --prompt='theme ❯ ' --reverse --height=~60% \
     --preview="'$DOTFILES'/bin/theme _preview-theme {}" \
     --preview-window='right,50%,border-left')" || exit 130
   [ -n "$name" ] || exit 130
-  n="$(ls "$THEMES_DIR/$name"/backgrounds/* 2>/dev/null | wc -l | tr -d ' ')"
+  n="$(backgrounds "$name" | wc -l | tr -d ' ')"
   if [ "$n" -gt 1 ]; then
     bg="$(seq 1 "$n" | fzf --prompt='wallpaper ❯ ' --reverse --height=~40% \
       --preview="'$DOTFILES'/bin/theme _preview-bg $name {}" \
       --preview-window='right,60%,border-left')" || exit 130
     [ -n "$bg" ] || exit 130
   fi
-  NAME="$name"
-  BG_INDEX="$bg"
+  apply "$name" "$bg"
 }
 
-next_theme() {
-  local cur themes=() i
+cmd_menu() { # wofi picker, for a keybind
+  command -v wofi >/dev/null 2>&1 || die "menu needs wofi"
+  local cur pick style=()
+  [ -f "$STATE/theme/wofi.css" ] && style=(--style "$STATE/theme/wofi.css")
+  cur="$(current_theme)"
+  pick="$(list_themes | sed "s/^$cur\$/& ✓/" | wofi --dmenu --insensitive --prompt theme "${style[@]}" 2>/dev/null)" || exit 0
+  pick="${pick% ✓}"
+  [ -n "$pick" ] || exit 0
+  apply "$pick" 1
+}
+
+neighbour_theme() { # next|prev
+  local cur themes=() i n
   cur="$(current_theme)"
   while read -r t; do themes+=("$t"); done < <(list_themes)
+  n=${#themes[@]}
   for i in "${!themes[@]}"; do
-    [ "${themes[$i]}" = "$cur" ] && { echo "${themes[$(((i + 1) % ${#themes[@]}))]}"; return; }
+    if [ "${themes[$i]}" = "$cur" ]; then
+      [ "$1" = next ] && echo "${themes[$(((i + 1) % n))]}" || echo "${themes[$(((i - 1 + n) % n))]}"
+      return
+    fi
   done
   echo "${themes[0]}"
 }
@@ -137,9 +186,9 @@ cmd_from_image() {
   [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ] && { usage; exit 0; }
   [ $# -eq 2 ] || { usage >&2; exit 2; }
   local NAME="$1" IMG="$2"
-  command -v magick >/dev/null 2>&1 || { echo "theme: from-image needs ImageMagick (brew install imagemagick)" >&2; exit 1; }
-  [ -f "$IMG" ] || { echo "theme: no such image: $IMG" >&2; exit 1; }
-  [ -d "$THEMES_DIR/$NAME" ] && { echo "theme: themes/$NAME already exists" >&2; exit 1; }
+  command -v magick >/dev/null 2>&1 || die "from-image needs ImageMagick (brew install imagemagick / pacman -S imagemagick)"
+  [ -f "$IMG" ] || die "no such image: $IMG"
+  [ -d "$THEMES_DIR/$NAME" ] && die "themes/$NAME already exists"
 
   local PYSCRIPT COLORS_TOML
   PYSCRIPT="$(cat <<'PYEOF'
@@ -159,7 +208,7 @@ def hls(r, g, b):
     return colorsys.rgb_to_hls(r / 255, g / 255, b / 255)  # h, l, s
 
 def rgb_hex(r, g, b):
-    return "#%02X%02X%02X" % (max(0, min(255, round(r))), max(0, min(255, round(g))), max(0, min(255, round(b))))
+    return "#%02x%02x%02x" % (max(0, min(255, round(r))), max(0, min(255, round(g))), max(0, min(255, round(b))))
 
 def mix(c, t, f):  # toward t by f
     return tuple(a + (b - a) * f for a, b in zip(c, t))
@@ -239,6 +288,7 @@ PYEOF
   local DIR="$THEMES_DIR/$NAME" slug
   mkdir -p "$DIR/backgrounds"
   echo "$COLORS_TOML" >"$DIR/colors.toml"
+  printf 'TAGLINE=""\n' >"$DIR/theme.conf"
   slug="$(basename "$IMG" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9.]\+/-/g')"
   cp "$IMG" "$DIR/backgrounds/1-$slug"
 
@@ -246,22 +296,413 @@ PYEOF
   echo "$COLORS_TOML"
   if [ -t 1 ]; then
     echo
-    local key c
-    for key in accent color1 color2 color3 color4 color5 color6; do
-      c="$(echo "$COLORS_TOML" | grep -E "^$key = " | cut -d'"' -f2)"
-      [ -n "$c" ] && printf '\033[38;2;%sm██\033[0m ' "$(rgb "$c")"
-    done
+    swatches "$DIR"
     printf '\n'
   fi
-  echo "next: the add-theme skill authors the rest of the pack from colors.toml"
+  echo "next: eyeball the palette, edit colors.toml if a slot is off, add a TAGLINE to theme.conf, then: theme $NAME"
 }
 
-# ── Args ────────────────────────────────────────────────────────
+# ── The switch ───────────────────────────────────────────────────
+
+lock() {
+  command -v flock >/dev/null 2>&1 || return 0 # macOS has no flock; switches there are by hand anyway
+  exec 9>"$STATE/.lock"
+  flock 9
+}
+
+stage() { # NAME MODE -> $STATE/next-theme: the pack's files, then templates for what it lacks
+  local pack="$THEMES_DIR/$1" next="$STATE/next-theme" f
+  rm -rf "$next"
+  mkdir -p "$next"
+  for f in "$pack"/*; do
+    [ -e "$f" ] || continue
+    case "$(basename "$f")" in
+      backgrounds) ln -s "$f" "$next/backgrounds" ;;
+      *) cp -R "$f" "$next/" ;;
+    esac
+  done
+  "$COLOR" -f "$pack/colors.toml" --name "$1" --mode "$2" --render "$next" "$TEMPLATES_DIR"/*.tpl
+}
+
+swap() { # next-theme becomes theme; consumers never see an empty directory
+  rm -rf "$STATE/theme.old"
+  [ -e "$STATE/theme" ] && mv "$STATE/theme" "$STATE/theme.old"
+  mv "$STATE/next-theme" "$STATE/theme"
+  rm -rf "$STATE/theme.old"
+}
+
+apply() { # NAME  BG (1-based index | image path | keep)
+  local name="$1" bg_spec="${2:-1}" pack="$THEMES_DIR/$1"
+  [ -f "$pack/colors.toml" ] || die "unknown theme '$name'. Available:
+$(list_themes)"
+
+  # wallpaper choice, validated before anything changes
+  local -a bgs=()
+  local wall="" b
+  while IFS= read -r b; do [ -n "$b" ] && bgs+=("$b"); done < <(backgrounds "$name")
+  case "$bg_spec" in
+    keep)
+      wall="$(readlink "$STATE/background" 2>/dev/null || true)"
+      [ -f "$wall" ] || wall="${bgs[0]:-}"
+      ;;
+    *[!0-9]*)
+      [ -f "$bg_spec" ] || die "no such image: $bg_spec"
+      wall="$(cd "$(dirname "$bg_spec")" && pwd)/$(basename "$bg_spec")"
+      ;;
+    *)
+      if [ ${#bgs[@]} -gt 0 ]; then
+        [ "$bg_spec" -ge 1 ] && [ "$bg_spec" -le ${#bgs[@]} ] || die "$name has ${#bgs[@]} wallpaper(s), no number $bg_spec" 2
+        wall="${bgs[$((bg_spec - 1))]}"
+      fi
+      ;;
+  esac
+
+  local TAGLINE="" THEME_MODE="" mode
+  # shellcheck disable=SC1091
+  [ -f "$pack/theme.conf" ] && source "$pack/theme.conf"
+  mode="$("$COLOR" -f "$pack/colors.toml" ${THEME_MODE:+--mode "$THEME_MODE"} mode)"
+
+  mkdir -p "$STATE"
+  lock
+  stage "$name" "$mode"
+  swap
+  echo "$name" >"$STATE/theme.name"
+  echo "$mode" >"$STATE/mode"
+  # one write: quickshell watches this file and re-reads it on change
+  local json; json="$("$COLOR" -f "$STATE/theme/colors.toml" --name "$name" --mode "$mode" --json)"
+  printf '%s\n' "$json" >"$STATE/colors.json"
+  [ -n "$wall" ] && ln -sfn "$wall" "$STATE/background"
+
+  reload_apps "$name" "$mode" "$wall"
+  finale "$name" "$mode" "$TAGLINE"
+}
+
+# ── Consumers ────────────────────────────────────────────────────
+# everything here reports to stderr; stdout gets the finale only
+
+reload_apps() { # NAME MODE WALL
+  local name="$1" mode="$2" wall="$3" T="$STATE/theme"
+
+  # terminals re-read their config on a signal; wezterm watches a file
+  pkill -USR2 ghostty 2>/dev/null || true
+  pkill -USR1 kitty 2>/dev/null || true
+  [ -d "$HOME/.config/wezterm" ] && [ -f "$T/wezterm.lua" ] && cp "$T/wezterm.lua" "$HOME/.config/wezterm/theme-current.lua"
+
+  tmux has-session 2>/dev/null && tmux source-file "$HOME/.config/tmux/tmux.conf" || true
+  nvim_reload
+  btop_point
+  install_agent_themes
+  starship_palette
+
+  if $IS_MAC; then
+    mac_appearance "$mode"
+    pgrep -x sketchybar >/dev/null 2>&1 && sketchybar --reload || true
+    brew services restart borders >/dev/null 2>&1 || true
+    [ -n "$wall" ] && mac_wallpaper "$wall"
+    if [ -f "$T/slack.txt" ]; then
+      pbcopy <"$T/slack.txt"
+      echo "slack theme on clipboard — Slack > Settings > Appearance > Custom theme > Import, then paste" >&2
+    fi
+  else
+    linux_gtk "$mode"
+    if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+      hyprctl reload >/dev/null 2>&1 || true # borders come from the rendered hyprland.lua
+      command -v qs >/dev/null 2>&1 && qs ipc call theme reload >/dev/null 2>&1 || true
+    fi
+    [ -n "$wall" ] && paint_wallpaper
+    ensure_desktop_entries
+  fi
+  thumbs_background
+}
+
+nvim_reload() { # every running nvim re-applies aether from the rendered palette
+  local dirs=("${TMPDIR:-/tmp}") d
+  [ -n "${XDG_RUNTIME_DIR:-}" ] && dirs=("$XDG_RUNTIME_DIR" "${dirs[@]}")
+  for d in "${dirs[@]}"; do find "$d" -maxdepth 4 -type s -name 'nvim.*.0' 2>/dev/null; done |
+    while read -r sock; do
+      nvim --server "$sock" --remote-expr "execute('lua if _G.apply_named_theme then _G.apply_named_theme() end')" >/dev/null 2>&1 || true
+    done || true
+}
+
+btop_point() { # btop.conf names the rendered theme once; btop rewrites the file on exit but keeps this line
+  local conf="$HOME/.config/btop/btop.conf" want="color_theme = \"$STATE/theme/btop.theme\"" tmp
+  mkdir -p "$HOME/.config/btop"
+  if [ ! -f "$conf" ]; then
+    echo "$want" >"$conf"
+  elif ! grep -qxF "$want" "$conf"; then
+    tmp="$(mktemp)"
+    if grep -q '^color_theme = ' "$conf"; then
+      sed "s|^color_theme = .*|$want|" "$conf" >"$tmp"
+    else
+      cat "$conf" >"$tmp"; echo "$want" >>"$tmp"
+    fi
+    mv "$tmp" "$conf"
+  fi
+  pgrep -x btop >/dev/null 2>&1 && echo "theme: btop is running — quit and reopen it, it reads the theme at launch" >&2 || true
+}
+
+install_agent_themes() { # pi + claude read one fixed theme, "system", rewritten on every switch
+  # (Omarchy's trick: claude hot-reloads the file, settings.json never changes again,
+  # and the standalone themes in home/.claude/themes keep their names)
+  local T="$STATE/theme" f
+  mkdir -p "$HOME/.claude/themes" "$HOME/.pi/agent/themes"
+  # standalone (non-pack) themes stay available in the live dirs; no-op when those dirs are the repo's
+  cp -n "$DOTFILES"/home/.claude/themes/*.json "$HOME/.claude/themes/" 2>/dev/null || true
+  cp -n "$DOTFILES"/home/.pi/agent/themes/*.json "$HOME/.pi/agent/themes/" 2>/dev/null || true
+  install_json "$T/claude.json" "$HOME/.claude/themes/system.json"
+  install_json "$T/pi.json" "$HOME/.pi/agent/themes/system.json"
+  for f in "$HOME/.claude/settings.json" "$DOTFILES/home/.claude/settings.json"; do set_json_theme "$f" "custom:system"; done
+  for f in "$HOME/.pi/agent/settings.json" "$DOTFILES/home/.pi/agent/settings.json"; do set_json_theme "$f" "system"; done
+}
+
+install_json() { # SRC DEST, atomically (claude watches the file; pi reads it at launch)
+  [ -f "$1" ] || return 0
+  local tmp; tmp="$(mktemp "$(dirname "$2")/.system.XXXXXX")"
+  cp "$1" "$tmp" && mv "$tmp" "$2"
+}
+
+set_json_theme() { # FILE VALUE
+  local file="$1" value="$2" tmp
+  [ -f "$file" ] || return 0
+  command -v jq >/dev/null 2>&1 || { echo "theme: jq missing — $file theme not updated" >&2; return 0; }
+  [ "$(jq -r '.theme // ""' "$file")" = "$value" ] && return 0
+  tmp="$(mktemp)"
+  jq --arg t "$value" '.theme = $t' "$file" >"$tmp" && mv "$tmp" "$file"
+}
+
+starship_palette() { # config/starship.toml carries one [palettes.theme] block: the active theme's
+  local cfg="$DOTFILES/config/starship.toml" T="$STATE/theme" tmp
+  [ -f "$T/starship.palette" ] && [ -f "$cfg" ] || return 0
+  tmp="$(mktemp)"
+  {
+    awk '/^\[palettes\./{skip=1; next} /^\[/{skip=0} !skip' "$cfg" | sed 's/^palette = ".*"/palette = "theme"/' | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}'
+    printf '\n[palettes.theme]\n'
+    cat "$T/starship.palette"
+  } >"$tmp"
+  if cmp -s "$tmp" "$cfg"; then rm -f "$tmp"; else mv "$tmp" "$cfg"; fi
+}
+
+mac_appearance() { # dark|light — the pack decides, the system follows
+  local dark=false; [ "$1" = dark ] && dark=true
+  osascript -e "tell application \"System Events\" to tell appearance preferences to set dark mode to $dark" >/dev/null 2>&1 ||
+    echo "theme: could not set macOS appearance (Automation permission for System Events?)" >&2
+}
+
+mac_wallpaper() { # path stays an ARGUMENT, never spliced into script text
+  if osascript - "$1" >/dev/null 2>&1 <<'APPLESCRIPT'; then
+on run argv
+  tell application "System Events" to tell every desktop to set picture to (item 1 of argv)
+end run
+APPLESCRIPT
+    echo "wallpaper: $(basename "$1") (applies in a few seconds)" >&2
+  else
+    echo "theme: wallpaper failed (Automation permission for System Events?)" >&2
+  fi
+}
+
+linux_gtk() { # dark|light: GTK3/4 + libadwaita follow color-scheme; icons if the pack names an installed set
+  command -v gsettings >/dev/null 2>&1 && [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] || return 0
+  if [ "$1" = light ]; then
+    gsettings set org.gnome.desktop.interface color-scheme prefer-light
+    gsettings set org.gnome.desktop.interface gtk-theme Adwaita
+  else
+    gsettings set org.gnome.desktop.interface color-scheme prefer-dark
+    gsettings set org.gnome.desktop.interface gtk-theme Adwaita-dark
+  fi
+  local icons; icons="$(cat "$STATE/theme/icons.theme" 2>/dev/null || true)"
+  [ -n "$icons" ] || return 0
+  local d
+  for d in /usr/share/icons "$HOME/.local/share/icons" "$HOME/.icons"; do
+    if [ -d "$d/$icons" ]; then gsettings set org.gnome.desktop.interface icon-theme "$icons"; return 0; fi
+  done
+}
+
+paint_wallpaper() { # $STATE/background is the source of truth; the daemon re-reads it
+  if command -v swww >/dev/null 2>&1 && swww query >/dev/null 2>&1; then
+    swww img "$STATE/background" --transition-type fade --transition-duration 1 >/dev/null 2>&1 || true
+  elif systemctl --user is-active --quiet hyprpaper 2>/dev/null; then
+    # hyprpaper 0.8 has no set-wallpaper IPC; hyprpaper.conf points at the symlink, so a restart repaints
+    systemctl --user restart hyprpaper
+  elif pgrep -x hyprpaper >/dev/null 2>&1; then
+    pkill -x hyprpaper
+    (setsid hyprpaper >/dev/null 2>&1 &)
+  else
+    echo "theme: no wallpaper daemon running (hyprpaper or swww)" >&2
+  fi
+  echo "wallpaper: $(basename "$(readlink "$STATE/background")")" >&2
+}
+
+finale() { # NAME MODE TAGLINE
+  if [ -t 1 ]; then
+    swatches "$STATE/theme"
+    printf '\n'
+    name_painted "$STATE/theme" "$1"
+    [ -n "$3" ] && printf '  \033[2m%s\033[0m' "$3"
+    printf '  \033[2m(%s)\033[0m\n' "$2"
+  else
+    echo "theme: $1 ($2)"
+    if ! $IS_MAC && command -v notify-send >/dev/null 2>&1; then
+      notify-send -a theme -t 2500 "theme: $1" "$3" 2>/dev/null || true
+    fi
+  fi
+}
+
+cmd_bg() { # next|prev|N|path — wallpaper only
+  local name; name="$(current_theme)"
+  [ "$name" != none ] || die "no theme set yet"
+  local -a bgs=()
+  local b cur wall="" idx=-1 i n
+  while IFS= read -r b; do [ -n "$b" ] && bgs+=("$b"); done < <(backgrounds "$name")
+  n=${#bgs[@]}
+  case "${1:-next}" in
+    next | prev)
+      [ "$n" -gt 0 ] || die "$name has no wallpapers"
+      cur="$(readlink "$STATE/background" 2>/dev/null || true)"
+      for i in "${!bgs[@]}"; do [ "${bgs[$i]}" = "$cur" ] && idx=$i; done
+      [ "${1:-next}" = next ] && idx=$(((idx + 1) % n)) || idx=$(((idx - 1 + n) % n))
+      wall="${bgs[$idx]}"
+      ;;
+    *[!0-9]*)
+      [ -f "$1" ] || die "no such image: $1"
+      wall="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+      ;;
+    *)
+      [ "$1" -ge 1 ] && [ "$1" -le "$n" ] || die "$name has $n wallpaper(s), no number $1" 2
+      wall="${bgs[$(($1 - 1))]}"
+      ;;
+  esac
+  ln -sfn "$wall" "$STATE/background"
+  if $IS_MAC; then mac_wallpaper "$wall"; else paint_wallpaper; fi
+  if [ ! -t 1 ] && ! $IS_MAC; then
+    notify-send -a theme -t 2000 "wallpaper" "$(basename "$wall")" 2>/dev/null || true
+  fi
+}
+
+# ── The overlay picker (config/quickshell/ThemePicker.qml) ───────
+# The shell draws it; this end feeds it rows and caches the thumbnails.
+
+cmd_picker() { # themes|backgrounds
+  local kind="${1:-themes}"
+  if command -v qs >/dev/null 2>&1 && qs ipc call picker open "$kind" >/dev/null 2>&1; then
+    return 0
+  fi
+  [ "$kind" = themes ] || die "the wallpaper picker needs the quickshell overlay; try: theme bg next"
+  cmd_menu
+}
+
+file_sig() { if $IS_MAC; then stat -f '%z:%m' "$1"; else stat -Lc '%s:%Y' "$1"; fi; }
+md5str() { if $IS_MAC; then md5 -q -s "$1"; else printf '%s' "$1" | md5sum | cut -d' ' -f1; fi; }
+thumb_path() { # image -> where its thumbnail lives (keyed on path + size + mtime, so edits miss)
+  local sig; sig="$(file_sig "$1" 2>/dev/null)" || return 1
+  printf '%s/thumbs/%s.jpg' "$CACHE" "$(md5str "$1	$sig")"
+}
+thumb_for() { # image -> its cached thumbnail, else the image itself
+  local t; t="$(thumb_path "$1" 2>/dev/null || true)"
+  if [ -n "$t" ] && [ -f "$t" ]; then printf '%s' "$t"; else printf '%s' "$1"; fi
+}
+
+humanize() { # "0-winding-road.webp" -> "Winding Road", "tokyo-night" -> "Tokyo Night"
+  local s="${1##*/}"; s="${s%.*}"; s="${s#[0-9]*-}"
+  printf '%s' "$s" | tr '_-' '  ' | awk '{ for (i = 1; i <= NF; i++) $i = toupper(substr($i, 1, 1)) substr($i, 2) } 1'
+}
+json_str() { local s="${1//\\/\\\\}"; s="${s//\"/\\\"}"; printf '"%s"' "$s"; }
+swatch_json() { # DIR -> "#..","#..",...
+  local dir="$1" c out=""
+  for c in "$(hex accent blue "$dir")" "$(hex red color1 "$dir")" "$(hex green color2 "$dir")" \
+    "$(hex yellow color3 "$dir")" "$(hex blue color4 "$dir")" "$(hex magenta color5 "$dir")" "$(hex cyan color6 "$dir")"; do
+    [ -n "$c" ] && out+="${out:+,}\"$c\""
+  done
+  printf '%s' "$out"
+}
+
+cmd_rows() { # themes|backgrounds -> JSON rows for the picker
+  local kind="${1:-themes}" sep="" cur t img
+  printf '['
+  if [ "$kind" = backgrounds ]; then
+    t="$(current_theme)"
+    cur="$(readlink "$STATE/background" 2>/dev/null || true)"
+    while IFS= read -r img; do
+      [ -n "$img" ] || continue
+      printf '%s{"name":%s,"label":%s,"image":%s,"tagline":%s,"swatches":[],"current":%s}' "$sep" \
+        "$(json_str "$img")" "$(json_str "$(humanize "$img")")" "$(json_str "$(thumb_for "$img")")" \
+        "$(json_str "$t")" "$([ "$img" = "$cur" ] && echo true || echo false)"
+      sep=","
+    done < <(backgrounds "$t")
+  else
+    cur="$(current_theme)"
+    while IFS= read -r t; do
+      img="$(backgrounds "$t" | head -1)"
+      printf '%s{"name":%s,"label":%s,"image":%s,"tagline":%s,"swatches":[%s],"current":%s}' "$sep" \
+        "$(json_str "$t")" "$(json_str "$(humanize "$t")")" "$(json_str "$([ -n "$img" ] && thumb_for "$img")")" \
+        "$(json_str "$(tagline "$THEMES_DIR/$t")")" "$(swatch_json "$THEMES_DIR/$t")" "$([ "$t" = "$cur" ] && echo true || echo false)"
+      sep=","
+    done < <(list_themes)
+  fi
+  printf ']\n'
+  thumbs_background # whatever was missing is there next time
+}
+
+make_thumb() { # image: 1440x900 centre crop (the 720x450 card at scale 1.6, sharp)
+  local out tmp
+  out="$(thumb_path "$1")" || return 0
+  [ -f "$out" ] && return 0
+  tmp="$out.$$.tmp.jpg"
+  if magick "$1[0]" -auto-orient -resize '1440x900^' -gravity center -extent 1440x900 -strip -quality 82 "$tmp" 2>/dev/null; then
+    mv -f "$tmp" "$out"
+  else
+    rm -f "$tmp"
+  fi
+}
+
+cmd_thumbs() { # every pack's first wallpaper first (the theme picker), then the current theme's, then the rest
+  command -v magick >/dev/null 2>&1 || die "thumbs needs ImageMagick"
+  mkdir -p "$CACHE/thumbs"
+  if command -v flock >/dev/null 2>&1; then
+    exec 8>"$CACHE/thumbs/.lock"
+    flock -n 8 || return 0 # one generator at a time
+  fi
+  local t img
+  {
+    for t in $(list_themes); do backgrounds "$t" | head -1; done
+    backgrounds "$(current_theme)"
+    for t in $(list_themes); do backgrounds "$t"; done
+  } | awk '!seen[$0]++' | while IFS= read -r img; do
+    [ -n "$img" ] && make_thumb "$img"
+  done
+}
+
+thumbs_background() {
+  command -v magick >/dev/null 2>&1 || return 0
+  (nohup "$DOTFILES/bin/theme" thumbs >/dev/null 2>&1 </dev/null &)
+}
+
+ensure_desktop_entries() { # wofi's drun list gets "Theme" and "Wallpaper"; both open the overlay
+  local dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+  mkdir -p "$dir"
+  write_desktop "$dir/theme-picker.desktop" Theme "Switch the desktop theme" preferences-desktop-theme "\"$DOTFILES/bin/theme\" picker themes"
+  write_desktop "$dir/theme-wallpaper.desktop" Wallpaper "Pick a wallpaper for the current theme" preferences-desktop-wallpaper "\"$DOTFILES/bin/theme\" picker backgrounds"
+}
+
+write_desktop() { # path name comment icon exec — only touched when the content changes
+  local tmp; tmp="$(mktemp)"
+  cat >"$tmp" <<EOF
+[Desktop Entry]
+Type=Application
+Name=$2
+Comment=$3
+Icon=$4
+Exec=$5
+Terminal=false
+Categories=Settings;DesktopSettings;
+Keywords=theme;colors;wallpaper;omarchy;
+EOF
+  if cmp -s "$tmp" "$1"; then rm -f "$tmp"; else mv "$tmp" "$1"; fi
+}
+
+# ── Args ─────────────────────────────────────────────────────────
 
 [ "${1:-}" = set ] && shift
 
-NAME=""
-BG_INDEX=1
 case "${1:-}" in
   -h | --help | help) usage; exit 0 ;;
   list | -l | --list)
@@ -272,217 +713,22 @@ case "${1:-}" in
     else
       list_themes
     fi
-    exit 0
     ;;
-  current) current_theme; exit 0 ;;
-  next) NAME="$(next_theme)" ;;
-  from-image) shift; cmd_from_image "$@"; exit $? ;;
-  _preview-theme) preview_theme "$2"; exit 0 ;;
-  _preview-bg) preview_bg "$2" "$3"; exit 0 ;;
+  current) current_theme ;;
+  next | prev) apply "$(neighbour_theme "$1")" 1 ;;
+  bg) shift; cmd_bg "$@" ;;
+  menu) cmd_menu ;;
+  picker) cmd_picker "${2:-themes}" ;;
+  thumbs) cmd_thumbs ;;
+  _rows) cmd_rows "${2:-themes}" ;;
+  refresh) [ "$(current_theme)" != none ] || die "no theme set yet"; apply "$(current_theme)" keep ;;
+  from-image) shift; cmd_from_image "$@" ;;
+  _preview-theme) preview_theme "$2" ;;
+  _preview-bg) preview_bg "$2" "$3" ;;
   "") pick_theme ;;
-  -*)
-    echo "theme: unknown flag '$1'" >&2
-    usage >&2
-    exit 2
-    ;;
+  -*) usage >&2; die "unknown flag '$1'" 2 ;;
   *)
-    NAME="$1"
-    BG_INDEX="${2:-1}"
-    case "$BG_INDEX" in *[!0-9]* | "")
-      echo "theme: bg must be a number, got '$BG_INDEX'" >&2
-      exit 2
-      ;;
-    esac
+    case "${2:-1}" in *[!0-9]* | "") die "wallpaper must be a number, got '${2:-}'" 2 ;; esac
+    apply "$1" "${2:-1}"
     ;;
 esac
-
-THEME_DIR="$THEMES_DIR/$NAME"
-if [ ! -d "$THEME_DIR" ]; then
-  echo "theme: unknown theme '$NAME'. Available:" >&2
-  list_themes >&2
-  exit 1
-fi
-
-# shellcheck disable=SC1091
-source "$THEME_DIR/theme.conf"
-
-if [[ "$IS_MAC" == true ]]; then
-  if defaults read -g AppleInterfaceStyle >/dev/null 2>&1; then
-    MODE=dark
-  else
-    MODE=light
-  fi
-else
-  MODE="${THEME_MODE:-dark}"
-fi
-
-# pick PI_/CLAUDE_ variant, falling back to dark when a theme has no light
-pick() {
-  local dark_val="$1" light_val="$2"
-  if [ "$MODE" = light ] && [ -n "$light_val" ]; then echo "$light_val"; else echo "$dark_val"; fi
-}
-
-# ── The switch ──────────────────────────────────────────────────
-# everything below reports to stderr; stdout gets the finale only
-
-mkdir -p "$STATE_DIR"
-ln -sfn "$THEME_DIR" "$STATE_DIR/current"
-
-# make standalone (non-pack) pi/claude themes available in the live config
-# dirs — no-op when those dirs are symlinked into this repo
-mkdir -p "$HOME/.claude/themes" "$HOME/.pi/agent/themes"
-cp -n "$DOTFILES"/home/.claude/themes/*.json "$HOME/.claude/themes/" 2>/dev/null || true
-cp -n "$DOTFILES"/home/.pi/agent/themes/*.json "$HOME/.pi/agent/themes/" 2>/dev/null || true
-
-# linux: state copy for consumers that read it (tmux theme loader reads
-# colors.toml; ghostty includes ghostty.conf). Same contract Omarchy's
-# `omarchy theme` fulfilled, now owned by this repo.
-if [[ "$IS_MAC" != true ]]; then
-  STATE_LINUX="$HOME/.local/state/theme/current"
-  mkdir -p "$STATE_LINUX"
-  cp "$THEME_DIR/colors.toml" "$STATE_LINUX/colors.toml"
-  [ -f "$THEME_DIR/ghostty.conf" ] && cp "$THEME_DIR/ghostty.conf" "$STATE_LINUX/ghostty.conf"
-fi
-
-# packs own their JSONs (pi-dark.json, claude-light.json, ...): install the
-# active variant into the live dir under the name theme.conf points at
-install_pack_json() { # kind(pi|claude), live dir, theme name
-  local f="$THEME_DIR/$1-$MODE.json"
-  [ -f "$f" ] || f="$THEME_DIR/$1-dark.json"
-  [ ! -f "$f" ] || cp "$f" "$2/$3.json"
-  # on machines where ~/.pi / ~/.claude are symlinked into this repo, the
-  # install lands in the working tree — keep it out of git status
-  local real; real="$(cd "$2" 2>/dev/null && pwd -P)" || return 0
-  case "$real" in
-    "$DOTFILES"/home/*)
-      local rel="${real#$DOTFILES/}/$3.json"
-      grep -qxF "$rel" "$DOTFILES/.git/info/exclude" 2>/dev/null || echo "$rel" >>"$DOTFILES/.git/info/exclude"
-      ;;
-  esac
-}
-
-# ghostty: include file + SIGUSR2 live reload
-ln -sfn "$THEME_DIR/ghostty.conf" "$HOME/.config/ghostty/theme-current"
-pkill -USR2 ghostty 2>/dev/null || true
-
-# wezterm: real-file copy bumps mtime; wezterm.lua watches + merges it
-if [ -f "$THEME_DIR/wezterm.lua" ] && [ -d "$HOME/.config/wezterm" ]; then
-  cp "$THEME_DIR/wezterm.lua" "$HOME/.config/wezterm/theme-current.lua"
-fi
-
-# btop: install the theme + point btop.conf at it (applies on next launch).
-# a running btop rewrites btop.conf from memory on exit and would clobber this.
-if [ -f "$THEME_DIR/btop.theme" ] && [ -f "$HOME/.config/btop/btop.conf" ]; then
-  mkdir -p "$HOME/.config/btop/themes"
-  cp "$THEME_DIR/btop.theme" "$HOME/.config/btop/themes/$NAME.theme"
-  btop_tmp=$(mktemp)
-  sed "s|^color_theme = .*|color_theme = \"$HOME/.config/btop/themes/$NAME.theme\"|" \
-    "$HOME/.config/btop/btop.conf" >"$btop_tmp" && mv "$btop_tmp" "$HOME/.config/btop/btop.conf"
-  pgrep -x btop >/dev/null 2>&1 && echo "theme: btop is running — quit and reopen it, it re-reads the theme at launch" >&2
-fi
-
-# nvim: always reload aether — we no longer use per-theme named colorschemes.
-find "${TMPDIR:-/tmp}" -maxdepth 4 -type s -name 'nvim.*.0' 2>/dev/null | while read -r sock; do
-  nvim --server "$sock" --remote-expr "execute('lua if _G.apply_named_theme then _G.apply_named_theme() end')" 2>/dev/null || true
-done || true  # find exits 1 on /tmp permission-denied dirs; pipefail + set -e would otherwise kill the script
-
-# tmux
-tmux has-session 2>/dev/null && tmux source-file "$HOME/.config/tmux/tmux.conf" || true
-
-# sketchybar
-pgrep -x sketchybar >/dev/null 2>&1 && sketchybar --reload || true
-
-# borders (runs as a brew service on this machine)
-brew services restart borders >/dev/null 2>&1 || true
-
-# wallpaper: Nth image in backgrounds/ (default first), every screen.
-# macOS applies wallpaper async — expect a few seconds of lag.
-BGS=()
-while IFS= read -r b; do BGS+=("$b"); done < <(ls "$THEME_DIR"/backgrounds/* 2>/dev/null)
-if [ "${#BGS[@]}" -gt 0 ] && [ "$BG_INDEX" -gt "${#BGS[@]}" ]; then
-  echo "theme: $NAME has ${#BGS[@]} wallpaper(s), no number $BG_INDEX" >&2
-  exit 2
-fi
-WALL="${BGS[$((BG_INDEX - 1))]:-}"
-if [ -n "$WALL" ]; then
-  if [[ "$IS_MAC" == true ]]; then
-    # path stays an ARGUMENT, never spliced into script text
-    if ! osascript - "$WALL" >/dev/null 2>&1 <<'APPLESCRIPT'; then
-on run argv
-  tell application "System Events" to tell every desktop to set picture to (item 1 of argv)
-end run
-APPLESCRIPT
-      echo "theme: wallpaper failed (Automation permission for System Events?)" >&2
-    else
-      echo "wallpaper: $(basename "$WALL") (applies in a few seconds)" >&2
-    fi
-  elif command -v caelestia >/dev/null 2>&1; then
-    # caelestia updates its state + recolors the shell from the image; the
-    # actual painting is hyprpaper's job: rewrite its conf and restart it.
-    # (hyprpaper 0.8 has no text IPC; conf file is the interface.)
-    if caelestia wallpaper -f "$WALL" >/dev/null 2>&1; then
-      mkdir -p "$HOME/.config/hypr"
-      conf_tmp="$(mktemp)"
-      printf 'splash = false\n\nwallpaper {\n    monitor = *\n    path = %s\n    fit_mode = cover\n}\n' "$WALL" >"$conf_tmp"
-      mv "$conf_tmp" "$HOME/.config/hypr/hyprpaper.conf"
-      pkill hyprpaper 2>/dev/null || true
-      echo "wallpaper: $(basename "$WALL") (via caelestia + hyprpaper)" >&2
-    else
-      echo "theme: caelestia wallpaper failed" >&2
-    fi
-  else
-    echo "theme: no wallpaper setter on this system (caelestia/hyprpaper?)" >&2
-  fi
-fi
-
-# pi + claude: point settings.json at the theme (next launch)
-set_json_theme() { # file, value
-  local file="$1" value="$2" tmp
-  [ -f "$file" ] || return 0
-  command -v jq >/dev/null 2>&1 || { echo "theme: jq missing — $file theme not updated" >&2; return 0; }
-  tmp="$(mktemp)"
-  jq --arg t "$value" '.theme = $t' "$file" >"$tmp" && mv "$tmp" "$file"
-}
-PI_THEME="$(pick "${PI_DARK:-}" "${PI_LIGHT:-}")"
-CLAUDE_THEME="$(pick "${CLAUDE_DARK:-}" "${CLAUDE_LIGHT:-}")"
-[ -n "$PI_THEME" ] && install_pack_json pi "$HOME/.pi/agent/themes" "$PI_THEME"
-[ -n "$CLAUDE_THEME" ] && install_pack_json claude "$HOME/.claude/themes" "$CLAUDE_THEME"
-[ -n "$PI_THEME" ] && for f in "$HOME/.pi/agent/settings.json" "$DOTFILES/home/.pi/agent/settings.json"; do set_json_theme "$f" "$PI_THEME"; done
-[ -n "$CLAUDE_THEME" ] && for f in "$HOME/.claude/settings.json" "$DOTFILES/home/.claude/settings.json"; do set_json_theme "$f" "custom:$CLAUDE_THEME"; done
-
-# starship: rebuild the palettes section from every pack's starship.palette
-# (deleted packs drop out), then point at the active one. Re-read every
-# prompt, so no reload needed.
-if [ -f "$THEME_DIR/starship.palette" ]; then
-  stripped="$(mktemp)"; blocks="$(mktemp)"; stripped2="$(mktemp)"
-  awk '/^\[palettes\./{skip=1; next} /^\[/{skip=0} !skip' "$DOTFILES/config/starship.toml" >"$stripped"
-  for p in "$THEMES_DIR"/*/starship.palette; do
-    [ -f "$p" ] || continue
-    printf '\n[palettes.%s]\n' "$(basename "$(dirname "$p")")" >>"$blocks"
-    cat "$p" >>"$blocks"
-  done
-  sed -e "/^palette = /r $blocks" "$stripped" >"$stripped2" && mv "$stripped2" "$stripped"
-  sed "s/^palette = \".*\"/palette = \"$NAME\"/" "$stripped" >"$stripped2" && mv "$stripped2" "$stripped"
-  cmp -s "$stripped" "$DOTFILES/config/starship.toml" || mv "$stripped" "$DOTFILES/config/starship.toml"
-  rm -f "$stripped" "$blocks" "$stripped2"
-else
-  echo "theme: no starship.palette in $NAME — prompt colors stale" >&2
-fi
-
-# slack: no API for this — put the sidebar theme string on the clipboard
-if [ -f "$THEME_DIR/slack.txt" ] && [[ "$IS_MAC" == true ]]; then
-  pbcopy <"$THEME_DIR/slack.txt"
-  echo "slack theme on clipboard — Slack > Settings > Appearance > Custom theme > Import, then paste" >&2
-fi
-
-# ── Finale ──────────────────────────────────────────────────────
-
-if [ -t 1 ] && [ -f "$THEME_DIR/colors.toml" ]; then
-  swatches "$THEME_DIR"
-  printf '\n'
-  name_painted "$THEME_DIR" "$NAME"
-  [ -n "${TAGLINE:-}" ] && printf '  \033[2m%s\033[0m' "$TAGLINE"
-  printf '  \033[2m(%s)\033[0m\n' "$MODE"
-else
-  echo "theme: $NAME ($MODE)"
-fi

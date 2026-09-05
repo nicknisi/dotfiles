@@ -47,6 +47,6 @@ export TRANSPARENT=0x00000000
 
 # Active named theme (bin/theme) overrides everything above. Lives here,
 # at the end of the shared palette, because every plugin sources this file.
-if [[ -f "$HOME/.config/theme/current/sketchybar.sh" ]]; then
-  source "$HOME/.config/theme/current/sketchybar.sh"
+if [[ -f "$HOME/.local/state/theme/current/theme/sketchybar.sh" ]]; then
+  source "$HOME/.local/state/theme/current/theme/sketchybar.sh"
 fi

@@ -106,7 +106,7 @@ local function app(command) return hl.dsp.exec_cmd("uwsm-app -- " .. command) en
 -- scope and outlive it there under a misleading name.
 -- pkill-first makes the key a toggle; without it a second press stacks a
 -- second instance on top of the first.
-hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("sh -c 'pkill wofi || wofi --show drun'"))
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("sh -c 'pkill wofi || wofi --show drun --style ~/.local/state/theme/current/theme/wofi.css'"))
 
 hl.bind("SUPER + RETURN", app("ghostty"))
 hl.bind("SUPER + SHIFT + RETURN", hl.dsp.exec_cmd("sh -c 'uwsm-app -- \"$(xdg-settings get default-web-browser)\"'"))
@@ -159,8 +159,17 @@ hl.bind("SUPER + CTRL + SPACE", hl.dsp.window.center())
 hl.bind("SUPER + mouse:272", hl.dsp.window.drag(),   { mouse = true })
 hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
--- alt-0 cycled desktop themes. bin/theme is on PATH through dotfiles.
+-- Theme. bin/theme is on PATH through dotfiles (see the PATH note above).
+-- code:19 is the 0 key: alt-0 cycled desktop themes in the aerospace days.
 hl.bind("SUPER + code:19", hl.dsp.exec_cmd("theme next"))
+hl.bind("SUPER + SHIFT + code:19", hl.dsp.exec_cmd("theme picker themes")) -- also "Theme" in wofi
+hl.bind("SUPER + CTRL + code:19", hl.dsp.exec_cmd("theme bg next"))
+
+-- Border colours come from the active theme: bin/theme renders
+-- themes/templates/hyprland.lua.tpl (or the pack's own hyprland.lua) into the
+-- state dir and runs `hyprctl reload`. pcall so a machine where theme has never
+-- run still gets a working config, with Hyprland's default borders.
+pcall(dofile, os.getenv("HOME") .. "/.local/state/theme/current/theme/hyprland.lua")
 
 -- Workspaces: 1-9, the lettered set, and the tab bindings.
 dofile(hypr .. "/workspaces.lua")

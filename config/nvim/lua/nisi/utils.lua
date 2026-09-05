@@ -30,9 +30,22 @@ function M.is_macos()
   return vim.loop.os_uname().sysname == "Darwin"
 end
 
----Determine whether dark mode is enabled by the system
----@return boolean is_dark Whether the system is in dark mode
+---Determine whether the active theme is dark. bin/theme writes the pack's
+---mode to ~/.local/state/theme/current/mode on every switch; that wins on
+---every platform. Without it, macOS follows the system appearance and
+---anything else (a server) is assumed dark.
+---@return boolean is_dark Whether the active theme is dark
 function M.is_dark_mode()
+  local f = io.open(vim.fn.expand("~/.local/state/theme/current/mode"), "r")
+  if f then
+    local mode = f:read("*l")
+    f:close()
+    if mode == "light" then
+      return false
+    elseif mode == "dark" then
+      return true
+    end
+  end
   if M.is_macos() then
     local handle = io.popen("defaults read -g AppleInterfaceStyle 2>/dev/null")
     if handle == nil then

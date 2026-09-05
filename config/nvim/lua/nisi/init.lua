@@ -125,77 +125,22 @@ local function patch_syntax()
   -- vim.cmd([[highlight Normal ctermbg=none]])
 end
 
----Parse an Omarchy colors.toml into an aether-compatible palette table.
----@param path string Path to the colors.toml file
----@return table|nil palette The aether colors table, or nil if the file can't be read
-local function parse_omarchy_colors(path)
-  local file = io.open(path, "r")
-  if not file then
-    return nil
-  end
-
-  local raw = {}
-  for line in file:lines() do
-    local key, val = line:match('^([%w_]+)%s*=%s*"(.-)"')
-    if key and val then
-      raw[key] = val
-    end
-  end
-  file:close()
-
-  return {
-    bg = raw.background,
-    dark_bg = raw.dark_background,
-    darker_bg = raw.darker_background,
-    lighter_bg = raw.lighter_background,
-    fg = raw.foreground,
-    dark_fg = raw.dark_foreground,
-    light_fg = raw.light_foreground,
-    bright_fg = raw.bright_foreground,
-    muted = raw.muted,
-    red = raw.red,
-    yellow = raw.yellow,
-    orange = raw.orange,
-    green = raw.green,
-    cyan = raw.cyan,
-    blue = raw.blue,
-    magenta = raw.magenta,
-    brown = raw.brown,
-    bright_red = raw.bright_red,
-    bright_yellow = raw.bright_yellow,
-    bright_green = raw.bright_green,
-    bright_cyan = raw.bright_cyan,
-    bright_blue = raw.bright_blue,
-    bright_magenta = raw.bright_magenta,
-    accent = raw.accent,
-    cursor = raw.bright_foreground,
-    foreground = raw.foreground,
-    background = raw.background,
-    selection = raw.selection,
-    selection_foreground = raw.selection_foreground,
-    selection_background = raw.selection_background,
-  }
-end
-
 ---Re-apply the active theme.
----On Omarchy (Linux) this reads ~/.local/state/omarchy/current/theme/colors.toml
----and feeds the palette into aether.
----On macOS it falls back to ~/.config/theme/current/nvim-aether.json (managed
----by bin/theme) or uses aether's default palette.
+---bin/theme renders the pack's palette to ~/.local/state/theme/current/theme/
+---nvim-aether.json (Linux and macOS alike) and writes dark|light to
+---~/.local/state/theme/current/mode; both are read fresh on every call, so a
+---switch can drive this over --remote-expr and a running nvim retints.
 function _G.apply_named_theme()
-  local mode = utils.is_dark_mode() and "dark" or "light"
-  vim.o.background = mode
+  local state = vim.fn.expand("~/.local/state/theme/current")
+  local uv = vim.uv or vim.loop
 
-  local omarchy_colors = parse_omarchy_colors(vim.fn.expand("~/.local/state/omarchy/current/theme/colors.toml"))
-  if omarchy_colors then
-    require("aether").setup({ colors = omarchy_colors })
-  else
-    -- macOS fallback: bin/theme writes an nvim-aether.json palette
-    local macos_palette = vim.fn.expand("~/.config/theme/current/nvim-aether.json")
-    if (vim.uv or vim.loop).fs_stat(macos_palette) then
-      require("aether").setup({
-        colors = vim.json.decode(table.concat(vim.fn.readfile(macos_palette), "\n")),
-      })
+  vim.o.background = utils.is_dark_mode() and "dark" or "light"
+
+  local palette = state .. "/theme/nvim-aether.json"
+  if uv.fs_stat(palette) then
+    local ok, colors = pcall(vim.json.decode, table.concat(vim.fn.readfile(palette), "\n"))
+    if ok and type(colors) == "table" then
+      require("aether").setup({ colors = colors })
     end
   end
 

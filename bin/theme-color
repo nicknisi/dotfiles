@@ -1,0 +1,255 @@
+#!/usr/bin/env python3
+"""theme-color — resolve a pack's colors.toml into the full palette; render templates.
+
+  theme-color [-f colors.toml] [--name N] [--mode dark|light] KEY [FALLBACK]
+  theme-color [...] --all                     every resolved key<TAB>value
+  theme-color [...] --json                    the resolved palette as JSON
+  theme-color [...] --render OUTDIR TPL...    OUTDIR/<tpl minus .tpl>; existing outputs are left alone
+  theme-color [...] --stdout TPL              one template to stdout
+
+colors.toml is flat `key = "#rrggbb"` lines. A pack may be ANSI-style (accent,
+foreground, background, color0-15 — what this repo's packs and Omarchy's older
+themes carry) or semantic (red, muted, dark_background, ... — Omarchy's newer
+themes). Either resolves to the full key set the templates use; anything a
+pack does not name is aliased from the other style or mixed from what it has.
+
+Template tokens (a superset of Omarchy's default/themed/*.tpl, so those port
+verbatim):
+  {{ key }}            #rrggbb
+  {{ key_strip }}      rrggbb        hypr rgba(..ff), Qt #aarrggbb, sketchybar 0xaa..
+  {{ key_rgb }}        r,g,b         css rgb(), claude themes
+  {{ mix a b 30% }}    a moved 30% toward b; mix_strip / mix_rgb likewise
+  {{ name }} {{ mode }}
+An unknown token is left in place and reported on stderr, so a typo in a
+template is visible in the rendered file rather than silently blank.
+"""
+
+import argparse
+import json
+import os
+import re
+import sys
+
+HEX = re.compile(r"^#?([0-9a-fA-F]{6})([0-9a-fA-F]{2})?$")
+TOKEN = re.compile(r"\{\{\s*([^{}]+?)\s*\}\}")
+DEFAULT_FILE = os.path.expanduser("~/.local/state/theme/current/theme/colors.toml")
+
+# semantic name -> the ANSI slot that holds it (and back)
+ANSI = {
+    "red": "color1", "green": "color2", "yellow": "color3", "blue": "color4",
+    "magenta": "color5", "cyan": "color6", "muted": "color8",
+    "bright_red": "color9", "bright_green": "color10", "bright_yellow": "color11",
+    "bright_blue": "color12", "bright_magenta": "color13", "bright_cyan": "color14",
+    "bright_foreground": "color15",
+}
+# Omarchy's short spellings
+SHORT = {
+    "background": "bg", "foreground": "fg", "dark_background": "dark_bg",
+    "darker_background": "darker_bg", "lighter_background": "lighter_bg",
+    "dark_foreground": "dark_fg", "light_foreground": "light_fg",
+    "bright_foreground": "bright_fg",
+}
+
+
+def norm(v):
+    m = HEX.match(v.strip())
+    return "#" + m.group(1).lower() if m else v.strip()
+
+
+def is_hex(v):
+    return bool(HEX.match(v))
+
+
+def rgb(v):
+    h = v.lstrip("#")
+    return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+
+
+def hexs(r, g, b):
+    return "#%02x%02x%02x" % tuple(max(0, min(255, round(x))) for x in (r, g, b))
+
+
+def mix(a, b, amount):
+    """a moved `amount` of the way toward b. amount: 0.3, 30, or '30%'."""
+    if isinstance(amount, str):
+        amount = float(amount[:-1]) / 100 if amount.endswith("%") else float(amount)
+    if amount > 1:
+        amount /= 100
+    amount = max(0.0, min(1.0, amount))
+    ra, ga, ba = rgb(a)
+    rb, gb, bb = rgb(b)
+    return hexs(ra + (rb - ra) * amount, ga + (gb - ga) * amount, ba + (bb - ba) * amount)
+
+
+def luminance(v):
+    r, g, b = rgb(v)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def parse(path):
+    raw = {}
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, val = line.split("=", 1)
+            key = key.strip().strip("\"'")
+            val = val.strip()
+            if val[:1] in ("\"", "'"):
+                val = val[1:].split(val[0], 1)[0]
+            else:
+                val = val.split("#", 1)[0].strip()
+            if re.match(r"^[A-Za-z0-9_-]+$", key) and val:
+                raw[key] = norm(val)
+    return raw
+
+
+def resolve(raw, name=None, mode=None):
+    p = dict(raw)
+
+    def need(key, *candidates):
+        """Set p[key] from the first candidate that yields: a key already in p, or a callable."""
+        if key in p:
+            return
+        for c in candidates:
+            if callable(c):
+                v = c()
+                if v:
+                    p[key] = v
+                    return
+            elif c in p:
+                p[key] = p[c]
+                return
+
+    for long, short in SHORT.items():
+        need(long, short)
+    need("magenta", "purple")
+    need("bright_magenta", "bright_purple")
+    need("background", "color0")
+    need("foreground", "color15", "color7")
+    if "background" not in p or "foreground" not in p:
+        sys.exit("theme-color: colors.toml needs at least background and foreground")
+    bg, fg = p["background"], p["foreground"]
+
+    for sem, slot in ANSI.items():
+        need(sem, slot)
+    for hue in ("red", "green", "yellow", "blue", "magenta", "cyan"):
+        need(hue, "foreground")
+        need("bright_" + hue, lambda h=hue: mix(p[h], "#ffffff", 0.2))
+    # color7 is "normal white": the dimmer text tone when the pack keeps it distinct from fg
+    need("dark_foreground", lambda: p.get("color7") if p.get("color7") != fg else None,
+         lambda: mix(fg, bg, 0.3))
+    need("bright_foreground", "foreground")
+    need("light_foreground", lambda: mix(fg, "#ffffff", 0.2))
+    need("muted", lambda: mix(bg, fg, 0.35))
+    need("accent", "blue")
+    need("cursor", "bright_foreground")
+    need("selection_background", "selection", lambda: mix(bg, fg, 0.2))
+    need("selection", "selection_background")
+    need("selection_foreground", "foreground")
+    need("orange", "yellow")
+    need("brown", lambda: mix(p["orange"], "#000000", 0.5))
+    need("dark_background", lambda: mix(bg, "#000000", 0.25))
+    need("darker_background", lambda: mix(bg, "#000000", 0.5))
+    need("lighter_background", lambda: mix(bg, fg, 0.08))
+    need("purple", "magenta")
+    need("bright_purple", "bright_magenta")
+
+    for sem, slot in ANSI.items():
+        need(slot, sem)
+    need("color0", "background")
+    need("color7", "dark_foreground")
+    for long, short in SHORT.items():
+        need(short, long)
+
+    p["mode"] = mode or p.get("mode") or p.get("theme_type") or ("light" if luminance(bg) > 128 else "dark")
+    p["theme_type"] = p["mode"]
+    if name:
+        p["name"] = name
+    return p
+
+
+def render(text, p, warn):
+    def sub(m):
+        token = m.group(0)
+        parts = m.group(1).split()
+        if len(parts) == 1:
+            key = parts[0]
+            for suffix, fn in (("_strip", lambda v: v.lstrip("#")),
+                               ("_rgb", lambda v: "%d,%d,%d" % rgb(v))):
+                base = key[: -len(suffix)]
+                if key.endswith(suffix) and base in p:
+                    v = p[base]
+                    return fn(v) if is_hex(v) else v
+            if key in p:
+                return p[key]
+        elif len(parts) == 4 and parts[0] in ("mix", "mix_strip", "mix_rgb"):
+            fn, a, b, amount = parts
+            va, vb = p.get(a, a), p.get(b, b)
+            if is_hex(va) and is_hex(vb):
+                v = mix(va, vb, amount)
+                if fn == "mix_strip":
+                    return v.lstrip("#")
+                if fn == "mix_rgb":
+                    return "%d,%d,%d" % rgb(v)
+                return v
+        warn(token)
+        return token
+
+    return TOKEN.sub(sub, text)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("-f", "--file", default=DEFAULT_FILE, help="colors.toml (default: the active theme's)")
+    ap.add_argument("--name", help="theme name, for {{ name }}")
+    ap.add_argument("--mode", choices=["dark", "light"], help="override the pack's mode")
+    g = ap.add_mutually_exclusive_group()
+    g.add_argument("--all", action="store_true")
+    g.add_argument("--json", action="store_true")
+    g.add_argument("--render", metavar="OUTDIR")
+    g.add_argument("--stdout", metavar="TPL")
+    ap.add_argument("args", nargs="*", metavar="KEY|TPL")
+    a = ap.parse_args()
+
+    if not os.path.isfile(a.file):
+        sys.exit("theme-color: no such file: %s" % a.file)
+    p = resolve(parse(a.file), name=a.name, mode=a.mode)
+
+    def warn(token):
+        print("theme-color: %s: unknown token %s" % (warn.where, token), file=sys.stderr)
+
+    if a.all:
+        for k in sorted(p):
+            print("%s\t%s" % (k, p[k]))
+    elif a.json:
+        print(json.dumps(p, indent=2, sort_keys=True))
+    elif a.render:
+        os.makedirs(a.render, exist_ok=True)
+        for tpl in a.args:
+            out = os.path.join(a.render, os.path.basename(tpl)[:-4] if tpl.endswith(".tpl") else os.path.basename(tpl))
+            if os.path.exists(out):
+                continue  # the pack shipped its own; hand-tuned beats generated
+            warn.where = os.path.basename(tpl)
+            with open(tpl, encoding="utf-8") as fh:
+                rendered = render(fh.read(), p, warn)
+            with open(out, "w", encoding="utf-8") as fh:
+                fh.write(rendered)
+    elif a.stdout:
+        warn.where = os.path.basename(a.stdout)
+        with open(a.stdout, encoding="utf-8") as fh:
+            sys.stdout.write(render(fh.read(), p, warn))
+    else:
+        if not 1 <= len(a.args) <= 2:
+            ap.error("give a KEY, or one of --all / --json / --render / --stdout")
+        key = a.args[0]
+        fallback = a.args[1] if len(a.args) == 2 else None
+        v = p.get(key) or (p.get(fallback, fallback) if fallback else None)
+        if not v:
+            sys.exit(1)
+        print(v)
+
+
+if __name__ == "__main__":
+    main()

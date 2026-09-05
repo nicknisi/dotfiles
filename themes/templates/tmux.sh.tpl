@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# {{ name }} — tmux palette, rendered by bin/theme from themes/templates/tmux.sh.tpl.
+# config/tmux/theme/theme.tmux sources this; the @thm_* names are the ones its
+# pick chains walk (tokyo-night's vocabulary, with catppuccin's as aliases).
+thm() { tmux set-option -gq "@thm_$1" "$2"; }
+
+thm bg              "{{ background }}"
+thm bg_dark         "{{ dark_background }}"
+thm bg_dark1        "{{ darker_background }}"
+thm bg_highlight    "{{ lighter_background }}"
+thm fg              "{{ foreground }}"
+thm fg_dark         "{{ dark_foreground }}"
+thm fg_gutter       "{{ muted }}"
+thm comment         "{{ mix muted foreground 30% }}"
+thm dark3           "{{ muted }}"
+thm dark5           "{{ mix muted foreground 45% }}"
+thm black           "{{ dark_background }}"
+thm black4          "{{ muted }}"
+thm terminal_black  "{{ dark_background }}"
+
+thm red             "{{ red }}"
+thm red1            "{{ bright_red }}"
+thm orange          "{{ orange }}"
+thm yellow          "{{ yellow }}"
+thm green           "{{ green }}"
+thm green1          "{{ bright_green }}"
+thm green2          "{{ bright_green }}"
+thm teal            "{{ cyan }}"
+thm cyan            "{{ bright_cyan }}"
+thm blue            "{{ blue }}"
+thm blue0           "{{ mix blue background 50% }}"
+thm blue1           "{{ bright_blue }}"
+thm blue2           "{{ bright_blue }}"
+thm blue5           "{{ light_foreground }}"
+thm blue6           "{{ bright_foreground }}"
+thm blue7           "{{ dark_background }}"
+thm magenta         "{{ magenta }}"
+thm magenta2        "{{ bright_magenta }}"
+thm purple          "{{ accent }}"
+thm pink            "{{ accent }}"

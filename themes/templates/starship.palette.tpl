@@ -1,0 +1,7 @@
+accent = "{{ accent }}"
+red = "{{ red }}"
+green = "{{ green }}"
+yellow = "{{ yellow }}"
+magenta = "{{ magenta }}"
+cyan = "{{ cyan }}"
+muted = "{{ muted }}"

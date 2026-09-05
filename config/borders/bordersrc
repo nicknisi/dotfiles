@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # active named theme (bin/theme) overrides the defaults below
-if [[ -f "$HOME/.config/theme/current/borders.sh" ]]; then
-  source "$HOME/.config/theme/current/borders.sh"
+if [[ -f "$HOME/.local/state/theme/current/theme/borders.sh" ]]; then
+  source "$HOME/.local/state/theme/current/theme/borders.sh"
 fi
 
 options=(

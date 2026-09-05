@@ -1,34 +1,15 @@
 #!/usr/bin/env bash
 # Tmux theme — follows the active desktop theme.
 #
-# Source priority:
-#   1. Linux: ~/.local/state/theme/current/colors.toml — rewritten by
-#      bin/theme (this repo owns the state path now, not Omarchy).
-#   2. macOS: ~/.config/theme/current/tmux-{dark,light}.sh — hand-tuned
-#      scripts shipped in bin/theme packs.
-#   3. Checked-in fallback: colors/{dark,light}.sh.
-#
-# Live reload: bin/theme re-sources tmux.conf on macOS. On Omarchy install the
-# hook shipped next to this file (it re-sources tmux.conf on theme changes):
-#   omarchy hook install theme-set <dotfiles>/config/tmux/theme/omarchy-hook.sh
+# Source: ~/.local/state/theme/current/theme/tmux.sh, rendered by bin/theme from
+# the active pack's colors.toml; colors/{dark,light}.sh when theme has never run.
+# Live reload: bin/theme re-sources tmux.conf on every switch.
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # #(...) and run-shell inherit the tmux *server's* PATH, which goes stale across
 # repo moves — so helpers are addressed through the ~/.config/tmux symlink.
 BIN="$HOME/.config/tmux/../../bin"
-
-# read `key = "value"` from a colors.toml
-toml_get() {
-  sed -n 's/^'"$2"'[[:space:]]*=[[:space:]]*"\(.*\)".*$/\1/p' "$1" 2>/dev/null | head -n1
-}
-
-# print $1 unless empty, else $2
-or_default() {
-  if [[ -n "$1" ]]; then printf '%s' "$1"; else printf '%s' "$2"; fi
-}
-
-set_thm() { tmux set-option -gq "@thm_$1" "$2"; }
 
 # Clean slate. Packs set different keys (catppuccin pink/mauve, tokyo-night
 # purple/comment) and `set -g` only overwrites what the new pack names, so a
@@ -38,95 +19,23 @@ stale=()
 while read -r key _; do stale+=(set-option -gqu "$key" \;); done < <(tmux show-options -g 2>/dev/null | grep '^@thm_')
 ((${#stale[@]})) && tmux "${stale[@]:0:${#stale[@]}-1}"
 
-OMARCHY_COLORS="$HOME/.local/state/theme/current/colors.toml"
-
-if [[ -f "$OMARCHY_COLORS" ]]; then
-  # ── Omarchy: derive the palette from the active theme ────────────────────
-  # colors.toml (basecamp/omarchy themes/*/colors.toml) carries accent,
-  # foreground, background, cursor, selection_* and color0-15 — nothing named
-  # "red" or "muted". Named keys are still read first in case a theme ships
-  # them; otherwise the ANSI slots fill in: 1 red 2 green 3 yellow 4 blue
-  # 5 magenta 6 cyan, 9-14 their bright variants, 8 bright black, 7 dim fg.
-  # Backgrounds keep their original derivation (fg_gutter feeds pane borders).
-  g() { toml_get "$OMARCHY_COLORS" "$1"; }
-  slot() { or_default "$(g "$1")" "$(g "$2")"; } # named key, else colorN
-
-  thm_bg=$(g background)
-  thm_fg=$(g foreground)
-  accent=$(or_default "$(g accent)" "$thm_fg")
-  muted=$(or_default "$(g muted)" "$thm_bg")
-  dark_bg=$(or_default "$(g dark_background)" "$thm_bg")
-  bright_black=$(or_default "$(g color8)" "$muted")
-  dim_fg=$(or_default "$(slot dark_foreground color7)" "$thm_fg")
-  bright_fg=$(or_default "$(slot bright_foreground color15)" "$thm_fg")
-  red=$(or_default "$(slot red color1)" "$thm_fg")
-  green=$(or_default "$(slot green color2)" "$thm_fg")
-  yellow=$(or_default "$(slot yellow color3)" "$thm_fg")
-  blue=$(or_default "$(slot blue color4)" "$accent")
-  magenta=$(or_default "$(slot magenta color5)" "$accent")
-  cyan=$(or_default "$(slot cyan color6)" "$thm_fg")
-  bright_red=$(or_default "$(slot bright_red color9)" "$red")
-  bright_green=$(or_default "$(slot bright_green color10)" "$green")
-  bright_blue=$(or_default "$(slot bright_blue color12)" "$blue")
-  bright_magenta=$(or_default "$(slot bright_magenta color13)" "$magenta")
-  bright_cyan=$(or_default "$(slot bright_cyan color14)" "$cyan")
-  # tokyo-night keeps its orange in slot 11 (bright yellow); other themes
-  # repeat yellow there, which is still the right neighbour for a fallback.
-  orange=$(or_default "$(g orange)" "$(or_default "$(g color11)" "$yellow")")
-
-  set_thm bg              "$thm_bg"
-  set_thm bg_dark         "$dark_bg"
-  set_thm bg_dark1        "$(or_default "$(g darker_background)" "$dark_bg")"
-  set_thm bg_highlight    "$(or_default "$(g lighter_background)" "$(or_default "$(g color0)" "$thm_bg")")"
-  set_thm fg              "$thm_fg"
-  set_thm fg_dark         "$dim_fg"
-  set_thm fg_gutter       "$muted"
-  set_thm cyan            "$bright_cyan"
-  set_thm black           "$dark_bg"
-  set_thm magenta         "$magenta"
-  set_thm magenta2        "$bright_magenta"
-  set_thm pink            "$accent"
-  set_thm red             "$red"
-  set_thm red1            "$bright_red"
-  set_thm green           "$green"
-  set_thm green1          "$bright_green"
-  set_thm green2          "$bright_green"
-  set_thm yellow          "$(or_default "$(g bright_yellow)" "$yellow")"
-  set_thm blue            "$blue"
-  set_thm blue0           "$dark_bg"
-  set_thm blue1           "$bright_blue"
-  set_thm blue2           "$bright_blue"
-  set_thm blue5           "$(or_default "$(g light_foreground)" "$bright_fg")"
-  set_thm blue6           "$bright_fg"
-  set_thm blue7           "$dark_bg"
-  set_thm orange          "$orange"
-  set_thm purple          "$accent"
-  set_thm black4          "$muted"
-  set_thm comment         "$bright_black"
-  set_thm dark3           "$bright_black"
-  set_thm dark5           "$bright_black"
-  set_thm teal            "$cyan"
-  set_thm terminal_black  "$dark_bg"
-elif [[ "$(uname -s)" == "Darwin" ]]; then
-  # ── macOS: hand-tuned scripts from the active bin/theme pack ─────────────
-  if [[ "$(defaults read -g AppleInterfaceStyle 2>/dev/null)" == "Dark" ]]; then
-    MODE=dark
-  else
-    MODE=light
-  fi
-  THEME_COLORS="$HOME/.config/theme/current/tmux-$MODE.sh"
-  [[ -f "$THEME_COLORS" ]] || THEME_COLORS="$CURRENT_DIR/colors/$MODE.sh"
+# ── Palette: the rendered pack ──────────────────────────────────────────────
+# bin/theme renders themes/templates/tmux.sh.tpl (a run of `tmux set -gq @thm_*`)
+# into the state dir on every switch, on Linux and macOS alike. The checked-in
+# colors/{dark,light}.sh only cover a machine where theme has never run.
+THEME_TMUX="$HOME/.local/state/theme/current/theme/tmux.sh"
+if [[ -f "$THEME_TMUX" ]]; then
   # shellcheck disable=SC1090
-  source "$THEME_COLORS"
+  source "$THEME_TMUX"
 else
-  # ── Neither: checked-in fallback (assume dark) ───────────────────────────
-  # shellcheck disable=SC1091
-  source "$CURRENT_DIR/colors/dark.sh"
+  MODE=$(cat "$HOME/.local/state/theme/current/mode" 2>/dev/null || echo dark)
+  # shellcheck disable=SC1090
+  source "$CURRENT_DIR/colors/$MODE.sh"
 fi
 
 # ── Canonical palette ────────────────────────────────────────────────────────
 # Packs name their knobs differently (catppuccin pink/mauve/subtext_0/overlay_0,
-# tokyo-night purple/fg_dark/comment; omarchy derives from ANSI slots), so every
+# tokyo-night purple/fg_dark/comment; the rendered tmux.sh speaks tokyo-night), so every
 # colour the status line uses walks a chain and bottoms out in an ANSI name. A
 # fresh server with a pack that lacks a key gets the terminal's own colour, not
 # an empty `fg=` — which tmux rejects, and the whole style with it.
@@ -308,10 +217,8 @@ tmux set -g status-left "  #{?client_prefix,${prefix_pill},#(${BIN}/tmux-session
 hint() { printf '#[fg=%s]#[bold]%s#[nobold]#[fg=%s] %s' "$c_yellow" "$1" "$c_dim" "$2"; }
 hints="$(hint s sessions)   $(hint g lazygit)   $(hint y fleet)   $(hint n next)   $(hint f sidebar)   $(hint = tile)   $(hint Esc copy)   $(hint T bar)   $(hint r reload)"
 theme_note=""
-if [[ -f "$HOME/.config/theme/current/theme.conf" ]]; then
-  theme_note=$(sed -n 's/^TAGLINE="\(.*\)"/\1/p' "$HOME/.config/theme/current/theme.conf")
-elif [[ -L "$HOME/.config/omarchy/current/theme" ]]; then
-  theme_note=$(basename "$(readlink "$HOME/.config/omarchy/current/theme")")
+if [[ -f "$HOME/.local/state/theme/current/theme/theme.conf" ]]; then
+  theme_note=$(sed -n 's/^TAGLINE="\(.*\)"/\1/p' "$HOME/.local/state/theme/current/theme/theme.conf")
 fi
 # a literal comma inside a #{?} branch must be written #, or it splits the branch
 [[ -n $theme_note ]] && hints+="      #[fg=${c_muted}]#[italics]${theme_note//,/#,}#[noitalics]"

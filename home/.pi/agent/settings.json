@@ -2,7 +2,7 @@
   "defaultProvider": "openrouter",
   "editorPaddingX": 1,
   "outputPad": 1,
-  "theme": "dark",
+  "theme": "system",
   "quietStartup": true,
   "hideThinkingBlock": true,
   "skills": [

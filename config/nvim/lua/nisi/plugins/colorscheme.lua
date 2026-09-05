@@ -1,9 +1,8 @@
 local config = require("nisi").config
 
 return {
-  -- Aether: the shared colorscheme for Omarchy-style themes.
-  -- The palette comes from the active Omarchy theme (colors.toml on Linux)
-  -- or from ~/.config/theme/current/nvim-aether.json on macOS.
+  -- Aether: the one colorscheme; bin/theme renders each pack's palette to
+  -- ~/.local/state/theme/current/theme/nvim-aether.json.
   -- See apply_named_theme() in lua/nisi/init.lua for the loading logic.
   {
     "bjarneo/aether.nvim",
