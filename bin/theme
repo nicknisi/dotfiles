@@ -405,7 +405,7 @@ reload_apps() { # NAME MODE WALL
   else
     linux_gtk "$mode"
     if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
-      hyprctl reload >/dev/null 2>&1 || true # borders come from the rendered hyprland.lua
+      hypr_borders "$T" || hyprctl reload >/dev/null 2>&1 || true
       command -v qs >/dev/null 2>&1 && qs ipc call theme reload >/dev/null 2>&1 || true
     fi
     [ -n "$wall" ] && paint_wallpaper
@@ -497,6 +497,30 @@ APPLESCRIPT
   else
     echo "theme: wallpaper failed (Automation permission for System Events?)" >&2
   fi
+}
+
+# Borders are all Hyprland takes from a theme switch, and `hyprctl eval` sets
+# them in place. `hyprctl reload` also does the job but re-reads the whole
+# config, which re-applies hyprland.lua's monitor line. On battery that drags
+# the panel off the 60 Hz PowerMode.qml put it at, back to the config's
+# "preferred" of 120, and the panel blanks for the modeset; panel-hz then puts
+# it back, blanking a second time. Neither blank has anything to do with
+# colours, and a theme switch is the one thing that made it happen on every
+# switch rather than only on a manual reload.
+#
+# Hyprland 0.56's Lua parser rejects `hyprctl keyword`, so eval calling the
+# same hl.config() the rendered file uses is the way in, the same route
+# bin/panel-hz takes for hl.monitor. `hyprctl eval` exits non-zero on a Lua
+# error, so the fallback is honest. A pack shipping its own hyprland.lua (a
+# gradient border, say) will not match the two lines read here and falls back
+# to the reload, which is the right answer for a config this cannot parse.
+hypr_borders() { # rendered theme dir -> 0 if the colours went in without a reload
+  local f="$1/hyprland.lua" active inactive
+  [ -f "$f" ] || return 1
+  active="$(sed -n 's/^local active = "\(.*\)"$/\1/p' "$f")"
+  inactive="$(sed -n 's/^local inactive = "\(.*\)"$/\1/p' "$f")"
+  [ -n "$active" ] && [ -n "$inactive" ] || return 1
+  hyprctl eval "hl.config({ general = { col = { active_border = \"$active\", inactive_border = \"$inactive\" } }, group = { col = { border_active = \"$active\", border_inactive = \"$inactive\" } } })" >/dev/null 2>&1
 }
 
 linux_gtk() { # dark|light: GTK3/4 + libadwaita follow color-scheme; icons if the pack names an installed set
