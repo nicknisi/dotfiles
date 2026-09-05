@@ -114,19 +114,9 @@ hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("loginctl lock-session")) -- hypridle runs hyprlock
 hl.bind("SUPER + SHIFT + ESCAPE", hl.dsp.exec_cmd("uwsm stop"))
 
--- Focus and move, aerospace's alt-hjkl / alt-shift-hjkl.
---
--- Moving goes through bin/hypr-move rather than calling window.move directly.
--- The dispatcher only moves into an EXISTING neighbour, so the lower window of a
--- column that is already against the screen edge cannot be brought alongside its
--- partner: there is nothing to its right to move into, and the press does
--- nothing. The helper falls back to flipping that pair's split, but only when
--- the pair runs across the direction asked for, so a window at the bottom of a
--- column pushed further down is still correctly left alone.
-for key, dir in pairs({ H = "l", J = "d", K = "u", L = "r" }) do
-  hl.bind("SUPER + " .. key, hl.dsp.focus({ direction = dir }))
-  hl.bind("SUPER + SHIFT + " .. key, hl.dsp.exec_cmd("hypr-move " .. dir))
-end
+-- Focus and move, aerospace's alt-hjkl / alt-shift-hjkl. The move half needs
+-- more than a dispatcher, so it lives in its own file.
+dofile(hypr .. "/window-move.lua")
 
 -- Window management, from aerospace's [mode.main.binding].
 --
