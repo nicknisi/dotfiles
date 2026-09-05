@@ -75,6 +75,19 @@ hl.config({
     layout = "dwindle",
     resize_on_border = true,
   },
+
+  -- preserve_split is what makes a split direction stick once set. Without it
+  -- dwindle recomputes the direction from the container's aspect ratio on every
+  -- layout pass, silently undoing togglesplit: SUPER+SLASH appeared to do
+  -- nothing, and moving a stacked window sideways with SUPER+SHIFT+L could not
+  -- work either because there was never a stack to begin with.
+  --
+  -- force_split stays at its default 0: a new window splits on whichever half of
+  -- the focused window the cursor is over. Set 1 for always left/above, 2 for
+  -- always right/below if that is too fiddly.
+  dwindle = {
+    preserve_split = true,
+  },
   decoration = { rounding = 0, blur = { enabled = false }, shadow = { enabled = false } },
   misc = { disable_hyprland_logo = true, disable_splash_rendering = true },
 })
