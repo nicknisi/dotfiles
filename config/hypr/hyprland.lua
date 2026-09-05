@@ -109,7 +109,7 @@ local function app(command) return hl.dsp.exec_cmd("uwsm-app -- " .. command) en
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("sh -c 'pkill wofi || wofi --show drun'"))
 
 hl.bind("SUPER + RETURN", app("ghostty"))
-hl.bind("SUPER + SHIFT + RETURN", app("chromium"))
+hl.bind("SUPER + SHIFT + RETURN", hl.dsp.exec_cmd("sh -c 'uwsm-app -- \"$(xdg-settings get default-web-browser)\"'"))
 hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("loginctl lock-session")) -- hypridle runs hyprlock
 hl.bind("SUPER + SHIFT + ESCAPE", hl.dsp.exec_cmd("uwsm stop"))
