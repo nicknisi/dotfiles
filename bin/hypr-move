@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""hypr-move <l|r|u|d> -- move the focused window, flipping its split when needed.
+
+Hyprland's movewindow only moves into an EXISTING neighbour. Two windows stacked
+in a column with nothing to their right means "move right" does nothing, so the
+lower one can never be brought alongside the upper one.
+
+When the plain move changes nothing, flip the split of the pair the window
+belongs to -- but only when that pair is oriented across the requested direction.
+A window at the bottom of a column asked to go further down is simply at the end
+and must be left alone; the same window asked to go right is in a column that
+should become a row.
+
+The pair is found geometrically: dwindle splits a rectangle in two, so a window's
+sibling shares its x and width (stacked above/below) or its y and height (beside
+it). Matching on overlap instead is too loose -- an unrelated full-height window
+in another column overlaps vertically without being the sibling, which made an
+earlier version rearrange the layout when asked to move down.
+"""
+import json
+import subprocess
+import sys
+import time
+
+DIRS = {"l", "r", "u", "d"}
+TOL = 40  # slack for gaps and border rounding
+
+
+def hypr(*args):
+    return subprocess.run(["hyprctl", *args], capture_output=True, text=True).stdout
+
+
+def load(*args):
+    try:
+        return json.loads(hypr(*args))
+    except json.JSONDecodeError:
+        return None
+
+
+def peers(win):
+    clients = load("clients", "-j") or []
+    ws = win.get("workspace", {}).get("id")
+    return [
+        c for c in clients
+        if c.get("workspace", {}).get("id") == ws
+        and not c.get("floating")
+        and not c.get("hidden")
+        and c.get("address") != win.get("address")
+    ]
+
+
+def near(a, b):
+    return abs(a - b) <= TOL
+
+
+def split_axis(win):
+    """'v' when the window is stacked with its sibling, 'h' when side by side."""
+    x, y = win["at"]
+    w, h = win["size"]
+    for c in peers(win):
+        cx, cy = c["at"]
+        cw, ch = c["size"]
+        if near(x, cx) and near(w, cw) and not near(y, cy):
+            return "v"
+        if near(y, cy) and near(h, ch) and not near(x, cx):
+            return "h"
+    return None
+
+
+def geom(win):
+    return None if win is None else (tuple(win["at"]), tuple(win["size"]))
+
+
+def move(direction):
+    hypr("dispatch", f'hl.dsp.window.move({{ direction = "{direction}" }})')
+    time.sleep(0.05)
+
+
+def main():
+    if len(sys.argv) != 2 or sys.argv[1] not in DIRS:
+        sys.exit("usage: hypr-move <l|r|u|d>")
+    direction = sys.argv[1]
+
+    win = load("activewindow", "-j")
+    if not win or win.get("floating"):
+        move(direction)
+        return
+
+    before = geom(win)
+    move(direction)
+    if geom(load("activewindow", "-j")) != before:
+        return
+
+    # Nothing moved. Flip only when the pair runs across the requested direction.
+    axis = split_axis(win)
+    wanted = "v" if direction in ("l", "r") else "h"
+    if axis == wanted:
+        hypr("dispatch", 'hl.dsp.layout("togglesplit")')
+        time.sleep(0.05)
+        move(direction)
+
+
+if __name__ == "__main__":
+    main()
