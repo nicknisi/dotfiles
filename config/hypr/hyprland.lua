@@ -6,7 +6,10 @@
 -- Start from the TTY:   uwsm start hyprland.desktop
 -- uwsm runs Hyprland as a user unit and activates graphical-session.target once
 -- `uwsm finalize` runs (below), which starts every enabled unit wanted by it:
---   systemctl --user enable hyprpolkitagent hypridle hyprsunset batsignal
+--   systemctl --user enable hyprpolkitagent hypridle hyprsunset hyprpaper batsignal
+-- quickshell ships no unit of its own; ~/.config/systemd/user/quickshell.service
+-- is machine-local, since mise's [dotfiles] would symlink a tracked config/systemd
+-- and systemctl would then write its .wants links back into the repo.
 -- Exit with SUPER+SHIFT+Escape (`uwsm stop`), not by killing Hyprland.
 --
 -- Reference for the hl.* API: Omarchy's default/hypr/*.lua
