@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# panel-hz — match the internal panel's refresh rate to the power source.
+#
+# Measured on this XPS 14 on 2026-09-05, interleaved 30 s blocks, medians of
+# the battery gauge with the same workload in both: 120 Hz drew 16.34 W and
+# 60 Hz drew 9.78 W. That 6.6 W is about 2.8 hours of runtime on the 68.6 Wh
+# pack. Plugged in it costs nothing, so the rate follows the charger.
+#
+# The saving is not the eDP link: the panel's 60 Hz mode is the 120 Hz timing
+# with a doubled VTotal, same 700 MHz pixel clock. It is the GPU and the
+# compositor drawing half as many frames.
+#
+# Hyprland 0.56's Lua parser rejects `hyprctl keyword` ("can't work with
+# non-legacy parsers"), so the mode goes in through `hyprctl eval` calling the
+# same hl.monitor() hyprland.lua uses. That is runtime state: `hyprctl reload`
+# drops back to the config's "preferred", which is 120. Quickshell's
+# PowerMode.qml re-runs this on every AC transition; after a manual reload on
+# battery, run it again.
+#
+# Scale is read back from Hyprland rather than repeated here, so this cannot
+# drift out of step with hyprland.lua.
+#
+#   panel-hz              follow the charger
+#   panel-hz 60 | 120     force a rate
+#   panel-hz --show       print the active mode
+
+set -euo pipefail
+
+OUTPUT=eDP-1
+
+on_ac() {
+  local ac
+  for ac in /sys/class/power_supply/A{C,DP}*/online; do
+    [[ -r $ac ]] && { [[ $(<"$ac") == 1 ]] && return 0 || return 1; }
+  done
+  return 0 # no AC device found: assume desk, do not degrade the display
+}
+
+case "${1:-}" in
+--show)
+  hyprctl monitors -j | jq -r --arg o "$OUTPUT" \
+    '.[] | select(.name==$o) | "\(.width)x\(.height)@\(.refreshRate|floor) scale \(.scale)"'
+  exit 0
+  ;;
+60 | 120) HZ=$1 ;;
+"") on_ac && HZ=120 || HZ=60 ;;
+*)
+  echo "panel-hz: expected 60, 120, --show, or no argument" >&2
+  exit 2
+  ;;
+esac
+
+read -r W H SCALE < <(hyprctl monitors -j |
+  jq -r --arg o "$OUTPUT" '.[] | select(.name==$o) | "\(.width) \(.height) \(.scale)"')
+
+[[ -n ${W:-} ]] || { echo "panel-hz: $OUTPUT not found" >&2; exit 1; }
+
+hyprctl eval \
+  "hl.monitor({ output = \"$OUTPUT\", mode = \"${W}x${H}@${HZ}\", position = \"auto\", scale = $SCALE })" \
+  >/dev/null
