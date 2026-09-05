@@ -62,9 +62,19 @@ read -r W H SCALE NOW < <(hyprctl monitors -j |
 # Setting the mode Hyprland is already in still costs a modeset, and a modeset
 # blanks the panel for a moment. Anything that reloads the Hyprland config
 # makes this run, so the cheap read here is what keeps a reload from flickering
-# the screen for no reason.
+# the screen for no reason. Note the modeset is asynchronous: hyprctl returns
+# ok well before `hyprctl monitors` reports the new rate, so two calls inside
+# that window are not deduped. The case this guards is a reload arriving long
+# after the rate settled, which is the one that actually happens.
 [[ $NOW == "$HZ" ]] && exit 0
 
-hyprctl eval \
+# hyprctl exits 7 and prints "error: ..." on a Lua fault, and 0 with "ok"
+# otherwise. Both were being discarded, which made a broken hl.monitor call
+# look like a successful one; PowerMode.qml runs this detached, so a silent
+# failure here is a panel stuck at the wrong rate with nothing logged.
+if ! out=$(hyprctl eval \
   "hl.monitor({ output = \"$OUTPUT\", mode = \"${W}x${H}@${HZ}\", position = \"auto\", scale = $SCALE })" \
-  >/dev/null
+  2>&1) || [[ $out == error:* ]]; then
+  echo "panel-hz: setting ${W}x${H}@${HZ} failed: ${out:-no output}" >&2
+  exit 1
+fi
