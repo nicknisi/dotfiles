@@ -54,10 +54,16 @@ case "${1:-}" in
   ;;
 esac
 
-read -r W H SCALE < <(hyprctl monitors -j |
-  jq -r --arg o "$OUTPUT" '.[] | select(.name==$o) | "\(.width) \(.height) \(.scale)"')
+read -r W H SCALE NOW < <(hyprctl monitors -j |
+  jq -r --arg o "$OUTPUT" '.[] | select(.name==$o) | "\(.width) \(.height) \(.scale) \(.refreshRate|round)"')
 
 [[ -n ${W:-} ]] || { echo "panel-hz: $OUTPUT not found" >&2; exit 1; }
+
+# Setting the mode Hyprland is already in still costs a modeset, and a modeset
+# blanks the panel for a moment. Anything that reloads the Hyprland config
+# makes this run, so the cheap read here is what keeps a reload from flickering
+# the screen for no reason.
+[[ $NOW == "$HZ" ]] && exit 0
 
 hyprctl eval \
   "hl.monitor({ output = \"$OUTPUT\", mode = \"${W}x${H}@${HZ}\", position = \"auto\", scale = $SCALE })" \
