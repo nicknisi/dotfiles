@@ -554,8 +554,10 @@ linux_gtk() { # dark|light: GTK3/4 + libadwaita follow color-scheme; icons if th
 }
 
 paint_wallpaper() { # $STATE/background is the source of truth; the daemon re-reads it
-  if command -v swww >/dev/null 2>&1 && swww query >/dev/null 2>&1; then
-    swww img "$STATE/background" --transition-type fade --transition-duration 1 >/dev/null 2>&1 || true
+  if command -v awww >/dev/null 2>&1 && awww query >/dev/null 2>&1; then
+    awww img "$STATE/background" --transition-type random --transition-duration 1.2 >/dev/null 2>&1 || true
+  elif command -v swww >/dev/null 2>&1 && swww query >/dev/null 2>&1; then
+    swww img "$STATE/background" --transition-type random --transition-duration 1.2 >/dev/null 2>&1 || true
   elif systemctl --user is-active --quiet hyprpaper 2>/dev/null; then
     # hyprpaper 0.8 has no set-wallpaper IPC; hyprpaper.conf points at the symlink, so a restart repaints
     systemctl --user restart hyprpaper
@@ -563,7 +565,7 @@ paint_wallpaper() { # $STATE/background is the source of truth; the daemon re-re
     pkill -x hyprpaper
     (setsid hyprpaper >/dev/null 2>&1 &)
   else
-    echo "theme: no wallpaper daemon running (hyprpaper or swww)" >&2
+    echo "theme: no wallpaper daemon running (awww, swww, or hyprpaper)" >&2
   fi
   echo "wallpaper: $(basename "$(readlink "$STATE/background")")" >&2
 }

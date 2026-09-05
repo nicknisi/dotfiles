@@ -6,7 +6,7 @@
 -- Start from the TTY:   uwsm start hyprland.desktop
 -- uwsm runs Hyprland as a user unit and activates graphical-session.target once
 -- `uwsm finalize` runs (below), which starts every enabled unit wanted by it:
---   systemctl --user enable hyprpolkitagent hypridle hyprsunset hyprpaper batsignal
+--   systemctl --user enable hyprpolkitagent hypridle hyprsunset batsignal
 -- quickshell ships no unit of its own; ~/.config/systemd/user/quickshell.service
 -- is machine-local, since mise's [dotfiles] would symlink a tracked config/systemd
 -- and systemctl would then write its .wants links back into the repo.
@@ -100,6 +100,7 @@ hl.on("hyprland.start", function()
   -- Hand WAYLAND_DISPLAY & co. to the user manager and D-Bus; uwsm then
   -- activates graphical-session.target. Hyprland does not do this by itself.
   hl.exec_cmd("uwsm finalize")
+  hl.exec_cmd("uwsm-app -- awww-daemon --quiet")
   hl.exec_cmd("uwsm-app -- udiskie --automount --no-notify --no-tray")
 end)
 

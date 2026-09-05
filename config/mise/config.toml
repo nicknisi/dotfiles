@@ -86,6 +86,7 @@ claude = "latest"
 
 "pacman:zsh" = { version = "latest", os = "linux" }
 "pacman:vim" = { version = "latest", os = "linux" }
+"pacman:awww" = { version = "latest", os = "linux" }
 "pacman:btop" = { version = "latest", os = "linux" }
 "pacman:cloc" = { version = "latest", os = "linux" }
 
