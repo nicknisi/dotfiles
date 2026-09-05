@@ -26,6 +26,45 @@ PanelWindow {
         runner.startDetached();
     }
 
+    // Workspaces worth drawing: focused, or holding at least one window. Sorted
+    // numeric-first then alphabetically, so 1..9 lead and the lettered ones
+    // follow in a stable order rather than in creation order. Named workspaces
+    // get a synthetic negative id (-1337 and down) that shifts as they are
+    // created and destroyed, so everything here keys on name.
+    readonly property string focusedName: Hyprland.focusedWorkspace?.name ?? ""
+
+    readonly property var shownWorkspaces: {
+        const out = [];
+        for (const w of Hyprland.workspaces.values) {
+            const count = w.toplevels?.values?.length ?? 0;
+            if (count === 0 && w.name !== bar.focusedName) continue;
+            out.push(w);
+        }
+        out.sort((a, b) => {
+            const an = parseInt(a.name), bn = parseInt(b.name);
+            const aNum = !isNaN(an), bNum = !isNaN(bn);
+            if (aNum && bNum) return an - bn;
+            if (aNum !== bNum) return aNum ? -1 : 1;
+            return a.name.localeCompare(b.name);
+        });
+        return out;
+    }
+
+    // One glyph per distinct app, matching how workspaces.sh deduplicated on
+    // workspace|app-name. Two windows of the same app collapse to one icon; two
+    // different apps that happen to share a glyph still show twice.
+    function glyphsFor(ws): var {
+        const seen = ({});
+        const out = [];
+        for (const t of (ws.toplevels?.values ?? [])) {
+            const cls = String(t.lastIpcObject?.class ?? "");
+            if (cls === "" || seen[cls]) continue;
+            seen[cls] = true;
+            out.push(Icons.forClass(cls));
+        }
+        return out;
+    }
+
     // Hyprland 0.56 parses dispatch payloads as Lua, so `workspace 3` is a syntax
     // error there. An existing workspace can skip the whole question and use its
     // own activate() method; only creating a new one needs a dispatch string.
@@ -68,26 +107,62 @@ PanelWindow {
         spacing: 10
 
         // ---- workspaces ------------------------------------------------
+        // Same behaviour as sketchybar's plugins/workspaces.sh: a pill is drawn
+        // only when the workspace is focused or holds windows, and it carries one
+        // glyph per distinct app on it.
         RowLayout {
-            spacing: 6
-            Repeater {
-                model: 9
-                Text {
-                    required property int index
-                    readonly property int wsId: index + 1
-                    readonly property var ws: Hyprland.workspaces.values.find(w => w.id === wsId) ?? null
-                    readonly property bool focused: Hyprland.focusedWorkspace?.id === wsId
+            spacing: 5
 
-                    text: wsId
-                    color: focused ? Theme.cyan : (ws ? Theme.blue : Theme.muted)
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize
-                    font.bold: true
+            Repeater {
+                model: bar.shownWorkspaces
+
+                Rectangle {
+                    id: pill
+                    required property var modelData
+
+                    readonly property bool focused: modelData.name === bar.focusedName
+                    readonly property var glyphs: bar.glyphsFor(modelData)
+
+                    Layout.alignment: Qt.AlignVCenter
+                    implicitWidth: pillRow.implicitWidth + 14
+                    implicitHeight: 20
+                    radius: 5
+
+                    color: focused ? Theme.glowFill : Theme.pillBg
+                    border.width: 1
+                    border.color: focused ? Theme.glowEdge : Theme.pillBorder
+
+                    Row {
+                        id: pillRow
+                        anchors.centerIn: parent
+                        spacing: 5
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: pill.modelData.name
+                            color: pill.focused ? Theme.blue : Theme.fg
+                            font.family: Theme.font
+                            font.pixelSize: Theme.fontSize - 1
+                            font.bold: true
+                        }
+
+                        Repeater {
+                            model: pill.glyphs
+                            Text {
+                                required property string modelData
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: modelData
+                                color: pill.focused ? Theme.blue : Theme.muted
+                                font.family: Theme.icons
+                                font.pixelSize: Theme.fontSize
+                            }
+                        }
+                    }
 
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: bar.goToWorkspace(parent.wsId)
+                        onClicked: pill.modelData.activate()
                     }
                 }
             }

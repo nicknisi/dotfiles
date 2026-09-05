@@ -1,8 +1,8 @@
+pragma Singleton
 // Sys.qml - CPU and memory percentages, which the first bar declared but never
 // filled in. One long-lived `sh` loop prints "<cpu> <mem>" every 2s and QML reads
 // lines off stdout. Cheaper than respawning a process on a timer, and this build
 // of Quickshell has no FileView in its Io qmltypes to poll /proc directly.
-pragma Singleton
 import Quickshell
 import Quickshell.Io
 

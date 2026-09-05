@@ -1,8 +1,8 @@
+pragma Singleton
 // Audio.qml - the default sink, wrapped so the rest of the shell does not repeat
 // the null checks. PipeWire objects arrive unbound: their `audio` sub-object stays
 // empty until something declares interest, which is what PwObjectTracker does.
 // Without it `sink.audio.volume` reads as undefined forever.
-pragma Singleton
 import Quickshell
 import Quickshell.Services.Pipewire
 

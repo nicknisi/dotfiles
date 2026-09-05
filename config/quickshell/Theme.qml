@@ -1,7 +1,7 @@
+pragma Singleton
 // Theme.qml - one place for colours and fonts. `pragma Singleton` + Quickshell's
 // `Singleton` root means every other file can just say `Theme.bg`; no import or
 // qmldir needed, Quickshell registers it from the filename.
-pragma Singleton
 import Quickshell
 import QtQuick
 
@@ -25,4 +25,14 @@ Singleton {
     readonly property int fontSize:  13
     readonly property int iconSize:  14
     readonly property int barHeight: 30
+
+    // Workspace pills. The structure is lifted from sketchybar's colors.sh: a
+    // translucent accent fill under a bright accent border for the focused one,
+    // a flat dark chip under a 12%-opacity hairline for merely occupied ones.
+    // Colours are Tokyo Night rather than sketchybar's Ayu, so the bar stays
+    // internally consistent. Qt reads "#AARRGGBB" when given eight digits.
+    readonly property color pillBg:     "#9e232433"
+    readonly property color pillBorder: "#1fa9b1d6"
+    readonly property color glowFill:   "#247aa2f7"
+    readonly property color glowEdge:   "#d97aa2f7"
 }

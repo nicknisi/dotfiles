@@ -1,8 +1,8 @@
+pragma Singleton
 // Battery.qml - UPower's display device, which is the laptop battery here.
 //
 // UPower reports percentage as 0..100 over D-Bus but some bindings normalise to
 // 0..1, so this clamps either shape into a whole percent rather than guessing.
-pragma Singleton
 import Quickshell
 import Quickshell.Services.UPower
 

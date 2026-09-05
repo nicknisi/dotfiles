@@ -1,3 +1,4 @@
+pragma Singleton
 // Backlight.qml - current screen brightness as a 0..1 fraction.
 //
 // Deliberately *watches* /sys instead of being told by a keybind: media-keys.lua
@@ -7,7 +8,6 @@
 //
 // The loop only echoes when the value actually changes, so QML wakes up on real
 // events rather than 7 times a second.
-pragma Singleton
 import Quickshell
 import Quickshell.Io
 

@@ -1,10 +1,10 @@
+pragma Singleton
 // Net.qml - the wifi radio and whatever it is attached to.
 //
 // Quickshell 0.3.1 ships a Networking module that talks to NetworkManager over
 // D-Bus, so none of this shells out to nmcli. DeviceType is None=0, Wifi=1,
 // Wired=2; `connected` on a Network is the honest signal, so state enums are
 // left alone.
-pragma Singleton
 import Quickshell
 import Quickshell.Networking
 
