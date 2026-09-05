@@ -52,7 +52,7 @@ PanelWindow {
     // created and destroyed, so everything here keys on name.
     readonly property string focusedName: Hyprland.focusedWorkspace?.name ?? ""
 
-    readonly property var shownWorkspaces: {
+    readonly property var workspaceSource: {
         const out = [];
         for (const w of Hyprland.workspaces.values) {
             const count = w.toplevels?.values?.length ?? 0;
@@ -67,6 +67,32 @@ PanelWindow {
             return a.name.localeCompare(b.name);
         });
         return out;
+    }
+
+    // Hyprland pushes a toplevel update on more or less every window event, and
+    // the binding above recomputes from scratch each time. Handing a Repeater a
+    // brand new array destroys and rebuilds every delegate in it, even when the
+    // contents are identical, which is both wasteful and where the steady drip
+    // of "ReferenceError: Theme is not defined" came from: bindings inside a
+    // delegate re-evaluating against a context that is already being torn down.
+    //
+    // So the Repeater reads this instead, and it only changes when the list
+    // really does. Workspace and toplevel objects are stable, so identity is
+    // enough of a comparison.
+    property var shownWorkspaces: []
+    onWorkspaceSourceChanged: {
+        if (!bar.sameItems(bar.workspaceSource, bar.shownWorkspaces)) {
+            bar.shownWorkspaces = bar.workspaceSource;
+        }
+    }
+    Component.onCompleted: bar.shownWorkspaces = bar.workspaceSource
+
+    function sameItems(a, b): bool {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (a[i] !== b[i]) return false;
+        }
+        return true;
     }
 
     // One glyph per distinct app, matching how workspaces.sh deduplicated on
@@ -168,7 +194,16 @@ PanelWindow {
                             required property var modelData
 
                             readonly property bool focused: modelData.name === bar.focusedName
-                            readonly property var glyphs: bar.glyphsFor(modelData)
+
+                            // Same story as shownWorkspaces: glyphsFor builds a
+                            // fresh array on every push, so it is filtered
+                            // through the same "only if it differs" gate before
+                            // the glyph Repeater sees it.
+                            readonly property var glyphSource: bar.glyphsFor(modelData)
+                            property var glyphs: []
+                            onGlyphSourceChanged: {
+                                if (!bar.sameItems(ws.glyphSource, ws.glyphs)) ws.glyphs = ws.glyphSource;
+                            }
 
                             Layout.alignment: Qt.AlignVCenter
                             implicitWidth: wsInner.implicitWidth + 14
@@ -184,7 +219,10 @@ PanelWindow {
                             onFocusedChanged: if (focused) rail.follow(ws)
                             onXChanged: if (focused) rail.follow(ws)
                             onWidthChanged: if (focused) rail.follow(ws)
-                            Component.onCompleted: if (focused) rail.follow(ws)
+                            Component.onCompleted: {
+                                ws.glyphs = ws.glyphSource;
+                                if (ws.focused) rail.follow(ws);
+                            }
 
                             Rectangle {
                                 anchors.fill: parent
