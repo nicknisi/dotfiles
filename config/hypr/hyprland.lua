@@ -115,9 +115,16 @@ hl.bind("SUPER + SHIFT + SPACE", hl.dsp.window.float({ action = "toggle" }))
 hl.bind("SUPER + SLASH", hl.dsp.layout("togglesplit"))
 hl.bind("SUPER + COMMA", hl.dsp.group.toggle())
 
--- alt-shift-minus / alt-shift-equal, resize smart -+100.
-hl.bind("SUPER + SHIFT + MINUS", hl.dsp.window.resize({ x = -100, y = 0 }))
-hl.bind("SUPER + SHIFT + EQUAL", hl.dsp.window.resize({ x = 100, y = 0 }))
+-- alt-shift-minus / alt-shift-equal, aerospace's `resize smart -+100`.
+--
+-- relative = true is required, same as on window.move. Without it the call is an
+-- absolute size: on a tiled window it does nothing at all, and on a floating one
+-- it snaps the window to roughly 100x50 rather than growing it.
+--
+-- x and y are both passed because aerospace's `smart` picks the axis for you.
+-- Dwindle only has one axis free per split, so the other value is a no-op.
+hl.bind("SUPER + SHIFT + MINUS", hl.dsp.window.resize({ x = -100, y = -100, relative = true }))
+hl.bind("SUPER + SHIFT + EQUAL", hl.dsp.window.resize({ x = 100, y = 100, relative = true }))
 
 -- Floating windows. Nothing above moves one: SUPER+SHIFT+hjkl is a tiling
 -- operation, and a floating window has no place in the tree to be moved to.
