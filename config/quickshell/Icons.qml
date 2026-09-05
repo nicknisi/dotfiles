@@ -49,10 +49,55 @@ Singleton {
         { match: ["settings", "control-center"],                                   glyph: "\uf013" },
     ]
 
+    // BlueZ puts a freedesktop icon name on org.bluez.Device1.Icon, derived from
+    // the device's class-of-device bits. That set is small and fixed, so this is
+    // an exact lookup rather than the substring scan above.
+    //
+    // Most of these are Material Design codepoints (U+F0001 and up), which need
+    // \u{...} rather than \uXXXX. They were picked over the Font Awesome ones
+    // because the Awesome set has no headset glyph in the installed Symbols Nerd
+    // Font at all: U+F590 is missing from its charset and renders as tofu.
+    readonly property string btFallback: "\u{f00af}" // md bluetooth
+
+    readonly property var btGlyphs: ({
+        "audio-card":        "\u{f04c3}",
+        "audio-headphones":  "\u{f02cb}",
+        "audio-headset":     "\u{f02ce}",
+        "camera-photo":      "\uf030",
+        "camera-video":      "\uf03d",
+        "computer":          "\u{f0322}",
+        "input-gaming":      "\uf11b",
+        "input-keyboard":    "\u{f030c}",
+        "input-mouse":       "\u{f037d}",
+        "input-tablet":      "\uf10a",
+        "modem":             "\uf1eb",
+        "multimedia-player": "\uf001",
+        "network-wireless":  "\uf1eb",
+        "phone":             "\u{f011c}",
+        "printer":           "\u{f042a}",
+        "scanner":           "\uf02f",
+        "video-display":     "\u{f0379}",
+    })
+
+    readonly property var forBluetooth: function (icon) {
+        return root.btGlyphs[String(icon ?? "")] ?? root.btFallback;
+    }
+
     // Exposed as a property holding a function rather than a plain method:
     // a declared method on this singleton is not reachable from another file
     // ("Property 'forClass' of object Icons is not a function"), while a var
     // property holding a function is.
+    // PipeWire hands out node.nick for a sink, which is a short human label like
+    // "Speaker", "Headphones" or "HDMI 1". Substring again, because the wording
+    // varies by driver and there is no enum behind it.
+    readonly property var forSink: function (label) {
+        const s = String(label ?? "").toLowerCase();
+        if (s.includes("headphone") || s.includes("headset")) return "\u{f02cb}"; // md headphones
+        if (s.includes("hdmi") || s.includes("displayport")) return "\u{f0379}";  // md monitor
+        if (s.includes("bluez") || s.includes("bluetooth")) return "\u{f00af}";   // md bluetooth
+        return "\u{f04c3}"; // md speaker
+    }
+
     readonly property var forClass: function (cls) {
         if (!cls) return root.fallback;
         const c = String(cls).toLowerCase();

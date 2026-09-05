@@ -9,7 +9,9 @@ pragma Singleton
 // retints without a restart. The literals below are Tokyo Night, the look until
 // theme has run once on a machine.
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
+import QtQml
 import QtQuick
 
 Singleton {
@@ -30,6 +32,28 @@ Singleton {
     readonly property color yellow:  c("yellow",             "#e0af68")
     readonly property color red:     c("red",                "#f7768e")
     readonly property bool  dark:    c("mode", "dark") !== "light"
+    readonly property string name:   c("name", "")
+
+    // ---- surfaces ----------------------------------------------------------
+    // Three steps, darkest to lightest. A menu floats above the bar, which
+    // floats above the desktop, and none of them has to guess at a hex value.
+    readonly property color sunken:  c("darker_background",  "#12131f")
+    readonly property color surface: bg
+    readonly property color raised:  bgAlt
+
+    // Borders deliberately mirror hyprland.lua.tpl, which paints the active
+    // window border with accent at full alpha and the inactive one with muted at
+    // 0xaa. The bar is a window among windows, so it uses the same two.
+    readonly property color borderActive: accent
+    readonly property color borderIdle:   alpha(muted, 0.67)
+
+    // ---- motion ------------------------------------------------------------
+    // Three speeds, so every animation in the shell agrees with the others.
+    // quick is for a hover tint, base for anything that moves, unfold for a menu
+    // opening, which is slow enough to read as a physical thing.
+    readonly property int quick:  110
+    readonly property int base:   190
+    readonly property int unfold: 260
 
     // The old config asked for "JetBrainsMono Nerd Font", which is not installed,
     // so Qt was silently falling back. These two are.
@@ -38,15 +62,59 @@ Singleton {
 
     readonly property int fontSize:  13
     readonly property int iconSize:  14
-    readonly property int barHeight: 30
+    readonly property int barHeight: 32
 
-    // Workspace pills. The structure is lifted from sketchybar's colors.sh: a
-    // translucent accent fill under a bright accent border for the focused one,
-    // a flat dark chip under a 12%-opacity hairline for merely occupied ones.
-    readonly property color pillBg:     alpha(bgAlt,  0.62)
-    readonly property color pillBorder: alpha(fg,     0.12)
-    readonly property color glowFill:   alpha(accent, 0.14)
-    readonly property color glowEdge:   alpha(accent, 0.85)
+    // The bar's workspaces are no longer pills: one accent rail slides between
+    // them instead, so pillBg, pillBorder and glowEdge went with them. glowFill
+    // survives because the toggles in the menus still sit on it.
+    readonly property color glowFill: alpha(accent, 0.14)
+
+    // ---- window manager geometry -------------------------------------------
+    // The bar is drawn as one more tile in the dwindle layout, so it takes its
+    // gap, border width and corner radius from Hyprland rather than from
+    // constants that would drift the moment hyprland.lua changes. Edit
+    // gaps_out/border_size/rounding there and the bar follows on the next
+    // `hyprctl reload`.
+    //
+    // Read through hyprctl rather than Quickshell.Hyprland because that module
+    // exposes workspaces and monitors, not config options.
+    property int gap: 8
+    property int borderWidth: 2
+    property int radius: 0
+
+    function readGeometry() { geometry.running = true }
+
+    Process {
+        id: geometry
+        running: true
+        command: ["sh", "-c",
+            "hyprctl -j getoption general:gaps_out; " +
+            "hyprctl -j getoption general:border_size; " +
+            "hyprctl -j getoption decoration:rounding"
+        ]
+
+        stdout: SplitParser {
+            onRead: line => {
+                let o;
+                try { o = JSON.parse(line) } catch (e) { return }
+                switch (o.option) {
+                // gaps_out comes back as a css-style "8 8 8 8" string rather
+                // than an int, since it is four numbers wearing one name.
+                case "general:gaps_out":     root.gap = parseInt(String(o.css).split(/\s+/)[0]) || 8; break;
+                case "general:border_size":  root.borderWidth = o.int ?? 2; break;
+                case "decoration:rounding":  root.radius = o.int ?? 0; break;
+                }
+            }
+        }
+    }
+
+    // Hyprland announces its own reloads, which is when those three can change.
+    Connections {
+        target: Hyprland
+        function onRawEvent(event) {
+            if (event.name === "configreloaded") root.readGeometry();
+        }
+    }
 
     function reload() { file.reload() }
 

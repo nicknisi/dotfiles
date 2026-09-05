@@ -1,9 +1,17 @@
 // Bar.qml - one panel per monitor. shell.qml stamps this out with Variants, so
 // plugging in a display over one of the three idle DP outputs gets a bar without
 // any extra config.
+//
+// The bar is drawn as one more tile in the dwindle layout: it floats in the same
+// gap as every window, wears the same border width, and takes all three numbers
+// from Hyprland through Theme rather than hardcoding them. Change gaps_out in
+// hyprland.lua and the bar moves with the windows.
+//
+// It carries glyphs, not sentences. Point at a module and the words slide out;
+// click one and its menu unfolds underneath. Only one menu is open at a time,
+// which is what `openMenu` tracks.
 import Quickshell
 import Quickshell.Hyprland
-import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
 
@@ -16,14 +24,25 @@ PanelWindow {
     screen: modelData
 
     anchors { top: true; left: true; right: true }
+    margins { top: Theme.gap; left: Theme.gap; right: Theme.gap }
     implicitHeight: Theme.barHeight
-    color: Theme.bg
+    color: "transparent"
 
-    // Fire-and-forget for click handlers.
-    Process { id: runner }
-    function run(cmd: string) {
-        runner.command = ["sh", "-c", cmd];
-        runner.startDetached();
+    // The name of the one open menu, or "". Menus bind their `shown` to this
+    // rather than owning it, so opening one closes the last.
+    property string openMenu: ""
+    function toggleMenu(name: string) {
+        bar.openMenu = bar.openMenu === name ? "" : name;
+    }
+
+    // One clock for the whole bar: the module, its menu and the seconds hairline
+    // all read the same instant.
+    property date now: new Date()
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: bar.now = new Date()
     }
 
     // Workspaces worth drawing: focused, or holding at least one window. Sorted
@@ -65,26 +84,6 @@ PanelWindow {
         return out;
     }
 
-    // Hyprland 0.56 parses dispatch payloads as Lua, so `workspace 3` is a syntax
-    // error there. An existing workspace can skip the whole question and use its
-    // own activate() method; only creating a new one needs a dispatch string.
-    function goToWorkspace(n: int) {
-        const existing = Hyprland.workspaces.values.find(w => w.id === n);
-        if (existing) {
-            existing.activate();
-            return;
-        }
-        if (Hyprland.usingLua) Hyprland.dispatch(`hl.dsp.focus({ workspace = "${n}" })`);
-        else Hyprland.dispatch(`workspace ${n}`);
-    }
-
-    component Sep: Rectangle {
-        Layout.alignment: Qt.AlignVCenter
-        implicitWidth: 1
-        implicitHeight: 14
-        color: Theme.muted
-    }
-
     component Label: Text {
         font.family: Theme.font
         font.pixelSize: Theme.fontSize
@@ -100,211 +99,350 @@ PanelWindow {
         Layout.alignment: Qt.AlignVCenter
     }
 
-    RowLayout {
+    // ---- the tile ----------------------------------------------------------
+    Rectangle {
+        id: frame
         anchors.fill: parent
-        anchors.leftMargin: 8
-        anchors.rightMargin: 8
-        spacing: 10
+        color: Theme.surface
+        radius: Theme.radius
+        border.width: Theme.borderWidth
 
-        // ---- workspaces ------------------------------------------------
-        // Same behaviour as sketchybar's plugins/workspaces.sh: a pill is drawn
-        // only when the workspace is focused or holds windows, and it carries one
-        // glyph per distinct app on it.
+        // Inactive border until one of its menus is open, at which point the bar
+        // really is the focused thing on screen and borrows the accent Hyprland
+        // paints on a focused window.
+        border.color: bar.openMenu !== "" ? Theme.borderActive : Theme.borderIdle
+        Behavior on border.color { ColorAnimation { duration: Theme.base } }
+
         RowLayout {
-            spacing: 5
+            anchors.fill: parent
+            anchors.leftMargin: 6
+            anchors.rightMargin: 6
+            spacing: 6
 
-            Repeater {
-                model: bar.shownWorkspaces
+            // ---- workspaces ---------------------------------------------
+            // No pill backgrounds. One accent rail slides between workspaces
+            // instead, so switching reads as a single object moving rather than
+            // as one chip lighting up while another goes out.
+            Item {
+                id: wsGroup
+                Layout.alignment: Qt.AlignVCenter
+                implicitWidth: wsRow.implicitWidth
+                implicitHeight: wsRow.implicitHeight
 
                 Rectangle {
-                    id: pill
-                    required property var modelData
+                    id: rail
+                    y: wsGroup.height - height
+                    height: Theme.borderWidth
+                    color: Theme.borderActive
+                    opacity: width > 0 ? 1 : 0
 
-                    readonly property bool focused: modelData.name === bar.focusedName
-                    readonly property var glyphs: bar.glyphsFor(modelData)
+                    function follow(item) {
+                        rail.x = item.x;
+                        rail.width = item.width;
+                    }
 
-                    Layout.alignment: Qt.AlignVCenter
-                    implicitWidth: pillRow.implicitWidth + 14
-                    implicitHeight: 20
-                    radius: 5
-
-                    color: focused ? Theme.glowFill : Theme.pillBg
-                    border.width: 1
-                    border.color: focused ? Theme.glowEdge : Theme.pillBorder
-
-                    Row {
-                        id: pillRow
-                        anchors.centerIn: parent
-                        spacing: 5
-
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: pill.modelData.name
-                            color: pill.focused ? Theme.blue : Theme.fg
-                            font.family: Theme.font
-                            font.pixelSize: Theme.fontSize - 1
-                            font.bold: true
+                    // The overshoot on x is the whole point: the rail arrives a
+                    // hair past the new workspace and settles back.
+                    Behavior on x {
+                        NumberAnimation {
+                            duration: Theme.base
+                            easing.type: Easing.OutBack
+                            easing.overshoot: 1.4
                         }
+                    }
+                    Behavior on width {
+                        NumberAnimation { duration: Theme.base; easing.type: Easing.OutCubic }
+                    }
+                }
 
-                        Repeater {
-                            model: pill.glyphs
-                            Text {
-                                required property string modelData
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: modelData
-                                color: pill.focused ? Theme.blue : Theme.muted
-                                font.family: Theme.icons
-                                font.pixelSize: Theme.fontSize
+                RowLayout {
+                    id: wsRow
+                    anchors.fill: parent
+                    spacing: 2
+
+                    Repeater {
+                        model: bar.shownWorkspaces
+
+                        MouseArea {
+                            id: ws
+                            required property var modelData
+
+                            readonly property bool focused: modelData.name === bar.focusedName
+                            readonly property var glyphs: bar.glyphsFor(modelData)
+
+                            Layout.alignment: Qt.AlignVCenter
+                            implicitWidth: wsInner.implicitWidth + 14
+                            implicitHeight: Theme.barHeight - Theme.borderWidth * 2 - 6
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: ws.modelData.activate()
+
+                            // The rail is a sibling of the row, so it has to be
+                            // told where each focused pill ends up. Position and
+                            // width both move as apps open and close on the
+                            // focused workspace, hence all three hooks.
+                            onFocusedChanged: if (focused) rail.follow(ws)
+                            onXChanged: if (focused) rail.follow(ws)
+                            onWidthChanged: if (focused) rail.follow(ws)
+                            Component.onCompleted: if (focused) rail.follow(ws)
+
+                            Rectangle {
+                                anchors.fill: parent
+                                color: Theme.raised
+                                radius: Theme.radius
+                                opacity: ws.containsMouse && !ws.focused ? 1 : 0
+                                Behavior on opacity { NumberAnimation { duration: Theme.quick } }
+                            }
+
+                            RowLayout {
+                                id: wsInner
+                                anchors.centerIn: parent
+                                spacing: 5
+
+                                Text {
+                                    Layout.alignment: Qt.AlignVCenter
+                                    text: ws.modelData.name
+                                    color: ws.focused ? Theme.fg : Theme.muted
+                                    font.family: Theme.font
+                                    font.pixelSize: Theme.fontSize - 1
+                                    font.bold: true
+                                    Behavior on color { ColorAnimation { duration: Theme.base } }
+                                }
+
+                                Repeater {
+                                    model: ws.glyphs
+
+                                    Text {
+                                        required property string modelData
+                                        Layout.alignment: Qt.AlignVCenter
+                                        text: modelData
+                                        color: ws.focused ? Theme.accent : Theme.muted
+                                        font.family: Theme.icons
+                                        font.pixelSize: Theme.fontSize
+
+                                        // Apps fade in as they open rather than
+                                        // popping into the row.
+                                        opacity: 0
+                                        Component.onCompleted: opacity = 1
+                                        Behavior on opacity { NumberAnimation { duration: Theme.base } }
+                                        Behavior on color { ColorAnimation { duration: Theme.base } }
+                                    }
+                                }
                             }
                         }
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: pill.modelData.activate()
-                    }
                 }
             }
-        }
 
-        // ---- focused window title --------------------------------------
-        Label {
-            Layout.fillWidth: true
-            Layout.maximumWidth: 500
-            elide: Text.ElideRight
-            color: Theme.muted
-            font.bold: false
-            text: Hyprland.activeToplevel?.title ?? ""
-        }
+            Item { Layout.fillWidth: true }
 
-        Item { Layout.fillWidth: true }
+            // ---- system ---------------------------------------------------
+            // No numbers. CPU gets a sparkline because what matters is whether
+            // it is climbing; memory gets a gauge because what matters is how
+            // full it is. The two shapes are also what tells them apart, which
+            // two identical strips never did. Both numbers are one hover away.
+            BarModule {
+                id: sysMod
+                reveal: `cpu ${Sys.cpu}%  \u00b7  mem ${Sys.mem}%`
 
-        // ---- cpu / memory ----------------------------------------------
-        Label {
-            text: `CPU ${Sys.cpu}%`
-            color: Sys.cpu > 85 ? Theme.red : Theme.yellow
-        }
-        Sep {}
-        Label {
-            text: `MEM ${Sys.mem}%`
-            color: Sys.mem > 85 ? Theme.red : Theme.cyan
-        }
-        Sep {}
+                Spark {
+                    Layout.alignment: Qt.AlignVCenter
+                    values: Sys.cpuHistory
+                    tint: Sys.cpu > 85 ? Theme.red : Theme.yellow
+                }
+                Gauge {
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.leftMargin: 3
+                    value: Sys.mem
+                    tint: Sys.mem > 85 ? Theme.red : Theme.cyan
+                }
+            }
 
-        // ---- wifi -------------------------------------------------------
-        // The MouseArea is the layout child and the row anchors inside it. The
-        // other way round puts anchors on a layout-managed item, which Qt warns
-        // about and treats as undefined behavior.
-        MouseArea {
-            Layout.alignment: Qt.AlignVCenter
-            implicitWidth: wifiRow.implicitWidth
-            implicitHeight: wifiRow.implicitHeight
-            cursorShape: Qt.PointingHandCursor
-            // No network picker written yet, so hand off to nmtui in a terminal.
-            onClicked: bar.run("uwsm-app -- ghostty -e nmtui")
-
-            RowLayout {
-                id: wifiRow
-                anchors.fill: parent
-                spacing: 6
+            // ---- wifi ------------------------------------------------------
+            BarModule {
+                id: netMod
+                reveal: {
+                    if (!Net.radioOn) return "wifi off";
+                    return Net.connected ? Net.ssid : "offline";
+                }
+                highlighted: bar.openMenu === "net"
+                onClicked: bar.toggleMenu("net")
 
                 Icon {
-                    text: Net.connected ? "\uf1eb" : "\uf127"
+                    text: Net.radioOn ? "\u{f05a9}" : "\u{f05aa}"
                     color: {
                         if (!Net.radioOn) return Theme.muted;
                         if (!Net.connected) return Theme.red;
                         return Net.bars >= 3 ? Theme.green : Theme.yellow;
                     }
-                }
-                Label {
-                    text: {
-                        if (!Net.radioOn) return "wifi off";
-                        if (!Net.connected) return "offline";
-                        return Net.ssid;
-                    }
-                    color: Net.connected ? Theme.fg : Theme.muted
+                    Behavior on color { ColorAnimation { duration: Theme.base } }
                 }
             }
-        }
-        Sep {}
 
-        // ---- volume ------------------------------------------------------
-        // Click toggles mute, scroll changes volume in 2% steps.
-        MouseArea {
-            Layout.alignment: Qt.AlignVCenter
-            implicitWidth: volRow.implicitWidth
-            implicitHeight: volRow.implicitHeight
-            cursorShape: Qt.PointingHandCursor
-            enabled: Audio.ready
-            onClicked: Audio.sink.audio.muted = !Audio.sink.audio.muted
-            onWheel: event => {
-                const step = event.angleDelta.y > 0 ? 0.02 : -0.02;
-                Audio.sink.audio.volume = Math.max(0, Math.min(1, Audio.volume + step));
-            }
-
-            RowLayout {
-                id: volRow
-                anchors.fill: parent
-                spacing: 6
+            // ---- bluetooth -------------------------------------------------
+            BarModule {
+                id: btMod
+                visible: Bt.present
+                reveal: {
+                    if (!Bt.enabled) return "bt off";
+                    const n = Bt.connected.length;
+                    if (n === 0) return "no devices";
+                    return n === 1 ? Bt.labelFor(Bt.primary) : `${n} devices`;
+                }
+                highlighted: bar.openMenu === "bt"
+                onClicked: bar.toggleMenu("bt")
 
                 Icon {
-                    text: Audio.muted ? "\uf026" : "\uf028"
+                    text: {
+                        if (!Bt.enabled) return "\u{f00b2}";              // md bluetooth-off
+                        if (Bt.connected.length > 0) return "\u{f00b0}";  // md bluetooth-connect
+                        return "\u{f00af}";                               // md bluetooth
+                    }
+                    color: {
+                        if (!Bt.enabled) return Theme.muted;
+                        return Bt.connected.length > 0 ? Theme.accent : Theme.fg;
+                    }
+                    Behavior on color { ColorAnimation { duration: Theme.base } }
+                }
+            }
+
+            // ---- volume ----------------------------------------------------
+            // Click opens the menu, scroll changes volume in 2% steps wherever
+            // the pointer is on the module.
+            BarModule {
+                id: volMod
+                reveal: Audio.muted ? "muted" : `${Math.round(Audio.volume * 100)}%`
+                highlighted: bar.openMenu === "audio"
+                enabled: Audio.ready
+                onClicked: bar.toggleMenu("audio")
+                onWheel: event => {
+                    const step = event.angleDelta.y > 0 ? 0.02 : -0.02;
+                    Audio.sink.audio.volume = Math.max(0, Math.min(1, Audio.volume + step));
+                }
+
+                Icon {
+                    id: volIcon
+                    text: Audio.muted ? "\u{f0581}" : "\u{f057e}"
                     color: Audio.muted ? Theme.red : Theme.fg
+
+                    // A nudge on every volume change, so a scroll registers even
+                    // before the number has finished sliding out.
+                    Connections {
+                        target: Audio
+                        function onVolumeChanged() { bump.restart() }
+                    }
+                }
+            }
+
+            // ---- battery ---------------------------------------------------
+            // The one number that stays on screen, because nothing else on the
+            // desktop tells you and you cannot infer it.
+            BarModule {
+                id: battMod
+                visible: Battery.present
+                reveal: Battery.timeText
+
+                Icon {
+                    // Font Awesome battery ramp: f244 empty .. f240 full.
+                    text: {
+                        if (Battery.charging) return "\uf0e7";
+                        const p = Battery.percent;
+                        if (p > 87) return "\uf240";
+                        if (p > 62) return "\uf241";
+                        if (p > 37) return "\uf242";
+                        if (p > 12) return "\uf243";
+                        return "\uf244";
+                    }
+                    color: Battery.low ? Theme.red : (Battery.charging ? Theme.green : Theme.fg)
+                    Behavior on color { ColorAnimation { duration: Theme.base } }
                 }
                 Label {
-                    text: `${Math.round(Audio.volume * 100)}%`
-                    color: Audio.muted ? Theme.muted : Theme.fg
+                    text: `${Battery.percent}%`
+                    color: Battery.low ? Theme.red : Theme.fg
+                    font.bold: false
+                }
+            }
+
+            // ---- theme -----------------------------------------------------
+            BarModule {
+                id: themeMod
+                reveal: Theme.name
+                highlighted: bar.openMenu === "theme"
+                onClicked: bar.toggleMenu("theme")
+
+                Icon {
+                    // md palette. Not f03d7, which the Nerd Font maps to a
+                    // shipping box; the codepoints in this range are worth
+                    // rendering before trusting.
+                    text: "\u{f0e0c}"
+                    color: Theme.accent
+                    Behavior on color { ColorAnimation { duration: Theme.base } }
                 }
             }
         }
-        Sep {}
 
-        // ---- battery -----------------------------------------------------
-        RowLayout {
-            spacing: 6
-            Layout.alignment: Qt.AlignVCenter
-            visible: Battery.present
+        // ---- clock ---------------------------------------------------------
+        // Anchored to the tile rather than placed in the row, because a layout
+        // can only centre its middle item when the two beside it happen to be
+        // the same width, and they never are.
+        BarModule {
+            id: clockMod
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            reveal: Qt.formatDateTime(bar.now, "ddd MMM d")
+            highlighted: bar.openMenu === "clock"
+            // A minute draining away under the time, which is the only place in
+            // the bar that seconds appear at all.
+            progress: bar.now.getSeconds() / 60
+            onClicked: bar.toggleMenu("clock")
 
-            Icon {
-                // Font Awesome battery ramp: f244 empty .. f240 full.
-                text: {
-                    if (Battery.charging) return "\uf0e7";
-                    const p = Battery.percent;
-                    if (p > 87) return "\uf240";
-                    if (p > 62) return "\uf241";
-                    if (p > 37) return "\uf242";
-                    if (p > 12) return "\uf243";
-                    return "\uf244";
-                }
-                color: Battery.low ? Theme.red : (Battery.charging ? Theme.green : Theme.fg)
-            }
             Label {
-                text: `${Battery.percent}%`
-                color: Battery.low ? Theme.red : Theme.fg
-            }
-            Label {
-                text: Battery.timeText
-                color: Theme.muted
-                font.bold: false
-                visible: text !== ""
+                text: Qt.formatDateTime(bar.now, "HH:mm")
+                color: Theme.fg
+                font.letterSpacing: 0.8
             }
         }
-        Sep {}
+    }
 
-        // ---- clock --------------------------------------------------------
-        Label {
-            id: clock
-            color: Theme.blue
-            text: Qt.formatDateTime(clock.now, "ddd MMM dd  HH:mm")
+    // The volume glyph's nudge, parked out here so it is not a child of the
+    // thing it animates.
+    SequentialAnimation {
+        id: bump
+        NumberAnimation { target: volIcon; property: "scale"; to: 1.18; duration: 70; easing.type: Easing.OutCubic }
+        NumberAnimation { target: volIcon; property: "scale"; to: 1.0; duration: 130; easing.type: Easing.OutBack }
+    }
 
-            property date now: new Date()
-            Timer {
-                interval: 1000
-                running: true
-                repeat: true
-                onTriggered: clock.now = new Date()
-            }
-        }
+    // ---- menus -------------------------------------------------------------
+    // Windows, not layout children, so they hang off the bar and only borrow a
+    // module for positioning.
+    BtMenu {
+        anchorItem: btMod
+        shown: bar.openMenu === "bt"
+        onDismissed: bar.openMenu = ""
+    }
+
+    ClockMenu {
+        anchorItem: clockMod
+        now: bar.now
+        shown: bar.openMenu === "clock"
+        onDismissed: bar.openMenu = ""
+    }
+
+    NetMenu {
+        anchorItem: netMod
+        shown: bar.openMenu === "net"
+        onDismissed: bar.openMenu = ""
+    }
+
+    AudioMenu {
+        anchorItem: volMod
+        shown: bar.openMenu === "audio"
+        onDismissed: bar.openMenu = ""
+    }
+
+    ThemeMenu {
+        anchorItem: themeMod
+        shown: bar.openMenu === "theme"
+        onDismissed: bar.openMenu = ""
     }
 }
