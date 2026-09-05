@@ -6,8 +6,14 @@ add_newline = true
 format = "$directory$nodejs$line_break$character"
 right_format = "$git_status${custom.git_clean}$git_branch$jobs"
 
-# Active named theme — bin/theme rewrites this line and regenerates the
-# [palettes.*] blocks below from each themes/<name>/starship.palette.
+# Active named theme. This file is the source and is never rewritten: bin/theme
+# renders it, plus the active pack's palette, to
+# ~/.local/state/theme/current/theme/starship.toml, and .zshrc points
+# STARSHIP_CONFIG there. Starship has no include directive, so the whole file
+# has to be rendered rather than a fragment pulled in.
+#
+# The [palettes.theme] block at the bottom is only the fallback for a machine
+# that has not run `theme` yet; after that the rendered copy wins.
 palette = "theme"
 
 [directory]

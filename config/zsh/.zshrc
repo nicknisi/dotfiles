@@ -188,5 +188,16 @@ fi
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 if command -v starship &>/dev/null; then
+  # Starship has no include directive, so bin/theme renders the whole config
+  # (this repo's config/starship.toml plus the active pack's palette) into the
+  # theme state dir rather than rewriting the tracked file on every switch.
+  #
+  # Guarded: a machine that has not run `theme` yet has no rendered copy, and
+  # pointing STARSHIP_CONFIG at a missing file drops starship to its built-in
+  # defaults instead of falling back to ~/.config/starship.toml.
+  _starship_themed="$HOME/.local/state/theme/current/theme/starship.toml"
+  [[ -f $_starship_themed ]] && export STARSHIP_CONFIG="$_starship_themed"
+  unset _starship_themed
+
   eval "$(starship init zsh)"
 fi

@@ -469,7 +469,20 @@ set_json_theme() { # FILE VALUE
   jq --arg t "$value" '.theme = $t' "$file" >"$tmp" && mv "$tmp" "$file"
 }
 
-starship_palette() { # config/starship.toml carries one [palettes.theme] block: the active theme's
+# Starship has no include directive, unlike kitty (include) and ghostty
+# (config-file), so it cannot be pointed at a fragment in the state dir. This
+# used to splice the palette into config/starship.toml itself, which made that
+# tracked dotfile the one consumer a theme switch rewrote: the repo went dirty
+# on every switch and any commit picked up whichever pack happened to be active.
+#
+# Instead the whole config is rendered here, source file plus the pack's
+# palette, and .zshrc exports STARSHIP_CONFIG pointing at the result. That puts
+# starship back on the same footing as every other app: tracked source, rendered
+# artifact in the state dir, nothing in the repo moving.
+#
+# Runs after swap(), so $T is already the newly swapped-in directory and this
+# lands in the pack it belongs to.
+starship_palette() { # config/starship.toml + the pack's palette -> state dir
   local cfg="$DOTFILES/config/starship.toml" T="$STATE/theme" tmp
   [ -f "$T/starship.palette" ] && [ -f "$cfg" ] || return 0
   tmp="$(mktemp)"
@@ -478,7 +491,7 @@ starship_palette() { # config/starship.toml carries one [palettes.theme] block: 
     printf '\n[palettes.theme]\n'
     cat "$T/starship.palette"
   } >"$tmp"
-  if cmp -s "$tmp" "$cfg"; then rm -f "$tmp"; else mv "$tmp" "$cfg"; fi
+  if cmp -s "$tmp" "$T/starship.toml"; then rm -f "$tmp"; else mv "$tmp" "$T/starship.toml"; fi
 }
 
 mac_appearance() { # dark|light — the pack decides, the system follows
