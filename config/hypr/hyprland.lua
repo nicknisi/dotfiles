@@ -29,6 +29,19 @@ local hypr = (debug and debug.getinfo(1, "S").source:match("^@(.*)/[^/]*$"))
 hl.env("GDK_SCALE", "2")
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1.6 })
 
+-- dotfiles/bin (theme, hypr-resize, ...) is added to PATH by .zshrc, which only
+-- runs for interactive shells. Hyprland is started from a TTY by uwsm and never
+-- sources it, so exec_cmd runs with the bare login PATH and cannot find any of
+-- them -- silently, since a failed exec reports nothing.
+-- Guarded because hyprctl reload re-runs this file and os.getenv("PATH") already
+-- reflects the previous hl.env, so an unconditional append grows the variable by
+-- one copy per reload.
+local dotfiles_bin = os.getenv("HOME") .. "/Developer/dotfiles/bin"
+local current_path = os.getenv("PATH") or ""
+if not current_path:find(dotfiles_bin, 1, true) then
+  hl.env("PATH", current_path .. ":" .. dotfiles_bin)
+end
+
 hl.env("GDK_BACKEND", "wayland,x11,*")
 hl.env("QT_QPA_PLATFORM", "wayland;xcb")
 hl.env("MOZ_ENABLE_WAYLAND", "1")
