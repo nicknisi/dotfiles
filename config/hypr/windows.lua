@@ -1,4 +1,4 @@
--- window-move.lua: SUPER+SHIFT+hjkl, in-process.
+-- windows.lua: moving and resizing the focused window, in-process.
 --
 -- Hyprland's movewindow only moves into an EXISTING neighbour. Given a column of
 -- two windows already against the screen edge -- one full-height window beside a
@@ -102,3 +102,41 @@ for key, dir in pairs({ H = "l", J = "d", K = "u", L = "r" }) do
   hl.bind("SUPER + " .. key, hl.dsp.focus({ direction = dir }))
   hl.bind("SUPER + SHIFT + " .. key, function() hypr_move(dir) end)
 end
+
+
+-- ---------------------------------------------------------------------------
+-- Resize: SUPER+SHIFT+plus / minus, aerospace's `resize smart -+100`.
+--
+-- window.resize is border-relative, not focus-relative: a positive x always
+-- pushes the shared border rightward, so on a right-hand window "+" would make
+-- it SMALLER. splitratio gets this wrong in the same direction. Pick the sign
+-- from which half of the monitor the window sits in, per axis, so "+" always
+-- grows whatever is focused.
+--
+-- The monitor reports width and height in PHYSICAL pixels alongside a scale,
+-- while window geometry is logical. Comparing against the raw width would put
+-- every window on this 2880-wide, 1.6-scaled panel in the left half.
+function hypr_resize(step)
+  local win = hl.get_active_window()
+  if not win then return end
+
+  local mon = hl.get_active_monitor()
+  if not mon then
+    hl.dispatch(hl.dsp.window.resize({ x = step, y = step, relative = true }))
+    return
+  end
+
+  local mid_x = mon.x + (mon.width / mon.scale) / 2
+  local mid_y = mon.y + (mon.height / mon.scale) / 2
+  local win_x = win.at.x + win.size.x / 2
+  local win_y = win.at.y + win.size.y / 2
+
+  hl.dispatch(hl.dsp.window.resize({
+    x = (win_x < mid_x) and step or -step,
+    y = (win_y < mid_y) and step or -step,
+    relative = true,
+  }))
+end
+
+hl.bind("SUPER + SHIFT + EQUAL", function() hypr_resize(100) end)
+hl.bind("SUPER + SHIFT + MINUS", function() hypr_resize(-100) end)

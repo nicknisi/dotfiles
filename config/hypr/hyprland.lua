@@ -29,7 +29,7 @@ local hypr = (debug and debug.getinfo(1, "S").source:match("^@(.*)/[^/]*$"))
 hl.env("GDK_SCALE", "2")
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1.6 })
 
--- dotfiles/bin (theme, hypr-resize, ...) is added to PATH by .zshrc, which only
+-- dotfiles/bin (theme and friends) is added to PATH by .zshrc, which only
 -- runs for interactive shells. Hyprland is started from a TTY by uwsm and never
 -- sources it, so exec_cmd runs with the bare login PATH and cannot find any of
 -- them -- silently, since a failed exec reports nothing.
@@ -114,9 +114,9 @@ hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("loginctl lock-session")) -- hypridle runs hyprlock
 hl.bind("SUPER + SHIFT + ESCAPE", hl.dsp.exec_cmd("uwsm stop"))
 
--- Focus and move, aerospace's alt-hjkl / alt-shift-hjkl. The move half needs
--- more than a dispatcher, so it lives in its own file.
-dofile(hypr .. "/window-move.lua")
+-- Focus, move and resize. The move and resize halves both need more than a
+-- bare dispatcher, so they live in their own file.
+dofile(hypr .. "/windows.lua")
 
 -- Window management, from aerospace's [mode.main.binding].
 --
@@ -136,17 +136,6 @@ hl.bind("SUPER + SHIFT + SPACE", hl.dsp.window.float({ action = "toggle" }))
 -- form of: a tabbed group is the nearest thing, one window visible at a time.
 hl.bind("SUPER + SLASH", hl.dsp.layout("togglesplit"))
 hl.bind("SUPER + COMMA", hl.dsp.group.toggle())
-
--- alt-shift-minus / alt-shift-equal, aerospace's `resize smart -+100`.
---
--- These go through bin/hypr-resize rather than calling window.resize directly,
--- because the dispatcher is border-relative rather than focus-relative: a
--- positive x always pushes the shared border rightward, so on a right-hand
--- window "+" makes it SMALLER. splitratio gets this wrong in the same direction.
--- The helper picks the sign from the window's position so "+" always grows
--- whatever is focused, on either side of the split.
-hl.bind("SUPER + SHIFT + MINUS", hl.dsp.exec_cmd("hypr-resize -100"))
-hl.bind("SUPER + SHIFT + EQUAL", hl.dsp.exec_cmd("hypr-resize 100"))
 
 -- Floating windows. Nothing above moves one: SUPER+SHIFT+hjkl is a tiling
 -- operation, and a floating window has no place in the tree to be moved to.
