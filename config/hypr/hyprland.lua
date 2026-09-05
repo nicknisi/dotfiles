@@ -53,7 +53,15 @@ hl.config({
       drag_3fg = 1,
     },
   },
-  general = { gaps_in = 4, gaps_out = 8, border_size = 2, layout = "dwindle" },
+  -- resize_on_border lets a border or gap be dragged directly to resize, with no
+  -- modifier, which is what most people mean by resizing "like a normal window".
+  general = {
+    gaps_in = 4,
+    gaps_out = 8,
+    border_size = 2,
+    layout = "dwindle",
+    resize_on_border = true,
+  },
   decoration = { rounding = 0, blur = { enabled = false }, shadow = { enabled = false } },
   misc = { disable_hyprland_logo = true, disable_splash_rendering = true },
 })
@@ -99,7 +107,7 @@ hl.bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "maximized" }))
 -- aerospace put float toggling behind service mode (alt-shift-semicolon then f).
 -- A direct bind is less ceremony for the one service-mode command that has a
 -- real dwindle equivalent.
-hl.bind("SUPER + SHIFT + SPACE", hl.dsp.window.float())
+hl.bind("SUPER + SHIFT + SPACE", hl.dsp.window.float({ action = "toggle" }))
 
 -- alt-slash flipped tiles between horizontal and vertical; togglesplit is the
 -- dwindle equivalent. alt-comma was `layout accordion`, which dwindle has no
@@ -110,6 +118,28 @@ hl.bind("SUPER + COMMA", hl.dsp.group.toggle())
 -- alt-shift-minus / alt-shift-equal, resize smart -+100.
 hl.bind("SUPER + SHIFT + MINUS", hl.dsp.window.resize({ x = -100, y = 0 }))
 hl.bind("SUPER + SHIFT + EQUAL", hl.dsp.window.resize({ x = 100, y = 0 }))
+
+-- Floating windows. Nothing above moves one: SUPER+SHIFT+hjkl is a tiling
+-- operation, and a floating window has no place in the tree to be moved to.
+--
+-- window.move with x and y is ABSOLUTE positioning, not a nudge. Passing
+-- { x = 120, y = 60 } warps the window to that pixel, and a negative value is
+-- dropped as an invalid coordinate rather than moving it left. `relative = true`
+-- is what turns it into a delta. `exact = false` looks like the right spelling
+-- and does nothing.
+for key, d in pairs({ H = { -60, 0 }, J = { 0, 60 }, K = { 0, -60 }, L = { 60, 0 } }) do
+  hl.bind("SUPER + CTRL + " .. key, hl.dsp.window.move({ x = d[1], y = d[2], relative = true }))
+end
+
+hl.bind("SUPER + CTRL + SPACE", hl.dsp.window.center())
+
+-- Drag to move, right-drag to resize. { mouse = true } is what makes these a
+-- held drag rather than a one-shot press, and it is required: this is exactly
+-- the form the shipped default at /usr/share/hypr/hyprland.lua uses. Note that
+-- `hyprctl binds` reports these with "mouse": false either way, so that output
+-- is not a way to check whether the option took.
+hl.bind("SUPER + mouse:272", hl.dsp.window.drag(),   { mouse = true })
+hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- alt-0 cycled desktop themes. bin/theme is on PATH through dotfiles.
 hl.bind("SUPER + code:19", hl.dsp.exec_cmd("theme next"))
