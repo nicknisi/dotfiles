@@ -6,6 +6,10 @@
 # 60 Hz drew 9.78 W. That 6.6 W is about 2.8 hours of runtime on the 68.6 Wh
 # pack. Plugged in it costs nothing, so the rate follows the charger.
 #
+# Both blocks had something animating on screen, which is the working state but
+# not an idle one. Read 6.6 W as the gap while you are using the machine; on a
+# still screen it is smaller and has not been measured.
+#
 # The saving is not the eDP link: the panel's 60 Hz mode is the 120 Hz timing
 # with a doubled VTotal, same 700 MHz pixel clock. It is the GPU and the
 # compositor drawing half as many frames.

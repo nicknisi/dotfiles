@@ -1,8 +1,9 @@
 // PowerMode.qml - drops the panel to 60 Hz on battery, back to 120 Hz on AC.
 //
-// 120 Hz costs about 6.6 W on this laptop, roughly 2.8 hours of runtime, and
-// buys nothing while plugged in. bin/panel-hz holds the measurement and the
-// reasoning; this file only decides when to call it.
+// 120 Hz cost 6.6 W more than 60 Hz when measured with the screen animating,
+// roughly 2.8 hours of runtime, and buys nothing while plugged in. The gap is
+// smaller on a still screen and unmeasured there. bin/panel-hz holds the
+// numbers and the method; this file only decides when to call it.
 //
 // UPower is the trigger rather than a udev rule because the charger state is
 // already on the D-Bus connection Battery.qml holds open, and driving hyprctl
