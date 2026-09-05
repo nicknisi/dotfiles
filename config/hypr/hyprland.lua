@@ -80,17 +80,42 @@ hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("loginctl lock-session")) -- hypridle runs hyprlock
 hl.bind("SUPER + SHIFT + ESCAPE", hl.dsp.exec_cmd("uwsm stop"))
 
--- Workspaces 1-9 by keycode (10..18), so the binding survives layout changes.
-for ws = 1, 9 do
-  local key = "code:" .. tostring(ws + 9)
-  hl.bind("SUPER + " .. key, hl.dsp.focus({ workspace = tostring(ws) }))
-  hl.bind("SUPER + SHIFT + " .. key, hl.dsp.window.move({ workspace = tostring(ws) }))
-end
-
+-- Focus and move, aerospace's alt-hjkl / alt-shift-hjkl. `move` rather than
+-- `swap`: aerospace's `move left` relocates the window in the tree, which is
+-- what move does; swap trades places with whatever is already there.
 for key, dir in pairs({ H = "l", J = "d", K = "u", L = "r" }) do
   hl.bind("SUPER + " .. key, hl.dsp.focus({ direction = dir }))
-  hl.bind("SUPER + SHIFT + " .. key, hl.dsp.window.swap({ direction = dir }))
+  hl.bind("SUPER + SHIFT + " .. key, hl.dsp.window.move({ direction = dir }))
 end
+
+-- Window management, from aerospace's [mode.main.binding].
+--
+-- mode is "fullscreen" or "maximized" ("maximize" is rejected). maximized fills
+-- the workspace but keeps gaps and the bar; fullscreen covers everything.
+hl.bind("SUPER + SHIFT + F", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+-- Not SUPER+SHIFT+M: that is "move to workspace M" in workspaces.lua.
+hl.bind("SUPER + F", hl.dsp.window.fullscreen({ mode = "maximized" }))
+
+-- aerospace put float toggling behind service mode (alt-shift-semicolon then f).
+-- A direct bind is less ceremony for the one service-mode command that has a
+-- real dwindle equivalent.
+hl.bind("SUPER + SHIFT + SPACE", hl.dsp.window.float())
+
+-- alt-slash flipped tiles between horizontal and vertical; togglesplit is the
+-- dwindle equivalent. alt-comma was `layout accordion`, which dwindle has no
+-- form of: a tabbed group is the nearest thing, one window visible at a time.
+hl.bind("SUPER + SLASH", hl.dsp.layout("togglesplit"))
+hl.bind("SUPER + COMMA", hl.dsp.group.toggle())
+
+-- alt-shift-minus / alt-shift-equal, resize smart -+100.
+hl.bind("SUPER + SHIFT + MINUS", hl.dsp.window.resize({ x = -100, y = 0 }))
+hl.bind("SUPER + SHIFT + EQUAL", hl.dsp.window.resize({ x = 100, y = 0 }))
+
+-- alt-0 cycled desktop themes. bin/theme is on PATH through dotfiles.
+hl.bind("SUPER + code:19", hl.dsp.exec_cmd("theme next"))
+
+-- Workspaces: 1-9, the lettered set, and the tab bindings.
+dofile(hypr .. "/workspaces.lua")
 
 -- Fn row: brightness, keyboard backlight, volume, mic mute + LED, media keys.
 dofile(hypr .. "/media-keys.lua")
