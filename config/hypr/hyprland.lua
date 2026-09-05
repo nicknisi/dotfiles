@@ -67,6 +67,13 @@ end)
 
 local function app(command) return hl.dsp.exec_cmd("uwsm-app -- " .. command) end
 
+-- Launcher. wofi is a menu rather than an app, so it is deliberately not run
+-- through uwsm-app: anything launched from it would inherit wofi's transient
+-- scope and outlive it there under a misleading name.
+-- pkill-first makes the key a toggle; without it a second press stacks a
+-- second instance on top of the first.
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("sh -c 'pkill wofi || wofi --show drun'"))
+
 hl.bind("SUPER + RETURN", app("ghostty"))
 hl.bind("SUPER + SHIFT + RETURN", app("chromium"))
 hl.bind("SUPER + Q", hl.dsp.window.close())

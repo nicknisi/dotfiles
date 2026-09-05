@@ -1,0 +1,27 @@
+# wofi: native Wayland launcher (wlroots layer-shell), unlike rofi which is
+# X11-only in Arch's build and goes through XWayland.
+#
+# Linked to ~/.config/wofi by mise's [dotfiles]: `~/.config/*` = `config/*`.
+
+show=drun
+prompt=Run
+
+# drun reads .desktop entries. no_actions hides the extra "New Window"-style
+# sub-entries so the list stays one row per app.
+no_actions=true
+allow_images=true
+image_size=24
+
+# Match anywhere in the name, not just a prefix, and ignore case.
+insensitive=true
+matching=fuzzy
+
+# 1800x1125 logical at scale 1.6, so this is a third of the width.
+width=600
+height=420
+lines=10
+columns=1
+
+# Esc closes; without this a stray keypress can leave it open behind a window.
+hide_scroll=true
+term=ghostty

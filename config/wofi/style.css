@@ -1,0 +1,58 @@
+/* Tokyo Night, the same palette as config/quickshell/Theme.qml so the launcher
+   and the bar match. wofi styles with GTK3 CSS; these #ids are wofi's own. */
+
+window {
+    background-color: #1a1b26;
+    border: 2px solid #7aa2f7;
+    border-radius: 8px;
+    font-family: "Monaspace Argon", monospace;
+    font-size: 14px;
+}
+
+#outer-box {
+    margin: 10px;
+}
+
+#input {
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border: 1px solid #444b6a;
+    border-radius: 6px;
+    background-color: #232433;
+    color: #a9b1d6;
+}
+
+#input:focus {
+    border-color: #0db9d7;
+}
+
+#scroll {
+    margin: 0;
+}
+
+#inner-box {
+    background-color: transparent;
+}
+
+#entry {
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+
+/* wofi marks the highlighted row with :selected on the entry, and the text
+   inside needs the colour too or it stays muted against the selection. */
+#entry:selected {
+    background-color: #7aa2f7;
+}
+
+#entry:selected #text {
+    color: #1a1b26;
+}
+
+#text {
+    color: #a9b1d6;
+}
+
+#img {
+    margin-right: 8px;
+}
