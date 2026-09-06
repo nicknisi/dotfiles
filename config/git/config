@@ -1,10 +1,6 @@
 # vim:ft=gitconfig
 [init]
     defaultBranch = main
-[include]
-    # A local gitconfig, outside of version control.
-    # If the file doesn't exist it is silently ignored
-    path = ~/.gitconfig-local
 [alias]
     # list all aliases
     la = "!git config -l | grep alias | cut -c 7-"
@@ -176,7 +172,16 @@
     extendRegexp = true
     lineNumber = true
 [credential]
+    # macOS default. Linux has no osxkeychain, so it resets this and
+    # sets libsecret in ~/.gitconfig-local, which is included last (below)
+    # and therefore wins. Keeping the include last is what lets a
+    # machine-local file override any tracked default, not just add to it.
     helper = osxkeychain
 [rebase]
     instructionFormat = "[%an - %ar] %s"
     autoStash = true
+
+[include]
+    # A local gitconfig, outside of version control.
+    # If the file doesn't exist it is silently ignored
+    path = ~/.gitconfig-local
