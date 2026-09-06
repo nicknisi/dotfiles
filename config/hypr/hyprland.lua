@@ -91,6 +91,9 @@ hl.config({
   misc = { disable_hyprland_logo = true, disable_splash_rendering = true },
 })
 
+-- The 8ds default takes 800ms. Keep the motion, but get it out of the way.
+hl.animation({ leaf = "global", enabled = true, speed = 2.5, bezier = "default" })
+
 hl.device({
   name = "protoarc-xk01-tp-mouse",
   natural_scroll = true,
