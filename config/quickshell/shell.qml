@@ -15,10 +15,16 @@ ShellRoot {
         function reload(): void { Theme.reload() }
     }
 
-    // One bar per connected monitor, created and destroyed as displays come and go.
+    // One capsule per connected monitor, created and destroyed as displays
+    // come and go, and beside each one the 1px window that holds its exclusive
+    // zone (see Reserve.qml for why that is not the capsule's own job).
     Variants {
         model: Quickshell.screens
         delegate: Bar {}
+    }
+    Variants {
+        model: Quickshell.screens
+        delegate: Reserve {}
     }
 
     // Global rather than per-monitor: one D-Bus notification server for the

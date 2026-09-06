@@ -20,6 +20,9 @@ AbstractButton {
 
     property bool highlighted: false
     property real cornerRadius: height / 2
+    // Content runs left to right, or top to bottom when the capsule is stood
+    // on its side and a glyph has to sit above its number.
+    property bool stacked: false
     default property alias content: inner.data
     signal scrolled(real delta)
 
@@ -51,9 +54,11 @@ AbstractButton {
         Behavior on radius { NumberAnimation { duration: Theme.base; easing.type: Easing.OutBack } }
     }
 
-    contentItem: RowLayout {
+    contentItem: GridLayout {
         id: inner
-        spacing: 6
+        flow: mod.stacked ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rowSpacing: 6
+        columnSpacing: 6
         // Children centre on the button's full height now that nothing is
         // stealing it, so glyphs and numbers share one optical centre line.
         WheelHandler {

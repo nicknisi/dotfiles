@@ -36,8 +36,14 @@ Scope {
     PanelWindow {
         id: popups
 
-        anchors { top: true; right: true }
-        margins { top: Theme.barHeight + 8; right: 8 }
+        // Top right by default, dropping to the bottom right when the capsule
+        // is along the bottom, and stepping in when it is along the right.
+        anchors { top: Prefs.edge !== "bottom"; bottom: Prefs.edge === "bottom"; right: true }
+        margins {
+            top:    Prefs.edge === "top"    ? Theme.barHeight + 8  : 8
+            bottom: Prefs.edge === "bottom" ? Theme.barHeight + 8  : 8
+            right:  Prefs.edge === "right"  ? Theme.barHeight + 12 : 8
+        }
 
         implicitWidth: 380
         implicitHeight: Math.max(1, layout.implicitHeight)
