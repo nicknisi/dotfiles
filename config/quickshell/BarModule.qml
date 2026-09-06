@@ -27,7 +27,10 @@ AbstractButton {
     signal scrolled(real delta)
 
     implicitWidth: Math.max(32, inner.implicitWidth + 16)
-    implicitHeight: 24
+    // Tall enough for whatever is stacked in it. Fixed at 24 this let the
+    // battery's glyph-over-number spill out of the button and under the endcap
+    // when the capsule stood on its side.
+    implicitHeight: Math.max(24, inner.implicitHeight + topPadding + bottomPadding)
     padding: 8
     topPadding: 0
     bottomPadding: 0
