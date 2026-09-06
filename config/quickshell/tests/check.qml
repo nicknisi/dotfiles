@@ -117,6 +117,28 @@ ShellRoot {
                 test.check(Interrupt.label === "mic on", "the mic says its state in words");
                 Interrupt.kind = "";
                 test.check(!Interrupt.active, "a cleared interrupt is silent");
+
+                // The context lane reads the focused window. These are the
+                // readings, driven directly so no compositor is needed. Not
+                // named `home`: that is the HudHome instance a few lines down.
+                const homeDir = Quickshell.env("HOME");
+                test.check(Context.classify("com.mitchellh.ghostty", false) === "terminal", "ghostty is a terminal");
+                test.check(Context.classify("com.mitchellh.ghostty", true) === "agent", "a terminal wearing an agent title is an agent");
+                test.check(Context.classify("helium", false) === "browser", "helium is a browser");
+                test.check(Context.classify("", false) === "", "no app, no kind");
+                test.check(Context.agentParts("◑ Bar ricing redesign")[2] === "Bar ricing redesign", "an agent title splits off its spinner");
+                test.check(Context.agentParts("✳ Waiting")[1] === "✳", "the still glyph counts too");
+                test.check(Context.agentParts("/home/x/y") === null, "a path is not an agent");
+                test.check(Context.pageTitle("Some page - Helium") === "Some page", "the browser suffix goes");
+                test.check(Context.pageTitle("A - B - Helium") === "A - B", "only the last suffix goes");
+                test.check(Context.pageTitle("No suffix") === "No suffix", "a bare title is left alone");
+                test.check(Context.shortPath(homeDir + "/Developer/dotfiles") === "~/Developer/dotfiles", "home folds to ~");
+                test.check(Context.shortPath(homeDir) === "~", "home itself is ~");
+                test.check(Context.shortPath("/tmp") === "/tmp", "a path outside home stays");
+                test.check(Context.describe("terminal", homeDir + "/x", "") === "~/x", "a shell shows its directory");
+                test.check(Context.describe("terminal", "nvim", "") === "nvim", "a shell running something shows that");
+                test.check(Context.describe("music", "Spotify", "Band – Song") === "Band – Song", "a player shows the track");
+                test.check(Context.describe("music", "Spotify", "") === "Spotify", "a silent player shows its title");
                 test.check(card.implicitHeight < 200, "media card stays compact");
                 test.check(home.implicitHeight < 420, "HUD overview stays compact");
                 player.canSeek = true;

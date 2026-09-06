@@ -26,7 +26,7 @@ PanelWindow {
     // surface cannot paint outside itself, and at exactly barHeight tall every
     // tooltip was drawn off the bottom edge and never seen.
     exclusiveZone: Theme.barHeight
-    implicitWidth: Math.min(520, screen.width - 16)
+    implicitWidth: Math.min(700, screen.width - 16)
     implicitHeight: Theme.barHeight + 64
     color: "transparent"
     WlrLayershell.namespace: "quickshell-capsule"
@@ -35,14 +35,16 @@ PanelWindow {
     property string openMenu: ""
     function toggleMenu(name: string) { openMenu = openMenu === name ? "" : name }
 
-    // The two widths the body moves between. Speaking makes it narrower rather
-    // than wider: a short message in a long capsule reads as a gap, and pulling
-    // in is also what separates the alert from the resting shape at a glance.
+    // A pill hugs its contents, so the resting width is whatever the resting
+    // layer adds up to: it breathes as workspaces come and go and stretches
+    // when the context lane has something to say. Speaking makes it narrower
+    // still: a short message in a long capsule reads as a gap, and pulling in
+    // is also what separates the alert from the resting shape at a glance.
     //
     // An open menu suppresses the alert. Its sliders already show the value you
     // are dragging, and having the capsule bolt out from under the popup it is
     // anchored to is worse than saying nothing.
-    readonly property int restWidth: Math.min(440, bar.width)
+    readonly property int restWidth: Math.max(360, Math.min(bar.width, restLayer.contentWidth))
     readonly property int alertWidth: Math.min(320, bar.width)
     readonly property bool alerting: Interrupt.active && bar.openMenu === ""
 
@@ -111,8 +113,16 @@ PanelWindow {
         width: bar.alerting ? bar.alertWidth : bar.restWidth
         height: Theme.barHeight
         radius: 15
-        color: Theme.surface
+        color: Theme.alpha(Theme.surface, Prefs.translucent ? 0.62 : 1)
         clip: true
+        Behavior on color { ColorAnimation { duration: Theme.unfold } }
+
+        // Double-click the body to see through it. The buttons on top take
+        // their own presses first, so this only ever hears the empty capsule.
+        TapHandler {
+            acceptedButtons: Qt.LeftButton
+            onDoubleTapped: Prefs.toggleTranslucent()
+        }
 
         Behavior on width {
             NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 1.1 }
@@ -139,6 +149,9 @@ PanelWindow {
         }
 
         // ---- resting -------------------------------------------------------
+        // Left to right: where you are, what you are doing, when it is, how the
+        // machine is, and the endcap that opens the rest. The capsule's resting
+        // width is the sum, which is what lets it hug its contents.
         Item {
             id: restLayer
             width: parent.width
@@ -149,10 +162,22 @@ PanelWindow {
             Behavior on opacity { NumberAnimation { duration: Theme.base } }
             Behavior on y { NumberAnimation { duration: Theme.base; easing.type: Easing.OutCubic } }
 
+            readonly property int pad: 12
+            readonly property int gap: 10
+
+            // What the resting capsule needs before clamping. Nothing in here
+            // reads restLayer.width, which is what keeps it from being a loop.
+            readonly property int contentWidth: restLayer.pad + workspaces.width
+                + (lane.visible ? restLayer.gap + lane.width : 0)
+                + restLayer.gap + clockButton.width
+                + restLayer.gap + statusRow.width + 6 + hudButton.width
+
             Flickable {
                 id: workspaces
-                x: 12
-                width: Math.max(0, clockButton.x - x - 12)
+                x: restLayer.pad
+                // Capped so a long row scrolls rather than pushing the lane
+                // and the clock off the end of the capsule.
+                width: Math.min(workspaceRow.width, 160)
                 height: parent.height
                 contentWidth: workspaceRow.width
                 contentHeight: height
@@ -249,9 +274,70 @@ PanelWindow {
                 }
             }
 
+            // ---- context -----------------------------------------------------
+            // The lane no other shell has. The rest of the capsule is about the
+            // machine; this is about the work, read off the focused window. A
+            // shell shows its directory and branch, Claude Code shows its
+            // session behind a spinner that turns while it thinks, a browser
+            // shows the page. Context.qml does the reading.
+            Item {
+                id: lane
+                x: workspaces.x + workspaces.width + restLayer.gap
+                y: (parent.height - height) / 2
+                height: 24
+                width: Math.min(laneRow.implicitWidth, 240)
+                visible: Context.active
+                Behavior on width { NumberAnimation { duration: Theme.base; easing.type: Easing.OutCubic } }
+
+                RowLayout {
+                    id: laneRow
+                    anchors.fill: parent
+                    spacing: 7
+
+                    Text {
+                        text: Context.glyph
+                        font.family: Context.isAgent ? Theme.font : Theme.icons
+                        font.pixelSize: Context.isAgent ? Theme.fontSize + 1 : 13
+                        color: Context.isAgent ? Theme.accent : Theme.secondary
+                        verticalAlignment: Text.AlignVCenter
+                        Layout.fillHeight: true
+                        Behavior on color { ColorAnimation { duration: Theme.base } }
+                    }
+
+                    Text {
+                        text: Context.text
+                        font.family: Theme.font
+                        font.pixelSize: Theme.fontSize - 1
+                        color: Theme.fg
+                        elide: Text.ElideRight
+                        verticalAlignment: Text.AlignVCenter
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                    }
+
+                    // Branch, and how far off clean. Yellow the moment there is
+                    // anything uncommitted, which is the one thing worth a colour.
+                    Text {
+                        visible: Context.detail !== ""
+                        text: Context.detail
+                        font.family: Theme.font
+                        font.pixelSize: Theme.fontSize - 3
+                        color: Context.dirty > 0 ? Theme.yellow : Theme.secondary
+                        verticalAlignment: Text.AlignVCenter
+                        Layout.fillHeight: true
+                        Behavior on color { ColorAnimation { duration: Theme.base } }
+                    }
+                }
+            }
+
             BarModule {
                 id: clockButton
-                x: restLayer.width / 2 - width / 2
+                x: (lane.visible ? lane.x + lane.width : workspaces.x + workspaces.width) + restLayer.gap
+                // Same curve as the capsule's width, so the clock rides the
+                // growing body instead of arriving before it.
+                Behavior on x {
+                    NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 1.1 }
+                }
                 y: (parent.height - height) / 2
                 width: face.implicitWidth + 22
                 height: 24
@@ -439,7 +525,8 @@ PanelWindow {
 
         background: Rectangle {
             radius: 15
-            color: Theme.surface
+            color: Theme.alpha(Theme.surface, Prefs.translucent ? 0.62 : 1)
+            Behavior on color { ColorAnimation { duration: Theme.unfold } }
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 2
