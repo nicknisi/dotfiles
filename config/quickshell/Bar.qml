@@ -77,11 +77,15 @@ PanelWindow {
     }
     Component.onCompleted: shownWorkspaces = workspaceSource
 
+    // One glyph per distinct app on the workspace. Read the app_id off the
+    // Wayland toplevel: lastIpcObject is an empty object until something calls
+    // Hyprland.refreshToplevels(), and nothing here does, which is where every
+    // icon went.
     function glyphsFor(workspace) {
         const seen = new Set();
         const glyphs = [];
         for (const window of (workspace.toplevels?.values ?? [])) {
-            const app = String(window.lastIpcObject?.class ?? "");
+            const app = String(window.wayland?.appId ?? window.lastIpcObject?.class ?? "");
             if (!app || seen.has(app)) continue;
             seen.add(app);
             glyphs.push(Icons.forClass(app));

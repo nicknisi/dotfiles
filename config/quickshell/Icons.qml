@@ -29,7 +29,7 @@ Singleton {
     // Order matters: first substring hit wins, so put specific before generic.
     readonly property var rules: [
         { match: ["ghostty", "wezterm", "kitty", "alacritty", "foot", "terminal"], glyph: "\uf120" },
-        { match: ["chromium", "chrome", "brave", "vivaldi"],                       glyph: "\uf268" },
+        { match: ["chromium", "chrome", "brave", "vivaldi", "helium"],             glyph: "\uf268" },
         { match: ["firefox", "zen", "librewolf", "floorp"],                        glyph: "\uf269" },
         { match: ["epiphany", "safari"],                                           glyph: "\uf267" },
         { match: ["slack"],                                                        glyph: "\uf198" },
