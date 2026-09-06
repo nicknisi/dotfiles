@@ -19,6 +19,8 @@ Template tokens:
   {{ key_rgb }}        r,g,b         css rgb(), claude themes
   {{ mix a b 30% }}    a moved 30% toward b; mix_strip / mix_rgb likewise
   {{ name }} {{ mode }}
+  {{ hyprland_active_border_lua }}    the pack's hyprland_active_border, or its accent,
+                                      as the Lua literal hl.config takes; _inactive_ likewise
 An unknown token is left in place and reported on stderr, so a typo in a
 template is visible in the rendered file rather than silently blank.
 """
@@ -83,6 +85,31 @@ def mix(a, b, amount):
 def luminance(v):
     r, g, b = rgb(v)
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def hypr_lua(spec):
+    """A Hyprland colour spec in conf syntax -> the Lua literal hl.config takes.
+
+    One colour stays a string. "rgba(a) rgba(b) 45deg" is a gradient, and the
+    Lua API wants that as { colors = { ... }, angle = 45 } rather than the
+    space-separated string, which it rejects as an invalid colour. A bare hex
+    (what norm() leaves a "#rrggbb" as) becomes rgb(rrggbb), since Hyprland
+    does not read the # form.
+    """
+    colors, angle = [], None
+    for tok in spec.split():
+        if tok.endswith("deg"):
+            angle = int(round(float(tok[:-3])))
+        elif is_hex(tok):
+            colors.append("rgb(%s)" % tok.lstrip("#"))
+        else:
+            colors.append(tok)
+    if len(colors) == 1 and angle is None:
+        return '"%s"' % colors[0]
+    lua = "{ colors = { %s }" % ", ".join('"%s"' % c for c in colors)
+    if angle is not None:
+        lua += ", angle = %d" % angle
+    return lua + " }"
 
 
 def parse(path):
@@ -154,6 +181,14 @@ def resolve(raw, name=None, mode=None):
     need("lighter_background", lambda: mix(bg, fg, 0.08))
     need("purple", "magenta")
     need("bright_purple", "bright_magenta")
+
+    # Window borders. A pack may set these in Hyprland's own syntax, gradients
+    # included; the rest get the accent at full alpha and muted at 0xaa, which
+    # is what the capsule's Theme.qml mirrors for its own borders.
+    need("hyprland_active_border", lambda: "rgba(%sff)" % p["accent"].lstrip("#"))
+    need("hyprland_inactive_border", lambda: "rgba(%saa)" % p["muted"].lstrip("#"))
+    p["hyprland_active_border_lua"] = hypr_lua(p["hyprland_active_border"])
+    p["hyprland_inactive_border_lua"] = hypr_lua(p["hyprland_inactive_border"])
 
     for sem, slot in ANSI.items():
         need(slot, sem)
