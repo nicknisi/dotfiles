@@ -22,24 +22,24 @@ PopupWindow {
         item: hud.anchorItem
         edges: {
             switch (hud.edge) {
-            case "bottom": return Edges.Top | Edges.Right;
-            case "left":   return Edges.Right | Edges.Bottom;
-            case "right":  return Edges.Left | Edges.Bottom;
-            default:       return Edges.Bottom | Edges.Right;
-            }
-        }
-        gravity: {
-            switch (hud.edge) {
             case "bottom": return Edges.Top | Edges.Left;
             case "left":   return Edges.Right | Edges.Top;
             case "right":  return Edges.Left | Edges.Top;
             default:       return Edges.Bottom | Edges.Left;
             }
         }
-        margins.top:    hud.edge === "top" ? -4 : 0
-        margins.bottom: hud.edge === "bottom" ? -4 : (hud.side ? -12 : 0)
-        margins.left:   hud.edge === "left" ? -4 : 0
-        margins.right:  hud.edge === "right" ? -4 : (hud.side ? 0 : -12)
+        gravity: {
+            switch (hud.edge) {
+            case "bottom": return Edges.Top | Edges.Right;
+            case "left":   return Edges.Right | Edges.Bottom;
+            case "right":  return Edges.Left | Edges.Bottom;
+            default:       return Edges.Bottom | Edges.Right;
+            }
+        }
+        margins.top:    hud.edge === "top" ? -4 : (hud.side ? -12 : 0)
+        margins.bottom: hud.edge === "bottom" ? -4 : 0
+        margins.left:   hud.edge === "left" ? -4 : (hud.side ? 0 : -12)
+        margins.right:  hud.edge === "right" ? -4 : 0
     }
 
     // Transparent breathing room for the opening overshoot, not content padding.
@@ -72,15 +72,14 @@ PopupWindow {
         height: body.implicitHeight + 24
         color: Theme.surface
         radius: 26
-        topRightRadius:    hud.edge === "top" ? 12 : 26
-        bottomRightRadius: hud.edge === "bottom" || hud.edge === "right" ? 12 : 26
-        bottomLeftRadius:  hud.edge === "left" ? 12 : 26
+        topLeftRadius:    hud.edge === "top" || hud.edge === "left" ? 12 : 26
+        topRightRadius:   hud.edge === "right" ? 12 : 26
+        bottomLeftRadius: hud.edge === "bottom" ? 12 : 26
         transformOrigin: {
             switch (hud.edge) {
-            case "bottom": return Item.BottomRight;
-            case "left":   return Item.BottomLeft;
-            case "right":  return Item.BottomRight;
-            default:       return Item.TopRight;
+            case "bottom": return Item.BottomLeft;
+            case "right":  return Item.TopRight;
+            default:       return Item.TopLeft;
             }
         }
         scale: 0.86 + hud.unfolded * 0.14

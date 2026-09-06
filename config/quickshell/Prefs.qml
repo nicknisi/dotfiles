@@ -1,9 +1,9 @@
 pragma Singleton
 // Prefs.qml - the handful of choices the capsule remembers across restarts.
 //
-// Which edge it lives on and whether it is see-through. Both are set by
-// gesture (drag it, double-click it) rather than by editing a file, so they
-// have to be written back somewhere or every reload would undo them.
+// Which edge it lives on, its size and whether it is see-through. All three
+// are changed on the bar rather than by editing a file, so they have to be
+// written back somewhere or every reload would undo them.
 //
 // JsonAdapter does the serialising: each property below is a key in the file,
 // the file's contents land in the properties on load, and any change writes
@@ -18,6 +18,7 @@ Singleton {
 
     // "top" | "bottom" | "left" | "right"
     readonly property string edge: store.edge
+    readonly property string barMode: store.barMode
     readonly property bool translucent: store.translucent
 
     readonly property bool vertical: root.edge === "left" || root.edge === "right"
@@ -27,6 +28,13 @@ Singleton {
         store.edge = edge;
     }
 
+    function nextBarMode(mode: string): string {
+        if (mode === "full") return "pill";
+        if (mode === "pill") return "minimal";
+        return "full";
+    }
+
+    function cycleBarMode(): void { store.barMode = nextBarMode(store.barMode) }
     function toggleTranslucent(): void { store.translucent = !store.translucent }
 
     FileView {
@@ -43,6 +51,7 @@ Singleton {
         adapter: JsonAdapter {
             id: store
             property string edge: "top"
+            property string barMode: "pill"
             property bool translucent: false
         }
     }

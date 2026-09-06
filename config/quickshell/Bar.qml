@@ -32,6 +32,8 @@ PanelWindow {
 
     readonly property string edge: Prefs.edge
     readonly property bool vertical: Prefs.vertical
+    readonly property bool full: Prefs.barMode === "full"
+    readonly property bool minimal: Prefs.barMode === "minimal"
     readonly property int thick: Theme.barHeight
 
     // ---- the envelope ------------------------------------------------------
@@ -61,8 +63,8 @@ PanelWindow {
         right:  bar.edge === "right"  ? 4 : 0
     }
     exclusionMode: ExclusionMode.Ignore
-    implicitWidth:  bar.vertical ? bar.thick + 64 : Math.min(760, screen.width - 16)
-    implicitHeight: bar.vertical ? Math.min(760, screen.height - 16) : bar.thick + 64
+    implicitWidth:  bar.vertical ? bar.thick + 64 : (bar.full ? screen.width - 16 : Math.min(760, screen.width - 16))
+    implicitHeight: bar.vertical ? (bar.full ? screen.height - 16 : Math.min(760, screen.height - 16)) : bar.thick + 64
     color: "transparent"
     WlrLayershell.namespace: "quickshell-capsule"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
@@ -80,7 +82,9 @@ PanelWindow {
     // An open menu suppresses the alert. Its sliders already show the value you
     // are dragging, and having the capsule bolt out from under the popup it is
     // anchored to is worse than saying nothing.
-    readonly property int restLength: Math.max(360, Math.min((bar.vertical ? bar.height : bar.width) - 80, rest.implicitLength + 2 * rest.pad))
+    readonly property int restLength: bar.full ? (bar.vertical ? bar.height : bar.width)
+        : Math.max(bar.minimal ? 0 : 360,
+            Math.min((bar.vertical ? bar.height : bar.width) - 80, rest.implicitLength + 2 * rest.pad))
     readonly property int alertLength: 320
     readonly property bool alerting: Interrupt.active && bar.openMenu === "" && !bar.flying
     readonly property int length: bar.alerting ? bar.alertLength : bar.restLength
@@ -217,7 +221,7 @@ PanelWindow {
 
     mask: Region {
         item: body
-        radius: 15
+        radius: bar.full ? 0 : 15
     }
 
     component Glyph: Text {
@@ -248,7 +252,7 @@ PanelWindow {
         Rectangle {
             id: capsule
             anchors.fill: parent
-            radius: 15
+            radius: bar.full ? 0 : 15
             color: Theme.alpha(Theme.surface, Prefs.translucent ? 0.62 : 1)
             clip: true
             Behavior on color { ColorAnimation { duration: Theme.unfold } }
@@ -324,8 +328,8 @@ PanelWindow {
             }
 
             // ---- resting -------------------------------------------------------
-            // In reading order: where you are, what you are doing, when it is, how
-            // the machine is, and the endcap that opens the rest. One GridLayout
+            // In reading order: Nick, where you are, what you are doing, when it
+            // is, and how the machine is. One GridLayout
             // whose flow follows the edge, so the same modules lie down along the
             // top or bottom and stand up along a side.
             Item {
@@ -355,11 +359,18 @@ PanelWindow {
                     rowSpacing: 10
                     columnSpacing: 10
 
+                    // Room for Nick at the leading edge, outside the capsule's clip.
+                    Item {
+                        Layout.preferredWidth:  bar.vertical ? 1 : hudButton.width - rest.pad
+                        Layout.preferredHeight: bar.vertical ? hudButton.height - rest.pad : 1
+                    }
+
                     // ---- workspaces ----------------------------------------------
                     // Capped so a long run scrolls rather than pushing the lane and
                     // the clock off the end of the capsule.
                     ListView {
                         id: workspaces
+                        visible: !bar.minimal
                         Layout.alignment: Qt.AlignCenter
                         Layout.preferredWidth:  bar.vertical ? 24 : Math.min(contentWidth, 160)
                         Layout.preferredHeight: bar.vertical ? Math.min(contentHeight, 160) : 24
@@ -456,7 +467,7 @@ PanelWindow {
                     // agent is the part that moves.
                     Item {
                         id: lane
-                        visible: Context.active
+                        visible: !bar.minimal && (!bar.full || bar.vertical) && Context.active
                         Layout.alignment: Qt.AlignCenter
                         Layout.preferredWidth: lane.span
                         Layout.preferredHeight: 24
@@ -512,6 +523,7 @@ PanelWindow {
                     // Standing up, hours over minutes.
                     BarModule {
                         id: clockButton
+                        visible: !bar.full || bar.vertical
                         Layout.alignment: Qt.AlignCenter
                         Layout.preferredWidth:  bar.vertical ? 24 : face.implicitWidth + 22
                         Layout.preferredHeight: bar.vertical ? 40 : 24
@@ -554,7 +566,7 @@ PanelWindow {
                     }
 
                     // Whatever length the minimum leaves over goes here, so status
-                    // keeps hugging the endcap.
+                    // keeps hugging the trailing edge.
                     Item {
                         Layout.fillWidth: !bar.vertical
                         Layout.fillHeight: bar.vertical
@@ -593,7 +605,7 @@ PanelWindow {
                             padding: 4
                             // Gone rather than faded when there is no player, so the
                             // pill closes up instead of keeping a blank 30px.
-                            visible: Media.player !== null
+                            visible: !bar.minimal && Media.player !== null
                             text: `${Media.player?.trackTitle || Media.player?.identity || ""} · Open player`
                             onClicked: bar.toggleMenu("home")
                             Glyph { text: ""; color: Media.player?.isPlaying ? Theme.accent : Theme.secondary }
@@ -604,6 +616,7 @@ PanelWindow {
                             Layout.preferredHeight: bar.vertical ? 30 : 24
                             Layout.alignment: Qt.AlignCenter
                             padding: 4
+                            visible: !bar.minimal
                             text: Audio.muted ? "Muted" : `Volume ${Math.round(Audio.volume * 100)}%`
                             enabled: Audio.ready
                             onClicked: bar.toggleMenu("audio")
@@ -663,10 +676,53 @@ PanelWindow {
                         }
                     }
 
-                    // Room for the endcap, which sits outside the clip.
-                    Item {
-                        Layout.preferredWidth:  bar.vertical ? 1 : hudButton.width - rest.pad
-                        Layout.preferredHeight: bar.vertical ? hudButton.height - rest.pad : 1
+                }
+
+                // A full horizontal bar has enough room for a true visual center.
+                // Keep the workspaces and status in their lanes, and center the
+                // current title and time independently of their widths.
+                RowLayout {
+                    anchors.centerIn: parent
+                    height: 24
+                    spacing: 10
+                    visible: bar.full && !bar.vertical
+
+                    Text {
+                        visible: Context.active
+                        text: Context.text
+                        font.family: Theme.font
+                        font.pixelSize: Theme.fontSize - 1
+                        color: Theme.fg
+                        elide: Text.ElideRight
+                        Layout.maximumWidth: 320
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+
+                    Rectangle {
+                        visible: Context.active
+                        Layout.preferredWidth: 1
+                        Layout.preferredHeight: 12
+                        Layout.alignment: Qt.AlignVCenter
+                        color: Theme.secondary
+                    }
+
+                    BarModule {
+                        id: fullClockButton
+                        padding: 8
+                        text: Qt.formatDateTime(bar.now, "dddd, d MMMM")
+                        highlighted: bar.openMenu === "clock"
+                        onClicked: bar.toggleMenu("clock")
+
+                        Flip {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            flipped: fullClockButton.hovered
+                            front: Qt.formatDateTime(bar.now, "HH:mm")
+                            back: Qt.formatDateTime(bar.now, "ddd d MMM")
+                            pixelSize: 14
+                            bold: true
+                            color: Theme.fg
+                        }
                     }
                 }
             }
@@ -757,63 +813,45 @@ PanelWindow {
         }
 
         // ---- the endcap --------------------------------------------------------
-        // A sibling of the capsule rather than a child, so it rides the far end
-        // without being clipped by it.
+        // A sibling of the capsule rather than a child, so Nick sits at the
+        // leading end without being clipped by it.
         BarModule {
             id: hudButton
-            x: bar.vertical ? 0 : body.width - width
-            y: bar.vertical ? body.height - height : 0
+            x: 0
+            y: 0
             width: 30
             height: 30
+            padding: 0
             scale: 1
             opacity: bar.alerting ? 0 : 1
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: Theme.base } }
-            text: bar.openMenu === "" ? "Open controls" : "Close controls"
+            text: bar.openMenu === "" ? "Open controls · right-click to change bar size" : "Close controls · right-click to change bar size"
             onClicked: bar.openMenu = bar.openMenu === "" ? "home" : ""
 
-            background: Rectangle {
-                radius: 15
-                color: Theme.alpha(Theme.surface, Prefs.translucent ? 0.62 : 1)
-                Behavior on color { ColorAnimation { duration: Theme.unfold } }
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: 2
-                    radius: hudButton.hovered || bar.openMenu !== "" ? 8 : 13
-                    rotation: hudButton.hovered ? 12 : 0
-                    scale: hudButton.down ? 0.78 : 1
-                    Behavior on scale { NumberAnimation { duration: Theme.base; easing.type: Easing.OutBack; easing.overshoot: 2 } }
-                    color: bar.openMenu !== "" ? Theme.accent : Theme.glowFill
-                    border.width: hudButton.visualFocus ? 2 : 0
-                    border.color: Theme.accent
-                    Behavior on radius { NumberAnimation { duration: Theme.base; easing.type: Easing.OutBack } }
-                    Behavior on rotation { NumberAnimation { duration: Theme.base; easing.type: Easing.OutBack } }
-                    Behavior on color { ColorAnimation { duration: Theme.base } }
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+                onTapped: {
+                    bar.openMenu = "";
+                    Prefs.cycleBarMode();
                 }
             }
 
-            Item {
+            background: Rectangle {
+                radius: 8
+                color: "transparent"
+                border.width: hudButton.visualFocus ? 2 : 0
+                border.color: Theme.accent
+            }
+
+            NickAvatar {
                 Layout.alignment: Qt.AlignCenter
-                implicitWidth: 16
-                implicitHeight: 16
-                rotation: bar.openMenu !== "" ? 135 : (hudButton.hovered ? -12 : 0)
-                scale: hudButton.down ? 0.65 : 1
-                Behavior on scale { NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 2 } }
-                Behavior on rotation { NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 1.6 } }
-                Repeater {
-                    model: 4
-                    Rectangle {
-                        required property int index
-                        x: hudButton.hovered ? [6, 12, 6, 0][index] : index % 2 * 10 + 1
-                        y: hudButton.hovered ? [0, 6, 12, 6][index] : Math.floor(index / 2) * 10 + 1
-                        width: 4
-                        height: 4
-                        radius: 2
-                        Behavior on x { NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 1.8 } }
-                        Behavior on y { NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 1.8 } }
-                        color: bar.openMenu !== "" ? Theme.surface : Theme.accent
-                    }
-                }
+                page: bar.openMenu
+                hovered: hudButton.hovered
+                pressed: hudButton.down
+                // Leave the portrait out of the photograph. The stage draws a
+                // live runner instead, so the sprite doesn't freeze mid-stride.
+                visible: !drag.active
             }
 
             // Only exceptional state needs an extra mark on the resting capsule.
@@ -856,7 +894,7 @@ PanelWindow {
             y: drag.active ? bar.looseY : bar.center.y - height / 2
             width:  bar.compact || bar.vertical ? bar.thick : bar.restLength
             height: bar.compact || !bar.vertical ? bar.thick : bar.restLength
-            radius: 15
+            radius: bar.full && !bar.compact ? 0 : 15
             color: Theme.alpha(Theme.surface, Prefs.translucent ? 0.62 : 1)
             Behavior on width {
                 NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 1.1 }
@@ -872,6 +910,15 @@ PanelWindow {
                 // orientation, and the real body fades in instead.
                 opacity: bar.compact || bar.flipped ? 0 : 1
                 Behavior on opacity { NumberAnimation { duration: Theme.base } }
+            }
+
+            NickAvatar {
+                x: 0
+                y: 0
+                width: 30
+                height: 30
+                moving: true
+                visible: bar.flying && !bar.compact && !bar.flipped
             }
         }
     }

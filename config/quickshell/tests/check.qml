@@ -30,12 +30,63 @@ ShellRoot {
     }
 
     FloatingWindow {
-        visible: false
+        visible: true
         implicitWidth: 392
         implicitHeight: 300
         MediaCard { id: card; width: 392; player: player }
         HudHome { id: home; width: 392; visible: false }
         Flip { id: flip; width: 80; height: 20; front: "19:57"; back: "Sat 5 Sep" }
+        NickAvatar { id: avatar; width: 30; height: 30 }
+    }
+
+    Hud {
+        id: hud
+        anchorItem: avatar
+        now: new Date()
+        monitor: ({ width: 800, height: 600 })
+    }
+
+    Connections {
+        id: avatarFrames
+        target: null
+        property int changes: 0
+        function onCurrentFrameChanged() { changes++ }
+    }
+
+    Timer {
+        id: avatarCheck
+        interval: 2300
+        repeat: true
+        property int step: 0
+        onTriggered: {
+            try {
+                const greeting = test.child(avatar, "nickGreeting");
+                const runner = test.child(avatar, "nickRunning");
+                if (step++ === 0) {
+                    test.check(greeting.running && avatarFrames.changes > greeting.frameCount, "hover animation advances beyond its first loop");
+                    test.check(greeting.loops === AnimatedSprite.Infinite && greeting.frameRate === 4, "hover animation loops at a relaxed pace");
+                    avatar.page = "theme";
+                    test.check(!greeting.running, "menu stops the hidden hover animation");
+                    avatar.moving = true;
+                    avatarFrames.target = runner;
+                    avatarFrames.changes = 0;
+                    test.check(runner.visible && runner.running && !greeting.visible, "drag overrides menu costumes");
+                } else {
+                    test.check(avatarFrames.changes > 0, "running frames actually advance");
+                    avatar.visible = false;
+                    test.check(!runner.running, "hidden runner stops animating");
+                    avatar.moving = false;
+                    avatar.hovered = false;
+                    avatar.page = "";
+                    test.check(!test.child(avatar, "nickFace").running, "hidden portrait stops animating");
+                    console.log("CAPSULE_TEST_PASS");
+                    Qt.quit();
+                }
+            } catch (error) {
+                console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
+            }
+        }
     }
 
     function check(condition, message) {
@@ -57,6 +108,32 @@ ShellRoot {
             try {
                 const paused = { dbusName: "paused", isPlaying: false };
                 const playing = { dbusName: "playing", isPlaying: true };
+                test.check(Prefs.nextBarMode("full") === "pill", "full mode cycles to pill");
+                test.check(Prefs.nextBarMode("pill") === "minimal", "pill mode cycles to minimal");
+                test.check(Prefs.nextBarMode("minimal") === "full", "minimal mode cycles to full");
+
+                test.check(avatar.costume === 0 && !avatar.fullBody, "resting avatar shows Nick's portrait");
+                test.check(test.child(avatar, "nickFace").running, "visible portrait can blink");
+                for (const [page, costume] of [["home", 2], ["audio", 2], ["net", 3], ["bt", 3], ["tailscale", 3], ["theme", 4], ["clock", 5], ["unknown", 0]]) {
+                    avatar.page = page;
+                    avatar.hovered = true;
+                    const portrait = test.child(avatar, "nickCostume");
+                    test.check(avatar.costume === costume && !avatar.fullBody, "menu costume takes priority over hover: " + page);
+                    test.check(portrait.status === Image.Ready && portrait.sourceClipRect.x === costume * 32, "costume atlas loads the correct cell: " + page);
+                }
+                for (const [edge, anchor, gravity] of [
+                    ["top", Edges.Bottom | Edges.Left, Edges.Bottom | Edges.Right],
+                    ["bottom", Edges.Top | Edges.Left, Edges.Top | Edges.Right],
+                    ["left", Edges.Right | Edges.Top, Edges.Right | Edges.Bottom],
+                    ["right", Edges.Left | Edges.Top, Edges.Left | Edges.Bottom]
+                ]) {
+                    hud.edge = edge;
+                    test.check(hud.anchor.edges === anchor && hud.anchor.gravity === gravity, "HUD opens inward from the leading button: " + edge);
+                }
+                avatar.page = "";
+                test.check(avatar.fullBody && test.child(avatar, "nickGreeting").running, "hover starts the full-body animation");
+                avatarFrames.target = test.child(avatar, "nickGreeting");
+
                 test.check(Media.choosePlayer([], "") === null, "empty player list");
                 test.check(Media.choosePlayer([paused, playing], "") === playing, "prefer playing app");
                 test.check(Media.choosePlayer([paused, playing], "paused") === paused, "retain chosen app");
@@ -153,11 +230,11 @@ ShellRoot {
                 test.check(String(card.color) === String(Theme.raised), "card follows changed theme");
                 card.player = null;
                 test.check(!play.enabled && !seek.enabled && !next.enabled, "no-player controls disabled");
-                console.log("CAPSULE_TEST_PASS");
+                avatarCheck.start();
             } catch (error) {
                 console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
             }
-            Qt.quit();
         }
     }
 }
