@@ -35,6 +35,7 @@ ShellRoot {
         implicitHeight: 300
         MediaCard { id: card; width: 392; player: player }
         HudHome { id: home; width: 392; visible: false }
+        Flip { id: flip; width: 80; height: 20; front: "19:57"; back: "Sat 5 Sep" }
     }
 
     function check(condition, message) {
@@ -84,6 +85,38 @@ ShellRoot {
                 next.click();
                 test.check(!next.enabled && player.nextCalls === 1, "unsupported next is inert");
                 test.check(card.formatTime(65) === "1:05", "timestamp formatting");
+
+                // A label only turns over when it has a second face. The
+                // battery's back is UPower's estimate, which is an empty string
+                // until it has worked out a rate, and flipping to nothing would
+                // read as the number vanishing under the pointer.
+                flip.flipped = true;
+                test.check(flip.turned, "a flip with both faces turns");
+                flip.back = "";
+                test.check(!flip.turned, "a flip with nothing to say stays put");
+                flip.back = "Sat 5 Sep";
+                flip.flipped = false;
+                test.check(!flip.turned, "a flip at rest shows its front");
+
+                // Nothing speaks before the shell has settled, otherwise
+                // PipeWire binding the sink at login reads as a volume change.
+                Interrupt.kind = "";
+                Interrupt.primed = false;
+                Interrupt.show("volume");
+                test.check(!Interrupt.active, "unprimed interrupts are dropped");
+
+                Interrupt.primed = true;
+                Interrupt.show("brightness");
+                test.check(Interrupt.kind === "brightness" && Interrupt.active, "a primed interrupt speaks");
+                test.check(Interrupt.metered, "brightness draws a meter");
+
+                // Last writer wins: the newest event is the one you caused.
+                Interrupt.show("mic");
+                test.check(Interrupt.kind === "mic", "the newest interrupt takes the slot");
+                test.check(!Interrupt.metered, "the mic has no quantity to meter");
+                test.check(Interrupt.label === "mic on", "the mic says its state in words");
+                Interrupt.kind = "";
+                test.check(!Interrupt.active, "a cleared interrupt is silent");
                 test.check(card.implicitHeight < 200, "media card stays compact");
                 test.check(home.implicitHeight < 420, "HUD overview stays compact");
                 player.canSeek = true;

@@ -21,10 +21,10 @@ ShellRoot {
         delegate: Bar {}
     }
 
-    // Both of these are global rather than per-monitor: one D-Bus notification
-    // server for the session, one OSD.
+    // Global rather than per-monitor: one D-Bus notification server for the
+    // session. The OSD that used to live beside it is gone; volume, brightness
+    // and the mic are messages the capsule delivers itself, through Interrupt.
     Notifications {}
-    Osd {}
     ThemePicker {}
 
     // Refresh rate follows the charger. Global, not per-monitor: it drives the
