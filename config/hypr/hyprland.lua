@@ -106,12 +106,9 @@ end)
 
 local function app(command) return hl.dsp.exec_cmd("uwsm-app -- " .. command) end
 
--- Launcher. wofi is a menu rather than an app, so it is deliberately not run
--- through uwsm-app: anything launched from it would inherit wofi's transient
--- scope and outlive it there under a misleading name.
--- pkill-first makes the key a toggle; without it a second press stacks a
--- second instance on top of the first.
-hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("sh -c 'pkill wofi || wofi --show drun --style ~/.local/state/theme/current/theme/wofi.css'"))
+-- The launcher already lives inside Quickshell, so this only sends its toggle
+-- message. It gives each chosen app its own uwsm scope before disappearing.
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
 
 hl.bind("SUPER + RETURN", app("ghostty"))
 hl.bind("SUPER + SHIFT + RETURN", hl.dsp.exec_cmd("sh -c 'uwsm-app -- \"$(xdg-settings get default-web-browser)\"'"))

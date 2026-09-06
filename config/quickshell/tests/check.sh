@@ -4,6 +4,8 @@ root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 
+node "$root/tests/launcher-model.cjs"
+
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
 for file in "$root"/*.qml; do
     "$formatter" "$file" >/dev/null

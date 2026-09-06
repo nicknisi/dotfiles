@@ -20,7 +20,15 @@ PanelWindow {
     id: bar
 
     required property var modelData
+    property bool awake: false
+    signal awakeToggled()
+
     screen: modelData
+
+    IdleInhibitor {
+        window: bar
+        enabled: bar.awake
+    }
 
     readonly property string edge: Prefs.edge
     readonly property bool vertical: Prefs.vertical
@@ -559,6 +567,24 @@ PanelWindow {
                         flow: bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
                         rowSpacing: 2
                         columnSpacing: 2
+
+                        BarModule {
+                            id: awakeButton
+                            Layout.preferredWidth:  bar.vertical ? 24 : 30
+                            Layout.preferredHeight: bar.vertical ? 30 : 24
+                            Layout.alignment: Qt.AlignCenter
+                            padding: 4
+                            text: bar.awake ? "Coffee full · keeping awake" : "Coffee empty · normal sleep"
+                            highlighted: bar.awake
+                            onClicked: bar.awakeToggled()
+                            Glyph {
+                                text: bar.awake ? "\u{f0176}" : "\u{f06ca}"
+                                color: bar.awake ? Theme.accent : Theme.secondary
+                                rotation: bar.awake ? -5 : 0
+                                Behavior on color { ColorAnimation { duration: Theme.base } }
+                                Behavior on rotation { NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 2 } }
+                            }
+                        }
 
                         BarModule {
                             Layout.preferredWidth:  bar.vertical ? 24 : 30
