@@ -47,3 +47,4 @@ home/.claude/themes/system.json
 home/.pi/agent/themes/system.json
 home/.pi/agent/helpers/pi-computer-use/linux-bridge
 config/wezterm/theme-current.lua
+home/.pi/web-search-cache/
