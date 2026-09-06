@@ -28,7 +28,7 @@ local config = {
   colorscheme = function()
     _G.apply_named_theme()
   end,
-  transparent = false,
+  transparent = true,
 }
 
 ---Assign a user config to the config table
@@ -140,7 +140,7 @@ function _G.apply_named_theme()
   if uv.fs_stat(palette) then
     local ok, colors = pcall(vim.json.decode, table.concat(vim.fn.readfile(palette), "\n"))
     if ok and type(colors) == "table" then
-      require("aether").setup({ colors = colors })
+      require("aether").setup({ colors = colors, transparent = config.transparent })
     end
   end
 

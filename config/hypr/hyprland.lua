@@ -87,7 +87,7 @@ hl.config({
   dwindle = {
     preserve_split = true,
   },
-  decoration = { rounding = 0, blur = { enabled = false }, shadow = { enabled = false } },
+  decoration = { rounding = 0, blur = { enabled = true }, shadow = { enabled = false } },
   misc = { disable_hyprland_logo = true, disable_splash_rendering = true },
 })
 

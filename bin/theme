@@ -46,6 +46,7 @@ usage:
   theme menu                  plain wofi list (the fallback when no shell runs)
   theme thumbs                cache picker thumbnails (runs itself after a switch)
   theme refresh               re-render the current theme (after editing a template)
+  theme browser install       install managed Chromium/Helium theme policy (sudo once)
   theme plymouth              install the rendered boot splash (LUKS prompt) and rebuild
                               the initramfs; deliberate, needs sudo, shows on next boot
   theme list                  themes with their palettes and taglines
@@ -58,8 +59,9 @@ A pack is themes/<name>/colors.toml + backgrounds/. Every app file is
 rendered from themes/templates/*.tpl into ~/.local/state/theme/current/theme/.
 
 switches: ghostty, kitty, wezterm, tmux, nvim, btop, starship, pi, claude code,
-          wallpaper; Linux adds hyprland borders, hyprlock, wofi, quickshell,
-          GTK dark/light + icons; macOS adds appearance, sketchybar, borders, slack.
+          wallpaper, and Chromium/Helium after `theme browser install`; Linux adds
+          hyprland borders, hyprlock, wofi, quickshell, GTK dark/light + icons;
+          macOS adds appearance, sketchybar, borders, slack.
           The boot splash is rendered too but only installed by `theme plymouth`,
           because that means rebuilding the initramfs.
 USAGE
@@ -384,6 +386,55 @@ $(list_themes)"
 # ── Consumers ────────────────────────────────────────────────────
 # everything here reports to stderr; stdout gets the finale only
 
+refresh_browsers() {
+  if $IS_MAC; then
+    local app
+    for app in Chromium Helium; do
+      pgrep -x "$app" >/dev/null 2>&1 || continue
+      open -gj -a "$app" --args --refresh-platform-policy --no-startup-window >/dev/null 2>&1 || true
+    done
+  else
+    pgrep -x chromium >/dev/null 2>&1 && command -v chromium >/dev/null 2>&1 &&
+      chromium --refresh-platform-policy --no-startup-window >/dev/null 2>&1 || true
+    pgrep -x helium >/dev/null 2>&1 && command -v helium-browser >/dev/null 2>&1 &&
+      helium-browser --refresh-platform-policy --no-startup-window >/dev/null 2>&1 || true
+  fi
+}
+
+install_policy_link() { # TARGET LINK — never replace another policy
+  local target="$1" link="$2"
+  if [ -L "$link" ]; then
+    [ "$(readlink "$link")" = "$target" ] || die "$link already links elsewhere; refusing to replace it"
+    return
+  fi
+  [ ! -e "$link" ] || die "$link already exists; refusing to replace it"
+  sudo ln -s "$target" "$link" || die "could not install $link"
+  [ "$(readlink "$link" 2>/dev/null)" = "$target" ] || die "$link was not installed"
+}
+
+cmd_browser_install() {
+  local name dir target id
+  name="$(current_theme)"
+  [ "$name" != none ] || die "no theme set yet"
+  [ -f "$STATE/theme/browser-policy.json" ] || apply "$name" keep
+
+  if $IS_MAC; then
+    dir="/Library/Managed Preferences/$(id -un)"
+    [ -d "$dir" ] || sudo install -d -m 0755 "$dir" || die "could not create $dir"
+    target="$STATE/theme/browser-policy.plist"
+    for id in org.chromium.Chromium net.imput.helium; do
+      install_policy_link "$target" "$dir/$id.plist"
+    done
+  else
+    dir=/etc/chromium/policies/managed
+    [ -d "$dir" ] || sudo install -d -m 0755 "$dir" || die "could not create $dir"
+    install_policy_link "$STATE/theme/browser-policy.json" "$dir/nisi-theme.json"
+  fi
+
+  refresh_browsers
+  echo "browser policy: Chromium + Helium (managed)"
+}
+
 reload_apps() { # NAME MODE WALL
   local name="$1" mode="$2" wall="$3" T="$STATE/theme"
 
@@ -416,6 +467,7 @@ reload_apps() { # NAME MODE WALL
     [ -n "$wall" ] && paint_wallpaper
     ensure_desktop_entries
   fi
+  refresh_browsers
   thumbs_background
 }
 
@@ -810,6 +862,7 @@ case "${1:-}" in
   thumbs) cmd_thumbs ;;
   _rows) cmd_rows "${2:-themes}" ;;
   refresh) [ "$(current_theme)" != none ] || die "no theme set yet"; apply "$(current_theme)" keep ;;
+  browser) [ "${2:-}" = install ] && [ $# -eq 2 ] || die "usage: theme browser install" 2; cmd_browser_install ;;
   plymouth) cmd_plymouth ;;
   from-image) shift; cmd_from_image "$@" ;;
   _preview-theme) preview_theme "$2" ;;
