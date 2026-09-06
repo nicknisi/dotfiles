@@ -40,6 +40,10 @@ Singleton {
     readonly property color sunken:  c("darker_background",  "#12131f")
     readonly property color surface: bg
     readonly property color raised:  bgAlt
+    // Secondary labels stay readable even when the palette's muted color is
+    // intended for borders rather than text.
+    readonly property color secondary: Qt.tint(surface, alpha(fg, 0.68))
+    readonly property int controlRadius: 12
 
     // Borders deliberately mirror hyprland.lua.tpl, which paints the active
     // window border with accent at full alpha and the inactive one with muted at
@@ -51,9 +55,9 @@ Singleton {
     // Three speeds, so every animation in the shell agrees with the others.
     // quick is for a hover tint, base for anything that moves, unfold for a menu
     // opening, which is slow enough to read as a physical thing.
-    readonly property int quick:  110
-    readonly property int base:   190
-    readonly property int unfold: 260
+    readonly property int quick:  100
+    readonly property int base:   220
+    readonly property int unfold: 340
 
     // The old config asked for "JetBrainsMono Nerd Font", which is not installed,
     // so Qt was silently falling back. These two are.
@@ -62,19 +66,14 @@ Singleton {
 
     readonly property int fontSize:  13
     readonly property int iconSize:  14
-    readonly property int barHeight: 32
+    readonly property int barHeight: 30
 
-    // The bar's workspaces are no longer pills: one accent rail slides between
-    // them instead, so pillBg, pillBorder and glowEdge went with them. glowFill
-    // survives because the toggles in the menus still sit on it.
+    // A light accent wash for selected controls, independent of theme mode.
     readonly property color glowFill: alpha(accent, 0.14)
 
     // ---- window manager geometry -------------------------------------------
-    // The bar is drawn as one more tile in the dwindle layout, so it takes its
-    // gap, border width and corner radius from Hyprland rather than from
-    // constants that would drift the moment hyprland.lua changes. Edit
-    // gaps_out/border_size/rounding there and the bar follows on the next
-    // `hyprctl reload`.
+    // Keep window-manager geometry for window-like overlays. The capsule and
+    // HUD have their own rounded silhouette, regardless of window rounding.
     //
     // Read through hyprctl rather than Quickshell.Hyprland because that module
     // exposes workspaces and monitors, not config options.

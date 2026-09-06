@@ -94,7 +94,7 @@ BarMenu {
 
                             Layout.fillWidth: true
                             implicitHeight: 30
-                            radius: Theme.radius
+                            radius: Theme.controlRadius
                             color: row.hovered ? Theme.raised : "transparent"
                             Behavior on color { ColorAnimation { duration: Theme.quick } }
 
@@ -209,7 +209,7 @@ BarMenu {
                             Layout.bottomMargin: entry.asking ? 4 : 0
                             implicitHeight: entry.asking ? 26 : 0
                             clip: true
-                            radius: Theme.radius
+                            radius: Theme.controlRadius
                             color: Theme.sunken
                             border.width: 1
                             border.color: Theme.borderActive

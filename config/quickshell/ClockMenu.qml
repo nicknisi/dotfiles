@@ -117,7 +117,7 @@ BarMenu {
                     anchors.centerIn: parent
                     width: 22
                     height: 22
-                    radius: Theme.radius
+                    radius: Theme.controlRadius
                     color: Theme.accent
                     visible: cell.modelData.today
                 }

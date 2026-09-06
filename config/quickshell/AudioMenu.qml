@@ -85,7 +85,7 @@ BarMenu {
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.radius
+            radius: Theme.controlRadius
             color: Theme.raised
             opacity: dev.containsMouse ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: Theme.quick } }

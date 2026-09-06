@@ -90,7 +90,7 @@ BarMenu {
                     required property string modelData
                     width: 14
                     height: 14
-                    radius: Theme.radius
+                    radius: 7
                     color: modelData
                     border.width: 1
                     border.color: Qt.rgba(0, 0, 0, 0.35)
@@ -150,7 +150,7 @@ BarMenu {
                         // current theme's, so the hover is itself a preview.
                         Rectangle {
                             anchors.fill: parent
-                            radius: Theme.radius
+                            radius: Theme.controlRadius
                             color: row.modelData.swatches[0] ?? Theme.accent
                             opacity: row.containsMouse ? 0.22 : 0
                             Behavior on opacity { NumberAnimation { duration: Theme.quick } }
@@ -196,7 +196,7 @@ BarMenu {
                                         required property string modelData
                                         width: 8
                                         height: 8
-                                        radius: Theme.radius
+                                        radius: 4
                                         color: modelData
                                         opacity: row.containsMouse || row.modelData.current ? 1 : 0.55
                                         Behavior on opacity { NumberAnimation { duration: Theme.quick } }
@@ -233,7 +233,7 @@ BarMenu {
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.radius
+            radius: Theme.controlRadius
             color: Theme.raised
             opacity: parent.containsMouse ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: Theme.quick } }
