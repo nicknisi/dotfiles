@@ -17,7 +17,8 @@ Template tokens:
   {{ key }}            #rrggbb
   {{ key_strip }}      rrggbb        hypr rgba(..ff), Qt #aarrggbb, sketchybar 0xaa..
   {{ key_rgb }}        r,g,b         css rgb(), claude themes
-  {{ mix a b 30% }}    a moved 30% toward b; mix_strip / mix_rgb likewise
+  {{ key_float }}      r, g, b       0..1 floats: plymouth's script module
+  {{ mix a b 30% }}    a moved 30% toward b; mix_strip / mix_rgb / mix_float likewise
   {{ name }} {{ mode }}
   {{ hyprland_active_border_lua }}    the pack's hyprland_active_border, or its accent,
                                       as the Lua literal hl.config takes; _inactive_ likewise
@@ -211,14 +212,15 @@ def render(text, p, warn):
         if len(parts) == 1:
             key = parts[0]
             for suffix, fn in (("_strip", lambda v: v.lstrip("#")),
-                               ("_rgb", lambda v: "%d,%d,%d" % rgb(v))):
+                               ("_rgb", lambda v: "%d,%d,%d" % rgb(v)),
+                               ("_float", lambda v: "%.3f, %.3f, %.3f" % tuple(c / 255 for c in rgb(v)))):
                 base = key[: -len(suffix)]
                 if key.endswith(suffix) and base in p:
                     v = p[base]
                     return fn(v) if is_hex(v) else v
             if key in p:
                 return p[key]
-        elif len(parts) == 4 and parts[0] in ("mix", "mix_strip", "mix_rgb"):
+        elif len(parts) == 4 and parts[0] in ("mix", "mix_strip", "mix_rgb", "mix_float"):
             fn, a, b, amount = parts
             va, vb = p.get(a, a), p.get(b, b)
             if is_hex(va) and is_hex(vb):
@@ -227,6 +229,8 @@ def render(text, p, warn):
                     return v.lstrip("#")
                 if fn == "mix_rgb":
                     return "%d,%d,%d" % rgb(v)
+                if fn == "mix_float":
+                    return "%.3f, %.3f, %.3f" % tuple(c / 255 for c in rgb(v))
                 return v
         warn(token)
         return token

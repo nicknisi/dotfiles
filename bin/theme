@@ -46,6 +46,8 @@ usage:
   theme menu                  plain wofi list (the fallback when no shell runs)
   theme thumbs                cache picker thumbnails (runs itself after a switch)
   theme refresh               re-render the current theme (after editing a template)
+  theme plymouth              install the rendered boot splash (LUKS prompt) and rebuild
+                              the initramfs; deliberate, needs sudo, shows on next boot
   theme list                  themes with their palettes and taglines
   theme current               the active theme
   theme from-image <name> <image>
@@ -58,6 +60,8 @@ rendered from themes/templates/*.tpl into ~/.local/state/theme/current/theme/.
 switches: ghostty, kitty, wezterm, tmux, nvim, btop, starship, pi, claude code,
           wallpaper; Linux adds hyprland borders, hyprlock, wofi, quickshell,
           GTK dark/light + icons; macOS adds appearance, sketchybar, borders, slack.
+          The boot splash is rendered too but only installed by `theme plymouth`,
+          because that means rebuilding the initramfs.
 USAGE
 }
 
@@ -374,6 +378,7 @@ $(list_themes)"
 
   reload_apps "$name" "$mode" "$wall"
   finale "$name" "$mode" "$TAGLINE"
+  plymouth_hint
 }
 
 # ── Consumers ────────────────────────────────────────────────────
@@ -740,6 +745,52 @@ EOF
 
 [ "${1:-}" = set ] && shift
 
+# ── Boot splash (plymouth) ───────────────────────────────────────
+# Rendered on every switch like everything else, installed only on request:
+# installing means sudo plus a full mkinitcpio -P, which has no place inside a
+# theme switch that otherwise finishes in under a second. One fixed theme name,
+# rewritten in place, the same shape as the agents' "system" theme.
+PLYMOUTH_NAME=nisi
+PLYMOUTH_DIR="/usr/share/plymouth/themes/$PLYMOUTH_NAME"
+
+plymouth_current() { # is the installed splash exactly the rendered one?
+  [ -f "$PLYMOUTH_DIR/$PLYMOUTH_NAME.script" ] &&
+    cmp -s "$STATE/theme/plymouth.script" "$PLYMOUTH_DIR/$PLYMOUTH_NAME.script" &&
+    cmp -s "$STATE/theme/plymouth.plymouth" "$PLYMOUTH_DIR/$PLYMOUTH_NAME.plymouth" &&
+    [ "$(plymouth-set-default-theme 2>/dev/null)" = "$PLYMOUTH_NAME" ]
+}
+
+plymouth_hint() { # one line after a switch, only once a themed splash exists and now lags
+  $IS_MAC && return 0
+  [ -f "$PLYMOUTH_DIR/$PLYMOUTH_NAME.script" ] || return 0
+  plymouth_current && return 0
+  echo "boot splash still shows the previous theme: theme plymouth (rebuilds the initramfs)"
+}
+
+cmd_plymouth() {
+  $IS_MAC && die "the boot splash is Linux only"
+  [ "$(current_theme)" != none ] || die "no theme set yet"
+  local T="$STATE/theme"
+  [ -f "$T/plymouth.script" ] && [ -f "$T/plymouth.plymouth" ] ||
+    die "nothing rendered for plymouth; run: theme refresh"
+  command -v plymouth-set-default-theme >/dev/null 2>&1 || die "plymouth is not installed"
+  if plymouth_current; then
+    echo "boot splash already matches $(current_theme)"
+    return 0
+  fi
+  echo "installing the $(current_theme) boot splash and rebuilding the initramfs (sudo)"
+  sudo install -D -m 0644 "$T/plymouth.plymouth" "$PLYMOUTH_DIR/$PLYMOUTH_NAME.plymouth" &&
+    sudo install -D -m 0644 "$T/plymouth.script" "$PLYMOUTH_DIR/$PLYMOUTH_NAME.script" &&
+    sudo plymouth-set-default-theme "$PLYMOUTH_NAME" &&
+    sudo mkinitcpio -P || die "boot splash install failed (see the error above); nothing later in the chain ran"
+  cat <<TXT
+done. Shows on the next boot.
+If it misrenders: at the boot menu press e, delete 'splash', Enter. That boots
+with the plain console prompt; then \`sudo plymouth-set-default-theme bgrt &&
+sudo mkinitcpio -P\` puts the stock splash back.
+TXT
+}
+
 case "${1:-}" in
   -h | --help | help) usage; exit 0 ;;
   list | -l | --list)
@@ -759,6 +810,7 @@ case "${1:-}" in
   thumbs) cmd_thumbs ;;
   _rows) cmd_rows "${2:-themes}" ;;
   refresh) [ "$(current_theme)" != none ] || die "no theme set yet"; apply "$(current_theme)" keep ;;
+  plymouth) cmd_plymouth ;;
   from-image) shift; cmd_from_image "$@" ;;
   _preview-theme) preview_theme "$2" ;;
   _preview-bg) preview_bg "$2" "$3" ;;
