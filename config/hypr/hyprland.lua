@@ -142,6 +142,26 @@ hl.bind("SUPER + SHIFT + SPACE", hl.dsp.window.float({ action = "toggle" }))
 hl.bind("SUPER + SLASH", hl.dsp.layout("togglesplit"))
 hl.bind("SUPER + COMMA", hl.dsp.group.toggle())
 
+local function workspace_selector(ws)
+  if ws.name and ws.name ~= "" and ws.name ~= tostring(ws.id) then
+    if ws.name:match("^name:") or ws.name:match("^special:") then return ws.name end
+    return "name:" .. ws.name
+  end
+  return tostring(ws.id)
+end
+
+local function toggle_workspace_layout()
+  local ws = hl.get_active_special_workspace() or hl.get_active_workspace()
+  if not ws then return end
+
+  hl.workspace_rule({
+    workspace = workspace_selector(ws),
+    layout = ws.tiled_layout == "scrolling" and "dwindle" or "scrolling",
+  })
+end
+
+hl.bind("SUPER + ALT + L", toggle_workspace_layout)
+
 -- Floating windows. Nothing above moves one: SUPER+SHIFT+hjkl is a tiling
 -- operation, and a floating window has no place in the tree to be moved to.
 --
