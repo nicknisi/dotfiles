@@ -45,9 +45,7 @@ Singleton {
     readonly property color secondary: Qt.tint(surface, alpha(fg, 0.68))
     readonly property int controlRadius: 12
 
-    // Borders deliberately mirror hyprland.lua.tpl, which paints the active
-    // window border with accent at full alpha and the inactive one with muted at
-    // 0xaa. The bar is a window among windows, so it uses the same two.
+    // Single-color borders for shell controls. Window borders live in hyprland.lua.tpl.
     readonly property color borderActive: accent
     readonly property color borderIdle:   alpha(muted, 0.67)
 

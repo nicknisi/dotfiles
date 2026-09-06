@@ -101,8 +101,8 @@ PopupWindow {
 
                 BarModule {
                     visible: hud.page !== "home"
-                    text: "Back to controls"
-                    onClicked: hud.navigate("home")
+                    text: hud.page === "tailscale" ? "Back to network" : "Back to controls"
+                    onClicked: hud.navigate(hud.page === "tailscale" ? "net" : "home")
                     Text {
                         text: "\u{f0141}"
                         font.family: Theme.icons
@@ -167,17 +167,18 @@ PopupWindow {
                     // the selected one. Size explicitly to avoid empty space.
                     implicitHeight: children[currentIndex]?.implicitHeight ?? 0
                     height: implicitHeight
-                    currentIndex: Math.max(0, ["home", "audio", "net", "bt", "theme", "clock"].indexOf(hud.page))
+                    currentIndex: Math.max(0, ["home", "audio", "net", "bt", "theme", "clock", "tailscale"].indexOf(hud.page))
 
                     HudHome {
                         shown: hud.shown && hud.page === "home"
                         onNavigate: page => hud.navigate(page)
                     }
                     AudioMenu { shown: hud.shown && hud.page === "audio"; onDismissed: hud.dismissed() }
-                    NetMenu { shown: hud.shown && hud.page === "net"; onDismissed: hud.dismissed() }
+                    NetMenu { shown: hud.shown && hud.page === "net"; onNavigate: page => hud.navigate(page); onDismissed: hud.dismissed() }
                     BtMenu { shown: hud.shown && hud.page === "bt"; onDismissed: hud.dismissed() }
                     ThemeMenu { shown: hud.shown && hud.page === "theme"; onDismissed: hud.dismissed() }
                     ClockMenu { now: hud.now; shown: hud.shown && hud.page === "clock"; onDismissed: hud.dismissed() }
+                    TailscaleMenu { shown: hud.shown && hud.page === "tailscale"; onDismissed: hud.dismissed() }
                 }
             }
         }

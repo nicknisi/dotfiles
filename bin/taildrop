@@ -1,0 +1,264 @@
+#!/usr/bin/env python3
+import ctypes, errno, fcntl, html, ipaddress, json, os, re, shutil, signal, stat, subprocess, sys, time
+from pathlib import Path
+
+IMAGE_EXTS = {'.png','.jpg','.jpeg','.gif','.webp','.avif','.bmp','.tif','.tiff'}
+_child = None
+_stop = False
+_parent_pid = os.getpid()
+_libc = ctypes.CDLL(None)
+
+
+def j(event, **kw):
+    kw = {'event': event, **kw}
+    print(json.dumps(kw, ensure_ascii=False), flush=True)
+
+
+def fail(msg, code=1):
+    print(msg, file=sys.stderr)
+    return code
+
+
+def notify(title, body='', *, path=None, critical=False):
+    executable = shutil.which('notify-send')
+    if not executable:
+        return
+    title, body = html.escape(title), html.escape(body)
+    args = [executable]
+    if critical:
+        args += ['-u', 'critical']
+    if path and Path(path).suffix.lower() in IMAGE_EXTS:
+        args += ['-i', path]
+    else:
+        args += ['-i', 'document-send']
+    if path:
+        cmd = args + ['--action=open=Open', '--wait', '--', title, body]
+        code = ('import json,subprocess,sys; cmd=json.loads(sys.argv[1]); path=sys.argv[2]; '
+                'r=subprocess.run(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL); '
+                'subprocess.Popen(["xdg-open",path], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, '
+                'stderr=subprocess.DEVNULL, start_new_session=True) if r.stdout.strip()=="open" else None')
+        args = [sys.executable, '-c', code, json.dumps(cmd), path]
+    else:
+        args += ['--', title, body]
+    try:
+        subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+    except OSError:
+        pass
+
+
+def target_arg(target):
+    if not target or target[0] == '-' or any(ord(c) < 32 or ord(c) == 127 for c in target):
+        raise ValueError('unsafe target')
+    if ':' in target:
+        try:
+            ip = ipaddress.ip_address(target)
+        except ValueError:
+            raise ValueError('unsafe target')
+        if ip.version != 6:
+            raise ValueError('unsafe target')
+        return f'[{target}]:'
+    if '/' in target or '\\' in target or not re.fullmatch(r'[A-Za-z0-9_.-]+', target):
+        raise ValueError('unsafe target')
+    return target + ':'
+
+
+def send(argv):
+    if len(argv) < 2:
+        return fail('usage: taildrop send TARGET FILE...')
+    target, files = argv[0], argv[1:]
+    try:
+        dest = target_arg(target)
+    except ValueError as e:
+        return fail(str(e))
+    for p in files:
+        try:
+            st = os.stat(p)
+        except OSError as e:
+            return fail(f'{p}: {e.strerror}')
+        if not stat.S_ISREG(st.st_mode) or not os.access(p, os.R_OK):
+            return fail(f'{p}: not a readable regular file')
+    code, error = run_tailscale(['file', 'cp', '--update-interval=0', '--', *files, dest])
+    if code:
+        msg = error.strip() or 'Taildrop transfer failed'
+        print(msg, file=sys.stderr)
+        notify(f'Could not send to {target}', msg, critical=True)
+        return code
+    notify(f'Sent to {target}', f'{len(files)} file' + ('' if len(files) == 1 else 's'))
+    j('sent', target=target, files=files)
+    return 0
+
+
+def default_dir():
+    try:
+        r = subprocess.run(['xdg-user-dir', 'DOWNLOAD'], text=True, stdout=subprocess.PIPE,
+                           stderr=subprocess.DEVNULL, timeout=2)
+        d = r.stdout.strip()
+        if r.returncode == 0 and d:
+            return d
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return os.environ.get('XDG_DOWNLOAD_DIR') or os.path.join(os.environ.get('HOME', '.'), 'Downloads')
+
+
+def ensure_private_dir(path):
+    os.makedirs(path, mode=0o700, exist_ok=True)
+    st = os.lstat(path)
+    if not stat.S_ISDIR(st.st_mode) or st.st_uid != os.getuid():
+        raise RuntimeError(f'{path}: not a private directory')
+    os.chmod(path, 0o700)
+
+
+def safe_staged(staging, name):
+    if name in ('', '.', '..') or '/' in name or '\x00' in name:
+        return None
+    path = os.path.join(staging, name)
+    try:
+        st = os.lstat(path)
+    except FileNotFoundError:
+        return None
+    if not stat.S_ISREG(st.st_mode) or stat.S_ISLNK(st.st_mode):
+        return None
+    return path
+
+
+def candidates(directory, name):
+    base, ext = os.path.splitext(name)
+    if not base:
+        base, ext = name, ''
+    yield os.path.join(directory, name)
+    for i in range(1, 1000):
+        yield os.path.join(directory, f'{base}-{i}{ext}')
+
+
+def publish_one(directory, staging, name):
+    staged = safe_staged(staging, name)
+    if not staged:
+        return None
+    for cand in candidates(directory, name):
+        try:
+            os.link(staged, cand, follow_symlinks=False)
+            os.unlink(staged)
+            return cand
+        except FileExistsError:
+            continue
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+                continue
+            raise RuntimeError(f'could not publish {name!r}: {e.strerror}')
+    raise RuntimeError(f'could not publish {name!r}: too many collisions')
+
+
+def drain(directory, staging):
+    try:
+        names = list(os.listdir(staging))
+    except FileNotFoundError:
+        return True
+    ok = True
+    for name in names:
+        try:
+            path = publish_one(directory, staging, name)
+        except RuntimeError as e:
+            j('error', message=str(e)); ok = False; continue
+        if path:
+            notify(f'Received {os.path.basename(path)}', f'Saved to {directory}', path=path)
+            j('received', path=path)
+    return ok
+
+
+def stop(signum, frame):
+    global _stop
+    _stop = True
+    kill_child(signal.SIGTERM, None)
+    signal.alarm(3)
+
+
+def kill_child(signum, frame):
+    if _child and _child.poll() is None:
+        try:
+            os.killpg(_child.pid, signal.SIGKILL if signum == signal.SIGALRM else signum)
+        except ProcessLookupError:
+            pass
+
+
+def child_setup():
+    # Quickshell uses SIGKILL on reload, so a signal handler alone cannot reap
+    # the inbox waiter. Linux kills the child if this helper disappears.
+    if _libc.prctl(1, signal.SIGKILL, 0, 0, 0) != 0 or os.getppid() != _parent_pid:
+        os._exit(1)
+
+
+def run_tailscale(args):
+    global _child
+    _child = subprocess.Popen(['tailscale', *args], stdin=subprocess.DEVNULL,
+                              stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+                              text=True, start_new_session=True, preexec_fn=child_setup)
+    if _stop:
+        stop(signal.SIGTERM, None)
+    _, error = _child.communicate()
+    code = _child.returncode
+    _child = None
+    signal.alarm(0)
+    return code, error
+
+
+def receive(argv):
+    once = False
+    if argv and argv[0] == '--once':
+        once = True; argv = argv[1:]
+    if len(argv) > 1:
+        return fail('usage: taildrop receive [--once] [DIRECTORY]')
+    directory = os.path.abspath(os.path.expanduser(argv[0] if argv else default_dir()))
+    staging = os.path.join(directory, '.taildrop')
+    try:
+        os.makedirs(directory, exist_ok=True)
+        ensure_private_dir(staging)
+        lockdir = os.path.join(os.environ.get('XDG_RUNTIME_DIR') or os.path.expanduser('~/.cache'), 'taildrop')
+        ensure_private_dir(lockdir)
+        lockfd = os.open(os.path.join(lockdir, 'receive.lock'), os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        lockf = os.fdopen(lockfd, 'r+')
+        if not stat.S_ISREG(os.fstat(lockfd).st_mode):
+            raise RuntimeError('receiver lock is not a regular file')
+        fcntl.flock(lockf, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        return fail('taildrop receive is already running')
+    except (OSError, RuntimeError) as e:
+        return fail(str(e))
+    j('ready', directory=directory)
+    drain(directory, staging)
+    last_error = ''
+    while not _stop:
+        rc, err = run_tailscale(['file', 'get', '--wait', '--conflict=rename', staging])
+        drained = drain(directory, staging)
+        if _stop:
+            return 130
+        if rc == 0 and drained:
+            if once: return 0
+            last_error = ''
+            continue
+        msg = (err or '').strip() or ('could not publish all files' if not drained else 'tailscale file get failed')
+        j('error', message=msg)
+        if msg != last_error:
+            notify('Taildrop receive failed', msg, critical=True)
+            last_error = msg
+        if once:
+            return rc or 1
+        for _ in range(10):
+            if _stop: break
+            time.sleep(1)
+    return 130
+
+
+def main(argv):
+    if not argv or argv[0] not in ('send', 'receive'):
+        return fail('usage: taildrop send TARGET FILE... | taildrop receive [--once] [DIRECTORY]')
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
+    signal.signal(signal.SIGALRM, kill_child)
+    try:
+        return send(argv[1:]) if argv[0] == 'send' else receive(argv[1:])
+    except (OSError, ValueError) as error:
+        return fail(str(error))
+
+if __name__ == '__main__':
+    raise SystemExit(main(sys.argv[1:]))

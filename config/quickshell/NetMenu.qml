@@ -13,6 +13,7 @@ import QtQuick.Layouts
 
 BarMenu {
     id: menu
+    signal navigate(string page)
 
     menuWidth: 320
     title: "Network"
@@ -274,5 +275,35 @@ BarMenu {
     MenuHint {
         visible: !Net.radioOn
         text: "wifi radio is off"
+    }
+
+    BarModule {
+        id: tailscaleEntry
+        Layout.fillWidth: true
+        implicitHeight: 44
+        cornerRadius: 16
+        highlighted: true
+        text: "Tailscale controls"
+        onClicked: menu.navigate("tailscale")
+        TailscaleIcon {
+            Layout.alignment: Qt.AlignCenter
+            connected: Tailscale.running
+            playful: tailscaleEntry.hovered
+            working: Tailscale.busy
+            tint: Tailscale.error || Tailscale.needsLogin ? Theme.yellow : Tailscale.running ? Theme.accent : Theme.secondary
+        }
+        Text {
+            Layout.fillWidth: true
+            text: "Tailscale"
+            font.family: Theme.font
+            font.pixelSize: Theme.fontSize - 1
+            color: Theme.fg
+        }
+        Text {
+            text: Tailscale.stateText + "  ›"
+            font.family: Theme.font
+            font.pixelSize: Theme.fontSize - 3
+            color: Theme.secondary
+        }
     }
 }
