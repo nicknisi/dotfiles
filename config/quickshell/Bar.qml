@@ -8,8 +8,7 @@
 // It lives on whichever screen edge you last dragged it to. Top and bottom lay
 // it out left to right; left and right stand it up, and every module knows how
 // to stack. Prefs remembers the edge. The exclusive zone that keeps windows off
-// it belongs to Reserve.qml, so this window can let go of its edge and cover
-// the screen while you drag without the desktop reflowing under your pointer.
+// it belongs to Reserve.qml.
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
@@ -26,29 +25,22 @@ PanelWindow {
     readonly property bool vertical: Prefs.vertical
     readonly property int thick: Theme.barHeight
 
-    // ---- the envelope ------------------------------------------------------
-    // The window is an envelope, not the shape: longer than the capsule so the
-    // body has room to change size and thicker so the squash has somewhere to
-    // overshoot. It reserves nothing. While the capsule is loose (mid-drag, or
-    // settling after a drop) the envelope is the whole screen, so the body can
-    // be anywhere on it.
+    // ---- the window --------------------------------------------------------
+    // The window is the whole screen, always, and transparent; only the capsule
+    // takes input (see `mask`), so everywhere else clicks fall through to what
+    // is under it. It used to be a small envelope hugging one edge that let go
+    // and went fullscreen for the length of a drag, but every one of those
+    // reconfigures had the compositor show the previous buffer scaled into the
+    // new geometry for a frame, which read as the capsule flying in stretched
+    // from somewhere else. A window that never changes size has no such frame.
+    // The price is rendering a screen-sized buffer on the frames that change,
+    // and few of them do: the clock once a second, animations for a beat.
+    //
+    // `loose` is the body being under the pointer or in flight to a new edge.
     property bool loose: false
 
-    anchors {
-        top:    bar.loose || bar.edge === "top"
-        bottom: bar.loose || bar.edge === "bottom"
-        left:   bar.loose || bar.edge === "left"
-        right:  bar.loose || bar.edge === "right"
-    }
-    margins {
-        top:    !bar.loose && bar.edge === "top"    ? 4 : 0
-        bottom: !bar.loose && bar.edge === "bottom" ? 4 : 0
-        left:   !bar.loose && bar.edge === "left"   ? 4 : 0
-        right:  !bar.loose && bar.edge === "right"  ? 4 : 0
-    }
+    anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
-    implicitWidth:  bar.vertical ? bar.thick + 64 : Math.min(760, screen.width - 16)
-    implicitHeight: bar.vertical ? Math.min(760, screen.height - 16) : bar.thick + 64
     color: "transparent"
     WlrLayershell.namespace: "quickshell-capsule"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
@@ -66,8 +58,7 @@ PanelWindow {
     // An open menu suppresses the alert. Its sliders already show the value you
     // are dragging, and having the capsule bolt out from under the popup it is
     // anchored to is worse than saying nothing.
-    readonly property int envelopeLength: bar.vertical ? bar.height : bar.width
-    readonly property int restLength: Math.max(360, Math.min(bar.envelopeLength - 80, rest.implicitLength + 2 * rest.pad))
+    readonly property int restLength: Math.max(360, Math.min((bar.vertical ? bar.height : bar.width) - 80, rest.implicitLength + 2 * rest.pad))
     readonly property int alertLength: 320
     readonly property bool alerting: Interrupt.active && bar.openMenu === "" && !bar.loose
     readonly property int length: bar.alerting ? bar.alertLength : bar.restLength
@@ -121,26 +112,10 @@ PanelWindow {
     }
 
     // ---- where the body sits -------------------------------------------------
-    // The compositor centres a surface anchored to one edge along that edge, so
-    // this is where the anchored envelope's corner lands on screen.
-    function envelopeOrigin(): var {
-        const sw = bar.screen.width, sh = bar.screen.height;
-        switch (bar.edge) {
-        case "bottom": return Qt.point((sw - bar.width) / 2, sh - 4 - bar.height);
-        case "left":   return Qt.point(4, (sh - bar.height) / 2);
-        case "right":  return Qt.point(sw - 4 - bar.width, (sh - bar.height) / 2);
-        default:       return Qt.point((sw - bar.width) / 2, 4);
-        }
-    }
-
-    // The resting corner for a body of the given size, in window coordinates.
-    // Anchored, the envelope already carries the 4px margin and the body sits
-    // flush against its near edge. Loose, the window is the screen and the body
-    // keeps the 4px itself. Going by the window's size rather than `loose`
-    // covers the frames between letting go and being re-anchored.
+    // The resting corner for a body of the given size: centred along its edge,
+    // 4px off it. Window coordinates are screen coordinates here.
     function restPos(cw: real, ch: real): var {
-        const full = bar.width >= bar.screen.width - 1 && bar.height >= bar.screen.height - 1;
-        const pad = full ? 4 : 0;
+        const pad = 4;
         const W = bar.width, H = bar.height;
         switch (bar.edge) {
         case "bottom": return Qt.point((W - cw) / 2, H - pad - ch);
@@ -191,7 +166,7 @@ PanelWindow {
         ScriptAction { script: Prefs.setEdge(bar.pendingEdge) }
         NumberAnimation { target: bar; property: "travel"; from: 0; to: 1; duration: Theme.unfold; easing.type: Easing.InOutCubic }
         ScriptAction { script: bar.compact = false }
-        // Long enough for the unfurl to land before the envelope re-anchors.
+        // Long enough for the unfurl to land before alerts may speak again.
         PauseAnimation { duration: Theme.unfold + 80 }
         ScriptAction { script: bar.loose = false }
     }
@@ -240,9 +215,8 @@ PanelWindow {
             onDoubleTapped: Prefs.toggleTranslucent()
         }
 
-        // Drag it to another edge. The window lets go of its edge and covers the
-        // screen on the first real movement, the body follows the pointer, and
-        // on release it springs to whichever edge is nearest and stays there.
+        // Drag it to another edge. The body follows the pointer, and on release
+        // it goes to whichever edge is nearest and stays there.
         DragHandler {
             id: drag
             target: null
@@ -263,13 +237,9 @@ PanelWindow {
                     snapBack.stop();
                     bar.compact = false;
                     bar.travel = 1;
-                    // The pointer is measured against the body, and that offset
-                    // is the same in the envelope's coordinates and the screen's,
-                    // so it survives the window growing underneath it.
                     drag.grab = Qt.point(drag.pointer.x - capsule.x, drag.pointer.y - capsule.y);
-                    const o = bar.envelopeOrigin();
-                    bar.looseX = bar.loose ? capsule.x : o.x + capsule.x;
-                    bar.looseY = bar.loose ? capsule.y : o.y + capsule.y;
+                    bar.looseX = capsule.x;
+                    bar.looseY = capsule.y;
                     bar.loose = true;
                 } else {
                     bar.dropCenter = Qt.point(bar.looseX + capsule.width / 2, bar.looseY + capsule.height / 2);
@@ -311,7 +281,11 @@ PanelWindow {
             width: parent.width
             height: parent.height
             opacity: bar.alerting || bar.compact ? 0 : 1
-            visible: opacity > 0
+            // Stays visible while the body is a dot, because a layout that is
+            // not visible does not re-measure, and the flow flips during that
+            // phase. Hidden, the unfurl would start toward the old
+            // orientation's length and re-target mid-animation.
+            visible: opacity > 0 || bar.compact
             y: bar.alerting ? -10 : 0
             Behavior on opacity { NumberAnimation { duration: Theme.base } }
             Behavior on y { NumberAnimation { duration: Theme.base; easing.type: Easing.OutCubic } }
@@ -567,6 +541,31 @@ PanelWindow {
                             if (delta !== 0) Audio.setVolume(Audio.sink, Audio.volume + (delta > 0 ? 0.02 : -0.02));
                         }
                         Glyph { text: Audio.muted ? "\u{f0581}" : "\u{f057e}"; color: Audio.muted ? Theme.red : Theme.secondary }
+                    }
+
+                    BarModule {
+                        id: tailscaleButton
+                        Layout.preferredWidth: bar.vertical ? 24 : 30
+                        Layout.preferredHeight: bar.vertical ? 30 : 24
+                        Layout.alignment: Qt.AlignCenter
+                        padding: 4
+                        text: `Tailscale: ${Tailscale.stateText}`
+                        highlighted: bar.openMenu === "tailscale"
+                        onClicked: bar.toggleMenu("tailscale")
+                        TailscaleIcon {
+                            Layout.alignment: Qt.AlignCenter
+                            connected: Tailscale.running
+                            playful: tailscaleButton.hovered
+                            working: Tailscale.busy
+                            tint: Tailscale.error || Tailscale.needsLogin ? Theme.yellow : Tailscale.running ? Theme.accent : Theme.secondary
+                        }
+                        TapHandler {
+                            acceptedButtons: Qt.RightButton | Qt.MiddleButton
+                            onTapped: (point, button) => {
+                                if (button === Qt.RightButton) Tailscale.toggle();
+                                else Tailscale.refresh();
+                            }
+                        }
                     }
 
                     BarModule {
