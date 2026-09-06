@@ -524,16 +524,15 @@ APPLESCRIPT
 # Hyprland 0.56's Lua parser rejects `hyprctl keyword`, so eval calling the
 # same hl.config() the rendered file uses is the way in, the same route
 # bin/panel-hz takes for hl.monitor. `hyprctl eval` exits non-zero on a Lua
-# error, so the fallback is honest. A pack shipping its own hyprland.lua (a
-# gradient border, say) will not match the two lines read here and falls back
-# to the reload, which is the right answer for a config this cannot parse.
+# error, so the fallback is honest. Read the Lua values as expressions so both
+# strings and the default active gradient apply without a full reload.
 hypr_borders() { # rendered theme dir -> 0 if the colours went in without a reload
   local f="$1/hyprland.lua" active inactive
   [ -f "$f" ] || return 1
-  active="$(sed -n 's/^local active = "\(.*\)"$/\1/p' "$f")"
-  inactive="$(sed -n 's/^local inactive = "\(.*\)"$/\1/p' "$f")"
+  active="$(sed -n 's/^local active = \(.*\)$/\1/p' "$f")"
+  inactive="$(sed -n 's/^local inactive = \(.*\)$/\1/p' "$f")"
   [ -n "$active" ] && [ -n "$inactive" ] || return 1
-  hyprctl eval "hl.config({ general = { col = { active_border = \"$active\", inactive_border = \"$inactive\" } }, group = { col = { border_active = \"$active\", border_inactive = \"$inactive\" } } })" >/dev/null 2>&1
+  hyprctl eval "local active = $active; local inactive = $inactive; hl.config({ general = { col = { active_border = active, inactive_border = inactive } }, group = { col = { border_active = active, border_inactive = inactive } } })" >/dev/null 2>&1
 }
 
 linux_gtk() { # dark|light: GTK3/4 + libadwaita follow color-scheme; icons if the pack names an installed set
