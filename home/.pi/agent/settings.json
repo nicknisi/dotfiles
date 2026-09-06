@@ -1,5 +1,5 @@
 {
-  "defaultProvider": "openrouter",
+  "defaultProvider": "openai-codex",
   "editorPaddingX": 1,
   "outputPad": 1,
   "theme": "system",
@@ -68,7 +68,7 @@
     "npm:@sting8k/pi-vcc"
   ],
   "tuiMode": "fullscreen",
-  "defaultModel": "z-ai/glm-5.3-flash",
+  "defaultModel": "gpt-5.5",
   "warnings": {
     "anthropicExtraUsage": false
   },
