@@ -15,7 +15,7 @@ fallback_to_clipboard = true
 [output.notification]
 on_recording_start = false
 on_recording_stop = false
-on_transcription = true
+on_transcription = false
 
 [osd]
 frontend = "gtk4"

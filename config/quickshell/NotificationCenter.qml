@@ -9,17 +9,26 @@ PanelWindow {
 
     visible: NotificationState.centerOpen && NotificationState.centerScreen !== null
     screen: NotificationState.centerScreen
-    anchors { top: true; right: true; bottom: true }
-    implicitWidth: 420
+    anchors { top: true; right: true; bottom: true; left: true }
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "notification-center"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    Rectangle {
+    MouseArea {
         anchors.fill: parent
+        onClicked: NotificationState.closeCenter()
+    }
+
+    Rectangle {
+        anchors { top: parent.top; right: parent.right; bottom: parent.bottom }
+        width: 420
         color: Theme.alpha(Theme.surface, 0.98)
+        MouseArea {
+            anchors.fill: parent
+            onClicked: mouse => mouse.accepted = true
+        }
         border.width: 1
         border.color: Theme.borderActive
         focus: center.visible

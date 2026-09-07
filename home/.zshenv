@@ -9,7 +9,7 @@ HISTFILE="$HOME/.zsh_history"
 HISTSIZE=10000
 SAVEHIST=10000
 
-export DOTFILES="$(dirname "$(dirname "$(readlink -f "${(%):-%N}")")")"
+export DOTFILES="${${(%):-%N}:A:h:h}"
 export DOTFILES_DIR="$DOTFILES"
 
 export CACHEDIR="$HOME/.local/share"

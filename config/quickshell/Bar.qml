@@ -470,6 +470,7 @@ PanelWindow {
                         visible: !bar.minimal && (!bar.full || bar.vertical) && Context.active
                         Layout.alignment: Qt.AlignCenter
                         Layout.preferredWidth: lane.span
+                        Layout.fillWidth: !bar.vertical
                         Layout.preferredHeight: 24
                         property real span: bar.vertical ? 24 : Math.min(laneRow.implicitWidth, 240)
                         Behavior on span { NumberAnimation { duration: Theme.base; easing.type: Easing.OutCubic } }

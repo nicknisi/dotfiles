@@ -66,39 +66,51 @@ claude = "latest"
 "brew:wdiff" = { version = "latest", os = "macos" }      # word differences in text files
 "brew:wget" = { version = "latest", os = "macos" }       # internet file retriever
 
-# Ubuntu devcontainer
-"apt:bash" = { version = "latest", os = "linux" }
-"apt:git" = { version = "latest", os = "linux" }
-"apt:zsh" = { version = "latest", os = "linux" }
-"apt:grep" = { version = "latest", os = "linux" }
-"apt:vim" = { version = "latest", os = "linux" }
-"apt:btop" = { version = "latest", os = "linux" }
-"apt:cloc" = { version = "latest", os = "linux" }
-"apt:entr" = { version = "latest", os = "linux" }
-"apt:fswatch" = { version = "latest", os = "linux" }
-"apt:gnupg" = { version = "latest", os = "linux" }
-"apt:highlight" = { version = "latest", os = "linux" }
-"apt:libreadline-dev" = { version = "latest", os = "linux" }
-"apt:pkg-config" = { version = "latest", os = "linux" }
-"apt:tree" = { version = "latest", os = "linux" }
-"apt:wdiff" = { version = "latest", os = "linux" }
-"apt:wget" = { version = "latest", os = "linux" }
-
-"pacman:zsh" = { version = "latest", os = "linux" }
-"pacman:vim" = { version = "latest", os = "linux" }
+# Arch Linux desktop
+"pacman:adwaita-icon-theme" = { version = "latest", os = "linux" }
 "pacman:awww" = { version = "latest", os = "linux" }
+"pacman:batsignal" = { version = "latest", os = "linux" }
+"pacman:bluez" = { version = "latest", os = "linux" }
+"pacman:bluez-utils" = { version = "latest", os = "linux" }
+"pacman:brightnessctl" = { version = "latest", os = "linux" }
 "pacman:btop" = { version = "latest", os = "linux" }
 "pacman:cloc" = { version = "latest", os = "linux" }
 "pacman:cliphist" = { version = "latest", os = "linux" }
 "pacman:file" = { version = "latest", os = "linux" }
+"pacman:ghostty" = { version = "latest", os = "linux" }
 "pacman:grim" = { version = "latest", os = "linux" }
+"pacman:hypridle" = { version = "latest", os = "linux" }
 "pacman:hyprland" = { version = "latest", os = "linux" }
+"pacman:hyprlock" = { version = "latest", os = "linux" }
+"pacman:hyprpolkitagent" = { version = "latest", os = "linux" }
+"pacman:hyprsunset" = { version = "latest", os = "linux" }
+"pacman:imagemagick" = { version = "latest", os = "linux" }
+"pacman:libnotify" = { version = "latest", os = "linux" }
+"pacman:nautilus" = { version = "latest", os = "linux" }
+"pacman:networkmanager" = { version = "latest", os = "linux" }
+"pacman:noto-fonts-emoji" = { version = "latest", os = "linux" }
+"pacman:otf-monaspace" = { version = "latest", os = "linux" }
+"pacman:pipewire" = { version = "latest", os = "linux" }
+"pacman:pipewire-pulse" = { version = "latest", os = "linux" }
+"pacman:playerctl" = { version = "latest", os = "linux" }
+"pacman:plymouth" = { version = "latest", os = "linux" }
+"pacman:power-profiles-daemon" = { version = "latest", os = "linux" }
+"pacman:quickshell" = { version = "latest", os = "linux" }
 "pacman:slurp" = { version = "latest", os = "linux" }
 "pacman:swappy" = { version = "latest", os = "linux" }
+"pacman:tailscale" = { version = "latest", os = "linux" }
+"pacman:ttf-nerd-fonts-symbols" = { version = "latest", os = "linux" }
+"pacman:udiskie" = { version = "latest", os = "linux" }
+"pacman:upower" = { version = "latest", os = "linux" }
+"pacman:uwsm" = { version = "latest", os = "linux" }
+"pacman:vim" = { version = "latest", os = "linux" }
 "pacman:wf-recorder" = { version = "latest", os = "linux" }
+"pacman:wireplumber" = { version = "latest", os = "linux" }
 "pacman:wl-clipboard" = { version = "latest", os = "linux" }
 "pacman:wtype" = { version = "latest", os = "linux" }
+"pacman:xdg-desktop-portal-hyprland" = { version = "latest", os = "linux" }
 "pacman:xdg-utils" = { version = "latest", os = "linux" }
+"pacman:zsh" = { version = "latest", os = "linux" }
 
 # macOS only
 "brew:noti" = { os = "macos" }                      # notifications from scripts
@@ -108,6 +120,23 @@ claude = "latest"
 "brew-cask:karabiner-elements" = { os = "macos" }
 "brew-cask:font-symbols-only-nerd-font" = { os = "macos" }
 "brew-cask:font-monaspace" = { os = "macos" }
+
+# Linux system services used by the desktop session.
+[bootstrap.services.NetworkManager]
+state = "running"
+enabled = true
+
+[bootstrap.services.bluetooth]
+state = "running"
+enabled = true
+
+[bootstrap.services."power-profiles-daemon"]
+state = "running"
+enabled = true
+
+[bootstrap.services.tailscaled]
+state = "running"
+enabled = true
 
 [bootstrap.repos]
 "~/Developer/pi-extensions" = { url = "git@github.com:nicknisi/pi-extensions.git" }
@@ -153,6 +182,46 @@ run = """
 run = """
   if [ "$(uname)" = "Darwin" ]; then
     mise run install-tap-packages
+  fi
+"""
+
+# This mise build has no AUR package manager, so use the installed AUR helper
+# for Voxtype. Packaged user services only need enabling. Quickshell ships no
+# unit, so keep its generated .wants link outside the symlinked dotfiles tree.
+[bootstrap.hooks.post-packages]
+run = """
+  if [ "$(uname)" = "Linux" ] && command -v pacman >/dev/null 2>&1 \
+      && ! pacman -Q voxtype-bin >/dev/null 2>&1; then
+    aur_helper="$(command -v yay || command -v paru || true)"
+    [ -n "$aur_helper" ] || { echo "install yay or paru to bootstrap voxtype-bin" >&2; exit 1; }
+    "$aur_helper" -S --needed --noconfirm voxtype-bin
+  fi
+
+  if [ "$(uname)" = "Linux" ] && command -v systemctl >/dev/null 2>&1; then
+    unit_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+    mkdir -p "$unit_dir"
+    cat >"$unit_dir/quickshell.service" <<'EOF'
+[Unit]
+Description=Quickshell: status bar, notification daemon and OSD
+Documentation=https://quickshell.outfoxxed.me/
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/qs
+Slice=session.slice
+Restart=on-failure
+RestartSec=1s
+
+[Install]
+WantedBy=graphical-session.target
+EOF
+    systemctl --user daemon-reload
+    systemctl --user enable quickshell.service hypridle.service hyprsunset.service \
+      hyprpolkitagent.service batsignal.service wireplumber.service \
+      pipewire.socket pipewire-pulse.socket
   fi
 """
 
