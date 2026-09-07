@@ -59,11 +59,6 @@ PopupWindow {
         NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 1.5 }
     }
 
-    mask: Region {
-        item: frame
-        radius: 26
-    }
-
     Rectangle {
         id: frame
         x: 12
@@ -166,7 +161,7 @@ PopupWindow {
                     // the selected one. Size explicitly to avoid empty space.
                     implicitHeight: children[currentIndex]?.implicitHeight ?? 0
                     height: implicitHeight
-                    currentIndex: Math.max(0, ["home", "audio", "net", "bt", "theme", "clock", "tailscale"].indexOf(hud.page))
+                    currentIndex: Math.max(0, ["home", "audio", "net", "bt", "display", "theme", "clock", "tailscale"].indexOf(hud.page))
 
                     HudHome {
                         shown: hud.shown && hud.page === "home"
@@ -175,6 +170,7 @@ PopupWindow {
                     AudioMenu { shown: hud.shown && hud.page === "audio"; onDismissed: hud.dismissed() }
                     NetMenu { shown: hud.shown && hud.page === "net"; onNavigate: page => hud.navigate(page); onDismissed: hud.dismissed() }
                     BtMenu { shown: hud.shown && hud.page === "bt"; onDismissed: hud.dismissed() }
+                    DisplayMenu { monitor: hud.monitor; shown: hud.shown && hud.page === "display"; onDismissed: hud.dismissed() }
                     ThemeMenu { shown: hud.shown && hud.page === "theme"; onDismissed: hud.dismissed() }
                     ClockMenu { now: hud.now; shown: hud.shown && hud.page === "clock"; onDismissed: hud.dismissed() }
                     TailscaleMenu { shown: hud.shown && hud.page === "tailscale"; onDismissed: hud.dismissed() }

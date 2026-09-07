@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# display-mode — JSON rows and runtime apply for the Quickshell display menu.
+set -euo pipefail
+
+usage() {
+  echo "usage: display-mode json [output] | display-mode set <output> <mode|current> <scale>" >&2
+  exit 2
+}
+
+cmd=${1:-json}
+[[ $# -gt 0 ]] && shift
+
+monitor_json() {
+  local output=${1:-}
+  if [[ -n $output ]]; then
+    hyprctl monitors all -j | jq -cer --arg output "$output" '.[] | select(.name == $output)'
+  else
+    hyprctl monitors all -j | jq -cer 'map(select(.focused))[0] // .[0]'
+  fi
+}
+
+current_mode() {
+  monitor_json "$1" | jq -r '
+    def absn: if . < 0 then -. else . end;
+    def hz: capture("@(?<hz>[0-9.]+)(Hz)?$").hz | tonumber;
+    . as $m
+    | (($m.availableModes // [])
+      | map(sub("Hz$"; "") | select(startswith("\($m.width)x\($m.height)@") and (((hz - $m.refreshRate) | absn) < 0.5)))
+      | .[0]) // "\($m.width)x\($m.height)@\($m.refreshRate | floor)"'
+}
+
+case "$cmd" in
+json)
+  output=${1:-}
+  monitor_json "$output" | jq -c '
+    def absn: if . < 0 then -. else . end;
+    def hz: capture("@(?<hz>[0-9.]+)Hz$").hz | tonumber;
+    def wh: capture("^(?<wh>[0-9]+x[0-9]+)@").wh;
+    def mode_key: sub("Hz$"; "");
+    def mode_label: capture("^(?<w>[0-9]+)x(?<h>[0-9]+)@(?<hz>[0-9.]+)Hz$") as $m | "\($m.w)×\($m.h) · \($m.hz | tonumber | floor) Hz";
+    . as $m
+    | ($m.availableModes // []) as $modes
+    | (($modes | map(select((wh == "\($m.width)x\($m.height)") and (((hz - $m.refreshRate) | absn) < 0.5)) | mode_key) | .[0]) // "\($m.width)x\($m.height)@\($m.refreshRate | floor)") as $currentMode
+    | {
+        output: $m.name,
+        title: ($m.description // $m.name),
+        current: {
+          mode: $currentMode,
+          width: $m.width,
+          height: $m.height,
+          hz: ($m.refreshRate | floor),
+          scale: $m.scale
+        },
+        modes: ($modes | map({
+          mode: mode_key,
+          label: mode_label,
+          current: (mode_key == $currentMode)
+        })),
+        scales: (([1, 1.25, 1.5, 1.6, 1.75, 2, 2.25] + [$m.scale]) | unique | sort | map({
+          value: .,
+          label: (tostring + "×"),
+          current: (((. - $m.scale) | absn) < 0.01)
+        }))
+      }'
+  ;;
+set)
+  [[ $# -eq 3 ]] || usage
+  output=$1
+  mode=$2
+  scale=$3
+
+  [[ $output =~ ^[A-Za-z0-9_.:-]+$ ]] || { echo "display-mode: bad output: $output" >&2; exit 2; }
+  [[ $scale =~ ^[0-9]+([.][0-9]+)?$ ]] || { echo "display-mode: bad scale: $scale" >&2; exit 2; }
+  if [[ $mode == current ]]; then
+    mode=$(current_mode "$output")
+  else
+    [[ $mode =~ ^[0-9]+x[0-9]+@[0-9.]+$ ]] || { echo "display-mode: bad mode: $mode" >&2; exit 2; }
+  fi
+
+  if ! monitor_json "$output" | jq -e --arg mode "$mode" '(.availableModes // []) | map(sub("Hz$"; "")) | index($mode)' >/dev/null; then
+    echo "display-mode: mode $mode is not available on $output" >&2
+    exit 1
+  fi
+
+  out=$(hyprctl eval "hl.monitor({ output = \"$output\", mode = \"$mode\", position = \"auto\", scale = $scale })" 2>&1) || {
+    echo "display-mode: setting $output to $mode scale $scale failed: ${out:-no output}" >&2
+    exit 1
+  }
+  [[ $out != error:* ]] || { echo "display-mode: $out" >&2; exit 1; }
+
+  state_dir=${XDG_STATE_HOME:-$HOME/.local/state}/display-mode
+  mkdir -p "$state_dir"
+  printf 'hl.monitor({ output = "%s", mode = "%s", position = "auto", scale = %s })\n' \
+    "$output" "$mode" "$scale" >"$state_dir/$output.lua"
+  ;;
+*) usage ;;
+esac

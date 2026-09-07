@@ -27,6 +27,12 @@ local hypr = (debug and debug.getinfo(1, "S").source:match("^@(.*)/[^/]*$"))
 -- 2880x1800 OLED at 1.6 = 1800x1125 logical, GDK_SCALE 2.
 hl.env("GDK_SCALE", "2")
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1.6 })
+local display_state = os.getenv("HOME") .. "/.local/state/display-mode"
+local display_files = io.popen("ls " .. display_state .. "/*.lua 2>/dev/null")
+if display_files then
+  for file in display_files:lines() do pcall(dofile, file) end
+  display_files:close()
+end
 
 -- dotfiles/bin (theme and friends) is added to PATH by .zshrc, which only
 -- runs for interactive shells. Hyprland is started from a TTY by uwsm and never

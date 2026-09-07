@@ -13,7 +13,7 @@ Item {
     readonly property int costume: {
         switch (page) {
         case "home": case "audio": return 2;
-        case "net": case "bt": case "tailscale": return 3;
+        case "net": case "bt": case "display": case "tailscale": return 3;
         case "theme": return 4;
         case "clock": return 5;
         default: return 0;

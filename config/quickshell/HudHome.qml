@@ -126,7 +126,11 @@ BarMenu {
             }
         }
         Label { text: `${Math.round(Backlight.fraction * 100)}%`; Layout.preferredWidth: 38; horizontalAlignment: Text.AlignRight }
-        Item { Layout.preferredWidth: 32 }
+        BarModule {
+            text: "Display resolution and scale"
+            onClicked: home.navigate("display")
+            Text { text: "\u{f0142}"; font.family: Theme.icons; font.pixelSize: 16; color: Theme.secondary; Layout.alignment: Qt.AlignCenter }
+        }
     }
 
     // Coalesce drag updates instead of spawning a brightnessctl process for

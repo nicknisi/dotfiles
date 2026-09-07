@@ -114,7 +114,7 @@ ShellRoot {
 
                 test.check(avatar.costume === 0 && !avatar.fullBody, "resting avatar shows Nick's portrait");
                 test.check(test.child(avatar, "nickFace").running, "visible portrait can blink");
-                for (const [page, costume] of [["home", 2], ["audio", 2], ["net", 3], ["bt", 3], ["tailscale", 3], ["theme", 4], ["clock", 5], ["unknown", 0]]) {
+                for (const [page, costume] of [["home", 2], ["audio", 2], ["net", 3], ["bt", 3], ["display", 3], ["tailscale", 3], ["theme", 4], ["clock", 5], ["unknown", 0]]) {
                     avatar.page = page;
                     avatar.hovered = true;
                     const portrait = test.child(avatar, "nickCostume");
