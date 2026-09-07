@@ -2,7 +2,7 @@
   "defaultProvider": "openrouter",
   "editorPaddingX": 1,
   "outputPad": 1,
-  "theme": "tokyonight-night",
+  "theme": "dark",
   "quietStartup": true,
   "hideThinkingBlock": true,
   "skills": [
@@ -64,7 +64,8 @@
     "../../Developer/riker/packages/pi-client",
     "git:github.com/DietrichGebert/ponytail",
     "npm:@ff-labs/pi-fff",
-    "npm:pi-context-view"
+    "npm:pi-context-view",
+    "npm:@sting8k/pi-vcc"
   ],
   "tuiMode": "fullscreen",
   "defaultModel": "z-ai/glm-5.3-flash",

@@ -33,12 +33,12 @@
     "notion": {
       "url": "https://mcp.notion.com/mcp",
       "auth": "oauth",
-      "directTools": true
+      "directTools": false
     },
     "granola": {
       "url": "https://mcp.granola.ai/mcp",
       "auth": "oauth",
-      "directTools": true
+      "directTools": false
     },
     "excalidraw": {
       "url": "https://api.excalidraw.com/api/v1/mcp",
@@ -57,7 +57,7 @@
         "clientId": "1601185624273.8899143856786",
         "redirectUri": "http://localhost:3118/callback"
       },
-      "directTools": true
+      "directTools": false
     }
   }
 }
