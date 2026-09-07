@@ -30,6 +30,22 @@ Scope {
 
         onNotification: notification => {
             notification.tracked = true;
+            NotificationState.remember({
+                appName: notification.appName,
+                summary: notification.summary,
+                body: notification.body,
+                image: notification.image,
+                appIcon: notification.appIcon,
+                critical: notification.urgency === NotificationUrgency.Critical
+            });
+        }
+    }
+
+    Connections {
+        target: NotificationState
+        function onClearRequested() {
+            for (const notification of server.trackedNotifications.values)
+                notification.dismiss();
         }
     }
 
@@ -49,7 +65,8 @@ Scope {
         implicitHeight: Math.max(1, layout.implicitHeight)
 
         color: "transparent"
-        visible: server.trackedNotifications.values.length > 0
+        visible: server.trackedNotifications.values.some(notification =>
+            !NotificationState.dnd || notification.urgency === NotificationUrgency.Critical)
 
         // Float over everything, and never reserve screen space.
         WlrLayershell.layer: WlrLayer.Overlay
@@ -68,6 +85,7 @@ Scope {
 
                     readonly property bool critical: modelData.urgency === NotificationUrgency.Critical
 
+                    visible: !NotificationState.dnd || critical
                     Layout.fillWidth: true
                     implicitHeight: content.implicitHeight + 20
                     radius: 6

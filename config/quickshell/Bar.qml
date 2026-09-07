@@ -674,6 +674,34 @@ PanelWindow {
                                 color: batteryButton.tint
                             }
                         }
+
+                        // Keep notifications last so the bell owns the far edge.
+                        BarModule {
+                            id: notificationsButton
+                            Layout.preferredWidth:  bar.vertical ? 24 : 30
+                            Layout.preferredHeight: bar.vertical ? 30 : 24
+                            Layout.alignment: Qt.AlignCenter
+                            padding: 4
+                            text: NotificationState.dnd ? "Notifications · do not disturb on"
+                                : `${NotificationState.count} notifications`
+                            highlighted: NotificationState.centerOpen
+                            onClicked: NotificationState.toggleCenter(bar.screen)
+                            Glyph {
+                                text: NotificationState.dnd ? "" : ""
+                                color: NotificationState.dnd ? Theme.yellow
+                                    : NotificationState.unread > 0 ? Theme.accent : Theme.secondary
+                            }
+                            Rectangle {
+                                parent: notificationsButton
+                                x: 21
+                                y: 1
+                                width: 7
+                                height: 7
+                                radius: 3.5
+                                color: Theme.red
+                                visible: NotificationState.unread > 0
+                            }
+                        }
                     }
 
                 }

@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# cliphist feeder for videos, bounded so one recording cannot explode the DB.
+set -euo pipefail
+
+[[ ${CLIPBOARD_STATE:-data} == data ]] || exit 0
+
+max_bytes=${CLIPHIST_VIDEO_MAX_BYTES:-104857600} # 100 MiB
+[[ $max_bytes =~ ^[0-9]+$ ]] || {
+  echo "clipboard-store-video: invalid CLIPHIST_VIDEO_MAX_BYTES" >&2
+  exit 2
+}
+
+tmp=$(mktemp "${XDG_RUNTIME_DIR:-/tmp}/clipboard-video.XXXXXX")
+before_ids=$(mktemp "${XDG_RUNTIME_DIR:-/tmp}/clipboard-video-ids.XXXXXX")
+trap 'rm -f -- "$tmp" "$before_ids"' EXIT
+chmod 600 "$tmp" "$before_ids"
+head -c "$((max_bytes + 1))" >"$tmp"
+
+size=$(wc -c <"$tmp")
+if ((size > max_bytes)); then
+  command -v notify-send >/dev/null && notify-send -a cliphist \
+    "Video not saved to history" "Clipboard video exceeds the 100 MB history limit" || true
+  exit 0
+fi
+
+cliphist list | cut -f1 | sort -n >"$before_ids"
+cliphist store <"$tmp"
+
+id=""
+while IFS= read -r candidate; do
+  [[ $candidate =~ ^[0-9]+$ ]] || continue
+  if cmp -s "$tmp" <(cliphist decode "$candidate"); then
+    id=$candidate
+    break
+  fi
+done < <(comm -13 "$before_ids" <(cliphist list | cut -f1 | sort -n))
+[[ $id =~ ^[0-9]+$ ]] || {
+  echo "clipboard-store-video: could not find stored cliphist id" >&2
+  exit 1
+}
+
+mime=$(file --brief --mime-type "$tmp")
+[[ $mime == video/* ]] || mime=video/unknown
+meta=${XDG_CACHE_HOME:-$HOME/.cache}/cliphist/media.tsv
+mkdir -p -- "$(dirname -- "$meta")"
+exec {lock_fd}>"$meta.lock"
+flock "$lock_fd"
+printf '%s\t%s\t%s\n' "$id" "$mime" "$size" >>"$meta"

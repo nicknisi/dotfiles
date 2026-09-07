@@ -182,6 +182,10 @@
     autoStash = true
 
 [include]
+    # The rendered Delta palette follows the active desktop theme.
+    # Missing includes are ignored before `theme` has run for the first time.
+    path = ~/.local/state/theme/current/theme/delta.gitconfig
+
     # A local gitconfig, outside of version control.
     # If the file doesn't exist it is silently ignored
     path = ~/.gitconfig-local

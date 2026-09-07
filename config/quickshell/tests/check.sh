@@ -5,6 +5,7 @@ tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 
 node "$root/tests/launcher-model.cjs"
+node "$root/tests/clipboard-model.cjs"
 
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
 for file in "$root"/*.qml; do

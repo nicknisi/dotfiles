@@ -134,9 +134,19 @@ zfetch Aloxaf/fzf-tab
 if command -v fzf &>/dev/null; then
   export FZF_DEFAULT_COMMAND='fd --type f'
   export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-  export FZF_DEFAULT_OPTS="--color bg:-1,bg+:-1,fg:-1,fg+:#feffff,hl:#993f84,hl+:#d256b5,info:#676767,prompt:#676767,pointer:#676767"
+  _fzf_theme="$HOME/.local/state/theme/current/theme/fzf.opts"
+  if [[ -f "$_fzf_theme" ]]; then
+    export FZF_DEFAULT_OPTS_FILE="$_fzf_theme"
+  else
+    export FZF_DEFAULT_OPTS="--color bg:-1,bg+:-1,fg:-1,fg+:#feffff,hl:#993f84,hl+:#d256b5,info:#676767,prompt:#676767,pointer:#676767"
+  fi
+  unset _fzf_theme
   source <(fzf --zsh)
 fi
+
+# LazyGit merges the stable behavior config with the active rendered palette.
+# Both paths are XDG/Home based, so this is identical on Linux and macOS.
+export LG_CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/lazygit/config.yml,$HOME/.local/state/theme/current/theme/lazygit.yml"
 
 # colored man pages
 export MANROFFOPT='-c'

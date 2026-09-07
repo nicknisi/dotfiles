@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Restore one cliphist item, then paste data into GUIs or a file path into terminals.
+set -euo pipefail
+
+id=${1:-}
+mime=${2:-}
+path=${3:-}
+[[ $id =~ ^[0-9]+$ ]] || {
+  echo "clipboard-paste: invalid cliphist id" >&2
+  exit 2
+}
+[[ -z $mime || $mime =~ ^[a-z0-9.+-]+/[a-z0-9.+-]+$ ]] || {
+  echo "clipboard-paste: invalid MIME type" >&2
+  exit 2
+}
+
+if [[ -n $path ]]; then
+  mkdir -p -- "$(dirname -- "$path")"
+  cliphist decode "$id" >"$path"
+  if [[ -n $mime ]]; then
+    wl-copy --type "$mime" <"$path"
+  else
+    wl-copy <"$path"
+  fi
+else
+  cliphist decode "$id" | wl-copy
+fi
+
+sleep 0.1
+class=$(hyprctl activewindow -j | jq -r '.class // ""' | tr '[:upper:]' '[:lower:]')
+case $class in
+*ghostty* | *kitty* | *wezterm*)
+  if [[ -n $path ]]; then
+    wtype "$path"
+    exit
+  fi
+  mods="CTRL SHIFT"
+  ;;
+*nautilus* | *nemo* | *caja*)
+  if [[ -n $path ]]; then
+    uri=$(python3 -c 'import pathlib, sys; print(pathlib.Path(sys.argv[1]).resolve().as_uri(), end="")' "$path")
+    printf 'copy\n%s' "$uri" | wl-copy --type x-special/gnome-copied-files
+  fi
+  mods=CTRL
+  ;;
+*dolphin* | *thunar* | *pcmanfm*)
+  if [[ -n $path ]]; then
+    uri=$(python3 -c 'import pathlib, sys; print(pathlib.Path(sys.argv[1]).resolve().as_uri(), end="")' "$path")
+    printf '%s\r\n' "$uri" | wl-copy --type text/uri-list
+  fi
+  mods=CTRL
+  ;;
+*) mods=CTRL ;;
+esac
+hyprctl dispatch "hl.dsp.send_shortcut({ mods = \"$mods\", key = \"V\" })" >/dev/null

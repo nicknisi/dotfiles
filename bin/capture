@@ -1,0 +1,200 @@
+#!/usr/bin/env bash
+# capture — screenshots and screen recordings for Hyprland.
+set -euo pipefail
+
+usage() {
+  cat >&2 <<'EOF'
+usage:
+  capture shot [screen|region|window|pick-window] [file]
+  capture annotate [screen|region|window|pick-window]
+  capture record [screen|region|window|pick-window] [file]
+  capture record stop
+  capture status
+EOF
+  exit 2
+}
+
+notify() {
+  command -v notify-send >/dev/null && notify-send -a capture "$1" "${2:-}" || true
+}
+
+need() {
+  command -v "$1" >/dev/null || {
+    echo "capture: missing command: $1" >&2
+    notify "Capture failed" "missing command: $1"
+    exit 127
+  }
+}
+
+xdg_dir() {
+  local kind=$1 fallback=$2 dir
+  if command -v xdg-user-dir >/dev/null && dir=$(xdg-user-dir "$kind" 2>/dev/null) && [[ -n $dir && $dir != "$HOME" ]]; then
+    printf '%s\n' "$dir"
+  else
+    printf '%s\n' "$fallback"
+  fi
+}
+
+stamp() { date +%Y%m%d-%H%M%S; }
+short() { printf '%s\n' "${1/#$HOME/~}"; }
+
+PICTURES=$(xdg_dir PICTURES "$HOME/Pictures")
+VIDEOS=$(xdg_dir VIDEOS "$HOME/Videos")
+PIDFILE=${XDG_RUNTIME_DIR:-/tmp}/capture-wf-recorder.pid
+PATHFILE=$PIDFILE.path
+
+geometry() {
+  case "${1:-region}" in
+  screen)
+    printf '\n'
+    ;;
+  region)
+    need slurp
+    slurp
+    ;;
+  window)
+    need hyprctl
+    need jq
+    sleep "${CAPTURE_DELAY:-0.15}"
+    hyprctl activewindow -j | jq -er 'select(.at and .size) | "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"' || {
+      notify "Capture failed" "No active window"
+      exit 1
+    }
+    ;;
+  pick-window)
+    need hyprctl
+    need jq
+    need slurp
+    hyprctl clients -j | jq -r '.[] | select(.mapped != false) | "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1]) \(.title | gsub("[\\r\\n]"; " "))"' | slurp
+    ;;
+  *)
+    usage
+    ;;
+  esac
+}
+
+shot() {
+  local target=${1:-region} file=${2:-$PICTURES/screenshot-$(stamp).png} geom
+  need grim
+  mkdir -p -- "$(dirname -- "$file")"
+  geom=$(geometry "$target") || exit 130
+  if [[ -n $geom ]]; then
+    grim -g "$geom" "$file"
+  else
+    grim "$file"
+  fi
+  command -v wl-copy >/dev/null && wl-copy --type image/png <"$file"
+  notify "Screenshot saved" "$(short "$file")"
+  printf '%s\n' "$file"
+}
+
+annotate() {
+  local target=${1:-region} geom
+  need grim
+  need swappy
+  geom=$(geometry "$target") || exit 130
+  if [[ -n $geom ]]; then
+    grim -g "$geom" - | swappy -f -
+  else
+    grim - | swappy -f -
+  fi
+}
+
+clear_recording_state() { rm -f -- "$PIDFILE" "$PATHFILE"; }
+
+record_pid() {
+  [[ -s $PIDFILE ]] || return 1
+  local pid cmdline
+  pid=$(<"$PIDFILE")
+  if [[ ! $pid =~ ^[0-9]+$ ]] || ! kill -0 "$pid" 2>/dev/null; then
+    clear_recording_state
+    return 1
+  fi
+  cmdline=$(tr '\0' ' ' <"/proc/$pid/cmdline" 2>/dev/null || true)
+  if [[ ! $cmdline =~ (^|/)wf-recorder($|[[:space:]]) ]]; then
+    clear_recording_state
+    return 1
+  fi
+  printf '%s\n' "$pid"
+}
+
+stop_recording() {
+  local pid file=""
+  pid=$(record_pid) || {
+    notify "No recording" "wf-recorder is not running"
+    return 0
+  }
+  kill -INT "$pid" 2>/dev/null || true
+  for _ in {1..50}; do
+    kill -0 "$pid" 2>/dev/null || break
+    sleep 0.1
+  done
+  if kill -0 "$pid" 2>/dev/null; then
+    notify "Recording still stopping" "Try Stop Recording again in a moment"
+    return 1
+  fi
+  [[ -s $PATHFILE ]] && file=$(<"$PATHFILE")
+  clear_recording_state
+  if [[ -n $file && -f $file && -x $(command -v wl-copy 2>/dev/null) ]]; then
+    wl-copy --type video/mp4 <"$file"
+    notify "Recording saved and copied" "$(short "$file")"
+  else
+    notify "Recording stopped" "wf-recorder finalized the file"
+  fi
+}
+
+record() {
+  local target=${1:-region} file=${2:-$VIDEOS/recording-$(stamp).mp4} geom pid status=1 lock_fd
+  need flock
+  exec {lock_fd}>"$PIDFILE.lock"
+  flock "$lock_fd"
+  [[ $target == stop ]] && { stop_recording; return; }
+  record_pid >/dev/null && {
+    echo "capture: recording already active; run 'capture record stop'" >&2
+    notify "Recording already active" "Run Stop Recording first"
+    exit 1
+  }
+  need wf-recorder
+  mkdir -p -- "$(dirname -- "$file")"
+  geom=$(geometry "$target") || exit 130
+  if [[ -n $geom ]]; then
+    wf-recorder -g "$geom" -f "$file" {lock_fd}>&- &
+  else
+    wf-recorder -f "$file" {lock_fd}>&- &
+  fi
+  pid=$!
+  printf '%s\n' "$pid" >"$PIDFILE"
+  printf '%s\n' "$file" >"$PATHFILE"
+  sleep 0.2
+  if ! kill -0 "$pid" 2>/dev/null; then
+    wait "$pid" || status=$?
+    clear_recording_state
+    echo "capture: wf-recorder failed with status $status" >&2
+    notify "Recording failed" "wf-recorder exited with status $status"
+    exit "$status"
+  fi
+  disown "$pid" 2>/dev/null || true
+  notify "Recording started" "$(short "$file")"
+  printf '%s\n' "$file"
+}
+
+case "${1:-}" in
+shot | screenshot)
+  shift
+  shot "$@"
+  ;;
+annotate)
+  shift
+  annotate "$@"
+  ;;
+record)
+  shift
+  record "$@"
+  ;;
+status)
+  record_pid >/dev/null && echo recording || echo idle
+  ;;
+*)
+  usage
+  ;;
+esac

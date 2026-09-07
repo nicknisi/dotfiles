@@ -40,8 +40,10 @@ ShellRoot {
     // session. The OSD that used to live beside it is gone; volume, brightness
     // and the mic are messages the capsule delivers itself, through Interrupt.
     Notifications {}
+    NotificationCenter {}
     ThemePicker {}
     Launcher {}
+    ClipboardPicker {}
 
     // Refresh rate follows the charger. Global, not per-monitor: it drives the
     // internal panel only, and one UPower watcher is enough for the session.

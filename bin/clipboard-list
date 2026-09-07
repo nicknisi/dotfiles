@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Cliphist list with stable metadata for video entries.
+set -euo pipefail
+
+declare -A mime_by_id size_by_id
+meta=${XDG_CACHE_HOME:-$HOME/.cache}/cliphist/media.tsv
+if [[ -f $meta ]]; then
+  while IFS=$'\t' read -r id mime size; do
+    [[ $id =~ ^[0-9]+$ && $mime == video/* && $size =~ ^[0-9]+$ ]] || continue
+    mime_by_id[$id]=$mime
+    size_by_id[$id]=$size
+  done <"$meta"
+fi
+
+while IFS=$'\t' read -r id preview; do
+  if [[ -n ${mime_by_id[$id]:-} ]]; then
+    size=$(numfmt --to=iec-i --suffix=B "${size_by_id[$id]}" 2>/dev/null || printf '%s B' "${size_by_id[$id]}")
+    printf '%s\t[[ binary data %s %s ]]\n' "$id" "$size" "${mime_by_id[$id]}"
+  else
+    printf '%s\t%s\n' "$id" "$preview"
+  fi
+done < <(cliphist list)

@@ -118,6 +118,17 @@ local function app(command) return hl.dsp.exec_cmd("uwsm-app -- " .. command) en
 -- The launcher already lives inside Quickshell, so this only sends its toggle
 -- message. It gives each chosen app its own uwsm scope before disappearing.
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
+-- Global clipboard history. Ctrl+Shift+V remains direct terminal paste.
+hl.bind("SUPER + V", hl.dsp.exec_cmd([[
+  qs ipc call clipboard toggle "$(hyprctl activeworkspace -j | jq -r .monitor)"
+]]))
+
+-- Capture. The launcher exposes every target; these are the fast paths.
+hl.bind("PRINT",                   hl.dsp.exec_cmd("capture shot region"))
+hl.bind("SHIFT + PRINT",           hl.dsp.exec_cmd("capture shot screen"))
+hl.bind("ALT + PRINT",             hl.dsp.exec_cmd("capture annotate region"))
+hl.bind("SUPER + PRINT",           hl.dsp.exec_cmd("capture record region"))
+hl.bind("SUPER + SHIFT + PRINT",   hl.dsp.exec_cmd("capture record stop"))
 
 hl.bind("SUPER + RETURN", app("ghostty"))
 hl.bind("SUPER + SHIFT + RETURN", hl.dsp.exec_cmd("sh -c 'uwsm-app -- \"$(xdg-settings get default-web-browser)\"'"))

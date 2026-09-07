@@ -89,6 +89,16 @@ claude = "latest"
 "pacman:awww" = { version = "latest", os = "linux" }
 "pacman:btop" = { version = "latest", os = "linux" }
 "pacman:cloc" = { version = "latest", os = "linux" }
+"pacman:cliphist" = { version = "latest", os = "linux" }
+"pacman:file" = { version = "latest", os = "linux" }
+"pacman:grim" = { version = "latest", os = "linux" }
+"pacman:hyprland" = { version = "latest", os = "linux" }
+"pacman:slurp" = { version = "latest", os = "linux" }
+"pacman:swappy" = { version = "latest", os = "linux" }
+"pacman:wf-recorder" = { version = "latest", os = "linux" }
+"pacman:wl-clipboard" = { version = "latest", os = "linux" }
+"pacman:wtype" = { version = "latest", os = "linux" }
+"pacman:xdg-utils" = { version = "latest", os = "linux" }
 
 # macOS only
 "brew:noti" = { os = "macos" }                      # notifications from scripts

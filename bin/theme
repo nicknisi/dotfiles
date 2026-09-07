@@ -58,7 +58,8 @@ usage:
 A pack is themes/<name>/colors.toml + backgrounds/. Every app file is
 rendered from themes/templates/*.tpl into ~/.local/state/theme/current/theme/.
 
-switches: ghostty, kitty, wezterm, tmux, nvim, btop, starship, pi, claude code,
+switches: ghostty, kitty, wezterm, tmux, nvim, btop, lazygit, delta, fzf,
+          starship, pi, claude code,
           wallpaper, and Chromium/Helium after `theme browser install`; Linux adds
           hyprland borders, hyprlock, wofi, quickshell, GTK dark/light + icons;
           macOS adds appearance, sketchybar, borders, slack.

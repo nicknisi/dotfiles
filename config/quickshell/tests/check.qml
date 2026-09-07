@@ -112,6 +112,23 @@ ShellRoot {
                 test.check(Prefs.nextBarMode("pill") === "minimal", "pill mode cycles to minimal");
                 test.check(Prefs.nextBarMode("minimal") === "full", "minimal mode cycles to full");
 
+                NotificationState.clear();
+                NotificationState.remember({ appName: "Test", summary: "Saved", body: "One", critical: false });
+                NotificationState.remember({ appName: "Test", summary: "Urgent", body: "Two", critical: true });
+                test.check(NotificationState.count === 2 && NotificationState.unread === 2, "notifications enter history as unread");
+                test.check(NotificationState.history.get(0).summary === "Urgent" && NotificationState.history.get(0).critical, "newest notification is first");
+                const notificationScreen = ({ name: "test-screen" });
+                NotificationState.toggleCenter(notificationScreen);
+                test.check(NotificationState.centerOpen && NotificationState.centerScreen === notificationScreen
+                    && NotificationState.unread === 0, "opening notification sidebar marks history read");
+                NotificationState.toggleCenter(notificationScreen);
+                test.check(!NotificationState.centerOpen, "notification sidebar toggles closed on the same screen");
+                NotificationState.toggleDnd();
+                test.check(NotificationState.dnd, "do not disturb toggles on");
+                NotificationState.toggleDnd();
+                NotificationState.clear();
+                test.check(NotificationState.count === 0 && !NotificationState.dnd, "notification history clears without changing DND");
+
                 test.check(avatar.costume === 0 && !avatar.fullBody, "resting avatar shows Nick's portrait");
                 test.check(test.child(avatar, "nickFace").running, "visible portrait can blink");
                 for (const [page, costume] of [["home", 2], ["audio", 2], ["net", 3], ["bt", 3], ["display", 3], ["tailscale", 3], ["theme", 4], ["clock", 5], ["unknown", 0]]) {
