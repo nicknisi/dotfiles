@@ -193,7 +193,6 @@ hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- Theme. bin/theme is on PATH through dotfiles (see the PATH note above).
 -- code:19 is the 0 key: alt-0 cycled desktop themes in the aerospace days.
 hl.bind("SUPER + code:19", hl.dsp.exec_cmd("theme next"))
-hl.bind("SUPER + SHIFT + code:19", hl.dsp.exec_cmd("theme picker themes")) -- also "Theme" in wofi
 hl.bind("SUPER + CTRL + code:19", hl.dsp.exec_cmd("theme bg next"))
 
 -- Border colours come from the active theme: bin/theme renders

@@ -75,6 +75,38 @@ hl.bind("XF86AudioMicMute", cmd(
   .. "then brightnessctl -q -d platform::micmute set 1; "
   .. "else brightnessctl -q -d platform::micmute set 0; fi'"), locked)
 
+-- Copilot key: hold to record. Press Space while held to keep recording until Copilot is pressed again.
+local copilot_latched = false
+
+local function copilot_stop()
+  copilot_latched = false
+  hl.dispatch(cmd("voxtype record stop"))
+  hl.dispatch(hl.dsp.submap("reset"))
+end
+
+local function copilot_start()
+  copilot_latched = false
+  hl.dispatch(cmd("voxtype record start"))
+  hl.dispatch(hl.dsp.submap("voxtype_copilot"))
+end
+
+local function copilot_latch()
+  copilot_latched = true
+  hl.dispatch(hl.dsp.submap("reset"))
+end
+
+hl.define_submap("voxtype_copilot", function()
+  hl.bind("SPACE", copilot_latch, { ignore_mods = true })
+  hl.bind("ESCAPE", copilot_stop)
+end)
+
+hl.bind("SUPER + SHIFT + code:201", function()
+  if copilot_latched then copilot_stop() else copilot_start() end
+end)
+hl.bind("code:201", function()
+  if not copilot_latched then copilot_stop() end
+end, { ignore_mods = true, release = true, submap_universal = true })
+
 -- Media keys (MPRIS).
 hl.bind("XF86AudioPlay",  cmd("playerctl play-pause"), locked)
 hl.bind("XF86AudioPause", cmd("playerctl play-pause"), locked)

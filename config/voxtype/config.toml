@@ -1,0 +1,21 @@
+# Voxtype config managed by dotfiles. Hyprland owns the Copilot keybindings.
+state_file = "auto"
+
+[hotkey]
+enabled = false
+
+[whisper]
+model = "base.en"
+language = "en"
+
+[output]
+mode = "type"
+fallback_to_clipboard = true
+
+[output.notification]
+on_recording_start = false
+on_recording_stop = false
+on_transcription = true
+
+[osd]
+frontend = "gtk4"
