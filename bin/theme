@@ -53,6 +53,7 @@ usage:
   theme current               the active theme
   theme from-image <name> <image>
                               grow a new pack from a wallpaper
+  theme adopt <image>         add wallpaper to closest existing theme, if close
   theme -h, --help            this
 
 A pack is themes/<name>/colors.toml + backgrounds/. Every app file is
@@ -184,23 +185,15 @@ neighbour_theme() { # next|prev
   echo "${themes[0]}"
 }
 
-# ── from-image: extract a palette from a wallpaper ─────────────
+# ── Image palettes ──────────────────────────────────────────────
 # ponytail: heuristic hue mapping, not a perceptual model. If a slot
 # looks off, edit colors.toml by hand — that file is the contract.
 
-cmd_from_image() {
-  [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ] && { usage; exit 0; }
-  [ $# -eq 2 ] || { usage >&2; exit 2; }
-  local NAME="$1" IMG="$2"
-  command -v magick >/dev/null 2>&1 || die "from-image needs ImageMagick (brew install imagemagick / pacman -S imagemagick)"
-  [ -f "$IMG" ] || die "no such image: $IMG"
-  [ -d "$THEMES_DIR/$NAME" ] && die "themes/$NAME already exists"
-
-  local PYSCRIPT COLORS_TOML
+palette_from_image() { # IMG -> colors.toml
+  local IMG="$1" PYSCRIPT
   PYSCRIPT="$(cat <<'PYEOF'
 import colorsys, re, sys
 
-name = sys.argv[1]
 entries = []  # (count, r, g, b) 0-255
 for line in sys.stdin:
     m = re.match(r"\s*(\d+):.*?#([0-9A-Fa-f]{6})", line)
@@ -289,13 +282,95 @@ for i in range(16):
     print('color%d = "%s"' % (i, hexes["color%d" % i]))
 PYEOF
 )"
-  COLORS_TOML="$(magick "$IMG" -dither None -resize 240x240 -colors 24 -format %c histogram:info:- 2>/dev/null | python3 -c "$PYSCRIPT" "$NAME")" || exit 1
+  magick "$IMG" -dither None -resize 240x240 -colors 24 -format %c histogram:info:- 2>/dev/null | python3 -c "$PYSCRIPT"
+}
+
+image_slug() { # IMG -> lowercase safe filename
+  local slug
+  slug="$(basename "$1" | tr '[:upper:]' '[:lower:]' | sed 's/^[0-9][0-9]*-//; s/[^a-z0-9.]\+/-/g; s/^-//; s/-$//')"
+  printf '%s' "${slug:-wallpaper}"
+}
+
+add_wallpaper() { # THEME IMG -> repo-relative destination
+  local theme="$1" IMG="$2" f base n max=0 slug dest
+  local dir="$THEMES_DIR/$theme/backgrounds"
+  mkdir -p "$dir"
+  while IFS= read -r f; do
+    base="$(basename "$f")"
+    n="${base%%-*}"
+    case "$n" in '' | *[!0-9]*) continue ;; esac
+    if (( 10#$n > max )); then max=$((10#$n)); fi
+  done < <(backgrounds "$theme")
+  slug="$(image_slug "$IMG")"
+  dest="$dir/$((max + 1))-$slug"
+  [ -e "$dest" ] && die "wallpaper already exists: ${dest#"$DOTFILES"/}"
+  cp "$IMG" "$dest"
+  printf '%s' "${dest#"$DOTFILES"/}"
+}
+
+adopt_matches() { # colors.toml -> NAME<TAB>SCORE, best first
+  local palette="$1" PYSCRIPT t
+  PYSCRIPT="$(cat <<'PYEOF'
+import math, re, sys
+from collections import defaultdict
+
+KEYS = ["background", "foreground", "accent"] + ["color%d" % i for i in range(16)]
+WEIGHTS = {k: 1 for k in KEYS}
+WEIGHTS.update(background=3, foreground=2, accent=3)
+palettes = defaultdict(dict)
+for line in sys.stdin:
+    parts = line.rstrip("\n").split("\t", 2)
+    if len(parts) != 3:
+        continue
+    name, key, value = parts
+    if key not in WEIGHTS or not re.match(r"#[0-9a-fA-F]{6}$", value):
+        continue
+    h = value.lstrip("#")
+    palettes[name][key] = tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+image = palettes.pop("__image__", None)
+if not image:
+    sys.exit("theme: no colors extracted")
+
+out = []
+for name, palette in palettes.items():
+    total = weight = 0
+    for key, w in WEIGHTS.items():
+        if key not in image or key not in palette:
+            continue
+        total += w * sum((a - b) ** 2 for a, b in zip(image[key], palette[key]))
+        weight += w
+    if weight:
+        out.append((math.sqrt(total / weight), name))
+
+for score, name in sorted(out):
+    print("%s\t%d" % (name, round(score)))
+PYEOF
+)"
+  {
+    "$COLOR" -f "$palette" --all | awk -v n="__image__" '{ print n "\t" $0 }'
+    while IFS= read -r t; do
+      "$COLOR" -f "$THEMES_DIR/$t/colors.toml" --all | awk -v n="$t" '{ print n "\t" $0 }'
+    done < <(list_themes)
+  } | python3 -c "$PYSCRIPT"
+}
+
+cmd_from_image() {
+  [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ] && { usage; exit 0; }
+  [ $# -eq 2 ] || { usage >&2; exit 2; }
+  local NAME="$1" IMG="$2"
+  command -v magick >/dev/null 2>&1 || die "from-image needs ImageMagick (brew install imagemagick / pacman -S imagemagick)"
+  [ -f "$IMG" ] || die "no such image: $IMG"
+  [ -d "$THEMES_DIR/$NAME" ] && die "themes/$NAME already exists"
+
+  local COLORS_TOML
+  COLORS_TOML="$(palette_from_image "$IMG")" || exit 1
 
   local DIR="$THEMES_DIR/$NAME" slug
   mkdir -p "$DIR/backgrounds"
   echo "$COLORS_TOML" >"$DIR/colors.toml"
   printf 'TAGLINE=""\n' >"$DIR/theme.conf"
-  slug="$(basename "$IMG" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9.]\+/-/g')"
+  slug="$(image_slug "$IMG")"
   cp "$IMG" "$DIR/backgrounds/1-$slug"
 
   echo "themes/$NAME/colors.toml:"
@@ -306,6 +381,31 @@ PYEOF
     printf '\n'
   fi
   echo "next: eyeball the palette, edit colors.toml if a slot is off, add a TAGLINE to theme.conf, then: theme $NAME"
+}
+
+cmd_adopt() {
+  [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ] && { usage; exit 0; }
+  [ $# -eq 1 ] || { usage >&2; exit 2; }
+  local IMG="$1" tmp matches best score dest
+  command -v magick >/dev/null 2>&1 || die "adopt needs ImageMagick (brew install imagemagick / pacman -S imagemagick)"
+  [ -f "$IMG" ] || die "no such image: $IMG"
+
+  tmp="$(mktemp)"
+  palette_from_image "$IMG" >"$tmp" || { rm -f "$tmp"; exit 1; }
+  matches="$(adopt_matches "$tmp")" || { rm -f "$tmp"; exit 1; }
+  rm -f "$tmp"
+
+  best="$(printf '%s\n' "$matches" | awk 'NR == 1 { print $1 }')"
+  score="$(printf '%s\n' "$matches" | awk 'NR == 1 { print $2 }')"
+  [ -n "$best" ] && [ -n "$score" ] || die "no themes found"
+
+  if [ "$score" -gt 60 ]; then
+    printf 'theme: closest: %s\n' "$(printf '%s\n' "$matches" | awk 'NR <= 3 { out = out sep $1 " (" $2 ")"; sep = ", " } END { print out }')" >&2
+    die "no close match; use: theme from-image <new-name> $IMG" 2
+  fi
+
+  dest="$(add_wallpaper "$best" "$IMG")"
+  echo "adopted: $dest -> $best (score $score)"
 }
 
 # ── The switch ───────────────────────────────────────────────────
@@ -866,6 +966,7 @@ case "${1:-}" in
   browser) [ "${2:-}" = install ] && [ $# -eq 2 ] || die "usage: theme browser install" 2; cmd_browser_install ;;
   plymouth) cmd_plymouth ;;
   from-image) shift; cmd_from_image "$@" ;;
+  adopt) shift; cmd_adopt "$@" ;;
   _preview-theme) preview_theme "$2" ;;
   _preview-bg) preview_bg "$2" "$3" ;;
   "") pick_theme ;;

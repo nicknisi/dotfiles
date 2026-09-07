@@ -1,6 +1,6 @@
 ---
 name: add-theme
-description: Add a new theme pack to the dotfiles theme system (bin/theme). Use when the user pastes a theme repo URL, says "add this theme", "new theme pack", or wants another entry for theme next to cycle.
+description: Add a theme pack or match a wallpaper to an existing theme in the dotfiles theme system (bin/theme). Use when the user pastes a theme repo URL or image, says "add this theme", "new theme pack", or wants another entry for theme next to cycle.
 ---
 
 # Add a theme pack
@@ -45,9 +45,13 @@ from a worktree).
   exist here). An
   older theme with only `alacritty.toml` and no `colors.toml`: transcribe
   its `[colors.*]` into ANSI-style `colors.toml`.
-- **Just a wallpaper**: `bin/theme from-image <name> <image>` writes
-  `colors.toml` + `backgrounds/` + an empty `theme.conf`. The hue mapping
-  is heuristic — eyeball the swatches it prints and hand-tune slots.
+- **Just a wallpaper**: first run `bin/theme adopt <image>`. It compares the
+  extracted palette with every existing pack and, when the closest score is
+  60 or lower, copies the image into that pack's `backgrounds/` with the next
+  numeric prefix. A weaker match changes nothing and prints the three closest
+  packs. Then use `bin/theme from-image <name> <image>` to create a new pack;
+  it writes `colors.toml` + `backgrounds/` + an empty `theme.conf`. Both
+  commands use heuristic hue mapping, so eyeball the result.
 
 Then write `theme.conf` with a TAGLINE in the house style (see
 `themes/*/theme.conf`: short, lower-case, a little wry).
