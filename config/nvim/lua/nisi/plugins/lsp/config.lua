@@ -151,6 +151,22 @@ function M.setup()
     )
   end
 
+  if utils.exists_in_table(servers, "astro") then
+    vim.lsp.config(
+      "astro",
+      make_conf({
+        before_init = function(_, conf)
+          local tsdk = require("lspconfig.util").get_typescript_server_path(conf.root_dir)
+          if tsdk == "" then
+            tsdk = require("mason-registry").get_package("typescript-language-server"):get_install_path()
+              .. "/node_modules/typescript/lib"
+          end
+          conf.init_options.typescript.tsdk = tsdk
+        end,
+      })
+    )
+  end
+
   if utils.exists_in_table(servers, "pylsp") then
     vim.lsp.config(
       "pylsp",
@@ -354,29 +370,10 @@ function M.setup()
     )
   end
 
-  -- Setup mason-lspconfig with automatic_enable
-  -- Exclude conflicting TypeScript servers from automatic enable
-  mason_lspconfig.setup({
-    ensure_installed = servers,
-    automatic_enable = {
-      exclude = { "denols", "ts_ls" },
-    },
-  })
-
-  -- Manually enable TypeScript server based on project type
-  -- This is necessary because both denols and ts_ls handle the same filetypes,
-  -- so we need explicit detection to prevent conflicts
-  vim.api.nvim_create_autocmd("FileType", {
-    pattern = { "typescript", "javascript", "typescriptreact", "javascriptreact" },
-    callback = function()
-      -- Deno projects take precedence
-      if vim.fs.root(0, { "deno.json", "deno.jsonc" }) then
-        vim.lsp.enable("denols")
-      elseif vim.fs.root(0, { "tsconfig.json", "jsconfig.json", "package.json" }) then
-        vim.lsp.enable("ts_ls")
-      end
-    end,
-  })
+  -- Let Mason install servers without overriding our configurations.
+  -- nvim-lspconfig's root callbacks keep TypeScript and Deno projects separate.
+  mason_lspconfig.setup({ ensure_installed = servers, automatic_enable = false })
+  vim.lsp.enable(servers)
 end
 
 return M

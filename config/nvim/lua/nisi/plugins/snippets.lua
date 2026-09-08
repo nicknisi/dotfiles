@@ -2,19 +2,24 @@ local config = require("nisi").config
 
 return {
   {
-    "hrsh7th/vim-vsnip",
-    cond = not vim.g.vscode,
-    dependencies = {
-      "hrsh7th/vim-vsnip-integ",
+    "saghen/blink.cmp",
+    optional = true,
+    opts = {
+      sources = {
+        providers = {
+          snippets = {
+            opts = {
+              search_paths = { config.snippets_dir or vim.fn.stdpath("config") .. "/snippets" },
+              global_snippets = { "all", "global" },
+              extended_filetypes = {
+                javascriptreact = { "javascript" },
+                typescriptreact = { "typescript" },
+                ["typescript.tsx"] = { "typescript" },
+              },
+            },
+          },
+        },
+      },
     },
-    config = function()
-      local snippet_dir = config.snippets_dir or os.getenv("DOTFILES") .. "/config/nvim/snippets"
-      vim.g.vsnip_snippet_dir = snippet_dir
-      vim.g.vsnip_filetypes = {
-        javascriptreact = { "javascript" },
-        typescriptreact = { "typescript" },
-        ["typescript.tsx"] = { "typescript" },
-      }
-    end,
   },
 }

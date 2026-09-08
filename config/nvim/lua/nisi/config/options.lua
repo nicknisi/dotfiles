@@ -52,7 +52,7 @@ opt.incsearch = true -- set incremental search, like modern browsers
 opt.lazyredraw = false -- don't redraw while executing macros
 opt.magic = true -- set magic on, for regular expressions
 
-if fn.executable("rg") then
+if fn.executable("rg") == 1 then
   -- if ripgrep installed, use that as a grepper
   opt.grepprg = "rg --vimgrep --no-heading"
   -- opt.grepformat = "%f:%l:%c:%m,%f:%l:%m"
@@ -94,11 +94,7 @@ opt.wrapmargin = 8 -- wrap lines when coming within n characters from side
 opt.linebreak = true -- set soft wrapping
 opt.showbreak = "↪"
 opt.autoindent = true -- automatically set indent of new line
-table.insert(opt.diffopt, "vertical")
-table.insert(opt.diffopt, "iwhite")
-table.insert(opt.diffopt, "internal")
-table.insert(opt.diffopt, "algorithm:patience")
-table.insert(opt.diffopt, "hiddenoff")
+opt.diffopt:append({ "vertical", "iwhite", "internal", "algorithm:patience", "hiddenoff" })
 opt.laststatus = 3 -- show the global statusline all the time
 opt.scrolloff = 7 -- set 7 lines to the cursors - when moving vertical
 opt.wildmenu = true -- enhanced command line completion

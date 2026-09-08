@@ -73,7 +73,7 @@ return {
       vim.g.fzf_layout = { window = "call v:lua.FloatingFZF()" }
     end,
   },
-  -- configure fzf to use telescope
+  -- Use the native fzf sorter in Telescope
   {
     "nvim-telescope/telescope.nvim",
     dependencies = {
@@ -82,6 +82,10 @@ return {
         build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
       },
     },
+    config = function(_, opts)
+      require("telescope").setup(opts)
+      require("telescope").load_extension("fzf")
+    end,
     opts = {
       extensions = {
         fzf = {

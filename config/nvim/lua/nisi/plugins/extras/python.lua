@@ -50,22 +50,27 @@ return {
       local path = require("mason-registry").get_package("debugpy"):get_install_path()
       require("dap-python").setup(path .. "/venv/bin/python")
 
-      -- Set up keymaps
+      local function set_keymaps(buf)
+        vim.keymap.set("n", "<leader>dt", function()
+          require("dap-python").test_method()
+        end, { buffer = buf, desc = "Debug Test Method" })
+        vim.keymap.set("n", "<leader>dc", function()
+          require("dap-python").test_class()
+        end, { buffer = buf, desc = "Debug Test Class" })
+        vim.keymap.set("x", "<leader>ds", "<Esc><cmd>lua require('dap-python').debug_selection()<cr>", {
+          buffer = buf,
+          desc = "Debug Selection",
+        })
+      end
       vim.api.nvim_create_autocmd("FileType", {
         pattern = "python",
-        callback = function()
-          local buffer = vim.api.nvim_get_current_buf()
-          vim.keymap.set("n", "<leader>dt", function()
-            require("dap-python").test_method()
-          end, { buffer = buffer, desc = "Debug Test Method" })
-          vim.keymap.set("n", "<leader>dc", function()
-            require("dap-python").test_class()
-          end, { buffer = buffer, desc = "Debug Test Class" })
-          vim.keymap.set("n", "<leader>ds", function()
-            require("dap-python").debug_selection()
-          end, { buffer = buffer, desc = "Debug Selection" })
+        callback = function(args)
+          set_keymaps(args.buf)
         end,
       })
+      if vim.bo.filetype == "python" then
+        set_keymaps(0)
+      end
     end,
   },
 

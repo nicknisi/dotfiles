@@ -2,10 +2,10 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
-    version = false,
-    event = { "BufReadPost", "BufNewFile" },
+    branch = "main",
+    lazy = false,
     dependencies = {
-      "nvim-treesitter/nvim-treesitter-textobjects",
+      { "nvim-treesitter/nvim-treesitter-textobjects", branch = "main" },
       "JoosepAlviste/nvim-ts-context-commentstring",
     },
     init = function()
@@ -35,11 +35,37 @@ return {
       -- incremental_selection, playground, rainbow) is gone. Highlighting and
       -- injections are core Neovim; the plugin now installs parsers/queries.
       local ensure_installed = {
-        "astro", "bash", "blade", "c", "comment", "cpp", "css", "diff",
-        "elixir", "eex", "heex", "git_rebase", "gitcommit", "gitignore",
-        "html", "javascript", "jsdoc", "json", "json5", "lua", "markdown",
-        "markdown_inline", "pug", "python", "regex", "ruby", "rust", "tsx",
-        "typescript", "vim", "yaml",
+        "astro",
+        "bash",
+        "blade",
+        "c",
+        "comment",
+        "cpp",
+        "css",
+        "diff",
+        "elixir",
+        "eex",
+        "heex",
+        "git_rebase",
+        "gitcommit",
+        "gitignore",
+        "html",
+        "javascript",
+        "jsdoc",
+        "json",
+        "json5",
+        "lua",
+        "markdown",
+        "markdown_inline",
+        "pug",
+        "python",
+        "regex",
+        "ruby",
+        "rust",
+        "tsx",
+        "typescript",
+        "vim",
+        "yaml",
       }
       local available = require("nvim-treesitter").get_available()
       require("nvim-treesitter").install(vim.tbl_filter(function(p)
