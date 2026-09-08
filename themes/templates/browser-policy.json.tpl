@@ -1,4 +1,3 @@
 {
-  "BrowserThemeColor": "{{ background }}",
-  "BrowserColorScheme": "device"
+  "BrowserThemeColor": "{{ background }}"
 }

@@ -47,6 +47,7 @@ usage:
   theme thumbs                cache picker thumbnails (runs itself after a switch)
   theme refresh               re-render the current theme (after editing a template)
   theme browser install       install managed Chromium/Helium theme policy (sudo once)
+                              on an MDM-managed Mac, prints why and installs nothing
   theme plymouth              install the rendered boot splash (LUKS prompt) and rebuild
                               the initramfs; deliberate, needs sudo, shows on next boot
   theme list                  themes with their palettes and taglines
@@ -487,12 +488,20 @@ $(list_themes)"
 # ── Consumers ────────────────────────────────────────────────────
 # everything here reports to stderr; stdout gets the finale only
 
+mdm_enrolled() { # macOS: DEP/MDM enrollment means the MDM owns the policy channel
+  $IS_MAC || return 1
+  profiles status -type enrollment 2>/dev/null | grep -qiE 'enrolled via dep: yes|mdm enrollment: yes'
+}
+
 refresh_browsers() {
   if $IS_MAC; then
-    local app
+    mdm_enrolled && return 0 # no theme policy of ours to refresh on a managed Mac
     for app in Chromium Helium; do
-      pgrep -x "$app" >/dev/null 2>&1 || continue
-      open -gj -a "$app" --args --refresh-platform-policy --no-startup-window >/dev/null 2>&1 || true
+      pids="$(pgrep -x "$app" 2>/dev/null || true)"
+      pid="${pids%%$'\n'*}"
+      [ -n "$pid" ] || continue
+      exe="$(ps -o comm= -p "$pid" 2>/dev/null || true)"
+      [ -x "$exe" ] && "$exe" --refresh-platform-policy --no-startup-window >/dev/null 2>&1 || true
     done
   else
     pgrep -x chromium >/dev/null 2>&1 && command -v chromium >/dev/null 2>&1 &&
@@ -520,6 +529,32 @@ cmd_browser_install() {
   [ -f "$STATE/theme/browser-policy.json" ] || apply "$name" keep
 
   if $IS_MAC; then
+    if mdm_enrolled; then
+      # MDM owns the policy channel on this Mac. Helium reads policy only from
+      # the Kandji-delivered net.imput.helium profile payload (chrome://policy
+      # lists its source as "hop"), not from loose plists in /Library/Managed
+      # Preferences — that directory name never appears in the Helium bundle. A
+      # self-installed .mobileconfig is blocked by DEP enrollment, and Kandji
+      # already owns com.google.Chrome's plist slot. So there is no local file
+      # either installed browser will read; drop any stale symlinks a prior
+      # install left and explain, instead of silently leaving dead links.
+      local link
+      dir="/Library/Managed Preferences/$(id -un)"
+      for id in org.chromium.Chromium net.imput.helium; do
+        link="$dir/$id.plist"
+        if [ -L "$link" ] && [ "$(readlink "$link")" = "$STATE/theme/browser-policy.plist" ]; then
+          sudo rm -f "$link" 2>/dev/null && echo "removed stale theme symlink: $link" >&2
+        fi
+      done
+      cat >&2 <<'MSG'
+browser theme: this Mac is MDM-managed (Kandji). Helium reads policy only from
+the Kandji-delivered net.imput.helium profile, not from a local file, and a
+self-installed profile is blocked by DEP enrollment. Nothing installed.
+For a static browser color: add BrowserThemeColor to the Helium profile in
+Kandji. For live theme switching: not supported on a managed Mac.
+MSG
+      return 0
+    fi
     dir="/Library/Managed Preferences/$(id -un)"
     [ -d "$dir" ] || sudo install -d -m 0755 "$dir" || die "could not create $dir"
     target="$STATE/theme/browser-policy.plist"

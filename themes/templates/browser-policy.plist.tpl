@@ -4,7 +4,5 @@
 <dict>
   <key>BrowserThemeColor</key>
   <string>{{ background }}</string>
-  <key>BrowserColorScheme</key>
-  <string>device</string>
 </dict>
 </plist>
