@@ -1,0 +1,47 @@
+#!/bin/sh
+# Set the system time zone from the network's public IP whenever NetworkManager
+# reports full connectivity. Installed to /etc/NetworkManager/dispatcher.d/ by
+# the post-packages hook in config/mise/config.toml.
+#
+# Runs as root, so timedatectl needs no polkit rule. IP geolocation reports the
+# VPN's location rather than ours, so a Tailscale exit node skips the update.
+
+[ "$2" = "connectivity-change" ] || exit 0
+[ "$CONNECTIVITY_STATE" = "FULL" ] || exit 0
+
+log() { logger -t nm-timezone "$*"; }
+
+if tailscale status --json 2>/dev/null | grep -q '"ExitNodeStatus": *{'; then
+  log "tailscale exit node active, leaving time zone alone"
+  exit 0
+fi
+
+tz=""
+for url in https://ipinfo.io/timezone https://ipapi.co/timezone; do
+  tz="$(curl -sf --max-time 10 "$url")" && [ -n "$tz" ] && break
+  tz=""
+done
+
+if [ -z "$tz" ]; then
+  log "no geolocation service answered, leaving time zone alone"
+  exit 0
+fi
+
+# Accept only a name spelled like a zone and present in the zoneinfo database,
+# so a bad response never reaches timedatectl.
+case "$tz" in
+  /* | *..* | *[!A-Za-z0-9_+/-]*)
+    log "rejected time zone '$tz'"
+    exit 0
+    ;;
+esac
+[ -f "/usr/share/zoneinfo/$tz" ] || { log "unknown time zone '$tz'"; exit 0; }
+
+current="$(timedatectl show -p Timezone --value)"
+[ "$tz" = "$current" ] && exit 0
+
+if timedatectl set-timezone "$tz"; then
+  log "time zone changed: $current -> $tz"
+else
+  log "failed to set time zone $tz"
+fi

@@ -188,6 +188,9 @@ run = """
 # This mise build has no AUR package manager, so use the installed AUR helper
 # for Voxtype. Packaged user services only need enabling. Quickshell ships no
 # unit, so keep its generated .wants link outside the symlinked dotfiles tree.
+# The time-zone dispatcher script is installed here rather than through
+# [bootstrap.files], which has no OS filter and would create /etc/NetworkManager
+# on macOS too.
 [bootstrap.hooks.post-packages]
 run = """
   if [ "$(uname)" = "Linux" ] && command -v pacman >/dev/null 2>&1 \
@@ -222,6 +225,12 @@ EOF
     systemctl --user enable quickshell.service hypridle.service hyprsunset.service \
       hyprpolkitagent.service batsignal.service wireplumber.service \
       pipewire.socket pipewire-pulse.socket
+  fi
+
+  if [ "$(uname)" = "Linux" ] && [ -d /etc/NetworkManager/dispatcher.d ]; then
+    src="${XDG_CONFIG_HOME:-$HOME/.config}/mise/files/etc/NetworkManager/dispatcher.d/10-timezone"
+    dst=/etc/NetworkManager/dispatcher.d/10-timezone
+    cmp -s "$src" "$dst" || sudo install -Dm0755 -o root -g root "$src" "$dst"
   fi
 """
 
