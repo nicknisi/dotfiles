@@ -7,7 +7,7 @@
   "hideThinkingBlock": true,
   "skills": [
     "~/Developer/claude-plugins/plugins/content/skills",
-    "~/Developer/nicknisi/skills",
+    "~/Developer/skills",
     "../../Developer/claude-plugins-internal/plugins/agent-usage-survey/skills"
   ],
   "defaultThinkingLevel": "xhigh",
