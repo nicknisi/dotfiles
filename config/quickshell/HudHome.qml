@@ -56,8 +56,9 @@ BarMenu {
         Tile {
             text: "Wi-Fi"
             glyph: Net.radioOn ? "\u{f05a9}" : "\u{f05aa}"
-            caption: Net.connected ? Net.ssid : (Net.radioOn ? "Not connected" : "Radio off")
-            tint: Net.connected ? Theme.accent : Theme.yellow
+            caption: Net.portal ? "Sign-in required · " + Net.ssid
+                : Net.connected ? Net.ssid : (Net.radioOn ? "Not connected" : "Radio off")
+            tint: Net.connected && !Net.portal ? Theme.accent : Theme.yellow
             onClicked: home.navigate("net")
         }
         Tile {

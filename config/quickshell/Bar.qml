@@ -892,7 +892,7 @@ PanelWindow {
                 height: 5
                 radius: 2.5
                 color: Audio.recorders.length > 0 ? Theme.red : Theme.yellow
-                visible: Audio.recorders.length > 0 || (Net.device !== null && !Net.connected)
+                visible: Audio.recorders.length > 0 || Net.portal || (Net.device !== null && !Net.connected)
             }
         }
 

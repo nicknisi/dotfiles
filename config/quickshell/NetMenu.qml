@@ -17,19 +17,19 @@ BarMenu {
 
     menuWidth: 320
     title: "Network"
-    subtitle: {
-        if (!Net.radioOn) return "wifi off";
-        return Net.connected ? Net.ssid : "not connected";
-    }
+    subtitle: Net.connected && Net.radioOn ? Net.ssid + " · " + Net.statusText : Net.statusText
 
     // The SSID currently asking for a passphrase, or "". Only one at a time, and
     // cleared whenever the menu closes so a typed secret never outlives it.
     property string asking: ""
     onShownChanged: {
+        menu.portalError = "";
         if (!menu.shown) menu.asking = "";
         // NetworkManager only rescans on its own schedule otherwise, so an open
         // picker would show whatever was cached when something else last asked.
         if (Net.device) Net.device.scannerEnabled = menu.shown;
+        // Also recheck after returning from the browser to clear a resolved portal.
+        if (menu.shown) Net.checkConnectivity();
     }
 
     // The radio switch, parked in the header.
@@ -57,6 +57,46 @@ BarMenu {
             cursorShape: Qt.PointingHandCursor
             onClicked: Networking.wifiEnabled = !Net.radioOn
         }
+    }
+
+    BarModule {
+        id: portalEntry
+        objectName: "wifiPortal"
+        Layout.fillWidth: true
+        implicitHeight: 44
+        cornerRadius: 16
+        visible: Net.signInAvailable
+        enabled: visible
+        highlighted: Net.portal
+        text: Net.portal ? "Sign in to Wi-Fi" : "Open Wi-Fi sign-in page"
+        onClicked: {
+            menu.portalError = Net.openPortal() ? "" : "Could not open the browser";
+            if (!menu.portalError) menu.dismissed();
+        }
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 3
+            Text {
+                Layout.fillWidth: true
+                text: portalEntry.text + " ↗"
+                font.family: Theme.font
+                font.pixelSize: Theme.fontSize - 1
+                color: Net.portal ? Theme.yellow : Theme.fg
+            }
+            Text {
+                Layout.fillWidth: true
+                text: "Opens the network login in your browser"
+                font.family: Theme.font
+                font.pixelSize: Theme.fontSize - 3
+                color: Theme.secondary
+            }
+        }
+    }
+
+    property string portalError: ""
+    MenuHint {
+        visible: portalEntry.visible && menu.portalError !== ""
+        text: menu.portalError
     }
 
     Item {

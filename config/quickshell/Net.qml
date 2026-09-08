@@ -31,6 +31,51 @@ Singleton {
     readonly property bool connected: network !== null
     readonly property string ssid: network?.name ?? ""
 
+    // NetworkManager reports system-wide internet access, not Wi-Fi association.
+    // Keep manual sign-in available until it reports full internet access.
+    readonly property int connectivity: Networking.canCheckConnectivity && Networking.connectivityCheckEnabled
+        ? Networking.connectivity : NetworkConnectivity.Unknown
+    readonly property bool portal: root.radioOn && root.connected && root.connectivity === NetworkConnectivity.Portal
+    readonly property bool signInAvailable: root.radioOn && root.connected && root.connectivity !== NetworkConnectivity.Full
+    readonly property string statusText: {
+        if (!root.radioOn) return "wifi off";
+        if (!root.connected) return "not connected";
+        switch (root.connectivity) {
+        case NetworkConnectivity.Portal: return "sign-in required";
+        case NetworkConnectivity.Limited: return "limited internet access";
+        case NetworkConnectivity.None: return "no internet access";
+        case NetworkConnectivity.Full: return "internet connected";
+        default: return "internet access not checked";
+        }
+    }
+
+    function checkConnectivity() {
+        if (root.network !== null && root.radioOn && Networking.canCheckConnectivity && Networking.connectivityCheckEnabled)
+            Networking.checkConnectivity();
+    }
+    // One automatic attempt per connection, including failed browser launches.
+    // ponytail: session-only guard; persist connection identity if reloads must not reopen.
+    property bool portalAttempted: false
+    onNetworkChanged: {
+        root.portalAttempted = false;
+        root.checkConnectivity();
+        Qt.callLater(root.maybeOpenPortal);
+    }
+    onRadioOnChanged: if (!root.radioOn) root.portalAttempted = false
+    onPortalChanged: Qt.callLater(root.maybeOpenPortal)
+
+    function maybeOpenPortal() {
+        // Let network, radio and connectivity bindings settle before acting.
+        if (root.portal && !root.portalAttempted) root.openPortal();
+    }
+
+    function openPortal() {
+        // Plain HTTP lets the hotel redirect to its login without a TLS error.
+        if (!root.connected || !root.radioOn) return false;
+        root.portalAttempted = true; // Manual sign-in also suppresses a duplicate automatic tab.
+        return Qt.openUrlExternally("http://neverssl.com/");
+    }
+
     // signalStrength is reported 0..100 by NetworkManager, but normalise in case
     // a backend hands back a 0..1 fraction.
     readonly property real strength: {
