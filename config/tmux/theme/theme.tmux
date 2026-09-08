@@ -55,7 +55,7 @@ c_fg=$(pick fg default)
 c_dim=$(pick fg_dark subtext_0 overlay_2 dark5 colour245)
 c_muted=$(pick comment overlay_0 surface_2 dark3 fg_gutter brightblack)
 c_surface=$(pick bg_highlight surface_0 bg_dark mantle colour236)
-c_ink=$(pick bg base crust black) # text on a coloured pill: the theme's own background
+c_ink=$(pick bg base crust black)
 c_red=$(pick red maroon red1 red)
 c_yellow=$(pick yellow yellow)
 c_orange=$(pick orange peach "$c_yellow")
@@ -88,8 +88,7 @@ tmux set -g status-justify left
 tmux set -g status-left-length 120
 tmux set -g status-right-length 200
 
-# Messages and the `:` prompt — the one place the bar paints a background, so
-# a `display` stands off the transparent canvas.
+# Messages and the `:` prompt stand off the transparent canvas.
 tmux set -g message-style "fg=${c_fg},bg=${c_surface},bold,align=centre"
 tmux set -g message-command-style "fg=${c_accent},bg=${c_surface},bold,align=centre"
 
@@ -99,41 +98,12 @@ tmux set-window-option -g pane-border-style "fg=${thm_fg_gutter},bg=${thm_fg_gut
 tmux set-window-option -g pane-border-lines simple
 
 # ── Status line ──────────────────────────────────────────────────────────────
-# One row on a transparent canvas.
-#
-#     ✦ projects    ➊ 󱙺 dotfiles   ➁  sessions ⊕   ➂  skills        󰎇 FM-84 – Arcade Summer    ☰ ⚠ fix login flow 2m    ❖ alto   ✹ coherence
-#
-# Left is where you are; right is what wants you and where else you could be:
-# what's playing, fleet's clickable agent chips, a mode pill, the other
-# sessions' pills.
-#
-# Shape carries meaning — pill or bare text — so nothing reads alike unless it
-# is alike:
-#
-#   session  a rounded pill, and only sessions get one. The left pill wears the
-#            session's crest: a sigil and a palette colour hashed from its name
-#            (bin/tmux-session-mood), so each session has an identity you learn
-#            and switching changes the bar's mood. Hold prefix and it flashes
-#            yellow with a bolt. When fleet says an agent in a session wants
-#            you, the pill takes fleet's colour and glyph: ⚠ waiting, ? asking,
-#            ● ready. The other sessions sit at the right as two-tone mini
-#            pills (crest block + name block); click one to switch.
-#   windows  bare text. ➊ (filled) is the window you're in, ➀ the rest — the
-#            number is the key after prefix, and each slot has its own colour,
-#            a small rainbow: ➊ blue, ➋ cyan, ➌ green… The current window's
-#            name is bold, nothing more. Hold prefix and every digit turns
-#            yellow. Fleet's attention colour beats the slot colour; a bell
-#            turns the name red.
-#   badges   ⊕ zoomed  ⇄ synchronized  ⚑ marked
-#   right    the host when reached over ssh, what's playing (bin/tmux-vitals
-#            music, only while it plays), fleet's chips — ☰ toggles the
-#            sidebar, one clickable chip per agent that wants you, ✕ clears
-#            them (bin/tmux-fleet-chips; running it is also what paints the
-#            attention colours above) — then ◈ copy ↑340 as a yellow pill while
-#            a pane is in a mode, then the other sessions. Holding prefix swaps
-#            it all for a cheat sheet of the non-obvious bindings, signed with
-#            the theme's tagline and tonight's moon. ⧉ in the session pill
-#            means another client shares it.
+# One transparent row with the original session crests and colourful digits.
+# Sessions keep their hashed colours and sigils, without pill backgrounds.
+# A filled digit and bold name mark the active window. Fleet and bells take
+# precedence over the resting colours.
+# Prefix shows the binding hints; copy mode shows a yellow text label.
+# Badges: ⊕ zoomed, ⇄ synchronized, ⚑ marked, ⧉ shared session.
 #
 # NB: inside #{?...} branches never put a comma inside a #[style] or #(...):
 # tmux splits branches on every comma it sees outside nested #{...}. That is
@@ -147,15 +117,11 @@ tmux set -g status-style "bg=default,fg=${c_fg}"
 tmux set -g window-style "fg=default,bg=default"
 tmux set -g window-active-style "fg=default,bg=default"
 
-# Glyphs. Dingbats (U+27xx) render one cell wide in every font tmux meets; the
-# nerd-font marks are spelled as UTF-8 bytes so they survive editors and agents
-# that drop private-use characters (and so the comment names them).
+# Glyphs. Nerd-font marks are spelled as UTF-8 bytes so they survive editors.
 FILLED=(➊ ➋ ➌ ➍ ➎ ➏ ➐ ➑ ➒ ➓)
 OUTLINE=(➀ ➁ ➂ ➃ ➄ ➅ ➆ ➇ ➈ ➉)
 BOLT=$'\xf3\xb1\x90\x8b'  # U+F140B nf-md-lightning_bolt
 SSH=$'\xf3\xb0\xa3\x80'   # U+F08C0 nf-md-ssh
-CAP_L=$'\xee\x82\xb6'     # U+E0B6  nf-ple-left_half_circle_thick
-CAP_R=$'\xee\x82\xb4'     # U+E0B4  nf-ple-right_half_circle_thick
 
 # One colour per window slot, cycling the palette — a small rainbow your eye
 # learns ("the green one"). Only the digit is painted; names stay quiet.
@@ -190,8 +156,7 @@ name_cur="#{?window_bell_flag,#[fg=${c_red}],#{?#{@fleet_state},#[fg=#{@fleet_st
 name_oth="#{?window_bell_flag,#[fg=${c_red}]#[bold],#{?#{@fleet_state},#[fg=#{@fleet_state}]#[bold],#[fg=${c_dim}]}}${name}#[nobold]"
 badges="#{?window_zoomed_flag, #[fg=${c_orange}]⊕,}#{?pane_synchronized, #[fg=${c_red}]⇄,}#{?window_marked_flag, #[fg=${c_accent}]⚑,}"
 
-# Windows are text on the bare canvas; the current one is told by its filled
-# digit and bold name, nothing else, so only sessions ever carry a background.
+# Windows keep their original filled/outline digits, with no underlines.
 tmux setw -g window-status-separator "  "
 tmux setw -g window-status-bell-style default # the formats own the bell look
 tmux setw -g window-status-activity-style default
@@ -205,15 +170,13 @@ tmux setw -g window-status-current-format " ${digit_style}#[bold]${digit_cur}#[n
 # tmux-session-mood reads the same option instead of cold-booting fleet.
 tmux set -g @fleet_rollup 1
 
-# Left: the session pill (bin/tmux-session-mood pill), or a yellow bolt pill
-# while prefix is held. Padded off the terminal's rounded corner; click it for
-# the session tree (tmux.conf binds MouseDown1StatusLeft).
-prefix_pill="#[fg=${c_yellow}]#[bg=default]${CAP_L}#[fg=${c_ink}]#[bg=${c_yellow}]#[bold] ${BOLT} #S #[fg=${c_yellow}]#[bg=default]${CAP_R}#[default]"
-tmux set -g status-left "  #{?client_prefix,${prefix_pill},#(${BIN}/tmux-session-mood pill '#{session_name}' '#{session_many_attached}')}   "
+# Left: the session crest, or the original yellow bolt while prefix is held.
+# Click the label for the session tree.
+prefix_label="#[fg=${c_yellow}]#[bold]${BOLT} #S#[default]"
+tmux set -g status-left "  #{?client_prefix,${prefix_label},#(${BIN}/tmux-session-mood current '#{session_name}' '#{session_many_attached}')}   "
 
-# Right: ssh host, what's playing, fleet's chips, mode pill, then the other
-# sessions' mini pills (clickable, see tmux.conf) — or, while prefix is held,
-# the cheat sheet signed with the theme's tagline and the moon.
+# Right: ssh host, music, fleet, copy mode and clickable session labels.
+# Prefix swaps these for the cheat sheet, theme tagline and moon.
 hint() { printf '#[fg=%s]#[bold]%s#[nobold]#[fg=%s] %s' "$c_yellow" "$1" "$c_dim" "$2"; }
 hints="$(hint s sessions)   $(hint g lazygit)   $(hint y fleet)   $(hint n next)   $(hint f sidebar)   $(hint = tile)   $(hint Esc copy)   $(hint T bar)   $(hint r reload)"
 theme_note=""
@@ -223,13 +186,13 @@ fi
 # a literal comma inside a #{?} branch must be written #, or it splits the branch
 [[ -n $theme_note ]] && hints+="      #[fg=${c_muted}]#[italics]${theme_note//,/#,}#[noitalics]"
 hints+="  #(${BIN}/tmux-vitals moon)  " # tonight's moon signs the sheet
-mode_pill="#{?pane_in_mode,#[fg=${c_yellow}]#[bg=default]${CAP_L}#[fg=${c_ink}]#[bg=${c_yellow}]#[bold]◈ #{s/-mode//:pane_mode}#{?scroll_position, ↑#{scroll_position},} #[fg=${c_yellow}]#[bg=default]${CAP_R}#[default]  ,}"
+mode_label="#{?pane_in_mode,#[fg=${c_yellow}]#[bold]◈ #{s/-mode//:pane_mode}#{?scroll_position, ↑#{scroll_position},}#[default]  ,}"
 others="#(${BIN}/tmux-session-mood others '#{client_session}')"
 music="#(${BIN}/tmux-vitals music)"
 chips="#(${BIN}/tmux-fleet-chips)  "
 ssh=""
 [[ -n "${SSH_CONNECTION:-}${SSH_TTY:-}" ]] && ssh="#[fg=${c_dim}]${SSH} #h   "
-tmux set -g status-right "#{?client_prefix,${hints},${ssh}${music}${chips}${mode_pill}${others}}"
+tmux set -g status-right "#{?client_prefix,${hints},${ssh}${music}${chips}${mode_label}${others}}"
 tmux set -gu @sl_git 2>/dev/null || true
 tmux set -gu @sl_row1 2>/dev/null || true
 

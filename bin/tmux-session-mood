@@ -1,25 +1,16 @@
 #!/usr/bin/env bash
-# tmux-session-mood — session pills for the status line (see theme.tmux).
+# tmux-session-mood — text session labels for the status line (see theme.tmux).
 #
-#   tmux-session-mood pill   <session> [shared]   status-left  →   ✦ alto ⧉    filled pill, session colour
-#   tmux-session-mood others <client_session>     status-right →   ❖ alto   ✹ coherence   two-tone mini pills, clickable
-#   tmux-session-mood crest  <session>            scripts      →  "#[fg=…]✦ "
+#   tmux-session-mood current <session> [shared]  status-left  →  ✦ alto ⧉
+#   tmux-session-mood others  <client_session>    status-right →  ❖ alto   ✹ coherence (clickable)
+#   tmux-session-mood crest   <session>           scripts      →  "#[fg=…]✦ "
 #
-# Every session wears a crest: a sigil and a colour hashed from its name against
-# the theme palette (@thm_sl_* published by theme.tmux), so each one has an
-# identity you can spot at a glance and switching sessions changes the bar's
-# mood. Attention beats identity: when fleet's window rollup (@fleet_state, set
-# per window by `fleet status --statusline`) says an agent in a session wants
-# you, the pill takes fleet's colour and glyph — ⚠ waiting (yellow), ? asking
-# (magenta), ● ready (green). With the rollup off, the current session falls
-# back to `fleet status --tmux`, fleet's own (slower) relay.
-#
-# Pills are drawn with the half-circle glyphs from the nerd-font powerline-extra
-# block, spelled as bytes because private-use characters don't survive every
-# editor. #() output is spliced after tmux splits #{?} branches, so the commas
-# in #[fg=…,bg=…] here are safe.
+# Each session keeps its original hashed colour and sigil, without a pill.
+# Fleet attention overrides the crest with ⚠ waiting, ? asking or ● ready.
+# With rollup off, attention falls back to `fleet status --tmux`.
+# #() output is spliced after tmux splits #{?} branches, so style commas are safe.
 
-cmd=${1:-pill}
+cmd=${1:-current}
 target=${2:-}
 
 OPTS=$(tmux show-options -g 2>/dev/null)
@@ -32,13 +23,7 @@ for k in cyan orange green magenta blue yellow teal pink lavender purple; do
 done
 ((${#palette[@]})) || palette=(cyan yellow green magenta blue)
 dim=$(opt @thm_sl_dim)         dim=${dim:-colour245}
-ink=$(opt @thm_sl_ink)         ink=${ink:-black}
-surface=$(opt @thm_sl_surface) surface=${surface:-colour236}
 
-CAP_L=$'\xee\x82\xb6' # U+E0B6 nf-ple-left_half_circle_thick
-CAP_R=$'\xee\x82\xb4' # U+E0B4 nf-ple-right_half_circle_thick
-
-# Dingbats block only (U+2700–27BF): one cell wide in every font tmux meets.
 sigils=(✦ ❖ ✧ ✱ ✶ ✹ ❋ ❂ ✺ ✤ ❉ ✿)
 
 crest_parts() { # NAME → "COLOUR<TAB>SIGIL" — stable per name; colour and sigil hashed apart
@@ -91,13 +76,13 @@ case $cmd in
     IFS=$'\t' read -r colour glyph _ <<<"$(identity "$target" current)"
     printf '#[fg=%s]%s ' "$colour" "$glyph"
     ;;
-  pill)
+  current|pill) # `pill` keeps an already-running status-left working until reload.
     IFS=$'\t' read -r colour glyph _ <<<"$(identity "$target" current)"
     label=${target//#/##} # a literal # in a name must be doubled for tmux
     shared=""
     [[ ${3:-0} == 1 ]] && shared=" ⧉"
-    printf '#[fg=%s,bg=default]%s#[fg=%s,bg=%s,bold] %s %s%s #[fg=%s,bg=default]%s#[default]' \
-      "$colour" "$CAP_L" "$ink" "$colour" "$glyph" "$label" "$shared" "$colour" "$CAP_R"
+    printf '#[default]#[fg=%s]%s #[bold]%s%s#[default]' \
+      "$colour" "$glyph" "$label" "$shared"
     ;;
   others)
     out="" n=0 shown=0 max=5
@@ -109,16 +94,13 @@ case $cmd in
       label=${s//#/##}
       IFS=$'\t' read -r colour glyph kind <<<"$(identity "$s")"
       if [[ $kind == attn ]]; then
-        name_style="#[fg=${colour},bg=${surface},bold]"
+        name_style="#[fg=${colour},bold]"
       else
-        name_style="#[fg=${dim},bg=${surface}]"
+        name_style="#[fg=${dim}]"
       fi
-      # coloured cap + sigil block, then the name on a surface block. The range
-      # makes the pill a click target: tmux.conf's MouseDown1Status binding
-      # switches to any range named sess-<session>. (A colon in the prefix
-      # would break tmux's s/// modifier that strips it.)
-      out+=$(printf '#[range=user|sess-%s]#[fg=%s,bg=default]%s#[fg=%s,bg=%s]%s %s %s #[fg=%s,bg=default]%s#[default]#[norange]' \
-        "$s" "$colour" "$CAP_L" "$ink" "$colour" "$glyph" "$name_style" "$label" "$surface" "$CAP_R")
+      # Preserve the session click range, without a filled background.
+      out+=$(printf '#[default]#[range=user|sess-%s]#[fg=%s]%s %s%s#[default]#[norange]' \
+        "$s" "$colour" "$glyph" "$name_style" "$label")
       out+="  "
     done < <(tmux list-sessions -F '#{session_name}' 2>/dev/null)
     ((n > max)) && out+="#[fg=${dim}]+$((n - max))  "
