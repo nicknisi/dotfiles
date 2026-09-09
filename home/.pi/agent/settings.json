@@ -2,7 +2,7 @@
   "defaultProvider": "openai-codex",
   "editorPaddingX": 1,
   "outputPad": 1,
-  "theme": "system",
+  "theme": "dark",
   "quietStartup": true,
   "hideThinkingBlock": true,
   "skills": [
@@ -65,14 +65,17 @@
     "git:github.com/DietrichGebert/ponytail",
     "npm:@ff-labs/pi-fff",
     "npm:pi-context-view",
-    "npm:@sting8k/pi-vcc"
+    "npm:@sting8k/pi-vcc",
+    "../../Developer/pi-extensions/packages/compact-tools"
   ],
   "tuiMode": "fullscreen",
-  "defaultModel": "gpt-5.5",
+  "defaultModel": "gpt-6-astra",
   "warnings": {
     "anthropicExtraUsage": false
   },
   "enabledModels": [
-    "fireworks/accounts/fireworks/routers/*"
+    "fireworks/accounts/fireworks/routers/*",
+    "openai/gpt-6-astra",
+    "openai-codex/gpt-6-astra"
   ]
 }

@@ -1,11 +1,13 @@
 {
   "sections": {
     "work": [
+      "openai-codex/gpt-6-astra",
+      "cloudflare-ai-gateway/gpt-6-astra",
       "cloudflare-ai-gateway/gpt-5.6-luna",
       "cloudflare-ai-gateway/gpt-5.6-sol",
       "cloudflare-ai-gateway/gpt-5.6-terra",
       "cloudflare-ai-gateway/claude-fable-5",
-      "anthropic/claude-fable-5",
+      "anthropic/claude-fable-5.1",
       "cloudflare-ai-gateway/claude-opus-5",
       "anthropic/claude-opus-5",
       "cloudflare-ai-gateway/claude-sonnet-5",
