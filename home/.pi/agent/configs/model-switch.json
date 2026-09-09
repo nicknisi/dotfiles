@@ -20,6 +20,7 @@
       "fireworks/accounts/fireworks/models/deepseek-v4-pro"
     ],
     "personal": [
+      "openai-codex/gpt-6-astra",
       "openai-codex/gpt-5.6-luna",
       "openai-codex/gpt-5.6-sol",
       "openai-codex/gpt-5.6-terra",
