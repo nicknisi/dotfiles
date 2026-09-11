@@ -23,6 +23,8 @@
 -- can be verified from a checkout: Hyprland --verify-config -c path/to/hyprland.lua
 local hypr = (debug and debug.getinfo(1, "S").source:match("^@(.*)/[^/]*$"))
   or (os.getenv("HOME") .. "/.config/hypr")
+local launcher_bindings = dofile(hypr .. "/launcher-bindings.lua")
+launcher_bindings.begin_registration()
 
 -- 2880x1800 OLED at 1.6 = 1800x1125 logical, GDK_SCALE 2.
 hl.env("GDK_SCALE", "2")
@@ -118,6 +120,7 @@ local function app(command) return hl.dsp.exec_cmd("uwsm-app -- " .. command) en
 -- The launcher already lives inside Quickshell, so this only sends its toggle
 -- message. It gives each chosen app its own uwsm scope before disappearing.
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
+pcall(dofile, hypr .. "/launcher-voice.lua")
 -- Global clipboard history. Ctrl+Shift+V remains direct terminal paste.
 hl.bind("SUPER + V", hl.dsp.exec_cmd([[
   qs ipc call clipboard toggle "$(hyprctl activeworkspace -j | jq -r .monitor)"
@@ -217,3 +220,4 @@ dofile(hypr .. "/workspaces.lua")
 
 -- Fn row: brightness, keyboard backlight, volume, mic mute + LED, media keys.
 dofile(hypr .. "/media-keys.lua")
+launcher_bindings.end_registration()

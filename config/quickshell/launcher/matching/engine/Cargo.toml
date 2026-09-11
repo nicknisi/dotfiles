@@ -1,0 +1,24 @@
+[package]
+name = "keystroke-matching"
+version = "0.1.0"
+edition = "2021"
+description = "Resident local Model2Vec embeddings for Keystroke Smart Match: IDs and scores in, never actions"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "keystroke-matching"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+unicode-normalization = "0.1"
+unicode_categories = "0.1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

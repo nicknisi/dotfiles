@@ -35,7 +35,11 @@ ShellRoot {
     Notifications {}
     NotificationCenter {}
     ThemePicker {}
-    Launcher {}
+    Launcher { id: launcher }
+    VoxtypeOsd {
+        voice: launcher.launcherHost.voice
+        onVisibleChanged: if (visible) screen = launcher.targetScreen()
+    }
     ClipboardPicker {}
 
     // Refresh rate follows the charger. Global, not per-monitor: it drives the

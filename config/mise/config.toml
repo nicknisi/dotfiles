@@ -86,6 +86,7 @@ claude = "latest"
 "pacman:hyprsunset" = { version = "latest", os = "linux" }
 "pacman:imagemagick" = { version = "latest", os = "linux" }
 "pacman:libnotify" = { version = "latest", os = "linux" }
+"pacman:luajit" = { version = "latest", os = "linux" } # launcher helpers
 "pacman:nautilus" = { version = "latest", os = "linux" }
 "pacman:networkmanager" = { version = "latest", os = "linux" }
 "pacman:noto-fonts-emoji" = { version = "latest", os = "linux" }

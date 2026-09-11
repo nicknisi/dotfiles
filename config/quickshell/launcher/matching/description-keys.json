@@ -1,0 +1,2474 @@
+{
+  "menu:apps": {
+    "title": "Apps",
+    "key": "db3001cf13ee29d2144227fcbf5aedae"
+  },
+  "menu:learn": {
+    "title": "Learn",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:trigger": {
+    "title": "Trigger",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:style": {
+    "title": "Style",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:setup": {
+    "title": "Setup",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install": {
+    "title": "Install",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:remove": {
+    "title": "Remove",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:update": {
+    "title": "Update",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:about": {
+    "title": "About",
+    "key": "a02eddbfade09b24af16749a925572a9"
+  },
+  "menu:system": {
+    "title": "System",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:system.screensaver": {
+    "title": "Screensaver",
+    "key": "32f57b77b05687d44b20569f614da85d"
+  },
+  "menu:system.lock": {
+    "title": "Lock",
+    "key": "deb0fcfb724fe4ad50a827c2ad9e2073"
+  },
+  "menu:system.suspend": {
+    "title": "Suspend",
+    "key": "2ab9eebcf76a911f9c9618d0d5956712"
+  },
+  "menu:system.hibernate": {
+    "title": "Hibernate",
+    "key": "bfaf64ba11931fe50747cb89f6a1e735"
+  },
+  "menu:system.logout": {
+    "title": "Logout",
+    "key": "3f3e6bf250f2c7252e676bd3df89f727"
+  },
+  "menu:system.reboot": {
+    "title": "Reboot",
+    "key": "9260addcbfa86d74fd04136697a965d5"
+  },
+  "menu:system.shutdown": {
+    "title": "Shutdown",
+    "key": "d4bb13f9ad8ea61050e459a4d4fc3a24"
+  },
+  "menu:learn.keybindings": {
+    "title": "Keybindings",
+    "key": "49b831ee1a058521fb388267c2ce6583"
+  },
+  "menu:learn.omarchy": {
+    "title": "Omarchy",
+    "key": "db93efaf9d6342622eeb98a42e0642c9"
+  },
+  "menu:learn.hyprland": {
+    "title": "Hyprland",
+    "key": "1beacc608782ce607d28f1ecc6b58352"
+  },
+  "menu:learn.arch": {
+    "title": "Arch",
+    "key": "78dc5bd5ec9dde174f64b53275b4c28f"
+  },
+  "menu:learn.neovim": {
+    "title": "Neovim",
+    "key": "d4b181be6952ad5ae7c7f8a69dbe860e"
+  },
+  "menu:learn.bash": {
+    "title": "Bash",
+    "key": "aef773d10efd46851f4d1c0053f59417"
+  },
+  "menu:learn.tmux-keybindings": {
+    "title": "Tmux",
+    "key": "900f3673ac69fe2c2805c1e5aa8478c9"
+  },
+  "menu:learn.herdr-keybindings": {
+    "title": "Herdr",
+    "key": "961a027186122f9c516e748adfb5385e"
+  },
+  "menu:learn.community": {
+    "title": "Community",
+    "key": "cfade9ff67fc5707aa98f851b2ca1f5c"
+  },
+  "menu:trigger.emoji": {
+    "title": "Emoji",
+    "key": "3d1946f9fc1508af13cc91a613fe108a"
+  },
+  "menu:trigger.reminder": {
+    "title": "Reminder",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:trigger.capture": {
+    "title": "Capture",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:trigger.capture.screenshot": {
+    "title": "Screenshot",
+    "key": "7d3baefebf440724d2fa69fc3bcfcf5e"
+  },
+  "menu:trigger.capture.screenrecord.stop": {
+    "title": "Stop Screenrecording",
+    "key": "a3c9213026de1597f41f9355a32d67ff"
+  },
+  "menu:trigger.capture.screenrecord": {
+    "title": "Screenrecord",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:trigger.capture.text": {
+    "title": "Text",
+    "key": "cfdcc47d263995d4f747b494e6938266"
+  },
+  "menu:trigger.capture.qr": {
+    "title": "QR Code",
+    "key": "0583ea2e5b3423ad5354c6945c35273f"
+  },
+  "menu:trigger.capture.color": {
+    "title": "Color",
+    "key": "5848cb70c615ea1a224e08671ca7fb18"
+  },
+  "menu:trigger.capture.screenrecord.no-audio": {
+    "title": "With no audio",
+    "key": "e98118e6e688274e75d23dba73fbd0ba"
+  },
+  "menu:trigger.capture.screenrecord.desktop-audio": {
+    "title": "With desktop audio",
+    "key": "7c79470cfaca980fda3cacb90f1c0940"
+  },
+  "menu:trigger.capture.screenrecord.microphone": {
+    "title": "With desktop + microphone audio",
+    "key": "07aeaca7430a70c1d030d3d121ca3195"
+  },
+  "menu:trigger.capture.screenrecord.webcam": {
+    "title": "With desktop + microphone audio + webcam",
+    "key": "2a5c2fe2791b3b5e03e8f66b0b1f3c84"
+  },
+  "menu:trigger.transcode": {
+    "title": "Transcode",
+    "key": "690a4aa7e73f6b26196c83daf0c5c51e"
+  },
+  "menu:trigger.share": {
+    "title": "Share",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:trigger.toggle": {
+    "title": "Toggle",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:trigger.hardware": {
+    "title": "Hardware",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:trigger.tests": {
+    "title": "Speed Test",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:trigger.hardware.laptop-display": {
+    "title": "Laptop Display",
+    "key": "7cd5048681aebc9046e013f859b0b120"
+  },
+  "menu:trigger.hardware.mirror-display": {
+    "title": "Mirror Display",
+    "key": "79809512ab7cb6813df3e439e83e2468"
+  },
+  "menu:trigger.hardware.hybrid-gpu": {
+    "title": "Hybrid GPU",
+    "key": "1673aa135af6a4fe8f868813a31caa1e"
+  },
+  "menu:trigger.hardware.touchpad": {
+    "title": "Touchpad",
+    "key": "9f1a524e1569ea14f8cbe8a3504b6152"
+  },
+  "menu:trigger.hardware.touchpad-haptics": {
+    "title": "Touchpad Haptics",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:trigger.hardware.touchpad-haptics.low": {
+    "title": "low",
+    "key": "7180d70e190119bbf4fd7a7f569cf558"
+  },
+  "menu:trigger.hardware.touchpad-haptics.mid": {
+    "title": "mid",
+    "key": "2e4bc63e77bbebc9a7dd57a7dce5a000"
+  },
+  "menu:trigger.hardware.touchpad-haptics.high": {
+    "title": "high",
+    "key": "1e097ab665d73825deab7ac8082213f6"
+  },
+  "menu:trigger.hardware.touchscreen": {
+    "title": "Touchscreen",
+    "key": "6d52ae2cf71f53db5e909ebf87eea0c4"
+  },
+  "menu:trigger.reminder.set": {
+    "title": "Set one",
+    "key": "5da507824a0a1ee21167efb371a17923"
+  },
+  "menu:trigger.reminder.show": {
+    "title": "Show all",
+    "key": "cda5908bfbcd75819a315125e17f3483"
+  },
+  "menu:trigger.reminder.clear": {
+    "title": "Clear all",
+    "key": "b4cac90625a6aabdda91b148a69c1cfe"
+  },
+  "menu:trigger.share.clipboard": {
+    "title": "Clipboard",
+    "key": "ac25b94cbc83090b928fcddca799c0b8"
+  },
+  "menu:trigger.share.file": {
+    "title": "File",
+    "key": "846b9e8bb411065bde9aa0152c0a269f"
+  },
+  "menu:trigger.share.folder": {
+    "title": "Folder",
+    "key": "5343e852cec333cef496a6ea08f73d38"
+  },
+  "menu:trigger.share.receive": {
+    "title": "Receive",
+    "key": "3dfbcddd1ffca366d78a4d34b393b338"
+  },
+  "menu:trigger.toggle.idle-lock": {
+    "title": "Stay Awake",
+    "key": "292fd6abf7102f9e90a0e727181b7785"
+  },
+  "menu:trigger.toggle.notifications": {
+    "title": "Notifications",
+    "key": "936a1e9d2375477b964913de6823368b"
+  },
+  "menu:trigger.toggle.crash-capture": {
+    "title": "Crash Capture",
+    "key": "c7c2aea1c0aee0140ba7eccd22d7255d"
+  },
+  "menu:trigger.toggle.screensaver": {
+    "title": "Screensaver",
+    "key": "06127ef98cfb1f7819e0c5f5624f9dc9"
+  },
+  "menu:trigger.toggle.nightlight": {
+    "title": "Nightlight",
+    "key": "80fbed28bc4a6912432c9c3d4d1a6ece"
+  },
+  "menu:trigger.toggle.top-bar": {
+    "title": "Menu Bar",
+    "key": "27820a4c980fe14352d454a507acd4e2"
+  },
+  "menu:trigger.toggle.battery-percentage": {
+    "title": "Battery Percentage",
+    "key": "886c2f447ee43a2659c834b10003fe0b"
+  },
+  "menu:trigger.toggle.workspace-layout": {
+    "title": "Workspace Layout",
+    "key": "cd8d5ca0d1a2139989b70af4c123af46"
+  },
+  "menu:trigger.toggle.window-gaps": {
+    "title": "Window Gaps",
+    "key": "874f16f54e4b210f4f6ea2429a1eb9c9"
+  },
+  "menu:trigger.toggle.one-window-ratio": {
+    "title": "1-Window Ratio",
+    "key": "146a874384f50aceeb36ab52f45624d8"
+  },
+  "menu:trigger.tests.network-speedtest": {
+    "title": "Network Speed Test",
+    "key": "f1ca761d0af9623353bf6621bcdaef80"
+  },
+  "menu:trigger.tests.disk-speedtest": {
+    "title": "Disk Speed Test",
+    "key": "71f762a00c8adcdac18810eea4d52d1e"
+  },
+  "menu:style.theme": {
+    "title": "Theme",
+    "key": "cfd3a5e8e795798e2009e1c24ad3589a"
+  },
+  "menu:style.background": {
+    "title": "Background",
+    "key": "7b53cf698ee8ce9b4f3d369970611faf"
+  },
+  "menu:style.unlock": {
+    "title": "Unlock",
+    "key": "df68b9579a400528429a99c72a367451"
+  },
+  "menu:style.font": {
+    "title": "Font",
+    "key": "5b3cc37d9020020f5d3d3bea051aba39"
+  },
+  "menu:style.bar": {
+    "title": "Menu Bar",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:style.bar.position": {
+    "title": "Position",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:style.bar.transparency": {
+    "title": "Transparency",
+    "key": "5f604cdc6837a505b67d00539cd6aa2d"
+  },
+  "menu:style.hyprland": {
+    "title": "Hyprland",
+    "key": "36ca6dfe3330455a0b06f7a95261f562"
+  },
+  "menu:style.screensaver": {
+    "title": "Screensaver",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:style.about": {
+    "title": "About",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:style.bar.position.top": {
+    "title": "Top",
+    "key": "33b1dce602251624f8e442a516ae636f"
+  },
+  "menu:style.bar.position.bottom": {
+    "title": "Bottom",
+    "key": "eb64115bf629614ff7add561b9586756"
+  },
+  "menu:style.bar.position.left": {
+    "title": "Left",
+    "key": "f7dd4a23665709db76216aab2328a0db"
+  },
+  "menu:style.bar.position.right": {
+    "title": "Right",
+    "key": "16e2b47a15dac0d73454f5b74cabf943"
+  },
+  "menu:style.about.text": {
+    "title": "Edit Text",
+    "key": "9052dc5065c6feed28f99e6cb7b24e35"
+  },
+  "menu:style.about.image": {
+    "title": "Set From Image",
+    "key": "fecdef347374052e5f65a2208951088e"
+  },
+  "menu:style.about.default": {
+    "title": "Restore Default",
+    "key": "c571dffe895259d281474836da52dec2"
+  },
+  "menu:style.screensaver.text": {
+    "title": "Edit Text",
+    "key": "7372a2866c1cc5c586e1e3362cd8a5b5"
+  },
+  "menu:style.screensaver.image": {
+    "title": "Set From Image",
+    "key": "e7d9a98ec7552e160fb8c6eba01d90ab"
+  },
+  "menu:style.screensaver.default": {
+    "title": "Restore Default",
+    "key": "75316ac7b39c3a7838bf655bb56ff982"
+  },
+  "menu:setup.monitors": {
+    "title": "Monitors",
+    "key": "b81d07128e286fb9f9ba1887a980db62"
+  },
+  "menu:setup.keybindings": {
+    "title": "Keybindings",
+    "key": "ffaf136fe4c6f9e27f5ace69518fca09"
+  },
+  "menu:setup.input": {
+    "title": "Input",
+    "key": "826c7d6a78e22a3587c9bd0d12fef525"
+  },
+  "menu:setup.network": {
+    "title": "Network",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:setup.network.dns": {
+    "title": "DNS",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:setup.network.dns.dhcp": {
+    "title": "DHCP",
+    "key": "1529e5b7f51fbb47976f6930da468a02"
+  },
+  "menu:setup.network.dns.cloudflare": {
+    "title": "Cloudflare",
+    "key": "863c6080f7cdd7aa4317dff7af5e33c3"
+  },
+  "menu:setup.network.dns.google": {
+    "title": "Google",
+    "key": "ed0758c70d8b67bc500fefda55243472"
+  },
+  "menu:setup.network.dns.custom": {
+    "title": "Custom",
+    "key": "daaa34c8f0ab3f97344e7856961c60c5"
+  },
+  "menu:setup.network.qr": {
+    "title": "QR Code",
+    "key": "7e99f8fc1a8d65abef879e7c7924c659"
+  },
+  "menu:setup.default": {
+    "title": "Defaults",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:setup.default.agent": {
+    "title": "Agent",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:setup.default.agent.claude": {
+    "title": "Claude",
+    "key": "1e6204eae77cb467bd4490d58137418d"
+  },
+  "menu:setup.default.agent.codex": {
+    "title": "Codex",
+    "key": "4726aa7b00c9fd551075555be85e2fae"
+  },
+  "menu:setup.default.agent.copilot": {
+    "title": "Copilot",
+    "key": "e98939fe1e369eb7ec343decb393b974"
+  },
+  "menu:setup.default.agent.crush": {
+    "title": "Crush",
+    "key": "f21769a0ea75a3254fd21f0309890a80"
+  },
+  "menu:setup.default.agent.cursor-agent": {
+    "title": "Cursor CLI",
+    "key": "4d1e37d0f0334e17c1cc705b0d840724"
+  },
+  "menu:setup.default.agent.gemini": {
+    "title": "Gemini",
+    "key": "77569793f53481f0c41c38f4d9a22478"
+  },
+  "menu:setup.default.agent.grok": {
+    "title": "Grok",
+    "key": "461e1298100592ccc18295b1a9bdf325"
+  },
+  "menu:setup.default.agent.hermes": {
+    "title": "Hermes",
+    "key": "e43f0dcfd7eabbae487f5ee4d572ec3c"
+  },
+  "menu:setup.default.agent.muse": {
+    "title": "Muse Code",
+    "key": "7367231fb6dededb0ed332134175abad"
+  },
+  "menu:setup.default.agent.omp": {
+    "title": "omp",
+    "key": "080a0bc744fd502c77c68d28aa0806a2"
+  },
+  "menu:setup.default.agent.openclaw": {
+    "title": "OpenClaw",
+    "key": "8ca9b40e676eccad9a202ce13e92c253"
+  },
+  "menu:setup.default.agent.opencode": {
+    "title": "OpenCode",
+    "key": "cf801c5672a00ce40074428b8555f95f"
+  },
+  "menu:setup.default.agent.pi": {
+    "title": "Pi",
+    "key": "359724edbad3a74e7dc60140219991d1"
+  },
+  "menu:setup.default.browser": {
+    "title": "Browser",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:setup.default.browser.chromium": {
+    "title": "Chromium",
+    "key": "56f5cf0745ae7dc4c9bf4aa742d5d66f"
+  },
+  "menu:setup.default.browser.chrome": {
+    "title": "Chrome",
+    "key": "6334b7f80a9ba73b5e64d665930a13b9"
+  },
+  "menu:setup.default.browser.brave": {
+    "title": "Brave",
+    "key": "af6b192b2db98001a2815110b70f7523"
+  },
+  "menu:setup.default.browser.brave-origin": {
+    "title": "Brave Origin",
+    "key": "0a283553d3d886253b1eae1d3dc2f1c2"
+  },
+  "menu:setup.default.browser.edge": {
+    "title": "Edge",
+    "key": "31e5ee935ff5092453ff176adc5d6184"
+  },
+  "menu:setup.default.browser.firefox": {
+    "title": "Firefox",
+    "key": "58b3906958b2306a29c641439ec1fb97"
+  },
+  "menu:setup.default.browser.zen": {
+    "title": "Zen",
+    "key": "4afee195c75fc2d343eb4f85f52557fe"
+  },
+  "menu:setup.default.terminal": {
+    "title": "Terminal",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:setup.default.terminal.alacritty": {
+    "title": "Alacritty",
+    "key": "97e835871997f4e8d6413af3e8c22435"
+  },
+  "menu:setup.default.terminal.foot": {
+    "title": "Foot",
+    "key": "dd1dad43b1ed2911b8246e137ef336d7"
+  },
+  "menu:setup.default.terminal.ghostty": {
+    "title": "Ghostty",
+    "key": "54f31c9fcc4e355cec759dfe3ce9dc74"
+  },
+  "menu:setup.default.terminal.kitty": {
+    "title": "Kitty",
+    "key": "a2d554ddae7fd1c82c521024b9d2b1af"
+  },
+  "menu:setup.default.editor": {
+    "title": "Editor",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:setup.default.editor.neovim": {
+    "title": "Neovim",
+    "key": "d2f306a441374e313a4e4e653577078e"
+  },
+  "menu:setup.default.editor.vscode": {
+    "title": "VSCode",
+    "key": "025ba578aa1dcd1d61ad1721d79d6e73"
+  },
+  "menu:setup.default.editor.cursor": {
+    "title": "Cursor",
+    "key": "12dd75fbd9ff481c2e1816251361b5d6"
+  },
+  "menu:setup.default.editor.zed": {
+    "title": "Zed",
+    "key": "f1fa34ccd2290db815cc54f1ce4621a8"
+  },
+  "menu:setup.default.editor.sublime": {
+    "title": "Sublime Text",
+    "key": "c23e96595464746ad519905b36b6815b"
+  },
+  "menu:setup.default.editor.helix": {
+    "title": "Helix",
+    "key": "187bdb8e1651fe28d1b9517224b3b5c9"
+  },
+  "menu:setup.default.editor.vim": {
+    "title": "Vim",
+    "key": "c3829f9de68fd854583ddad84698ca5c"
+  },
+  "menu:setup.default.editor.emacs": {
+    "title": "Emacs",
+    "key": "5bd07ad89114c5819f451ff94cf74358"
+  },
+  "menu:setup.plugin": {
+    "title": "Plugins",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:setup.plugin.enable": {
+    "title": "Enable Plugin",
+    "key": "5654bf3c8b2540eddc9fe13dc533d02b"
+  },
+  "menu:setup.plugin.disable": {
+    "title": "Disable Plugin",
+    "key": "5016f5e7fa96bf8cb81bafbf4489a297"
+  },
+  "menu:setup.plugin.add": {
+    "title": "Add Plugin",
+    "key": "06736f40ccfc25e6ca4363bcc289c4e6"
+  },
+  "menu:setup.plugin.clone": {
+    "title": "Clone Plugin",
+    "key": "468bc80ffee4395f15e7a1f21b855b62"
+  },
+  "menu:setup.plugin.remove": {
+    "title": "Remove Plugin",
+    "key": "6522029a7e54a4bb93472da434657351"
+  },
+  "menu:setup.security": {
+    "title": "Security",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:setup.config": {
+    "title": "Config",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:setup.security.fingerprint": {
+    "title": "Fingerprint",
+    "key": "9ba453f17ac17e49f9a03dade27cd4bf"
+  },
+  "menu:setup.security.fido2": {
+    "title": "Fido2",
+    "key": "c6b2a3e8de910d2d75ff27119ffae1bb"
+  },
+  "menu:setup.security.sshd": {
+    "title": "SSHD",
+    "key": "ed6899bec5a12e4dd1436220946570ff"
+  },
+  "menu:setup.security.passwordless-sudo": {
+    "title": "Passwordless Sudo",
+    "key": "8c1f36fea19d7f14224e97af4ed74da3"
+  },
+  "menu:setup.security.sudoless-docker": {
+    "title": "Sudoless Docker",
+    "key": "d423f7fc0e16c5dd0e3b072fe5d159fa"
+  },
+  "menu:setup.config.hyprland": {
+    "title": "Hyprland",
+    "key": "78661f98e5e9f1cd1325d8aab6bfd29a"
+  },
+  "menu:setup.config.hyprsunset": {
+    "title": "Hyprsunset",
+    "key": "622c179fd815017c131d3f8a7aa1171d"
+  },
+  "menu:setup.config.xcompose": {
+    "title": "XCompose",
+    "key": "1e67a5f30ecda414efcf6506f0dd668c"
+  },
+  "menu:setup.direct-boot": {
+    "title": "Direct Boot",
+    "key": "918f105e611303e0d335b3b5d60eaff3"
+  },
+  "menu:setup.reset": {
+    "title": "Reset Computer",
+    "key": "9bbaa8c7bdd5c523cccacbf676ad6713"
+  },
+  "menu:install.package": {
+    "title": "Package",
+    "key": "62dbe50702789f19b6e3455f20210066"
+  },
+  "menu:install.aur": {
+    "title": "AUR",
+    "key": "1c1f5e4d46028025ffc96e8ebc0d487f"
+  },
+  "menu:install.webapp": {
+    "title": "Web App",
+    "key": "0ace6ddc513b529a089c22398878e95f"
+  },
+  "menu:install.tui": {
+    "title": "TUI",
+    "key": "8a902be840b835c8372902d74ab3c7c6"
+  },
+  "menu:install.style": {
+    "title": "Style",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.style.theme": {
+    "title": "Theme",
+    "key": "1b3671206da43c87ad01508b18ebf824"
+  },
+  "menu:install.style.background": {
+    "title": "Background",
+    "key": "103dd4e85d3f40e2b19196505714b502"
+  },
+  "menu:install.style.font": {
+    "title": "Font",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.style.font.cascadia": {
+    "title": "Cascadia Mono",
+    "key": "71b8aba144a8b459869fa4c7c786f693"
+  },
+  "menu:install.style.font.meslo": {
+    "title": "Meslo LG Mono",
+    "key": "1e990bc00e293402e2958bc6e0c19ca8"
+  },
+  "menu:install.style.font.fira": {
+    "title": "Fira Code",
+    "key": "909364996142273905c132a69a0d193e"
+  },
+  "menu:install.style.font.victor": {
+    "title": "Victor Code",
+    "key": "22c16cb8a0ace59e843f77da5af0c433"
+  },
+  "menu:install.style.font.bitstream": {
+    "title": "Bitstream Vera Mono",
+    "key": "e06a52cc9a9a4a546d16bf084de3eaad"
+  },
+  "menu:install.style.font.iosevka": {
+    "title": "Iosevka",
+    "key": "99bd3de46eebf3559c0b380599400749"
+  },
+  "menu:install.service": {
+    "title": "Service",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.development": {
+    "title": "Development",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.editor": {
+    "title": "Editor",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.terminal": {
+    "title": "Terminal",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.browser": {
+    "title": "Browser",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.ai": {
+    "title": "AI",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.gaming": {
+    "title": "Gaming",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.windows": {
+    "title": "Windows",
+    "key": "e48b790351a18d3ef84bd13df23482b9"
+  },
+  "menu:install.preinstalls": {
+    "title": "Preinstalls",
+    "key": "67a888cf5b0d0e6c557d0c178ceb26f2"
+  },
+  "menu:install.browser.chrome": {
+    "title": "Chrome",
+    "key": "0614f71500810850887609ed7c6c677f"
+  },
+  "menu:install.browser.edge": {
+    "title": "Edge",
+    "key": "bb89a687935c11339ea4f6ea6d4e8db7"
+  },
+  "menu:install.browser.brave": {
+    "title": "Brave",
+    "key": "ccd000e37c33ed300b7b06a421a37a29"
+  },
+  "menu:install.browser.brave-origin": {
+    "title": "Brave Origin",
+    "key": "8eed135c532bc091b736d82ac30d1263"
+  },
+  "menu:install.browser.firefox": {
+    "title": "Firefox",
+    "key": "a95c5e7f788fe42ba5c7458fa998df1f"
+  },
+  "menu:install.browser.zen": {
+    "title": "Zen",
+    "key": "b0b441b50fe0fa2e8f401e886d41a5ff"
+  },
+  "menu:install.service.1password": {
+    "title": "1Password",
+    "key": "8c1932f70655a4f3e166d4f1d5ce9d73"
+  },
+  "menu:install.service.dropbox": {
+    "title": "Dropbox",
+    "key": "3dfae9dcf46ef08d66ac8dde6ee61410"
+  },
+  "menu:install.service.spotify": {
+    "title": "Spotify",
+    "key": "db608bde30be89f092e958de9ff5eed2"
+  },
+  "menu:install.service.signal": {
+    "title": "Signal",
+    "key": "36dafc3f2ccfd6388c5ed8e3261000a8"
+  },
+  "menu:install.service.tailscale": {
+    "title": "Tailscale",
+    "key": "9026f0aa6b24227637e1ef01a1fd146c"
+  },
+  "menu:install.service.nordvpn": {
+    "title": "NordVPN",
+    "key": "ea46b8324ee151852517883781c0619a"
+  },
+  "menu:install.service.once": {
+    "title": "ONCE",
+    "key": "be2f9ce92c42e160ddb8dcc446bac584"
+  },
+  "menu:install.service.bitwarden": {
+    "title": "Bitwarden",
+    "key": "4879103ccbedd6634b89961fb8a1f1bf"
+  },
+  "menu:install.service.chromium-account": {
+    "title": "Chromium Account",
+    "key": "081afc044d4b2183e0f108d4a74cc40f"
+  },
+  "menu:install.editor.vscode": {
+    "title": "VSCode",
+    "key": "db2b9c6731561f6cd6be7d8f472daa79"
+  },
+  "menu:install.editor.cursor": {
+    "title": "Cursor",
+    "key": "c3531fea4e9503a7aea5c75736b8824e"
+  },
+  "menu:install.editor.zed": {
+    "title": "Zed",
+    "key": "940c99a87b9bde404f8fcc8e94d48c80"
+  },
+  "menu:install.editor.sublime": {
+    "title": "Sublime Text",
+    "key": "c2519ea2a2658fc6d0cd51cd72e1407a"
+  },
+  "menu:install.editor.helix": {
+    "title": "Helix",
+    "key": "9a9d0e974ceeb5672dbb2e4c967158e8"
+  },
+  "menu:install.editor.vim": {
+    "title": "Vim",
+    "key": "92e956f0d6066172c71a23942425723a"
+  },
+  "menu:install.editor.emacs": {
+    "title": "Emacs",
+    "key": "0a86dc3a078909e5995b18a9fe93754e"
+  },
+  "menu:install.terminal.alacritty": {
+    "title": "Alacritty",
+    "key": "b69452e9fb9dcb2a079d7c39ae94558f"
+  },
+  "menu:install.terminal.foot": {
+    "title": "Foot",
+    "key": "750e07880e442f9910cd491fe3b03bc2"
+  },
+  "menu:install.terminal.ghostty": {
+    "title": "Ghostty",
+    "key": "94efa7e8e512e167569e018c79183a6b"
+  },
+  "menu:install.terminal.kitty": {
+    "title": "Kitty",
+    "key": "cb2431d50640a086b6c532d61c060f03"
+  },
+  "menu:install.ai.chatgpt": {
+    "title": "ChatGPT Desktop",
+    "key": "0a0e3c1a1bf2ae0ab4b8885b2264ad27"
+  },
+  "menu:install.ai.dictation": {
+    "title": "Dictation",
+    "key": "c19b866b26045535555efc9ccf95df34"
+  },
+  "menu:install.ai.grok-bot": {
+    "title": "Grok Bot",
+    "key": "2c054ebec534dc8e9db42ce948efa2c1"
+  },
+  "menu:install.ai.lm-studio": {
+    "title": "LM Studio",
+    "key": "a71e3b4bbcae9de2eee9c94e66d70b7f"
+  },
+  "menu:install.ai.ollama": {
+    "title": "Ollama",
+    "key": "22d9b5904e6dbcebd8cd3becaadc7afb"
+  },
+  "menu:install.ai.t3-code": {
+    "title": "T3 Code",
+    "key": "b31f37b3ef666d9334f342116d94a9ac"
+  },
+  "menu:install.ai.hermes": {
+    "title": "Hermes Desktop",
+    "key": "cc80640ab045f39988fc99c7b349a209"
+  },
+  "menu:install.ai.openclaw": {
+    "title": "OpenClaw",
+    "key": "e0560811341899baa2023cdd378a724c"
+  },
+  "menu:install.ai.perplexity": {
+    "title": "Perplexity",
+    "key": "f4fed88b221e430b22270511b52d4e5b"
+  },
+  "menu:install.gaming.steam": {
+    "title": "Steam",
+    "key": "92cd1cb1dab60b856a625240ed686f6e"
+  },
+  "menu:install.gaming.retroarch": {
+    "title": "RetroArch",
+    "key": "57d61c0a5127159e7f15562d6b4da905"
+  },
+  "menu:install.gaming.minecraft": {
+    "title": "Minecraft",
+    "key": "12227661f8afc505e5f6866e43bf6a1f"
+  },
+  "menu:install.gaming.geforce-now": {
+    "title": "NVIDIA GeForce NOW",
+    "key": "156440b5a80b2cd09d32cd969967c673"
+  },
+  "menu:install.gaming.xbox-cloud": {
+    "title": "Xbox Cloud Gaming",
+    "key": "326850fcf477fb25b2a2918cb473bea6"
+  },
+  "menu:install.gaming.xbox-controllers": {
+    "title": "Xbox Controllers",
+    "key": "24d95ea856a1c2c818bd93cf4568f398"
+  },
+  "menu:install.gaming.battlenet": {
+    "title": "Battle.net",
+    "key": "c72dc7a1ae780fb64fa2ebaa409731e5"
+  },
+  "menu:install.gaming.lutris": {
+    "title": "Lutris",
+    "key": "73b8bd4042caf57c58cee0c62e13b890"
+  },
+  "menu:install.gaming.heroic": {
+    "title": "Heroic (Epic Games)",
+    "key": "f416ac20794c91cab5a3a3bd482216d0"
+  },
+  "menu:install.gaming.retro-launcher": {
+    "title": "RetroArch Game Launcher",
+    "key": "08cc8cb0d4574d02d51a1d3538c6ff51"
+  },
+  "menu:install.development.rails": {
+    "title": "Ruby on Rails",
+    "key": "3243e2696ebfffd61c8f5a0d0ab674ee"
+  },
+  "menu:install.development.docker-dbs": {
+    "title": "Docker DB",
+    "key": "0f5be119d7e8b3f52d025b52446f314e"
+  },
+  "menu:install.development.javascript": {
+    "title": "JavaScript",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.development.go": {
+    "title": "Go",
+    "key": "67f3a0e9102ff4362316de2f8ee18494"
+  },
+  "menu:install.development.php": {
+    "title": "PHP",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.development.python": {
+    "title": "Python",
+    "key": "d94887c85aa35b5829b088f2058432d8"
+  },
+  "menu:install.development.elixir": {
+    "title": "Elixir",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:install.development.zig": {
+    "title": "Zig",
+    "key": "bc82806fa50680e4aa451ba241da3427"
+  },
+  "menu:install.development.rust": {
+    "title": "Rust",
+    "key": "cfb9a4094258baa214f8feb562143716"
+  },
+  "menu:install.development.java": {
+    "title": "Java",
+    "key": "3d60fd5ff0bdae510ee45718292769a4"
+  },
+  "menu:install.development.dotnet": {
+    "title": ".NET",
+    "key": "22c0a0d471eb1c523f1f69b23475bfab"
+  },
+  "menu:install.development.ocaml": {
+    "title": "OCaml",
+    "key": "c97b3b1e9d65818baacb0228b75df7c2"
+  },
+  "menu:install.development.clojure": {
+    "title": "Clojure",
+    "key": "76ed5571fd1ac3e51f60df565a2ecb93"
+  },
+  "menu:install.development.scala": {
+    "title": "Scala",
+    "key": "3fd667b9741f45518aa0220a9acfc7f0"
+  },
+  "menu:install.development.javascript.node": {
+    "title": "Node.js",
+    "key": "fa3cee9c19ca054bd01a6647c6ec0d71"
+  },
+  "menu:install.development.javascript.bun": {
+    "title": "Bun",
+    "key": "d5d813edd8db627d182f8e60cf193b37"
+  },
+  "menu:install.development.javascript.deno": {
+    "title": "Deno",
+    "key": "ae56631735159bdfb2715463cdc08ee7"
+  },
+  "menu:install.development.php.php": {
+    "title": "PHP",
+    "key": "519543041ed9a3792355f8ee21bc9eb7"
+  },
+  "menu:install.development.php.laravel": {
+    "title": "Laravel",
+    "key": "558af81b74c931c7f6e3c78419f73d68"
+  },
+  "menu:install.development.php.symfony": {
+    "title": "Symfony",
+    "key": "f3b5dfa658f246ec924f7cc33a4bb04a"
+  },
+  "menu:install.development.elixir.elixir": {
+    "title": "Elixir",
+    "key": "5c1393d2510f8a68901fbad107847ad4"
+  },
+  "menu:install.development.elixir.phoenix": {
+    "title": "Phoenix",
+    "key": "9d65ba6d08ae8ffa02dab974c0f4350d"
+  },
+  "menu:remove.package": {
+    "title": "Package",
+    "key": "12cc456d132e209186d0d2727a458d45"
+  },
+  "menu:remove.webapp": {
+    "title": "Web App",
+    "key": "820d20791c3d8db5e21aed7f9e7b22c7"
+  },
+  "menu:remove.tui": {
+    "title": "TUI",
+    "key": "a1e7e15073351a20e6d8c980195be138"
+  },
+  "menu:remove.development": {
+    "title": "Development",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:remove.theme": {
+    "title": "Theme",
+    "key": "3c1491b568df1940a79c40318cfb4813"
+  },
+  "menu:remove.browser": {
+    "title": "Browser",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:remove.dictation": {
+    "title": "Dictation",
+    "key": "895ddbfd9b57c6d3b4d835e79776b284"
+  },
+  "menu:remove.gaming": {
+    "title": "Gaming",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:remove.service": {
+    "title": "Services",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:remove.windows": {
+    "title": "Windows",
+    "key": "94838b9a1ca5fed1626239ba229d25f7"
+  },
+  "menu:remove.preinstalls": {
+    "title": "Preinstalls",
+    "key": "8c025244556e15c6e6a94c4232a44540"
+  },
+  "menu:remove.security": {
+    "title": "Security",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:remove.security.fingerprint": {
+    "title": "Fingerprint",
+    "key": "95dc66e2d383543671fe575db834f0c0"
+  },
+  "menu:remove.security.fido2": {
+    "title": "Fido2",
+    "key": "890eb16edcebf794759b7b8f4f287ebd"
+  },
+  "menu:remove.security.sshd": {
+    "title": "SSHD",
+    "key": "7901260da369c3d1bc8bb73ccf9a728c"
+  },
+  "menu:remove.security.sudoless-docker": {
+    "title": "Sudoless Docker",
+    "key": "81e4e112fc2dae4db3d6055d2ce12715"
+  },
+  "menu:remove.ai.hermes": {
+    "title": "Hermes Desktop",
+    "key": "58373d23e02636b3e721f5451d2e751f"
+  },
+  "menu:remove.browser.chrome": {
+    "title": "Chrome",
+    "key": "a4ebf03f8da6e8f107aea6c5248c0557"
+  },
+  "menu:remove.browser.edge": {
+    "title": "Edge",
+    "key": "5dd535bff60b79c52f3a80e70f70dcf8"
+  },
+  "menu:remove.browser.brave": {
+    "title": "Brave",
+    "key": "741f850bb61529a5727df0b4b1307869"
+  },
+  "menu:remove.browser.brave-origin": {
+    "title": "Brave Origin",
+    "key": "5bf9358a328e996983209f763b9439ac"
+  },
+  "menu:remove.browser.firefox": {
+    "title": "Firefox",
+    "key": "5ecf0ec8c5d3592c7834e731f575097d"
+  },
+  "menu:remove.browser.zen": {
+    "title": "Zen",
+    "key": "4c6d3f58f67f584345d04e26be4c4338"
+  },
+  "menu:remove.service.dropbox": {
+    "title": "Dropbox",
+    "key": "df84bc3f9cfbc55933163abbadffcb93"
+  },
+  "menu:remove.service.tailscale": {
+    "title": "Tailscale",
+    "key": "21351ec389035861339a4aaa80e74279"
+  },
+  "menu:remove.gaming.steam": {
+    "title": "Steam",
+    "key": "10676746de0ba39e4aeed92c90b62385"
+  },
+  "menu:remove.gaming.retroarch": {
+    "title": "RetroArch",
+    "key": "4055d115e2f38f0acbbdf7d132fd3acf"
+  },
+  "menu:remove.gaming.minecraft": {
+    "title": "Minecraft",
+    "key": "1df3d95a3bc64efa9d4f23afda8656c7"
+  },
+  "menu:remove.gaming.geforce-now": {
+    "title": "NVIDIA GeForce NOW",
+    "key": "391cab06447043dac6294fd345acb562"
+  },
+  "menu:remove.gaming.xbox-cloud": {
+    "title": "Xbox Cloud Gaming",
+    "key": "a2779cf4b0b26a4f7267791ee3dc05ed"
+  },
+  "menu:remove.gaming.xbox-controllers": {
+    "title": "Xbox Controllers (󰂯)",
+    "key": "e6f8c557152a28f02ebabb4f54d16fed"
+  },
+  "menu:remove.gaming.battlenet": {
+    "title": "Battle.net",
+    "key": "a8881bbab8e220428475291fd79a029a"
+  },
+  "menu:remove.gaming.lutris": {
+    "title": "Lutris",
+    "key": "8b2f5c0bb11eedc5e9922631cd7496f4"
+  },
+  "menu:remove.gaming.heroic": {
+    "title": "Heroic (Epic Games)",
+    "key": "16b91444c85181a0419a76f5ebe1a0a8"
+  },
+  "menu:remove.development.rails": {
+    "title": "Ruby on Rails",
+    "key": "3e4afaaf64f33537c50b6f4baf0000e0"
+  },
+  "menu:remove.development.javascript": {
+    "title": "JavaScript",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:remove.development.go": {
+    "title": "Go",
+    "key": "43399dd282ac6240eae3db9f1f701431"
+  },
+  "menu:remove.development.php": {
+    "title": "PHP",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:remove.development.python": {
+    "title": "Python",
+    "key": "7453cf82b8be89b81449d1056d12af3f"
+  },
+  "menu:remove.development.elixir": {
+    "title": "Elixir",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:remove.development.zig": {
+    "title": "Zig",
+    "key": "3c8ebb68c46dfc0034c4d167a1250b83"
+  },
+  "menu:remove.development.rust": {
+    "title": "Rust",
+    "key": "f64a64940f6f2a43cbcb2748d93e1cb9"
+  },
+  "menu:remove.development.java": {
+    "title": "Java",
+    "key": "3d20b666e69ad6708b496126452fa6dc"
+  },
+  "menu:remove.development.dotnet": {
+    "title": ".NET",
+    "key": "15c2d8d422bb66089191d5e73a9634c5"
+  },
+  "menu:remove.development.ocaml": {
+    "title": "OCaml",
+    "key": "476c40c4f8e3e79e98c426fa787d702b"
+  },
+  "menu:remove.development.clojure": {
+    "title": "Clojure",
+    "key": "b21f9f2095c04e4611c59a78290519da"
+  },
+  "menu:remove.development.scala": {
+    "title": "Scala",
+    "key": "857fc9d065f2dca19875f65d0686633f"
+  },
+  "menu:remove.development.javascript.node": {
+    "title": "Node.js",
+    "key": "0b45d8c1dcd952e7ad2cee2f34003773"
+  },
+  "menu:remove.development.javascript.bun": {
+    "title": "Bun",
+    "key": "1630a6dc240316e41d703d5871bd84b8"
+  },
+  "menu:remove.development.javascript.deno": {
+    "title": "Deno",
+    "key": "0c0342810b9d94c61b61532e206f9c65"
+  },
+  "menu:remove.development.php.php": {
+    "title": "PHP",
+    "key": "898ff8ef5b796bf38677371efd0b6b47"
+  },
+  "menu:remove.development.php.laravel": {
+    "title": "Laravel",
+    "key": "78446ce536d5889e29bc2a1060b1105c"
+  },
+  "menu:remove.development.php.symfony": {
+    "title": "Symfony",
+    "key": "c3ce1c026630156b1bcf2c5349bc6f26"
+  },
+  "menu:remove.development.elixir.elixir": {
+    "title": "Elixir",
+    "key": "a16664be61443e33e40cef22cd35cd64"
+  },
+  "menu:remove.development.elixir.phoenix": {
+    "title": "Phoenix",
+    "key": "269795c4adfbb305f83609b4145146a9"
+  },
+  "menu:remove.ai": {
+    "title": "AI",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:remove.ai.t3-code": {
+    "title": "T3 Code",
+    "key": "27127362336b93557eabe37e7e251513"
+  },
+  "menu:remove.ai.openclaw": {
+    "title": "OpenClaw",
+    "key": "59df9e4047d9e05f5be768c61680fa96"
+  },
+  "menu:remove.ai.perplexity": {
+    "title": "Perplexity",
+    "key": "2aebb12e10d77c1b88db22e17aef0f55"
+  },
+  "menu:update.omarchy": {
+    "title": "Omarchy",
+    "key": "f8aeb174d9575483c05a4a9cde198a45"
+  },
+  "menu:update.channel": {
+    "title": "Channel",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:update.config": {
+    "title": "Config",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:update.themes": {
+    "title": "Extra Themes",
+    "key": "26fc393bba046833f1602303d2207951"
+  },
+  "menu:update.process": {
+    "title": "Process",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:update.hardware": {
+    "title": "Hardware",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:update.firmware": {
+    "title": "Firmware",
+    "key": "2a7fcfd3e10a88609f950b06c2d56621"
+  },
+  "menu:update.password": {
+    "title": "Password",
+    "key": "2e6f2bd5dba2282bb662ac46923808ce"
+  },
+  "menu:update.timezone": {
+    "title": "Timezone",
+    "key": "45d619173065e699c4b77e2221875fde"
+  },
+  "menu:update.time": {
+    "title": "Time",
+    "key": "f509a65f0182ae1a83009af413041528"
+  },
+  "menu:update.channel.stable": {
+    "title": "Stable",
+    "key": "fcd8bda897cc9a7ecb2131656d8335dc"
+  },
+  "menu:update.channel.rc": {
+    "title": "RC",
+    "key": "9f0612ae8e45f23f6a5671819225236d"
+  },
+  "menu:update.channel.edge": {
+    "title": "Edge",
+    "key": "85ee4b28fea42cf889eed284d110f6f3"
+  },
+  "menu:update.channel.dev": {
+    "title": "Dev",
+    "key": "0e94bf5ed3a3bea03b7344a430861113"
+  },
+  "menu:update.process.hyprsunset": {
+    "title": "Hyprsunset",
+    "key": "be1977af1f355eac7c63db71dbbbd5bd"
+  },
+  "menu:update.process.shell": {
+    "title": "Shell",
+    "key": "e4aed17cbb73ba9973755d445cd14856"
+  },
+  "menu:update.config.hyprland": {
+    "title": "Hyprland",
+    "key": "faea6b0e7614f7abcc3b0c6b7a83b7ca"
+  },
+  "menu:update.config.hyprsunset": {
+    "title": "Hyprsunset",
+    "key": "88fe5135dfc535fc4f3af1485e991f66"
+  },
+  "menu:update.config.plymouth": {
+    "title": "Plymouth",
+    "key": "12fa9f59e4a3cdedc57c3b08c0c0a785"
+  },
+  "menu:update.config.tmux": {
+    "title": "Tmux",
+    "key": "0b2312f136408551f89653ffa98ed988"
+  },
+  "menu:update.config.shell": {
+    "title": "Shell",
+    "key": "2043e8c453e75b7be95be925456cbead"
+  },
+  "menu:update.hardware.audio": {
+    "title": "Audio",
+    "key": "e264f298f266cef3c6355becfefe7e21"
+  },
+  "menu:update.hardware.wifi": {
+    "title": "Wi-Fi",
+    "key": "c20c9bf614543a7b219912a4e00a15d2"
+  },
+  "menu:update.hardware.bluetooth": {
+    "title": "Bluetooth",
+    "key": "de64960c7ee352e3def5d44ff6bb8386"
+  },
+  "menu:update.hardware.trackpad": {
+    "title": "Trackpad",
+    "key": "6ae997aa94512c7532df4ac8b7bd904f"
+  },
+  "menu:update.password.drive": {
+    "title": "Drive Encryption",
+    "key": "ebd6095c62b7c90dd792005ac57c3965"
+  },
+  "menu:update.password.user": {
+    "title": "User",
+    "key": "260615cf271bd9d029ae94c2f457781b"
+  },
+  "app:Alacritty.desktop": {
+    "title": "Alacritty",
+    "key": "6ca94e8bfd17a759cfe8590f5fca0062"
+  },
+  "app:Basecamp.desktop": {
+    "title": "Basecamp",
+    "key": "1d2730e6d7b7169e6d59a0f6acfcb2ce"
+  },
+  "app:ChatGPT.desktop": {
+    "title": "ChatGPT",
+    "key": "62239e6c0f995ae1fdc00d18b7905eac"
+  },
+  "app:Claude.desktop": {
+    "title": "Claude",
+    "key": "892ea6abc9dfd41e8af50ff55705e9f4"
+  },
+  "app:Discord.desktop": {
+    "title": "Discord",
+    "key": "8f5cc6430613f1c12f36965050bb7197"
+  },
+  "app:Disk Usage.desktop": {
+    "title": "Disk Usage",
+    "key": "cbeb07a3542ba2feb12f202cd240756d"
+  },
+  "app:Docker.desktop": {
+    "title": "Docker",
+    "key": "c5fd214cdd0d2b3b4272e73b022ba5c2"
+  },
+  "app:Figma.desktop": {
+    "title": "Figma",
+    "key": "a86fc3430821f57f16c0c8b000acf401"
+  },
+  "app:Fizzy.desktop": {
+    "title": "Fizzy",
+    "key": "42386604a226eb100a7d0e47fbaf3c0d"
+  },
+  "app:GitHub.desktop": {
+    "title": "GitHub",
+    "key": "d3b7c913cd04ebfec0e9ec32cb6fd58c"
+  },
+  "app:Google Contacts.desktop": {
+    "title": "Google Contacts",
+    "key": "3e1506e175c9ab253188741fed4acbc0"
+  },
+  "app:Google Maps.desktop": {
+    "title": "Google Maps",
+    "key": "4d60ab2c6d11d753267484006c23e54c"
+  },
+  "app:Google Messages.desktop": {
+    "title": "Google Messages",
+    "key": "c40064002d4fc1be952ce534d445e5a2"
+  },
+  "app:Google Photos.desktop": {
+    "title": "Google Photos",
+    "key": "39904b13c9433462b2148e4d154f5fb8"
+  },
+  "app:HEY.desktop": {
+    "title": "HEY",
+    "key": "e2a481b23995361f592d911698e51089"
+  },
+  "app:Jisho.desktop": {
+    "title": "Jisho",
+    "key": "5ecd4ebc87d948526d8b7082151698ef"
+  },
+  "app:WhatsApp.desktop": {
+    "title": "WhatsApp",
+    "key": "8b777ebcc5034ce0fe96dd154bcb370e"
+  },
+  "app:X.desktop": {
+    "title": "X",
+    "key": "02129bb861061d1a052c592e2dc6b383"
+  },
+  "app:YT Music.desktop": {
+    "title": "YT Music",
+    "key": "49e815ad557f2d7fec5d168699d2e3e9"
+  },
+  "app:YouTube.desktop": {
+    "title": "YouTube",
+    "key": "8dd1bae8da2e2408210d0656fbe6b7d1"
+  },
+  "app:Zoom.desktop": {
+    "title": "Zoom",
+    "key": "4252b72e6ebcd4d4b4c2e46a786f03d2"
+  },
+  "app:appimagekit_544f4561b87c191f52a9d8733960ee07-Standard_Notes.desktop": {
+    "title": "Standard Notes (3.201.27)",
+    "key": "6cccc97dddca17c619a7ca0999e86266"
+  },
+  "app:appimagekit_93450e38f760c1378a5a0e17fa17a5ed-Siril.desktop": {
+    "title": "Siril (0516004)",
+    "key": "d53d5ba7a9ff2bd418b9eb25db03d36a"
+  },
+  "app:appimagekit_a6ee4f43bb742cef5a19d4de474dc15e-Logseq.desktop": {
+    "title": "Logseq (0.10.15)",
+    "key": "35ac3e8da36933174a9a84040480d498"
+  },
+  "app:foot.desktop": {
+    "title": "Foot",
+    "key": "129e74dde7b475c8848310e16754c965"
+  },
+  "app:imv.desktop": {
+    "title": "Image Viewer",
+    "key": "f008def69fa03e618d7fc632ca720c08"
+  },
+  "app:mpv.desktop": {
+    "title": "Media Player",
+    "key": "d34bea29f24af9fde2e10b3e1d857cf9"
+  },
+  "app:typora.desktop": {
+    "title": "Typora",
+    "key": "ba587e0617f576a7701c8ec6cc84d175"
+  },
+  "app:unsloth-studio.desktop": {
+    "title": "Unsloth Studio",
+    "key": "f93aeedeb1382d863e098e185e4208c0"
+  },
+  "app:windows-vm.desktop": {
+    "title": "Windows",
+    "key": "aea23489ce3aa9b6406ebb28e0cda430"
+  },
+  "app:1password.desktop": {
+    "title": "1Password",
+    "key": "c6820f1a07b1c44badcede218454bd2c"
+  },
+  "app:ART.desktop": {
+    "title": "ART",
+    "key": "cf9cae9dd280e888c22ab61f3fa946dd"
+  },
+  "app:aether.desktop": {
+    "title": "Aether",
+    "key": "7d2fc7d93b8844307c3bc674ebeaf2ed"
+  },
+  "app:appimagelaunchersettings.desktop": {
+    "title": "AppImageLauncher Settings",
+    "key": "bf6cb6b7aa4a0893bd8b4eb5e1fc0fda"
+  },
+  "app:chatgpt.desktop": {
+    "title": "ChatGPT",
+    "key": "62239e6c0f995ae1fdc00d18b7905eac"
+  },
+  "app:chromium.desktop": {
+    "title": "Chromium",
+    "key": "65d5644b4049b4215a6faa532e7e5ad5"
+  },
+  "app:cliamp.desktop": {
+    "title": "cliamp",
+    "key": "5e631570df5bb33854b854425fe3a04b"
+  },
+  "app:code.desktop": {
+    "title": "Visual Studio Code",
+    "key": "d51a768a01445deddc409dc4b3c07517"
+  },
+  "app:com.github.PintaProject.Pinta.desktop": {
+    "title": "Pinta",
+    "key": "d4726c62fdc4960c2491390e26912416"
+  },
+  "app:com.github.xournalpp.xournalpp.desktop": {
+    "title": "Xournal++",
+    "key": "1ce987bd5f255512bbe74e89e4cc1740"
+  },
+  "app:com.mitchellh.ghostty.desktop": {
+    "title": "Ghostty",
+    "key": "00de66430ba2092b26fe85dd2694df13"
+  },
+  "app:com.moonlight_stream.Moonlight.desktop": {
+    "title": "Moonlight",
+    "key": "2be0bc5d91bcef54bc0b17ed14154c0b"
+  },
+  "app:com.obsproject.Studio.desktop": {
+    "title": "OBS Studio",
+    "key": "8fa5766194270a4092d1be525ff41dcc"
+  },
+  "app:cursor.desktop": {
+    "title": "Cursor",
+    "key": "9abdae4fa5d93330363a88ed8a5e7946"
+  },
+  "app:deltachat-desktop.desktop": {
+    "title": "DeltaChat",
+    "key": "1471db5e87bdb8def5e00c4ed664d0bb"
+  },
+  "app:dev.tensaku.Tensaku.desktop": {
+    "title": "Tensaku",
+    "key": "ab71099a7541938109aefc186b73d110"
+  },
+  "app:dev.zed.Zed.desktop": {
+    "title": "Zed",
+    "key": "039c82509dd13bb913d4c1d881ca14aa"
+  },
+  "app:foot-server.desktop": {
+    "title": "Foot Server",
+    "key": "047c2ee910ec1e7f8f1d5dc445990c61"
+  },
+  "app:footclient.desktop": {
+    "title": "Foot Client",
+    "key": "727f6c9eade65174aa4026d019bad81b"
+  },
+  "app:google-chrome.desktop": {
+    "title": "Google Chrome",
+    "key": "76868ae832f6c6bd26cadc7d7c269986"
+  },
+  "app:gvim.desktop": {
+    "title": "GVim",
+    "key": "86002d0f87ae040375d56c7274a94bb7"
+  },
+  "app:libreoffice-base.desktop": {
+    "title": "LibreOffice Base",
+    "key": "4efaffea7e864d630db762fbb26a79df"
+  },
+  "app:libreoffice-calc.desktop": {
+    "title": "LibreOffice Calc",
+    "key": "5549b332b6daecb0fb30152d8060752c"
+  },
+  "app:libreoffice-draw.desktop": {
+    "title": "LibreOffice Draw",
+    "key": "a7c7119eec9a7cff09fac4e87c15a36e"
+  },
+  "app:libreoffice-impress.desktop": {
+    "title": "LibreOffice Impress",
+    "key": "dae4ee8ed53d8449f8ae60b109e6a406"
+  },
+  "app:libreoffice-math.desktop": {
+    "title": "LibreOffice Math",
+    "key": "70628ff64876c26f1b28d4cd3f2d9ce1"
+  },
+  "app:libreoffice-startcenter.desktop": {
+    "title": "LibreOffice",
+    "key": "7295efe445ba3b01a1d2927e5ed55140"
+  },
+  "app:libreoffice-writer.desktop": {
+    "title": "LibreOffice Writer",
+    "key": "4ab194452abdb7a3f2ec53397bec83a4"
+  },
+  "app:localsend.desktop": {
+    "title": "LocalSend",
+    "key": "a5e2bfe41d1903fd2b05d9332f10da0c"
+  },
+  "app:lstopo.desktop": {
+    "title": "Hardware Locality lstopo",
+    "key": "59fbe942daeea15672a701656c26129d"
+  },
+  "app:nvim.desktop": {
+    "title": "Neovim",
+    "key": "d3e4024e42af8d95b6e1723be60b7ab0"
+  },
+  "app:obsidian.desktop": {
+    "title": "Obsidian",
+    "key": "a1b97edc1a72ab1252ed75a4241a657d"
+  },
+  "app:omacalc.desktop": {
+    "title": "Omacalc",
+    "key": "ff6547edb411ae5cb10f3c7f803d6d54"
+  },
+  "app:omacut.desktop": {
+    "title": "Omacut",
+    "key": "144ee42f1268d3d3fa3c50b94fa580aa"
+  },
+  "app:omawrite.desktop": {
+    "title": "Omawrite",
+    "key": "8f399e8a22982c60f85716fa1325a491"
+  },
+  "app:org.gnome.DiskUtility.desktop": {
+    "title": "Disks",
+    "key": "2d4aef30a49a581a6ed89ce840054235"
+  },
+  "app:org.gnome.Evince.desktop": {
+    "title": "Document Viewer",
+    "key": "8072af6d6b744de02c93f43ee536ab35"
+  },
+  "app:org.gnome.Nautilus.desktop": {
+    "title": "Files",
+    "key": "91f3a2c0e4424c87689525da44c4db11"
+  },
+  "app:org.kde.kdenlive.desktop": {
+    "title": "Kdenlive",
+    "key": "da5764376ee8c0a08db0927af5e7798e"
+  },
+  "app:org.openrgb.OpenRGB.desktop": {
+    "title": "OpenRGB",
+    "key": "45c77b921700fd4dba28ef84b9365ebd"
+  },
+  "app:org.qbittorrent.qBittorrent.desktop": {
+    "title": "qBittorrent",
+    "key": "7ecf933a45b4adb10c75c3b31efea2aa"
+  },
+  "app:org.telegram.desktop.desktop": {
+    "title": "Telegram Desktop",
+    "key": "41622cf3ddd9f6c1f695c18b4617c8d7"
+  },
+  "app:signal.desktop": {
+    "title": "Signal",
+    "key": "085fea7abdc5d904fe69a3081efd7398"
+  },
+  "app:slack.desktop": {
+    "title": "Slack",
+    "key": "3561f3a3c5576e2ce0dc0d1e268bb9b2"
+  },
+  "app:solaar.desktop": {
+    "title": "Solaar",
+    "key": "3e3ee85f0479e99039e57bf317887644"
+  },
+  "app:spotify.desktop": {
+    "title": "Spotify",
+    "key": "fd539ca17a17132049c4fef4619df638"
+  },
+  "app:steam.desktop": {
+    "title": "Steam",
+    "key": "4db4563826bad0eb2f60ee6e42d0ea4b"
+  },
+  "app:system-config-printer.desktop": {
+    "title": "Print Settings",
+    "key": "af41377b4de99db144eb60872b80e61e"
+  },
+  "app:vim.desktop": {
+    "title": "Vim",
+    "key": "944037673fd019101da363c74a0feed9"
+  },
+  "app:voxtype-configure.desktop": {
+    "title": "Voxtype Configuration",
+    "key": "e764ef53ba72c53d23dae4fe0e503c64"
+  },
+  "hotkey:keybindings": {
+    "title": "Keybindings",
+    "key": "046c8dc7ec1671fcfbee14413c2b62e4"
+  },
+  "hotkey:omarchy-menu": {
+    "title": "Omarchy menu",
+    "key": "9d45ad372d896a838fee39f541dbedcc"
+  },
+  "hotkey:terminal": {
+    "title": "Terminal",
+    "key": "666dd894f2511c79a4bb8a464662750b"
+  },
+  "hotkey:browser": {
+    "title": "Browser",
+    "key": "e9e7ec12e33e0589ef4976678459a9b8"
+  },
+  "hotkey:file-manager": {
+    "title": "File manager",
+    "key": "e05e69d6c1311eaa0e6c079dd6e46d72"
+  },
+  "hotkey:system-menu": {
+    "title": "System menu",
+    "key": "65d1501ef5973f1d8fd5f58504a533da"
+  },
+  "hotkey:theme-menu": {
+    "title": "Theme menu",
+    "key": "4ab26af5780bee2cef724a56faad7b10"
+  },
+  "hotkey:full-screen": {
+    "title": "Full screen",
+    "key": "8a9b6177560776f04310b0054c32f258"
+  },
+  "hotkey:full-width": {
+    "title": "Full width",
+    "key": "cf406e3379d33898afb5b775f81fb9b1"
+  },
+  "hotkey:close-window": {
+    "title": "Close window",
+    "key": "f3e6947d3087be03493875b444021600"
+  },
+  "hotkey:close-all-windows": {
+    "title": "Close all windows",
+    "key": "1613576dbd4ec310ee47a8b3503a5b56"
+  },
+  "hotkey:lock-system": {
+    "title": "Lock system",
+    "key": "7d6a91b245cf5ff34e3660f51fdbd301"
+  },
+  "hotkey:toggle-window-floating-tiling": {
+    "title": "Toggle window floating/tiling",
+    "key": "9e87902bce9b539295457bee7f858e59"
+  },
+  "hotkey:toggle-window-split": {
+    "title": "Toggle window split",
+    "key": "05faf63764ca806f5dc4d326156b611e"
+  },
+  "hotkey:pop-window-out-float-pin": {
+    "title": "Pop window out (float & pin)",
+    "key": "5d41f5ca85be41d00b815f8caf47f24d"
+  },
+  "hotkey:universal-copy": {
+    "title": "Universal copy",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:universal-paste": {
+    "title": "Universal paste",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:universal-cut": {
+    "title": "Universal cut",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:clipboard-manager": {
+    "title": "Clipboard manager",
+    "key": "9a5b445390dcd50132be08e0272d7af5"
+  },
+  "hotkey:emojis": {
+    "title": "Emojis",
+    "key": "e5bb2ccd3b9e0f58413b44da187e131f"
+  },
+  "hotkey:color-picker": {
+    "title": "Color picker",
+    "key": "39d70575c046d691d70ef4e4039c5918"
+  },
+  "hotkey:screenshot": {
+    "title": "Screenshot",
+    "key": "dc0c19c3debc7296a43503e95daeda55"
+  },
+  "hotkey:screenrecording": {
+    "title": "Screenrecording",
+    "key": "57de503b9593bfe752f2ce74011e98e6"
+  },
+  "hotkey:tmux": {
+    "title": "Tmux",
+    "key": "d6e5d1d7dbee0ca8e78dd334fd807265"
+  },
+  "hotkey:herdr": {
+    "title": "Herdr",
+    "key": "0e677cc0b9dcb38b97cdbc56e85a7919"
+  },
+  "hotkey:browser-private": {
+    "title": "Browser (private)",
+    "key": "44434e14812db31a732c9f4cb9b82791"
+  },
+  "hotkey:file-manager-cwd": {
+    "title": "File manager (cwd)",
+    "key": "43023fd464c3efbdc4e3c8a709e92223"
+  },
+  "hotkey:switch-to-workspace-1": {
+    "title": "Switch to workspace 1",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:switch-to-workspace-2": {
+    "title": "Switch to workspace 2",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:switch-to-workspace-3": {
+    "title": "Switch to workspace 3",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:switch-to-workspace-4": {
+    "title": "Switch to workspace 4",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:switch-to-workspace-5": {
+    "title": "Switch to workspace 5",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:former-workspace": {
+    "title": "Former workspace",
+    "key": "b816d625c52abc74baa0c7923a81a405"
+  },
+  "hotkey:previous-workspace-on-this-monitor": {
+    "title": "Previous workspace on this monitor",
+    "key": "7f74a0a931db0d9e90195a6a933d36b2"
+  },
+  "hotkey:next-workspace-on-this-monitor": {
+    "title": "Next workspace on this monitor",
+    "key": "37566bb602c5c7a1db38a7f514acae2f"
+  },
+  "hotkey:move-window-to-workspace-1": {
+    "title": "Move window to workspace 1",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-window-to-workspace-2": {
+    "title": "Move window to workspace 2",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-window-to-workspace-3": {
+    "title": "Move window to workspace 3",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-window-to-workspace-4": {
+    "title": "Move window to workspace 4",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-window-to-workspace-5": {
+    "title": "Move window to workspace 5",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-window-silently-to-workspace-1": {
+    "title": "Move window silently to workspace 1",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-window-silently-to-workspace-2": {
+    "title": "Move window silently to workspace 2",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-window-silently-to-workspace-3": {
+    "title": "Move window silently to workspace 3",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-window-silently-to-workspace-4": {
+    "title": "Move window silently to workspace 4",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-window-silently-to-workspace-5": {
+    "title": "Move window silently to workspace 5",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:swap-window-down": {
+    "title": "Swap window down",
+    "key": "26c3b3e62d09b8e125ff835c6acf877f"
+  },
+  "hotkey:swap-window-to-the-left": {
+    "title": "Swap window to the left",
+    "key": "e622866149589fcb23de9382914d7966"
+  },
+  "hotkey:swap-window-to-the-right": {
+    "title": "Swap window to the right",
+    "key": "2fb7587e81992c638cf585b649a3b79e"
+  },
+  "hotkey:swap-window-up": {
+    "title": "Swap window up",
+    "key": "0cb7d4c1d496bc602dc9c01a4df74a87"
+  },
+  "hotkey:focus-on-next-window": {
+    "title": "Focus on next window",
+    "key": "8443c2c21e2eb9ee32a76664d006f438"
+  },
+  "hotkey:focus-on-next-monitor": {
+    "title": "Focus on next monitor",
+    "key": "db05a703b0833fde5387377c53d41074"
+  },
+  "hotkey:focus-on-previous-window": {
+    "title": "Focus on previous window",
+    "key": "232076c904ead20af84c68e4ee0aaab1"
+  },
+  "hotkey:focus-on-previous-monitor": {
+    "title": "Focus on previous monitor",
+    "key": "4786866aff53cc455b549ce985ad7d28"
+  },
+  "hotkey:focus-hdmi-a-1": {
+    "title": "Focus HDMI-A-1",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:focus-dp-1": {
+    "title": "Focus DP-1",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:focus-monitor-left": {
+    "title": "Focus monitor left",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:focus-monitor-right": {
+    "title": "Focus monitor right",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:focus-down": {
+    "title": "Focus down",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:focus-left": {
+    "title": "Focus left",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:focus-right": {
+    "title": "Focus right",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:focus-up": {
+    "title": "Focus up",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-window": {
+    "title": "Move window",
+    "key": "72902f099957260f3248af04ba9ee862"
+  },
+  "hotkey:resize-window": {
+    "title": "Resize window",
+    "key": "f3a889e60a9b362059b4a74c09390791"
+  },
+  "hotkey:expand-window-left-a-little": {
+    "title": "Expand window left a little",
+    "key": "ecdec1e84f001d150f306fd1d8976312"
+  },
+  "hotkey:expand-window-left-a-lot": {
+    "title": "Expand window left a lot",
+    "key": "f7bd9af4cfd53c081706af27683686ea"
+  },
+  "hotkey:expand-window-left": {
+    "title": "Expand window left",
+    "key": "dd892a502c028726fb28b38641eee936"
+  },
+  "hotkey:expand-window-down-a-little": {
+    "title": "Expand window down a little",
+    "key": "da967a04ec3d6297b6f125c1a54432ab"
+  },
+  "hotkey:expand-window-down-a-lot": {
+    "title": "Expand window down a lot",
+    "key": "44f7997cb32c2e038c8142379e694d97"
+  },
+  "hotkey:shrink-window-left-a-little": {
+    "title": "Shrink window left a little",
+    "key": "9b07777b8a826690c2d45bcb0c769847"
+  },
+  "hotkey:shrink-window-left-a-lot": {
+    "title": "Shrink window left a lot",
+    "key": "1aaf4ce61ed423b354866a90c223409b"
+  },
+  "hotkey:shrink-window-left": {
+    "title": "Shrink window left",
+    "key": "96e721bfb9993e2fc5a01966efae81d8"
+  },
+  "hotkey:shrink-window-up-a-little": {
+    "title": "Shrink window up a little",
+    "key": "8fdf14ccd249dd8eef1e6753d0921d73"
+  },
+  "hotkey:shrink-window-up-a-lot": {
+    "title": "Shrink window up a lot",
+    "key": "53df837d2668fb236b28d0f1663efa65"
+  },
+  "hotkey:move-window-to-scratchpad": {
+    "title": "Move window to scratchpad",
+    "key": "dd4c16459410af8a8e7be73f2cf52969"
+  },
+  "hotkey:toggle-scratchpad": {
+    "title": "Toggle scratchpad",
+    "key": "18f446e5d3d0d729b082f1619d8b1b60"
+  },
+  "hotkey:invoke-last-notification": {
+    "title": "Invoke last notification",
+    "key": "16cc900609f404df4ef3ef1eca1eb384"
+  },
+  "hotkey:dismiss-last-notification": {
+    "title": "Dismiss last notification",
+    "key": "653ce44940541216019b2f22d87546fc"
+  },
+  "hotkey:toggle-silencing-notifications": {
+    "title": "Toggle silencing notifications",
+    "key": "231163b129ab771e92f47b06e4566810"
+  },
+  "hotkey:open-notification-history": {
+    "title": "Open notification history",
+    "key": "841d5e5cd056043ca9371235b4e528dd"
+  },
+  "hotkey:dismiss-all-notifications": {
+    "title": "Dismiss all notifications",
+    "key": "6ea0b14e973bb3ec07558b5a20bdc823"
+  },
+  "hotkey:toggle-window-transparency": {
+    "title": "Toggle window transparency",
+    "key": "c917a914b7f0014295a1f58023719dfe"
+  },
+  "hotkey:toggle-nightlight": {
+    "title": "Toggle nightlight",
+    "key": "1317e743be21537a078f9afcc11e12ef"
+  },
+  "hotkey:toggle-locking-on-idle": {
+    "title": "Toggle locking on idle",
+    "key": "5c1fdeced16fc7333424425de6e96fec"
+  },
+  "hotkey:keystroke-launcher": {
+    "title": "Keystroke launcher",
+    "key": "291bb5b6c340956eb9f583797a09dae5"
+  },
+  "hotkey:start-dictation-push-to-talk": {
+    "title": "Start dictation (push-to-talk)",
+    "key": "661db9cd3afd71b652c8873ecb79c293"
+  },
+  "hotkey:stop-dictation-push-to-talk": {
+    "title": "Stop dictation (push-to-talk)",
+    "key": "5673f5da0681fccf8c4593eda07385bb"
+  },
+  "hotkey:download-video-from-web-app": {
+    "title": "Download Video from Web App",
+    "key": "05ee819b2ef1996e42b6c2d8b42dd064"
+  },
+  "hotkey:copy-url-from-web-app": {
+    "title": "Copy URL from Web App",
+    "key": "8c1b09fb705c98b591700f34f2a41d3e"
+  },
+  "hotkey:move-all-windows-to-workspace-1": {
+    "title": "Move all windows to workspace 1",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-all-windows-to-workspace-2": {
+    "title": "Move all windows to workspace 2",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-all-windows-to-workspace-3": {
+    "title": "Move all windows to workspace 3",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-all-windows-to-workspace-4": {
+    "title": "Move all windows to workspace 4",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:move-all-windows-to-workspace-5": {
+    "title": "Move all windows to workspace 5",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:make-webcam-overlay-smaller": {
+    "title": "Make webcam overlay smaller",
+    "key": "ecc2b0af20141c1ddc572d781af55cac"
+  },
+  "hotkey:make-webcam-overlay-larger": {
+    "title": "Make webcam overlay larger",
+    "key": "92dd0c5785894f3498013d66451357fb"
+  },
+  "hotkey:move-window-to-the-bottom-column": {
+    "title": "Move window to the bottom column",
+    "key": "9640f4039636c8044e6a09ba3b97a319"
+  },
+  "hotkey:save-window-width": {
+    "title": "Save window width",
+    "key": "a9b765259552f441c631a8408d6860e6"
+  },
+  "hotkey:move-window-to-the-left-column": {
+    "title": "Move window to the left column",
+    "key": "bfb77b7f43eb0d3ab02ad7ef334fa163"
+  },
+  "hotkey:move-window-to-the-right-column": {
+    "title": "Move window to the right column",
+    "key": "ef35ef8ca0edb05a55f8d29ef54d9381"
+  },
+  "hotkey:monitor-scaling-down": {
+    "title": "Monitor scaling down",
+    "key": "698ada38911f89a09eaa1f41cac7b7be"
+  },
+  "hotkey:apps-menu": {
+    "title": "Apps menu",
+    "key": "77940ab0a7aa9d3ba16241c155272330"
+  },
+  "hotkey:move-window-to-the-top-column": {
+    "title": "Move window to the top column",
+    "key": "2f3f95218d2a7938e054544b383fc3c0"
+  },
+  "hotkey:select-all": {
+    "title": "Select all",
+    "key": "14eef96724e7641785e847aeb4bf92c1"
+  },
+  "hotkey:bar-panel-6": {
+    "title": "Bar panel 6",
+    "key": "437ca690eab9234b415dc2511d37850f"
+  },
+  "hotkey:bar-panel-7": {
+    "title": "Bar panel 7",
+    "key": "72726f62d6f8847fa4fa9f4bf22f9410"
+  },
+  "hotkey:bar-panel-8": {
+    "title": "Bar panel 8",
+    "key": "ab8e2b6bbcbf2fb5abfee859123b40a7"
+  },
+  "hotkey:bar-panel-9": {
+    "title": "Bar panel 9",
+    "key": "8f73a0b1d82d45ff8f4582aa66bb6edc"
+  },
+  "hotkey:audio": {
+    "title": "Audio",
+    "key": "fbc3ec1c19b013c151dfc398b8ae8ba4"
+  },
+  "hotkey:show-battery-remaining": {
+    "title": "Show battery remaining",
+    "key": "8190009450db432c246010ae9f8967d0"
+  },
+  "hotkey:calendar": {
+    "title": "Calendar",
+    "key": "92a00488ba72526bc55801e438aa407c"
+  },
+  "hotkey:toggle-laptop-display-mirroring": {
+    "title": "Toggle laptop display mirroring",
+    "key": "b43348c99fc378e79b0605a082ce60b1"
+  },
+  "hotkey:show-reminders": {
+    "title": "Show reminders",
+    "key": "837270786c290d0da903083b0e3fdcf1"
+  },
+  "hotkey:show-time": {
+    "title": "Show time",
+    "key": "80348cefebb8c238a4ad561b526d8c9d"
+  },
+  "hotkey:toggle-weather": {
+    "title": "Toggle weather",
+    "key": "948e5f449d660ef4d5d15bb2bda7729d"
+  },
+  "hotkey:reset-zoom": {
+    "title": "Reset zoom",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:toggle-single-window-square-aspect": {
+    "title": "Toggle single-window square aspect",
+    "key": "5c0e46114be376433f956ff63fdebd06"
+  },
+  "hotkey:bluetooth": {
+    "title": "Bluetooth",
+    "key": "12ec29643e58f5a5726d12319fc9c23c"
+  },
+  "hotkey:capture-menu": {
+    "title": "Capture menu",
+    "key": "817a31c4f592b8f7e93b5a37cd89e6f5"
+  },
+  "hotkey:display": {
+    "title": "Display",
+    "key": "db56204ffec7d604cc2af051c712f0d7"
+  },
+  "hotkey:toggle-laptop-display": {
+    "title": "Toggle laptop display",
+    "key": "401bcc9b2fe4e0e701b12ea82e1884f4"
+  },
+  "hotkey:tiled-full-screen": {
+    "title": "Tiled full screen",
+    "key": "91b352e05c4c90299aa9b132e8c862af"
+  },
+  "hotkey:hardware-menu": {
+    "title": "Hardware menu",
+    "key": "500318b57c27405c0af04323f5f44a8e"
+  },
+  "hotkey:toggle-menu": {
+    "title": "Toggle menu",
+    "key": "6d02a3872078332de87dfaa0be79eeae"
+  },
+  "hotkey:transcode": {
+    "title": "Transcode",
+    "key": "368ef6da144c1beded151593d3ec2566"
+  },
+  "hotkey:power": {
+    "title": "Power",
+    "key": "c75b03d307a5d20c6b530c4aa5531502"
+  },
+  "hotkey:extract-text-ocr-from-screenshot": {
+    "title": "Extract text (OCR) from screenshot",
+    "key": "27e9544612a02e1e9f2d6c5c144afbd6"
+  },
+  "hotkey:calculator": {
+    "title": "Calculator",
+    "key": "5f596ba855cd656dbc9a906a723349da"
+  },
+  "hotkey:set-reminder": {
+    "title": "Set reminder",
+    "key": "3ec4f8f691664738bed95ec187c55fe1"
+  },
+  "hotkey:background-switcher": {
+    "title": "Background switcher",
+    "key": "a82a143af5846b350effeedd5e0e51c0"
+  },
+  "hotkey:share": {
+    "title": "Share",
+    "key": "a38e8b318f6ab36a9f3936e02e74b6d3"
+  },
+  "hotkey:activity": {
+    "title": "Activity",
+    "key": "fa37dbd6fae0d81ac1147f248638faa1"
+  },
+  "hotkey:network": {
+    "title": "Network",
+    "key": "6cb4580b8932e85fc71cb41944efa593"
+  },
+  "hotkey:zoom-in": {
+    "title": "Zoom in",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:restore-window-width": {
+    "title": "Restore window width",
+    "key": "d59ab4eb83e26880da6bc259af6622fc"
+  },
+  "hotkey:toggle-workspace-layout": {
+    "title": "Toggle workspace layout",
+    "key": "1a81cf467b812db944575d95598b6ee0"
+  },
+  "hotkey:pseudo-window": {
+    "title": "Pseudo window",
+    "key": "ff4bee39f5f09786b085f0d725829c1d"
+  },
+  "hotkey:chatgpt": {
+    "title": "ChatGPT",
+    "key": "4452f0627299c7db95bbbec2075b36bb"
+  },
+  "hotkey:grok": {
+    "title": "Grok",
+    "key": "7b40aa665958750973a62d679c92e744"
+  },
+  "hotkey:move-workspace-to-down-monitor": {
+    "title": "Move workspace to down monitor",
+    "key": "31d2a66b4764d6588fd542d4f7673917"
+  },
+  "hotkey:new-email": {
+    "title": "New email",
+    "key": "1c551a6de2a325ed6ef9d744192d4204"
+  },
+  "hotkey:whatsapp": {
+    "title": "WhatsApp",
+    "key": "bc427069728a7d630cec98e1c4ce41c5"
+  },
+  "hotkey:move-workspace-to-left-monitor": {
+    "title": "Move workspace to left monitor",
+    "key": "b8f7d66ca78fd7d29f9b12c73dead12c"
+  },
+  "hotkey:music-tui": {
+    "title": "Music TUI",
+    "key": "9603586dc8829c5aa2f32b014e23ab03"
+  },
+  "hotkey:move-workspace-to-right-monitor": {
+    "title": "Move workspace to right monitor",
+    "key": "8f190de6dbc8ca944da91be5f6c53f08"
+  },
+  "hotkey:move-workspace-to-up-monitor": {
+    "title": "Move workspace to up monitor",
+    "key": "466d15a3b6f371c67db8f389d0c4595b"
+  },
+  "hotkey:x-post": {
+    "title": "X Post",
+    "key": "9443013074a3473da4575bc6c6802e4b"
+  },
+  "hotkey:toggle-window-gaps": {
+    "title": "Toggle window gaps",
+    "key": "7c558388a5194af24988ee0ad0105ea8"
+  },
+  "hotkey:claude": {
+    "title": "Claude",
+    "key": "5eba238afae28d7a89ffd79650dc3080"
+  },
+  "hotkey:send-window-to-hdmi-a-1": {
+    "title": "Send window to HDMI-A-1",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:send-window-to-dp-1": {
+    "title": "Send window to DP-1",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:agent": {
+    "title": "Agent",
+    "key": "c6eb3811558967ba2000903d8d96cf81"
+  },
+  "hotkey:google-messages": {
+    "title": "Google Messages",
+    "key": "c1c52ced958adad172bfa675c50803da"
+  },
+  "hotkey:send-window-to-left-monitor": {
+    "title": "Send window to left monitor",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:clear-reminders": {
+    "title": "Clear reminders",
+    "key": "91cc3975b8a2e5354b66fdaa5770d795"
+  },
+  "hotkey:send-window-to-right-monitor": {
+    "title": "Send window to right monitor",
+    "key": "ad1e41cebd43e64af1a28d4d70dc9e30"
+  },
+  "hotkey:docker": {
+    "title": "Docker",
+    "key": "b94cef7a47c226baa19303e8ed1aa0df"
+  },
+  "hotkey:email": {
+    "title": "Email",
+    "key": "a7f06e3b7c7aaaf5c9b7043b4f652ec3"
+  },
+  "hotkey:github": {
+    "title": "Github",
+    "key": "291ff94020648e8e6f271b850ffc13af"
+  },
+  "hotkey:music": {
+    "title": "Music",
+    "key": "30da179733af2eec02fc7fcff2e25071"
+  },
+  "hotkey:editor": {
+    "title": "Editor",
+    "key": "483854a49804a1842799526145380e95"
+  },
+  "hotkey:obsidian": {
+    "title": "Obsidian",
+    "key": "6bf6848a2f7afe1610f8b56e2808dd3d"
+  },
+  "hotkey:google-photos": {
+    "title": "Google Photos",
+    "key": "602f0ae30e5060c54fe9bba637f13fb6"
+  },
+  "hotkey:google-maps": {
+    "title": "Google Maps",
+    "key": "164c6366a6a9eb07e8802ce840dedc2b"
+  },
+  "hotkey:passwords": {
+    "title": "Passwords",
+    "key": "517be0353419170352c38de3253b3d09"
+  },
+  "hotkey:toggle-top-bar": {
+    "title": "Toggle top bar",
+    "key": "36bc29db9a02956b207acd81d4eaccbb"
+  },
+  "hotkey:telegram": {
+    "title": "Telegram",
+    "key": "dbf7cde3c74f018fb153f96b81421b74"
+  },
+  "hotkey:omawrite": {
+    "title": "Omawrite",
+    "key": "5732c1564051b3819d2b89fb4b063c4f"
+  },
+  "hotkey:x": {
+    "title": "X",
+    "key": "b7c39f4074a189b86ad0c3403eaefb6e"
+  },
+  "hotkey:youtube": {
+    "title": "YouTube",
+    "key": "3b3ee0075e3b84a1a1579245d61f5f17"
+  },
+  "hotkey:move-active-window-out-of-group": {
+    "title": "Move active window out of group",
+    "key": "5a5ca278981468f00f766edb3f423701"
+  },
+  "hotkey:next-window-in-group": {
+    "title": "Next window in group",
+    "key": "61998861ce03bc0f0e4d1660ca443162"
+  },
+  "hotkey:previous-window-in-group": {
+    "title": "Previous window in group",
+    "key": "8d04ffe8843f3a1fbfb52be3932fb981"
+  },
+  "hotkey:toggle-window-grouping": {
+    "title": "Toggle window grouping",
+    "key": "473746dddedbfa91af97afd8392db361"
+  },
+  "hotkey:scroll-active-workspace-forward": {
+    "title": "Scroll active workspace forward",
+    "key": "c17edbf6c79b20b7aab79f7250a630c4"
+  },
+  "hotkey:scroll-active-workspace-backward": {
+    "title": "Scroll active workspace backward",
+    "key": "0c1fbd2bb162d173cbfa0e0fa220e4f1"
+  },
+  "hotkey:reveal-active-window-on-top": {
+    "title": "Reveal active window on top",
+    "key": "fef28a5a30a18aeb76f81bc8a9b55baf"
+  },
+  "hotkey:volume-down-precise": {
+    "title": "Volume down precise",
+    "key": "3df990c6ca239983b2146c32272eeaa3"
+  },
+  "hotkey:next-track": {
+    "title": "Next track",
+    "key": "bcb069376564f45490f2f29b8c865e41"
+  },
+  "hotkey:volume-up-precise": {
+    "title": "Volume up precise",
+    "key": "44cae0728148ccd0d5b0736a3342b1e3"
+  },
+  "hotkey:brightness-down-precise": {
+    "title": "Brightness down precise",
+    "key": "dad85f9be99f5c4726d3d2abad1d78bc"
+  },
+  "hotkey:brightness-up-precise": {
+    "title": "Brightness up precise",
+    "key": "f69d3e3e78610e1ab8987bf343f8a703"
+  },
+  "hotkey:previous-track": {
+    "title": "Previous track",
+    "key": "1954e69cc43251b09fef3d45a8c4b2a4"
+  },
+  "hotkey:switch-audio-output": {
+    "title": "Switch audio output",
+    "key": "f537722136662ee5add8a67eee3600ce"
+  },
+  "hotkey:switch-media-source": {
+    "title": "Switch media source",
+    "key": "130cc16f56e43fd472e31547520e8f31"
+  },
+  "hotkey:brightness-minimum": {
+    "title": "Brightness minimum",
+    "key": "652bd8cfe891c72c131d57cf6e4d810e"
+  },
+  "hotkey:brightness-maximum": {
+    "title": "Brightness maximum",
+    "key": "f20f532768cd85429293b4ddd2fa1ae1"
+  },
+  "hotkey:volume-down": {
+    "title": "Volume down",
+    "key": "31b325e73bb650db06063a46e71feba7"
+  },
+  "hotkey:mute-microphone": {
+    "title": "Mute microphone",
+    "key": "970c9ac79288641297449e44ab43de7e"
+  },
+  "hotkey:mute": {
+    "title": "Mute",
+    "key": "f4c2f91261c7502473417f0ab80d8df1"
+  },
+  "hotkey:pause": {
+    "title": "Pause",
+    "key": "b91be6631569c91ec8cde9cc7f7add59"
+  },
+  "hotkey:play": {
+    "title": "Play",
+    "key": "b91be6631569c91ec8cde9cc7f7add59"
+  },
+  "hotkey:volume-up": {
+    "title": "Volume up",
+    "key": "fb95ada0058efeaa9ffacf3ff4076778"
+  },
+  "hotkey:eject-media": {
+    "title": "Eject media",
+    "key": "42149d941b323c4e6400cb60a669536c"
+  },
+  "hotkey:keyboard-brightness-down": {
+    "title": "Keyboard brightness down",
+    "key": "9ef45bd31a02684c9ef6c67ef07f16ab"
+  },
+  "hotkey:keyboard-brightness-up": {
+    "title": "Keyboard brightness up",
+    "key": "f8172f79b12ae0ab5e6424e5dbc3f3c8"
+  },
+  "hotkey:keyboard-backlight-cycle": {
+    "title": "Keyboard backlight cycle",
+    "key": "1549acd2f7140976a475ee15174331a2"
+  },
+  "hotkey:brightness-down": {
+    "title": "Brightness down",
+    "key": "a54ee6b6a9a146f84e05d21689f7ce56"
+  },
+  "hotkey:brightness-up": {
+    "title": "Brightness up",
+    "key": "bdb3a88d0a1bdba3f79f0ff9bd985188"
+  },
+  "hotkey:power-menu": {
+    "title": "Power menu",
+    "key": "65d1501ef5973f1d8fd5f58504a533da"
+  },
+  "hotkey:disable-touchpad": {
+    "title": "Disable touchpad",
+    "key": "0c34f7759f0e1090d46688642643eaea"
+  },
+  "hotkey:enable-touchpad": {
+    "title": "Enable touchpad",
+    "key": "2d370f1cfcea309c8b1c46f23402bbe5"
+  },
+  "hotkey:toggle-touchpad": {
+    "title": "Toggle touchpad",
+    "key": "de2c77baac165e295757b1d4106bf8ec"
+  },
+  "hotkey:toggle-dictation": {
+    "title": "Toggle dictation",
+    "key": "59f8ac8f08dd38fcb9de276b758ed759"
+  },
+  "hotkey:tmux-keybindings": {
+    "title": "Tmux keybindings",
+    "key": "4c62f366becfc35f81e4cb5c17bb171a"
+  },
+  "hotkey:herdr-keybindings": {
+    "title": "Herdr keybindings",
+    "key": "2d19093f7087c6b37a98b4f8bec63ed2"
+  }
+}

@@ -4,7 +4,8 @@ root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 
-node "$root/tests/launcher-model.cjs"
+bash "$root/launcher/tests/check.sh"
+bash "$root/tests/voxtype-osd.sh"
 node "$root/tests/clipboard-model.cjs"
 "$root/tests/net.sh"
 
@@ -15,7 +16,7 @@ done
 # Singletons may import a sibling .js, so those ride along with the .qml.
 cp "$root"/*.qml "$tmp/"
 cp "$root"/*.js "$tmp/" 2>/dev/null || true
-cp -R "$root/assets" "$tmp/"
+cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$tmp/"
 cp "$root/tests/check.qml" "$tmp/shell.qml"
 env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen timeout 10 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
 grep -q CAPSULE_TEST_PASS "$tmp/result"

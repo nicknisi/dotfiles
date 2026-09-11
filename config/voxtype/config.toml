@@ -18,4 +18,5 @@ on_recording_stop = false
 on_transcription = false
 
 [osd]
-frontend = "gtk4"
+# Quickshell draws the launcher's waveform without taking keyboard focus.
+enabled = false

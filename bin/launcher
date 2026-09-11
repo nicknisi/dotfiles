@@ -1,0 +1,126 @@
+#!/usr/bin/env luajit
+-- Resolve the executable, not its symlink in ~/.local/bin.
+local ffi = require('ffi')
+ffi.cdef[[char *realpath(const char *, char *); void free(void *);]]
+local ptr = ffi.C.realpath(arg[0],nil)
+assert(ptr ~= nil, 'Cannot locate launcher')
+local script = ffi.string(ptr); ffi.C.free(ptr)
+package.path = script:match('^(.*)/bin/[^/]+$') .. '/config/quickshell/launcher/helpers/?.lua;' .. package.path
+local U = require('runtime')
+local Writer = require('picker-write')
+local C = U.C
+-- signalfd keeps interruption cleanup in ordinary Lua control flow.
+local mask,oldmask=ffi.new('uint8_t[128]'),ffi.new('uint8_t[128]')
+C.sigemptyset(mask); C.sigaddset(mask,2); C.sigaddset(mask,15)
+assert(C.sigprocmask(0,mask,oldmask)==0,U.error())
+local signal_fd=C.signalfd(-1,mask,2048+524288); assert(signal_fd>=0,U.error())
+local interrupted
+local function cancellation()
+  local event=ffi.new('uint32_t[32]')
+  if C.read(signal_fd,event,128)==128 and not interrupted then interrupted=128+tonumber(event[0]) end
+  return interrupted
+end
+local function check_interrupt() if cancellation() then error({cancelled=interrupted},0) end end
+local function ipc(method, ...)
+  local argv = {'qs','ipc','call','launcher',method,...}
+  local r = U.run(argv,{timeout=10,cancel=method~='cancelPicker' and cancellation or nil})
+  if method~='cancelPicker' then check_interrupt() end
+  assert(r.code == 0,'Launcher IPC failed'); return r.stdout
+end
+local function input_bytes()
+  local chunks,size={},0
+  local poll=ffi.new('struct pollfd[2]'); local buf=ffi.new('char[65536]')
+  poll[0].fd=0; poll[0].events=1; poll[1].fd=signal_fd; poll[1].events=1
+  while size<=1024*1024 do
+    C.poll(poll,2,100); check_interrupt()
+    if poll[0].revents~=0 then
+      local n=C.read(0,buf,math.min(65536,1024*1024+1-size))
+      if n==0 then break end
+      if n<0 then assert(ffi.errno()==4,U.error()) else size=size+tonumber(n); chunks[#chunks+1]=ffi.string(buf,n) end
+    end
+  end
+  return table.concat(chunks)
+end
+local function parse(args)
+  local out = {command='toggle',text={},prompt='Choose',width=600,height=480,timeout=300}
+  local command, literal = false, false
+  local i=1
+  while i<=#args do
+    local value=args[i]
+    if not literal and value=='--' then literal=true
+    elseif not literal and (value=='--help' or value=='-h') then
+      print('Usage: launcher [toggle|open|close|route|query|dictate|select|input] [text ...] [--prompt TEXT] [--width N] [--height N] [--timeout SECONDS]'); return nil
+    elseif not literal and value:sub(1,2)=='--' then
+      local key, val = value:match('^%-%-([%w]+)=(.*)$')
+      if not key then key=value:sub(3); i=i+1; val=args[i] end
+      assert(out[key] ~= nil and key ~= 'command' and key ~= 'text' and val,'Unknown or incomplete option')
+      out[key]=key=='prompt' and val or assert(tonumber(val),'Expected a number')
+    elseif not command then out.command=value; command=true
+    else out.text[#out.text+1]=value end
+    i=i+1
+  end
+  assert(({toggle=true,open=true,close=true,route=true,query=true,dictate=true,select=true,input=true})[out.command],'Unknown command')
+  assert(out.width>=1 and out.width<math.huge and out.width%1==0 and out.height>=1 and out.height<math.huge and out.height%1==0 and out.timeout>0 and out.timeout<=86400,'Invalid dimensions or timeout')
+  return out
+end
+local function picker(args)
+  local runtime=os.getenv('XDG_RUNTIME_DIR')
+  assert(runtime and runtime:sub(1,1)=='/','XDG_RUNTIME_DIR must name your private runtime directory')
+  runtime=runtime:gsub('/+$','')
+  local base=runtime .. '/quickshell-launcher'
+  if C.mkdir(base,448)~=0 then assert(ffi.errno()==17,U.error()) end
+  local root=Writer.open_base(base)
+  local directory, request
+  local payload={mode=args.command,prompt=args.prompt,width=args.width,maxHeight=args.height}
+  local ok, result=pcall(function()
+    if args.command=='select' then
+      local data=input_bytes()
+      assert(#data<=1024*1024 and not data:find('\0',1,true),'Picker input must be at most 1 MiB without NUL bytes')
+      payload.options=U.array()
+      -- Python splitlines semantics, including Unicode line separators.
+      data=data:gsub('\r\n','\n'):gsub('[\r\v\f\28-\30]','\n'):gsub('\194\133','\n'):gsub('\226\128[\168\169]','\n')
+      for line in data:gmatch('(.-)\n') do payload.options[#payload.options+1]=line end
+      if data~='' and data:sub(-1)~='\n' then payload.options[#payload.options+1]=data:match('([^\n]*)$') end
+    end
+    -- Anchor creation and subsequent reads to the validated directory fd.
+    directory=U.tmpdir('/proc/self/fd/'..root,'request-')
+    local name=directory:match('([^/]+)$')
+    request=C.openat(root,name,65536+131072+524288); assert(request>=0,U.error())
+    payload.selectionFile=base..'/'..name..'/selection'; payload.doneFile=base..'/'..name..'/done'
+    local summoned, answer=pcall(function()
+      ipc('summon',U.encode(payload))
+      local deadline=U.monotime()+args.timeout
+      while not U.stat_at(request,'done',256) do
+        check_interrupt(); assert(U.monotime()<deadline,'Picker timed out'); U.sleep(.05)
+      end
+      local st=U.stat_at(request,'selection',256)
+      if not st then return 1 end
+      assert(st.type=='file' and st.uid==C.getuid(),'Unsafe picker selection')
+      local fd=C.openat(request,'selection',131072+524288); assert(fd>=0,U.error())
+      local bytes={}; local buf=ffi.new('char[65536]')
+      while true do local n=C.read(fd,buf,65536); if n<=0 then C.close(fd); assert(n==0,U.error()); break end; bytes[#bytes+1]=ffi.string(buf,n) end
+      io.stdout:write(table.concat(bytes)); return 0
+    end)
+    local cancelled, why=pcall(ipc,'cancelPicker',payload.doneFile)
+    assert(summoned,answer); assert(cancelled,why); return answer
+  end)
+  if request then C.unlinkat(request,'selection',0); C.unlinkat(request,'done',0); C.close(request) end
+  if directory then C.unlinkat(root,directory:match('([^/]+)$'),512) end
+  C.close(root)
+  if not ok then error(result,0) end
+  return result
+end
+local ok, code=pcall(function()
+  local args=parse(arg); if not args then return 0 end
+  if args.command=='input' or args.command=='select' then return picker(args) end
+  if args.command=='route' or args.command=='query' then ipc(args.command,table.concat(args.text,' '))
+  elseif args.command=='dictate' then ipc('summon',U.encode({scope='dictation',title='Dictate to Clipboard',dictate=true}))
+  else ipc(args.command) end
+  return 0
+end)
+if not ok then
+  if type(code)=='table' and code.cancelled then code=code.cancelled
+  else io.stderr:write('launcher: '..tostring(code)..'\n'); code=2 end
+end
+C.close(signal_fd); C.sigprocmask(2,oldmask,nil)
+os.exit(code)

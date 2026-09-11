@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "extensions": [
+    {
+      "id": "io.github.evindor.keystroke-timer",
+      "name": "Timer",
+      "description": "Countdown timers from the palette: `timer 10m tea` notifies you when the tea is ready",
+      "author": "Arseniy Zarechnev",
+      "repo": "https://github.com/evindor/keystroke-timer.git",
+      "tags": [
+        "productivity",
+        "timer"
+      ]
+    }
+  ]
+}
