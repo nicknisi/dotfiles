@@ -100,6 +100,7 @@ hl.config({
 })
 
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace", scale = 0.5 })
+hl.gesture({ fingers = 4, direction = "horizontal", action = "scroll_move" })
 
 -- The 8ds default takes 800ms. Keep the motion, but get it out of the way.
 hl.animation({ leaf = "global", enabled = true, speed = 2.5, bezier = "default" })
