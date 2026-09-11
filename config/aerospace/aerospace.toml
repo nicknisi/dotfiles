@@ -254,6 +254,10 @@ run = 'move-node-to-workspace W'
 if.app-id = 'net.imput.helium'
 run = 'move-node-to-workspace W'
 
+[[on-window-detected]]
+if.app-id = 'com.brave.Browser.origin'
+run = 'move-node-to-workspace W'
+
 # Productivity
 
 [[on-window-detected]]
