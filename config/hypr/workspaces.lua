@@ -29,6 +29,7 @@ local letters = {
 -- draws only workspaces that are focused or hold windows, so a persistent but
 -- empty workspace would be created and then filtered straight back out.
 -- Hyprland creates a named workspace on demand when you switch to it.
+hl.workspace_rule({ workspace = "name:D", layout = "scrolling" })
 
 -- Route new app windows like aerospace's on-window-detected rules and follow
 -- them to their assigned workspace. Keep this ordered because later matching
