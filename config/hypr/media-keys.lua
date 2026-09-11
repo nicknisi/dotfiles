@@ -107,6 +107,14 @@ hl.bind("code:201", function()
   if not copilot_latched then copilot_stop() end
 end, { ignore_mods = true, release = true, submap_universal = true })
 
+-- External keyboard: Right Control mirrors the Copilot key.
+hl.bind("Control_R", function()
+  if copilot_latched then copilot_stop() else copilot_start() end
+end)
+hl.bind("Control_R", function()
+  if not copilot_latched then copilot_stop() end
+end, { ignore_mods = true, release = true, submap_universal = true })
+
 -- Media keys (MPRIS).
 hl.bind("XF86AudioPlay",  cmd("playerctl play-pause"), locked)
 hl.bind("XF86AudioPause", cmd("playerctl play-pause"), locked)

@@ -95,13 +95,7 @@ PanelWindow {
     readonly property var workspaceSource: {
         const out = Hyprland.workspaces.values.filter(w =>
             (w.toplevels?.values?.length ?? 0) > 0 || w.name === bar.focusedName);
-        out.sort((a, b) => {
-            const an = parseInt(a.name), bn = parseInt(b.name);
-            const aNum = !isNaN(an), bNum = !isNaN(bn);
-            if (aNum && bNum) return an - bn;
-            if (aNum !== bNum) return aNum ? -1 : 1;
-            return a.name.localeCompare(b.name);
-        });
+        out.sort((a, b) => a.id - b.id);
         return out;
     }
     // Keep delegates alive across unrelated Hyprland toplevel updates.

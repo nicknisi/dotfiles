@@ -99,8 +99,12 @@ hl.config({
   misc = { disable_hyprland_logo = true, disable_splash_rendering = true },
 })
 
+hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace", scale = 0.5 })
+
 -- The 8ds default takes 800ms. Keep the motion, but get it out of the way.
 hl.animation({ leaf = "global", enabled = true, speed = 2.5, bezier = "default" })
+hl.curve("workspaceSettle", { type = "bezier", points = { { 0.5, 0.5 }, { 0.75, 1 } } })
+hl.animation({ leaf = "workspaces", enabled = true, speed = 3, bezier = "workspaceSettle" })
 
 hl.device({
   name = "protoarc-xk01-tp-mouse",
