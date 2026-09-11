@@ -23,6 +23,27 @@
 - When work needs multiple dependent PRs, use gh-stack.
   Read its skill before running stack commands.
 
+## Bounded execution
+
+For multi-step implementation, unless explicitly instructed otherwise:
+
+A1. Build a working end-to-end path before polishing isolated components.
+Assign integration ownership immediately and keep it active during parallel work.
+
+A2. Default to one independent review and one focused fix pass per component.
+Recheck identified findings rather than restarting an unrestricted review.
+If blockers remain, checkpoint and report them before another cycle.
+
+A3. Set an overall time or attempt budget before delegation. Child restarts
+and replacement agents count against the same budget. Pass applicable limits
+explicitly to delegated agents rather than assuming they inherit this policy.
+
+A4. After 30 minutes without an integrated milestone, reassess the critical
+path and report the blocker. Do not automatically launch another agent round.
+
+A5. Preserve required checks and safety gates. Never bypass security,
+authority, or data-loss blockers, and never describe partial work as complete.
+
 ## Communication
 
 - Open with substance. No pleasantries, praise, or closing filler.
