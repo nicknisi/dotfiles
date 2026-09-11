@@ -20,14 +20,12 @@ PanelWindow {
     id: bar
 
     required property var modelData
-    property bool awake: false
-    signal awakeToggled()
 
     screen: modelData
 
     IdleInhibitor {
         window: bar
-        enabled: bar.awake
+        enabled: Caffeine.active
     }
 
     readonly property string edge: Prefs.edge
@@ -587,13 +585,14 @@ PanelWindow {
                             Layout.preferredHeight: bar.vertical ? 30 : 24
                             Layout.alignment: Qt.AlignCenter
                             padding: 4
-                            text: bar.awake ? "Coffee full · keeping awake" : "Coffee empty · normal sleep"
-                            highlighted: bar.awake
-                            onClicked: bar.awakeToggled()
+                            text: Caffeine.active ? `Coffee full · ${Caffeine.status}`
+                                : `Coffee empty · ${Caffeine.durationLabel(Caffeine.selectedMinutes)} timer`
+                            highlighted: Caffeine.active || bar.openMenu === "caffeine"
+                            onClicked: bar.toggleMenu("caffeine")
                             Glyph {
-                                text: bar.awake ? "\u{f0176}" : "\u{f06ca}"
-                                color: bar.awake ? Theme.accent : Theme.secondary
-                                rotation: bar.awake ? -5 : 0
+                                text: Caffeine.active ? "\u{f0176}" : "\u{f06ca}"
+                                color: Caffeine.active ? Theme.accent : Theme.secondary
+                                rotation: Caffeine.active ? -5 : 0
                                 Behavior on color { ColorAnimation { duration: Theme.base } }
                                 Behavior on rotation { NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 2 } }
                             }

@@ -161,12 +161,13 @@ PopupWindow {
                     // the selected one. Size explicitly to avoid empty space.
                     implicitHeight: children[currentIndex]?.implicitHeight ?? 0
                     height: implicitHeight
-                    currentIndex: Math.max(0, ["home", "audio", "net", "bt", "display", "theme", "clock", "tailscale"].indexOf(hud.page))
+                    currentIndex: Math.max(0, ["home", "caffeine", "audio", "net", "bt", "display", "theme", "clock", "tailscale"].indexOf(hud.page))
 
                     HudHome {
                         shown: hud.shown && hud.page === "home"
                         onNavigate: page => hud.navigate(page)
                     }
+                    CaffeineMenu { shown: hud.shown && hud.page === "caffeine"; onDismissed: hud.dismissed() }
                     AudioMenu { shown: hud.shown && hud.page === "audio"; onDismissed: hud.dismissed() }
                     NetMenu { shown: hud.shown && hud.page === "net"; onNavigate: page => hud.navigate(page); onDismissed: hud.dismissed() }
                     BtMenu { shown: hud.shown && hud.page === "bt"; onDismissed: hud.dismissed() }

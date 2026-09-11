@@ -35,6 +35,7 @@ ShellRoot {
         implicitHeight: 300
         MediaCard { id: card; width: 392; player: player }
         HudHome { id: home; width: 392; visible: false }
+        CaffeineMenu { width: 320; visible: false }
         Flip { id: flip; width: 80; height: 20; front: "19:57"; back: "Sat 5 Sep" }
         NickAvatar { id: avatar; width: 30; height: 30 }
     }
@@ -111,6 +112,18 @@ ShellRoot {
                 test.check(Prefs.nextBarMode("full") === "pill", "full mode cycles to pill");
                 test.check(Prefs.nextBarMode("pill") === "minimal", "pill mode cycles to minimal");
                 test.check(Prefs.nextBarMode("minimal") === "full", "minimal mode cycles to full");
+
+                test.check(!Caffeine.active && Caffeine.selectedMinutes === 60, "stay-awake defaults to a one-hour timer");
+                const caffeineStarted = Date.now();
+                Caffeine.start(120);
+                test.check(Caffeine.active && Caffeine.selectedMinutes === 120, "a duration starts idle inhibition");
+                test.check(Caffeine.endsAt >= caffeineStarted + 120 * 60000, "a timed duration records its deadline");
+                Caffeine.stop();
+                test.check(!Caffeine.active && Caffeine.endsAt === 0, "stay-awake can be stopped early");
+                Caffeine.start(-1);
+                test.check(Caffeine.active && Caffeine.endsAt === 0, "an indefinite duration has no deadline");
+                Caffeine.stop();
+                Caffeine.selectedMinutes = 60;
 
                 NotificationState.clear();
                 NotificationState.remember({ appName: "Test", summary: "Saved", body: "One", critical: false });

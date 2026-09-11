@@ -9,10 +9,6 @@ import Quickshell.Io
 ShellRoot {
     id: root
 
-    // Awake is deliberately session-only: a shell restart restores normal idle
-    // behavior instead of silently keeping the machine awake forever.
-    property bool awake: false
-
     // `qs ipc call theme reload`: bin/theme calls this after writing colors.json,
     // in case the file watch in Theme.qml missed the change (it can, when the
     // file did not exist when the shell started).
@@ -26,10 +22,7 @@ ShellRoot {
     // zone (see Reserve.qml for why that is not the capsule's own job).
     Variants {
         model: Quickshell.screens
-        delegate: Bar {
-            awake: root.awake
-            onAwakeToggled: root.awake = !root.awake
-        }
+        delegate: Bar {}
     }
     Variants {
         model: Quickshell.screens
