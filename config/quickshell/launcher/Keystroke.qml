@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import qs
 import qs.Commons
 import qs.Ui
 import "ui"
@@ -1177,6 +1178,8 @@ Item {
 
     Rectangle { anchors.fill: parent; color: root.scrim; opacity: root.reveal; MouseArea { anchors.fill: parent; onClicked: root.cancel() } }
 
+    SurfaceShadow { surface: card }
+
     BorderSurface {
       id: card
       width: Math.min(root.dmenuActive ? Style.space(root.dmenuWidth) : Style.space(root.compact ? 640 : 760), panel.width - Style.gapsOut * 2)
@@ -1187,7 +1190,7 @@ Item {
       y: (root.dmenuActive ? Math.max(Style.gapsOut, Math.round((panel.height - height) / 2)) : Math.max(Style.gapsOut, Math.round((panel.height - height) * 0.38)))
          + (root.windowSlides ? Math.round((1 - root.reveal) * Style.space(Motion.WINDOW_SLIDE_PX)) : 0)
       opacity: root.reveal
-      radius: Style.cornerRadius
+      radius: Theme.panelRadius
       color: root.background
       borderSpec: root.borderSpec
       clip: true

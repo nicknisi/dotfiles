@@ -22,9 +22,12 @@ PanelWindow {
     }
 
     Rectangle {
-        anchors { top: parent.top; right: parent.right; bottom: parent.bottom }
-        width: 420
-        color: Theme.alpha(Theme.surface, 0.98)
+        id: frame
+        anchors { top: parent.top; right: parent.right; bottom: parent.bottom; margins: Theme.gap }
+        width: Math.min(420, parent.width - 2 * Theme.gap)
+        radius: Theme.panelRadius
+        color: Theme.surface
+        SurfaceShadow { surface: frame }
         MouseArea {
             anchors.fill: parent
             onClicked: mouse => mouse.accepted = true
@@ -130,7 +133,7 @@ PanelWindow {
 
                     width: history.width
                     implicitHeight: notificationText.implicitHeight + 24
-                    radius: 14
+                    radius: Theme.controlRadius
                     color: Theme.raised
                     border.width: critical ? 1 : 0
                     border.color: Theme.red

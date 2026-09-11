@@ -15,8 +15,8 @@ PanelWindow {
 
     visible: !voice.active && !voice.osdSuppressed
         && (voice.daemonListening || voice.daemonState === "transcribing")
-    implicitWidth: Math.min(440, screen ? screen.width - 2 * Style.gapsOut : 440)
-    implicitHeight: 100
+    implicitWidth: Math.min(440 + 2 * Theme.shadowPadding, screen ? screen.width - 2 * Style.gapsOut : 440 + 2 * Theme.shadowPadding)
+    implicitHeight: 100 + 2 * Theme.shadowPadding
     anchors.bottom: true
     margins.bottom: screen ? Math.round(screen.height * 0.1) : 64
     color: "transparent"
@@ -27,8 +27,11 @@ PanelWindow {
     mask: Region {}
 
     BorderSurface {
+        id: frame
         anchors.fill: parent
-        radius: Style.cornerRadius
+        anchors.margins: Theme.shadowPadding
+        radius: Theme.panelRadius
+        SurfaceShadow { surface: frame }
         color: Color.menu.background
         borderSpec: Border.controlSpec("focus", Color.menu.text, Color.accent)
         Accessible.role: Accessible.StaticText

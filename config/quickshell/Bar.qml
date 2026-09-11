@@ -54,12 +54,6 @@ PanelWindow {
         left:   bar.edge === "left"
         right:  bar.edge === "right"
     }
-    margins {
-        top:    bar.edge === "top"    ? 4 : 0
-        bottom: bar.edge === "bottom" ? 4 : 0
-        left:   bar.edge === "left"   ? 4 : 0
-        right:  bar.edge === "right"  ? 4 : 0
-    }
     exclusionMode: ExclusionMode.Ignore
     implicitWidth:  bar.vertical ? bar.thick + 64 : (bar.full ? screen.width - 16 : Math.min(760, screen.width - 16))
     implicitHeight: bar.vertical ? (bar.full ? screen.height - 16 : Math.min(760, screen.height - 16)) : bar.thick + 64
@@ -137,8 +131,8 @@ PanelWindow {
 
     // ---- where the body sits -------------------------------------------------
     // The resting corner for a body of the given size inside a box of the given
-    // size: centred along the edge, `pad` off it. The envelope passes 0 because
-    // it carries the 4px as its own margin; the stage passes 4 with the screen.
+    // size: centred along the edge, `pad` off it. Both windows include the 4px
+    // gap in their contents so the shadow can draw up to the screen edge.
     function restPos(cw: real, ch: real, W: real, H: real, pad: real): var {
         switch (bar.edge) {
         case "bottom": return Qt.point((W - cw) / 2, H - pad - ch);
@@ -153,10 +147,10 @@ PanelWindow {
     function envelopeOrigin(): var {
         const sw = bar.screen.width, sh = bar.screen.height;
         switch (bar.edge) {
-        case "bottom": return Qt.point((sw - bar.width) / 2, sh - 4 - bar.height);
-        case "left":   return Qt.point(4, (sh - bar.height) / 2);
-        case "right":  return Qt.point(sw - 4 - bar.width, (sh - bar.height) / 2);
-        default:       return Qt.point((sw - bar.width) / 2, 4);
+        case "bottom": return Qt.point((sw - bar.width) / 2, sh - bar.height);
+        case "left":   return Qt.point(0, (sh - bar.height) / 2);
+        case "right":  return Qt.point(sw - bar.width, (sh - bar.height) / 2);
+        default:       return Qt.point((sw - bar.width) / 2, 0);
         }
     }
 
@@ -234,7 +228,7 @@ PanelWindow {
     // pickup has both, and so the squash moves both.
     Item {
         id: body
-        readonly property var rest: bar.restPos(width, height, bar.width, bar.height, 0)
+        readonly property var rest: bar.restPos(width, height, bar.width, bar.height, 4)
         x: body.rest.x
         y: body.rest.y
         width:  bar.vertical ? bar.thick : bar.length
@@ -246,6 +240,9 @@ PanelWindow {
         Behavior on height {
             NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 1.1 }
         }
+
+        // The drag snapshot captures the body; the stage adds its own shadow.
+        SurfaceShadow { surface: capsule; visible: !bar.full && !drag.active }
 
         Rectangle {
             id: capsule
@@ -915,6 +912,8 @@ PanelWindow {
         WlrLayershell.layer: WlrLayer.Overlay
 
         property url snapshot
+
+        SurfaceShadow { surface: pill; visible: !bar.full || bar.compact }
 
         Rectangle {
             id: pill

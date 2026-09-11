@@ -61,8 +61,9 @@ Scope {
             right:  Prefs.edge === "right"  ? Theme.barHeight + 12 : 8
         }
 
-        implicitWidth: 380
-        implicitHeight: Math.max(1, layout.implicitHeight)
+        implicitWidth: 380 + 2 * Theme.shadowPadding
+        implicitHeight: Math.max(1, layout.implicitHeight + 2 * Theme.shadowPadding)
+        mask: Region { item: layout }
 
         color: "transparent"
         visible: server.trackedNotifications.values.some(notification =>
@@ -74,13 +75,16 @@ Scope {
 
         ColumnLayout {
             id: layout
-            width: parent.width
-            spacing: 8
+            x: Theme.shadowPadding
+            y: Theme.shadowPadding
+            width: parent.width - 2 * Theme.shadowPadding
+            spacing: Theme.shadowPadding
 
             Repeater {
                 model: server.trackedNotifications
 
                 Rectangle {
+                    id: toast
                     required property var modelData
 
                     readonly property bool critical: modelData.urgency === NotificationUrgency.Critical
@@ -88,8 +92,9 @@ Scope {
                     visible: !NotificationState.dnd || critical
                     Layout.fillWidth: true
                     implicitHeight: content.implicitHeight + 20
-                    radius: 6
+                    radius: Theme.panelRadius
                     color: Theme.bgAlt
+                    SurfaceShadow { surface: toast }
                     border.width: 1
                     border.color: critical ? Theme.red
                                 : modelData.urgency === NotificationUrgency.Low ? Theme.muted
@@ -133,7 +138,7 @@ Scope {
                                 Text {
                                     Layout.fillWidth: true
                                     text: modelData.appName
-                                    color: Theme.muted
+                                    color: Theme.secondary
                                     elide: Text.ElideRight
                                     font.family: Theme.font
                                     font.pixelSize: Theme.fontSize - 3

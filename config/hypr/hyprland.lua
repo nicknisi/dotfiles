@@ -95,7 +95,7 @@ hl.config({
   dwindle = {
     preserve_split = true,
   },
-  decoration = { rounding = 0, blur = { enabled = true }, shadow = { enabled = false } },
+  decoration = { blur = { enabled = true } },
   misc = { disable_hyprland_logo = true, disable_splash_rendering = true },
 })
 
@@ -214,6 +214,22 @@ hl.bind("SUPER + CTRL + code:19", hl.dsp.exec_cmd("theme bg next"))
 -- state dir and runs `hyprctl reload`. pcall so a machine where theme has never
 -- run still gets a working config, with Hyprland's default borders.
 pcall(dofile, os.getenv("HOME") .. "/.local/state/theme/current/theme/hyprland.lua")
+
+-- Packs own border colours. Keep shape and depth consistent even when a pack
+-- supplies its own decoration settings, including on a full config reload.
+hl.config({
+  decoration = {
+    rounding = 6,
+    rounding_power = 2.0,
+    shadow = {
+      enabled = true,
+      range = 16,
+      render_power = 3,
+      color = "rgba(00000030)",
+      color_inactive = "rgba(00000030)",
+    },
+  },
+})
 
 -- Workspaces: 1-9, the lettered set, and the tab bindings.
 dofile(hypr .. "/workspaces.lua")

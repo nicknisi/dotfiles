@@ -150,12 +150,13 @@ Scope {
             anchors.centerIn: parent
             width: Math.min(parent.width - 48, 680)
             height: Math.min(parent.height - 80, 540)
-            radius: 24
-            color: Theme.alpha(Theme.surface, 0.97)
+            radius: Theme.panelRadius
+            color: Theme.surface
             border.width: 2
             border.color: Theme.borderActive
             scale: root.opened ? 1 : 0.94
             opacity: root.opened ? 1 : 0
+            SurfaceShadow { surface: card }
 
             Behavior on scale { NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack } }
             Behavior on opacity { NumberAnimation { duration: Theme.base } }
@@ -192,7 +193,7 @@ Scope {
                 anchors.right: parent.right
                 anchors.margins: 18
                 height: 50
-                radius: 15
+                radius: Theme.controlRadius
                 color: Theme.raised
                 border.width: searchInput.activeFocus ? 2 : 1
                 border.color: searchInput.activeFocus ? Theme.accent : Theme.borderIdle

@@ -42,9 +42,9 @@ PopupWindow {
         margins.right:  hud.edge === "right" ? -4 : 0
     }
 
-    // Transparent breathing room for the opening overshoot, not content padding.
-    implicitWidth: Math.min(420, monitor.width - 48) + 24
-    implicitHeight: frame.height + 24
+    // Transparent room for the shadow and opening animation, not content padding.
+    implicitWidth: Math.min(420, monitor.width - 2 * Theme.shadowPadding) + 2 * Theme.shadowPadding
+    implicitHeight: frame.height + 2 * Theme.shadowPadding
     color: "transparent"
     visible: shown
     grabFocus: true
@@ -61,15 +61,15 @@ PopupWindow {
 
     Rectangle {
         id: frame
-        x: 12
-        y: 12
-        width: parent.width - 24
+        x: Theme.shadowPadding
+        y: Theme.shadowPadding
+        width: parent.width - 2 * Theme.shadowPadding
         height: body.implicitHeight + 24
         color: Theme.surface
-        radius: 26
-        topLeftRadius:    hud.edge === "top" || hud.edge === "left" ? 12 : 26
-        topRightRadius:   hud.edge === "right" ? 12 : 26
-        bottomLeftRadius: hud.edge === "bottom" ? 12 : 26
+        radius: Theme.panelRadius
+        border.width: 1
+        border.color: Theme.borderIdle
+        SurfaceShadow { surface: frame }
         transformOrigin: {
             switch (hud.edge) {
             case "bottom": return Item.BottomLeft;

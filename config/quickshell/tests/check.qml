@@ -38,6 +38,15 @@ ShellRoot {
         CaffeineMenu { width: 320; visible: false }
         Flip { id: flip; width: 80; height: 20; front: "19:57"; back: "Sat 5 Sep" }
         NickAvatar { id: avatar; width: 30; height: 30 }
+        SurfaceShadow { id: outerShadow; surface: samplePanel }
+        Rectangle {
+            id: samplePanel
+            x: 100; y: 100; width: 120; height: 80
+            radius: Theme.panelRadius
+            color: Theme.surface
+            opacity: 0.5
+            SurfaceShadow { id: innerShadow; surface: samplePanel }
+        }
     }
 
     Hud {
@@ -255,7 +264,14 @@ ShellRoot {
                 player.length = 0;
                 test.check(!seek.enabled, "zero-duration track cannot seek");
 
+                test.check(innerShadow.radius === Theme.panelRadius && outerShadow.radius === samplePanel.radius, "shadows follow panel corners");
+                test.check(innerShadow.width === samplePanel.width && outerShadow.x === samplePanel.x, "child and sibling shadows follow surface geometry");
+                test.check(innerShadow.z < 0 && outerShadow.z === samplePanel.z, "shadows draw behind their surfaces without falling behind the scrim");
+                test.check(innerShadow.opacity === 1 && outerShadow.opacity === samplePanel.opacity, "surface opacity is applied once");
+                test.check(Theme.shadowPadding >= innerShadow.blur, "compact panels reserve the full shadow extent");
+                const shadowColor = String(innerShadow.color);
                 Theme.palette = { accent: "#a53b62", foreground: "#202020", background: "#f7f3e8", lighter_background: "#e8e0d0", mode: "light" };
+                test.check(String(innerShadow.color) === shadowColor && String(samplePanel.color) === String(Theme.surface), "theme switches recolor surfaces without tinting shadows");
                 test.check(String(play.background.color) === String(Theme.accent), "controls follow changed theme");
                 test.check(String(card.color) === String(Theme.raised), "card follows changed theme");
                 card.player = null;

@@ -44,6 +44,11 @@ Singleton {
     // intended for borders rather than text.
     readonly property color secondary: Qt.tint(surface, alpha(fg, 0.68))
     readonly property int controlRadius: 12
+    readonly property int panelRadius: controlRadius
+    // Neutral shadows work with every palette. Match Hyprland's 0x30 alpha.
+    readonly property color shadowColor: Qt.rgba(0, 0, 0, 48 / 255)
+    readonly property int shadowBlur: 16
+    readonly property int shadowPadding: shadowBlur
 
     // Single-color borders for shell controls. Window borders live in hyprland.lua.tpl.
     readonly property color borderActive: accent
