@@ -42,8 +42,10 @@ PopupWindow {
         function onYChanged() { if (hud.shown) hud.anchor.updateAnchor(); }
     }
 
-    ShellSurface {
+    PopupSurface {
         id: frame
+        shown: hud.visible
+        edge: hud.edge
         x: Theme.shadowPadding
         y: Theme.shadowPadding
         width: parent.width - 2 * Theme.shadowPadding

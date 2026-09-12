@@ -3,9 +3,9 @@ set -euo pipefail
 root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
-cp "$root"/{BarMenu,BarModule,MenuAction,MenuSlider}.qml "$tmp/"
+cp "$root"/{BarMenu,BarModule,MenuAction,MenuSlider,PopupSurface,ShellSurface}.qml "$tmp/"
 [[ ! -f "$root/MenuNavigation.qml" ]] || cp "$root/MenuNavigation.qml" "$tmp/"
-cp "$root/tests/tst_menu_keys.qml" "$tmp/"
+cp "$root/tests/"tst_{menu_keys,motion}.qml "$tmp/"
 printf 'singleton Theme 1.0 Theme.qml\n' > "$tmp/qmldir"
 cat > "$tmp/Theme.qml" <<'QML'
 pragma Singleton
@@ -20,7 +20,11 @@ QtObject {
     readonly property string font: "monospace"
     readonly property int fontSize: 13
     readonly property int controlRadius: 12
-    readonly property int quick: 0
+    readonly property int panelRadius: 28
+    readonly property color borderIdle: "#444444"
+    function alpha(color, a) { return Qt.rgba(color.r, color.g, color.b, a) }
+    readonly property int quick: 90
+    readonly property int base: 160
 }
 QML
 runner=$(command -v qmltestrunner || printf /usr/lib/qt6/bin/qmltestrunner)

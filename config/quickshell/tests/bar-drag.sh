@@ -68,6 +68,7 @@ QtObject {
     readonly property int barHeight: 40
     readonly property int barInset: Prefs.barMode === "full" ? 0 : 8
     readonly property int quick: 0
+    readonly property int unfold: 220
 }
 ''')
 (tmp / 'Prefs.qml').write_text('''pragma Singleton
@@ -83,7 +84,11 @@ QtObject {
 ''')
 (tmp / 'NotificationState.qml').write_text('''pragma Singleton
 import QtQuick
-QtObject { function closeCenter() {} }
+QtObject {
+    property bool centerOpen: false
+    property var centerScreen: null
+    function closeCenter() { centerOpen = false }
+}
 ''')
 PY
 runner=$(command -v qmltestrunner || printf /usr/lib/qt6/bin/qmltestrunner)

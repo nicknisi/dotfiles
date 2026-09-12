@@ -61,8 +61,10 @@ PopupWindow {
         function onHeightChanged() { center.reposition(); }
     }
 
-    ShellSurface {
+    PopupSurface {
         id: frame
+        shown: center.visible
+        edge: center.edge
         x: Theme.shadowPadding
         y: Theme.shadowPadding
         width: parent.width - 2 * Theme.shadowPadding

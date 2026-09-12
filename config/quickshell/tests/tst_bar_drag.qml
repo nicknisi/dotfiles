@@ -14,6 +14,8 @@ TestCase {
         bar.suppressClicks = false;
         bar.clicks = 0;
         bar.scrolls = 0;
+        bar.openMenu = "";
+        NotificationState.centerOpen = false;
     }
     function test_layout_data() {
         const cases = [];
@@ -32,6 +34,40 @@ TestCase {
         compare(vertical ? bar.surface.width : bar.surface.height, 40);
         compare(vertical ? bar.width : bar.height, data.mode === "full" ? 40 : 56);
         compare(vertical ? bar.surface.y : bar.surface.x, (along - expected) / 2);
+    }
+    function test_barReaction_data() { return test_layout_data(); }
+    function test_barReaction(data) {
+        Prefs.barMode = data.mode;
+        Prefs.edge = data.edge;
+        tryCompare(bar.background, "expansion", 0, 500);
+        const width = bar.width, height = bar.height;
+        const buttonOrigin = bar.button.mapToItem(test, 0, 0);
+        bar.openMenu = "home";
+        const expanded = data.mode === "full" ? 0 : 3;
+        if (expanded) {
+            wait(40);
+            verify(bar.background.expansion > 0 && bar.background.expansion < 3, "bar grows rather than jumping");
+        }
+        tryCompare(bar.background, "expansion", expanded, 500);
+        compare(bar.background.width, bar.surface.width + 2 * expanded);
+        compare(bar.background.height, bar.surface.height + 2 * expanded);
+        compare(bar.width, width, "reserved strip stays fixed");
+        compare(bar.height, height);
+        compare(bar.button.mapToItem(test, 0, 0), buttonOrigin, "hit targets do not move with the shell");
+        compare(bar.button.contentItem.scale, 1, "glyphs stay unscaled");
+        bar.openMenu = "";
+        wait(40);
+        bar.openMenu = "home";
+        tryCompare(bar.background, "expansion", expanded, 500, "rapid reopen settles");
+        bar.openMenu = "";
+        tryCompare(bar.background, "expansion", 0, 500);
+        NotificationState.centerScreen = bar.screen;
+        NotificationState.centerOpen = true;
+        tryCompare(bar.background, "expansion", expanded, 500, "bell menu also grows the bar");
+        NotificationState.centerScreen = {width: 800, height: 600};
+        tryCompare(bar.background, "expansion", 0, 500, "another monitor's popup does not affect this bar");
+        wait(250);
+        compare(bar.background.expansion, 0, "no idle bounce");
     }
     function test_doubleTapTransparency_data() { return test_layout_data(); }
     function test_doubleTapTransparency(data) {
@@ -92,6 +128,7 @@ TestCase {
         mousePress(subject, px, py, Qt.LeftButton);
         mouseMove(subject, px + 30, py + 30, 20);
         tryVerify(() => bar.handler.active, 500, "drag starts over " + (data.button ? "button" : "background"));
+        tryVerify(() => bar.full || bar.background.expansion > 0, 500, "picking up a floating bar grows its shell");
         mouseMove(test, target[0] - originX, target[1] - originY, 20);
         mouseRelease(test, target[0] - originX, target[1] - originY, Qt.LeftButton);
         compare(Prefs.edge, data.to, "drop chooses monitor edge");

@@ -169,7 +169,14 @@ PanelWindow {
         }
         Rectangle {
             id: surface
+            property real expansion: !bar.full && (drag.active || bar.openMenu !== ""
+                || (NotificationState.centerOpen && NotificationState.centerScreen === bar.screen)) ? 3 : 0
             anchors.fill: parent
+            anchors.margins: -expansion
+            // Only the shell grows. Contents, hit targets and reservation stay fixed.
+            Behavior on expansion {
+                NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 1.2 }
+            }
             radius: bar.full ? 0 : 24
             color: Theme.alpha(Theme.surface, Prefs.translucent ? 0.62 : 1)
             border.width: drag.active ? 1 : (bar.full ? 0 : 1)
