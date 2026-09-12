@@ -47,7 +47,7 @@ BarMenu {
         elide: Text.ElideRight
     }
 
-    component ChoiceRow: MouseArea {
+    component ChoiceRow: MenuAction {
         id: row
 
         property string label: ""
@@ -59,8 +59,8 @@ BarMenu {
         Layout.fillWidth: true
         implicitHeight: 30
         enabled: !row.current && !row.busy
-        hoverEnabled: true
         cursorShape: row.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+        Accessible.name: row.current ? `Current display mode ${row.label}` : `Apply display mode ${row.label}`
         onClicked: if (row.enabled) row.picked()
 
         Rectangle {

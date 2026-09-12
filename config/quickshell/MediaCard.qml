@@ -64,7 +64,6 @@ Rectangle {
                     width: 102
                     height: 102
                     radius: 20
-                    rotation: 7
                     color: Theme.glowFill
                 }
                 ClippingRectangle {
@@ -73,9 +72,7 @@ Rectangle {
                     width: 104
                     height: 104
                     radius: 18
-                    rotation: artHover.hovered ? -5 : (card.playing ? -2 : 2)
                     color: Theme.sunken
-                    Behavior on rotation { NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack } }
 
                     Image {
                         id: cover
@@ -95,9 +92,7 @@ Rectangle {
                         color: Theme.accent
                         font.family: Theme.icons
                         font.pixelSize: 34
-                        rotation: -12
                     }
-                    HoverHandler { id: artHover }
                 }
 
                 SequentialAnimation {
@@ -159,12 +154,10 @@ Rectangle {
                         onClicked: card.player.togglePlaying()
                         background: Rectangle {
                             radius: card.playing ? 10 : 18
-                            rotation: playButton.hovered ? -9 : 0
                             color: Theme.accent
                             border.width: playButton.visualFocus ? 2 : 0
                             border.color: Theme.fg
                             Behavior on radius { NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack } }
-                            Behavior on rotation { NumberAnimation { duration: Theme.base; easing.type: Easing.OutBack } }
                         }
                         Text {
                             text: card.playing ? "\uf04c" : "\uf04b"

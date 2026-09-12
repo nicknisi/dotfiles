@@ -1,6 +1,8 @@
 // Run with ./config/quickshell/tests/check.sh. No real player is controlled.
 import Quickshell
 import QtQuick
+import "MenuAnchor.js" as MenuAnchor
+import "BarGeometry.js" as BarGeometry
 
 ShellRoot {
     id: test
@@ -89,6 +91,7 @@ ShellRoot {
                     avatar.hovered = false;
                     avatar.page = "";
                     test.check(!test.child(avatar, "nickFace").running, "hidden portrait stops animating");
+                    test.check(styleCheck.finished, "all twelve layout and edge combinations settled");
                     console.log("CAPSULE_TEST_PASS");
                     Qt.quit();
                 }
@@ -96,6 +99,41 @@ ShellRoot {
                 console.error("CAPSULE_TEST_FAIL: " + error.message);
                 Qt.quit();
             }
+        }
+    }
+
+    Timer {
+        id: styleCheck
+        interval: 100
+        repeat: true
+        property int step: 0
+        property string oldMode: Prefs.barMode
+        property string oldEdge: Prefs.edge
+        property bool finished: false
+        onTriggered: {
+            try {
+                const modes = ["pill", "full", "rail"];
+                const edges = ["top", "bottom", "left", "right"];
+                if (step > 0) {
+                    const expectedMode = modes[Math.floor((step - 1) / 4)];
+                    const expectedEdge = edges[(step - 1) % 4];
+                    test.check(Prefs.barMode === expectedMode, "layout preference settles: " + expectedMode);
+                    test.check(Theme.controlRadius === 12 && Theme.panelRadius === 28, "controls stay rounded in every layout");
+                    test.check(Theme.barExtent === (expectedMode === "full" ? 48 : 84), "reservation matches layout geometry");
+                    test.check(Prefs.edge === expectedEdge && Prefs.vertical === ["left", "right"].includes(expectedEdge), "edge preference settles: " + expectedEdge);
+                    test.check(Theme.barExtent >= Theme.barHeight, "reservation includes bar inset");
+                    test.check(Theme.contrast(Theme.accent, Theme.accentText) >= Math.max(Theme.contrast(Theme.accent, Theme.bg), Theme.contrast(Theme.accent, Theme.fg)), "accent text uses the contrasting palette color");
+                }
+                if (step === 12) {
+                    Prefs.setBarMode("invalid"); Prefs.setEdge("invalid");
+                    test.check(Prefs.barMode === "rail" && Prefs.edge === "right", "invalid preferences are rejected");
+                    Prefs.setBarMode(oldMode); Prefs.setEdge(oldEdge);
+                    finished = true; stop(); return;
+                }
+                Prefs.setBarMode(modes[Math.floor(step / 4)]);
+                Prefs.setEdge(edges[step % 4]);
+                step++;
+            } catch (error) { console.error("CAPSULE_TEST_FAIL: " + error.message); Qt.quit(); }
         }
     }
 
@@ -118,9 +156,21 @@ ShellRoot {
             try {
                 const paused = { dbusName: "paused", isPlaying: false };
                 const playing = { dbusName: "playing", isPlaying: true };
-                test.check(Prefs.nextBarMode("full") === "pill", "full mode cycles to pill");
-                test.check(Prefs.nextBarMode("pill") === "minimal", "pill mode cycles to minimal");
-                test.check(Prefs.nextBarMode("minimal") === "full", "minimal mode cycles to full");
+                test.check(Prefs.nextBarMode("pill") === "full", "pill cycles to full");
+                test.check(Prefs.nextBarMode("full") === "rail", "full cycles to rail");
+                test.check(Prefs.nextBarMode("rail") === "pill", "rail cycles to pill");
+                for (const mode of ["pill", "full", "rail"]) {
+                    for (const origin of ["top", "bottom", "left", "right"]) {
+                        const vertical = origin === "left" || origin === "right";
+                        const extent = mode === "full" ? 48 : 84;
+                        const w = vertical ? extent : 1920, h = vertical ? 1080 : extent;
+                        const ox = origin === "right" ? 1920 - w : 0;
+                        const oy = origin === "bottom" ? 1080 - h : 0;
+                        for (const [target, x, y] of [["top", 960, 5], ["bottom", 960, 1075], ["left", 5, 540], ["right", 1915, 540]]) {
+                            test.check(BarGeometry.nearestEdge(origin, 1920, 1080, w, h, x - ox, y - oy) === target, "drag from " + mode + "/" + origin + " to " + target);
+                        }
+                    }
+                }
 
                 test.check(!Caffeine.active && Caffeine.selectedMinutes === 60, "stay-awake defaults to a one-hour timer");
                 const caffeineStarted = Date.now();
@@ -150,6 +200,15 @@ ShellRoot {
                 NotificationState.toggleDnd();
                 NotificationState.clear();
                 test.check(NotificationState.count === 0 && !NotificationState.dnd, "notification history clears without changing DND");
+                NotificationState.registerAnchor(notificationScreen, avatar, "right");
+                test.check(NotificationState.resolveAnchor({name: "other-screen"}) === null, "notifications never use another monitor's anchor");
+                NotificationState.toggleCenter(notificationScreen);
+                test.check(NotificationState.centerAnchorItem === avatar && NotificationState.centerEdge === "right", "notifications use the registered bell and edge");
+                NotificationState.registerAnchor(notificationScreen, flip, "left");
+                NotificationState.unregisterAnchor(notificationScreen, avatar);
+                test.check(NotificationState.centerAnchorItem === flip && NotificationState.centerEdge === "left", "replacing an anchor updates the open center safely");
+                NotificationState.unregisterAnchor(notificationScreen, flip);
+                test.check(!NotificationState.centerOpen && NotificationState.centerAnchorItem === null, "destroying the active bar closes its notification popup");
 
                 test.check(avatar.costume === 0 && !avatar.fullBody, "resting avatar shows Nick's portrait");
                 test.check(test.child(avatar, "nickFace").running, "visible portrait can blink");
@@ -160,14 +219,17 @@ ShellRoot {
                     test.check(avatar.costume === costume && !avatar.fullBody, "menu costume takes priority over hover: " + page);
                     test.check(portrait.status === Image.Ready && portrait.sourceClipRect.x === costume * 32, "costume atlas loads the correct cell: " + page);
                 }
-                for (const [edge, anchor, gravity] of [
-                    ["top", Edges.Bottom | Edges.Left, Edges.Bottom | Edges.Right],
-                    ["bottom", Edges.Top | Edges.Left, Edges.Top | Edges.Right],
-                    ["left", Edges.Right | Edges.Top, Edges.Right | Edges.Bottom],
-                    ["right", Edges.Left | Edges.Top, Edges.Left | Edges.Bottom]
-                ]) {
-                    hud.edge = edge;
-                    test.check(hud.anchor.edges === anchor && hud.anchor.gravity === gravity, "HUD opens inward from the leading button: " + edge);
+                for (const edge of ["top", "bottom", "left", "right"]) {
+                        hud.edge = edge;
+                        for (const alignment of ["start", "center", "end"]) {
+                            hud.alignment = alignment;
+                            const p = MenuAnchor.position(edge, alignment, 30, 28, 392, 300, 16, 8);
+                            if (edge === "top") test.check(p.y + 16 - 28 === 8, "top opens down with visible 8px gap");
+                            if (edge === "bottom") test.check(-p.y - 16 - 300 === 8, "bottom opens up with visible 8px gap");
+                            if (edge === "left") test.check(p.x + 16 - 30 === 8, "left opens right with visible 8px gap");
+                            if (edge === "right") test.check(-p.x - 16 - 392 === 8, "right opens left with visible 8px gap");
+                            if (alignment === "center") test.check(["left", "right"].includes(edge) ? p.y + 16 === (28 - 300) / 2 : p.x + 16 === (30 - 392) / 2, "calendar centers on its own trigger");
+                        }
                 }
                 avatar.page = "";
                 test.check(avatar.fullBody && test.child(avatar, "nickGreeting").running, "hover starts the full-body animation");
@@ -276,6 +338,9 @@ ShellRoot {
                 test.check(String(card.color) === String(Theme.raised), "card follows changed theme");
                 card.player = null;
                 test.check(!play.enabled && !seek.enabled && !next.enabled, "no-player controls disabled");
+                styleCheck.oldMode = Prefs.barMode;
+                styleCheck.oldEdge = Prefs.edge;
+                styleCheck.start();
                 avatarCheck.start();
             } catch (error) {
                 console.error("CAPSULE_TEST_FAIL: " + error.message);

@@ -17,8 +17,8 @@ Singleton {
     id: root
 
     // "top" | "bottom" | "left" | "right"
-    readonly property string edge: store.edge
-    readonly property string barMode: store.barMode
+    readonly property string edge: ["top", "bottom", "left", "right"].includes(store.edge) ? store.edge : "top"
+    readonly property string barMode: ["pill", "full", "rail"].includes(store.barMode) ? store.barMode : "pill"
     readonly property bool translucent: store.translucent
 
     readonly property bool vertical: root.edge === "left" || root.edge === "right"
@@ -28,10 +28,15 @@ Singleton {
         store.edge = edge;
     }
 
+    function setBarMode(mode: string): void {
+        if (!["pill", "full", "rail"].includes(mode)) return;
+        store.barMode = mode;
+    }
+
     function nextBarMode(mode: string): string {
-        if (mode === "full") return "pill";
-        if (mode === "pill") return "minimal";
-        return "full";
+        if (mode === "pill") return "full";
+        if (mode === "full") return "rail";
+        return "pill";
     }
 
     function cycleBarMode(): void { store.barMode = nextBarMode(store.barMode) }

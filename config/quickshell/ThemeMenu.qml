@@ -133,14 +133,14 @@ BarMenu {
                 Repeater {
                     model: menu.rows
 
-                    MouseArea {
+                    MenuAction {
                         id: row
                         required property var modelData
 
                         Layout.fillWidth: true
                         implicitHeight: 28
-                        hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
+                        Accessible.name: `Apply theme ${row.modelData.label}`
 
                         onEntered: menu.hovered = row.modelData
                         onExited: if (menu.hovered === row.modelData) menu.hovered = null
@@ -224,11 +224,11 @@ BarMenu {
 
     // ---- wallpaper --------------------------------------------------------
     // Each pack ships several. This walks them without leaving the theme.
-    MouseArea {
+    MenuAction {
         Layout.fillWidth: true
         implicitHeight: 24
-        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        Accessible.name: "Next wallpaper"
         onClicked: menu.run("theme bg next")
 
         Rectangle {

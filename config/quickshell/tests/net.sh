@@ -3,7 +3,7 @@ set -euo pipefail
 root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
-cp "$root"/{Net,NetMenu,BarMenu,BarModule,MenuHint,Theme,TailscaleIcon}.qml "$tmp/"
+cp "$root"/{Net,NetMenu,BarMenu,BarModule,MenuAction,MenuHint,Theme,Prefs,TailscaleIcon}.qml "$tmp/"
 cp "$root/tests/net.qml" "$tmp/shell.qml"
 # No live Wi-Fi changes, Tailscale processes, or browser launches in this test.
 cat >"$tmp/Tailscale.qml" <<'QML'
@@ -65,4 +65,6 @@ grep -q NETWORK_TEST_PASS "$tmp/result"
 # Three automatic attempts (startup, new detection, reconnect) and three manual
 # retries. Connectivity flaps and late detection after manual sign-in add none.
 [[ $(grep -Fc "QPlatformServices::openUrl() for 'http://neverssl.com/'" "$tmp/result") == 6 ]]
-! grep -Eq 'NETWORK_TEST_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|WARN scene:' "$tmp/result"
+# The isolated Prefs store creates its defaults on first load.
+! grep -E 'NETWORK_TEST_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|WARN scene:' "$tmp/result" \
+    | grep -qv 'QML FileView.*capsule.json failed: File does not exist'

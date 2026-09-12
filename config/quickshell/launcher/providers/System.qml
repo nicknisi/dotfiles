@@ -55,7 +55,7 @@ Item {
     { id: "theme-controls", parent: "theme", title: "Theme Controls", keywords: "appearance swatches preview", page: "theme" },
     { id: "wallpaper-next", parent: "backgrounds", title: "Next Wallpaper", keywords: "cycle background image", argv: ["theme", "bg", "next"], intentFamily: "change" },
     { id: "wallpaper-picker", parent: "backgrounds", title: "Wallpaper Picker", keywords: "background carousel", argv: ["theme", "picker", "backgrounds"], intentFamily: "navigate" },
-    { id: "bar-cycle", parent: "bar", title: "Cycle Bar Size", subtitle: "Full, pill or minimal", keywords: "capsule panel mode", preference: "cycle" },
+    { id: "bar-cycle", parent: "bar", title: "Cycle Bar Layout", subtitle: "Pill, full bar or rail", keywords: "capsule panel mode", preference: "cycle" },
     { id: "bar-transparency", parent: "bar", title: "Toggle Bar Transparency", keywords: "translucent opaque capsule", preference: "translucent", intentFamily: "toggle" },
     { id: "bar-top", parent: "bar", title: "Move Bar to Top", preference: "top" },
     { id: "bar-bottom", parent: "bar", title: "Move Bar to Bottom", preference: "bottom" },

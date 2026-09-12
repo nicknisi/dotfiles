@@ -47,10 +47,11 @@ BarMenu {
             Behavior on x { NumberAnimation { duration: Theme.base; easing.type: Easing.OutBack } }
         }
 
-        MouseArea {
+        MenuAction {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
             enabled: !Bt.settling
+            Accessible.name: Bt.enabled ? "Turn Bluetooth off" : "Turn Bluetooth on"
             onClicked: Bt.adapter.enabled = !Bt.enabled
         }
     }
@@ -78,11 +79,11 @@ BarMenu {
 
         // Declared before the RowLayout so the layout's own mouse areas stack
         // above it and win the click.
-        MouseArea {
+        MenuAction {
             id: hover
             anchors.fill: parent
-            hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            Accessible.name: `${Bt.statusOf(row.device)} ${Bt.labelFor(row.device)}`
             onClicked: Bt.activate(row.device)
         }
 
@@ -138,14 +139,15 @@ BarMenu {
             // the row's, so a `visible` bound to the row's own containsMouse
             // would blink itself out of existence the moment you reached it.
             // Opacity does not affect input in Qt Quick, so it can still be hit.
-            MouseArea {
+            MenuAction {
                 id: forgetArea
                 Layout.alignment: Qt.AlignVCenter
                 implicitWidth: 18
                 implicitHeight: 18
                 opacity: row.known && row.hovered ? 1 : 0
-                hoverEnabled: true
+                enabled: row.known
                 cursorShape: Qt.PointingHandCursor
+                Accessible.name: `Forget ${Bt.labelFor(row.device)}`
                 onClicked: if (row.known) row.device.forget()
 
                 Text {
@@ -241,12 +243,12 @@ BarMenu {
     // ---- the scan toggle ---------------------------------------------------
     // Pinned below the list rather than sitting above the "available" section,
     // where a few paired devices would push it out of view.
-    MouseArea {
+    MenuAction {
         Layout.fillWidth: true
         implicitHeight: 24
         visible: Bt.enabled
-        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        Accessible.name: Bt.scanning ? "Stop Bluetooth scan" : "Scan for Bluetooth devices"
         onClicked: Bt.adapter.discovering = !Bt.scanning
 
         Rectangle {

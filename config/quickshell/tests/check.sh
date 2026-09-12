@@ -5,6 +5,8 @@ tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 
 luajit "$root/../hypr/tests/style.lua" "$root/../hypr/hyprland.lua" "$root/../../themes/"*/hyprland.lua
+bash "$root/tests/menu-keys.sh"
+bash "$root/tests/bar-drag.sh"
 bash "$root/launcher/tests/check.sh"
 bash "$root/tests/voxtype-osd.sh"
 node "$root/tests/clipboard-model.cjs"

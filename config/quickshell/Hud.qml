@@ -1,172 +1,127 @@
-// A single compact popup for the overview and all device pickers.
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import "MenuAnchor.js" as MenuAnchor
 
 PopupWindow {
     id: hud
-
     required property Item anchorItem
     required property date now
     required property var monitor
-    // The screen edge the capsule lives on. The popup opens away from it, and
-    // the corner touching the endcap is the flattened one.
     property string edge: "top"
-    readonly property bool side: hud.edge === "left" || hud.edge === "right"
+    property string alignment: "end"
     property string page: ""
     readonly property bool shown: page !== ""
+    readonly property var offset: MenuAnchor.position(edge, alignment,
+        anchorItem?.width ?? 0, anchorItem?.height ?? 0,
+        frame.width, frame.height, Theme.shadowPadding, 8)
     signal navigate(string page)
     signal dismissed()
 
     anchor {
         item: hud.anchorItem
-        edges: {
-            switch (hud.edge) {
-            case "bottom": return Edges.Top | Edges.Left;
-            case "left":   return Edges.Right | Edges.Top;
-            case "right":  return Edges.Left | Edges.Top;
-            default:       return Edges.Bottom | Edges.Left;
-            }
-        }
-        gravity: {
-            switch (hud.edge) {
-            case "bottom": return Edges.Top | Edges.Right;
-            case "left":   return Edges.Right | Edges.Bottom;
-            case "right":  return Edges.Left | Edges.Bottom;
-            default:       return Edges.Bottom | Edges.Right;
-            }
-        }
-        margins.top:    hud.edge === "top" ? -4 : (hud.side ? -12 : 0)
-        margins.bottom: hud.edge === "bottom" ? -4 : 0
-        margins.left:   hud.edge === "left" ? -4 : (hud.side ? 0 : -12)
-        margins.right:  hud.edge === "right" ? -4 : 0
+        rect.x: hud.offset.x
+        rect.y: hud.offset.y
+        rect.width: 1
+        rect.height: 1
+        edges: Edges.Top | Edges.Left
+        gravity: Edges.Bottom | Edges.Right
+        adjustment: PopupAdjustment.Slide
     }
-
-    // Transparent room for the shadow and opening animation, not content padding.
-    implicitWidth: Math.min(420, monitor.width - 2 * Theme.shadowPadding) + 2 * Theme.shadowPadding
+    implicitWidth: Math.min(392, Math.max(180, monitor.width - 2 * Theme.shadowPadding)) + 2 * Theme.shadowPadding
     implicitHeight: frame.height + 2 * Theme.shadowPadding
     color: "transparent"
-    visible: shown
+    visible: shown && anchorItem !== null
     grabFocus: true
     onClosed: hud.dismissed()
-
-    property real unfolded: 0
-    onShownChanged: {
-        unfolded = shown ? 1 : 0;
-        if (shown) frame.forceActiveFocus();
-    }
-    Behavior on unfolded {
-        NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 1.5 }
+    onPageChanged: if (shown) Qt.callLater(() => pages.children[pages.currentIndex]?.forceActiveFocus())
+    onOffsetChanged: if (shown) anchor.updateAnchor()
+    Connections {
+        target: hud.anchorItem
+        function onXChanged() { if (hud.shown) hud.anchor.updateAnchor(); }
+        function onYChanged() { if (hud.shown) hud.anchor.updateAnchor(); }
     }
 
-    Rectangle {
+    ShellSurface {
         id: frame
         x: Theme.shadowPadding
         y: Theme.shadowPadding
         width: parent.width - 2 * Theme.shadowPadding
         height: body.implicitHeight + 24
-        color: Theme.surface
-        radius: Theme.panelRadius
-        border.width: 1
-        border.color: Theme.borderIdle
+        prominent: true
         SurfaceShadow { surface: frame }
-        transformOrigin: {
-            switch (hud.edge) {
-            case "bottom": return Item.BottomLeft;
-            case "right":  return Item.TopRight;
-            default:       return Item.TopLeft;
-            }
-        }
-        scale: 0.86 + hud.unfolded * 0.14
-        rotation: (1 - hud.unfolded) * -2
-        opacity: Math.min(1, hud.unfolded)
         focus: true
         Keys.onEscapePressed: hud.dismissed()
+        MenuNavigation { scope: frame }
 
         ColumnLayout {
             id: body
-            x: 14
+            x: 16
             y: 12
-            width: parent.width - 28
-            spacing: 6
-
-            RowLayout {
+            width: parent.width - 32
+            spacing: 12
+            Rectangle {
                 Layout.fillWidth: true
-
-                BarModule {
-                    visible: hud.page !== "home"
-                    text: hud.page === "tailscale" ? "Back to network" : "Back to controls"
-                    onClicked: hud.navigate(hud.page === "tailscale" ? "net" : "home")
-                    Text {
-                        text: "\u{f0141}"
-                        font.family: Theme.icons
-                        font.pixelSize: 16
-                        color: Theme.accent
-                        Layout.alignment: Qt.AlignCenter
+                implicitHeight: 52
+                radius: 22
+                color: Theme.raised
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 6
+                    anchors.rightMargin: 6
+                    spacing: 10
+                    BarModule {
+                        visible: hud.page !== "home"
+                        text: hud.page === "tailscale" ? "Back to network" : hud.page === "theme" ? "Back to appearance" : "Back to controls"
+                        onClicked: hud.navigate(hud.page === "tailscale" ? "net" : hud.page === "theme" ? "appearance" : "home")
+                        Text {
+                            text: "\u{f0141}"
+                            font.family: Theme.icons
+                            font.pixelSize: 16
+                            color: Theme.accent
+                        }
                     }
-                }
-
-                Text {
-                    text: hud.page === "home" ? Qt.formatDateTime(hud.now, "ddd · d MMM").toUpperCase() : hud.page.toUpperCase()
-                    color: Theme.secondary
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize - 3
-                    font.letterSpacing: 2
-                }
-
-                Item { Layout.fillWidth: true }
-
-                BarModule {
-                    text: "Close controls"
-                    onClicked: hud.dismissed()
                     Text {
-                        text: "\u00d7"
-                        color: Theme.secondary
-                        font.family: Theme.font
-                        font.pixelSize: 20
-                        Layout.alignment: Qt.AlignCenter
+                        text: hud.page === "home" ? "System" : hud.page === "net" ? "Network" : hud.page === "bt" ? "Bluetooth" : hud.page
+                        color: Theme.fg
+                        font.family: Theme.headingFont
+                        font.pixelSize: 26
+                        font.weight: Font.DemiBold
+                        font.capitalization: Font.Capitalize
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                    }
+                    BarModule {
+                        text: "Close controls"
+                        onClicked: hud.dismissed()
+                        Text {
+                            text: "×"
+                            color: Theme.secondary
+                            font.family: Theme.uiFont
+                            font.pixelSize: 20
+                        }
                     }
                 }
             }
-
-            // Flickable only constrains short screens. Normal HUD content keeps
-            // its natural height, and device pickers retain their own scrolling.
             Flickable {
                 id: viewport
                 Layout.fillWidth: true
-                Layout.preferredHeight: Math.min(pages.implicitHeight,
-                    Math.max(120, hud.monitor.height - 190))
+                Layout.preferredHeight: Math.min(pages.implicitHeight, Math.max(80, hud.monitor.height - 160))
                 contentWidth: width
                 contentHeight: pages.implicitHeight
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
-
                 Connections {
                     target: hud
-                    function onPageChanged() {
-                        viewport.contentY = 0;
-                        pageEntrance.restart();
-                    }
+                    function onPageChanged() { viewport.contentY = 0; }
                 }
-                ParallelAnimation {
-                    id: pageEntrance
-                    NumberAnimation { target: pages; property: "y"; from: 12; to: 0; duration: Theme.unfold; easing.type: Easing.OutBack }
-                    NumberAnimation { target: pages; property: "opacity"; from: 0.3; to: 1; duration: Theme.base }
-                }
-
                 StackLayout {
                     id: pages
                     width: viewport.width
-                    // StackLayout's implicit height is the tallest page, not
-                    // the selected one. Size explicitly to avoid empty space.
                     implicitHeight: children[currentIndex]?.implicitHeight ?? 0
                     height: implicitHeight
-                    currentIndex: Math.max(0, ["home", "caffeine", "audio", "net", "bt", "display", "theme", "clock", "tailscale"].indexOf(hud.page))
-
-                    HudHome {
-                        shown: hud.shown && hud.page === "home"
-                        onNavigate: page => hud.navigate(page)
-                    }
+                    currentIndex: Math.max(0, ["home", "caffeine", "audio", "net", "bt", "display", "theme", "clock", "tailscale", "appearance"].indexOf(hud.page))
+                    HudHome { shown: hud.shown && hud.page === "home"; onNavigate: page => hud.navigate(page) }
                     CaffeineMenu { shown: hud.shown && hud.page === "caffeine"; onDismissed: hud.dismissed() }
                     AudioMenu { shown: hud.shown && hud.page === "audio"; onDismissed: hud.dismissed() }
                     NetMenu { shown: hud.shown && hud.page === "net"; onNavigate: page => hud.navigate(page); onDismissed: hud.dismissed() }
@@ -175,6 +130,7 @@ PopupWindow {
                     ThemeMenu { shown: hud.shown && hud.page === "theme"; onDismissed: hud.dismissed() }
                     ClockMenu { now: hud.now; shown: hud.shown && hud.page === "clock"; onDismissed: hud.dismissed() }
                     TailscaleMenu { shown: hud.shown && hud.page === "tailscale"; onDismissed: hud.dismissed() }
+                    AppearanceMenu { shown: hud.shown && hud.page === "appearance"; onNavigate: page => hud.navigate(page); onDismissed: hud.dismissed() }
                 }
             }
         }

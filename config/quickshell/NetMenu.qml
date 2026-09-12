@@ -52,9 +52,10 @@ BarMenu {
             Behavior on x { NumberAnimation { duration: Theme.base; easing.type: Easing.OutBack } }
         }
 
-        MouseArea {
+        MenuAction {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
+            Accessible.name: Net.radioOn ? "Turn Wi-Fi off" : "Turn Wi-Fi on"
             onClicked: Networking.wifiEnabled = !Net.radioOn
         }
     }
@@ -139,11 +140,11 @@ BarMenu {
                             color: row.hovered ? Theme.raised : "transparent"
                             Behavior on color { ColorAnimation { duration: Theme.quick } }
 
-                            MouseArea {
+                            MenuAction {
                                 id: hover
                                 anchors.fill: parent
-                                hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
+                                Accessible.name: `Open Wi-Fi network ${entry.network.name}`
                                 onClicked: {
                                     const n = entry.network;
                                     if (n.connected) {
@@ -218,14 +219,15 @@ BarMenu {
 
                                 // Only remembered networks have anything to
                                 // forget. Same fade-not-hide trick as BtMenu.
-                                MouseArea {
+                                MenuAction {
                                     id: forgetArea
                                     Layout.alignment: Qt.AlignVCenter
                                     implicitWidth: 18
                                     implicitHeight: 18
                                     opacity: entry.network.known && row.hovered ? 1 : 0
-                                    hoverEnabled: true
+                                    enabled: entry.network.known
                                     cursorShape: Qt.PointingHandCursor
+                                    Accessible.name: `Forget Wi-Fi network ${entry.network.name}`
                                     onClicked: if (entry.network.known) entry.network.forget()
 
                                     Text {
@@ -267,6 +269,8 @@ BarMenu {
                                 verticalAlignment: Text.AlignVCenter
                                 visible: entry.asking
                                 focus: entry.asking
+                                activeFocusOnTab: true
+                                Accessible.name: `Passphrase for Wi-Fi network ${entry.network.name}`
                                 echoMode: TextInput.Password
                                 font.family: Theme.font
                                 font.pixelSize: Theme.fontSize - 1

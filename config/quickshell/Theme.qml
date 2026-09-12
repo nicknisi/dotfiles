@@ -20,12 +20,21 @@ Singleton {
     property var palette: ({})
     function c(key, fallback) { return palette[key] || fallback }
     function alpha(color, a) { return Qt.rgba(color.r, color.g, color.b, a) }
+    function luminance(color) {
+        function linear(value) { return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4) }
+        return 0.2126 * linear(color.r) + 0.7152 * linear(color.g) + 0.0722 * linear(color.b);
+    }
+    function contrast(a, b) {
+        const x = luminance(a), y = luminance(b);
+        return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+    }
 
     readonly property color bg:      c("background",         "#1a1b26")
     readonly property color bgAlt:   c("lighter_background", "#232433")
     readonly property color fg:      c("foreground",         "#a9b1d6")
     readonly property color muted:   c("muted",              "#444b6a")
     readonly property color accent:  c("accent",             "#7aa2f7")
+    readonly property color accentText: root.contrast(root.accent, root.fg) >= root.contrast(root.accent, root.bg) ? root.fg : root.bg
     readonly property color cyan:    c("cyan",               "#0db9d7")
     readonly property color blue:    c("blue",               "#7aa2f7")
     readonly property color green:   c("green",              "#9ece6a")
@@ -43,8 +52,9 @@ Singleton {
     // Secondary labels stay readable even when the palette's muted color is
     // intended for borders rather than text.
     readonly property color secondary: Qt.tint(surface, alpha(fg, 0.68))
+
     readonly property int controlRadius: 12
-    readonly property int panelRadius: controlRadius
+    readonly property int panelRadius: 28
     // Neutral shadows work with every palette. Match Hyprland's 0x30 alpha.
     readonly property color shadowColor: Qt.rgba(0, 0, 0, 48 / 255)
     readonly property int shadowBlur: 16
@@ -58,18 +68,22 @@ Singleton {
     // Three speeds, so every animation in the shell agrees with the others.
     // quick is for a hover tint, base for anything that moves, unfold for a menu
     // opening, which is slow enough to read as a physical thing.
-    readonly property int quick:  100
-    readonly property int base:   220
-    readonly property int unfold: 340
+    readonly property int quick:  90
+    readonly property int base:   160
+    readonly property int unfold: 220
 
     // The old config asked for "JetBrainsMono Nerd Font", which is not installed,
     // so Qt was silently falling back. These two are.
     readonly property string font:  "Monaspace Argon"
+    readonly property string uiFont: "Adwaita Sans"
+    readonly property string headingFont: "Adwaita Sans"
     readonly property string icons: "Symbols Nerd Font"
 
     readonly property int fontSize:  13
     readonly property int iconSize:  14
-    readonly property int barHeight: 30
+    readonly property int barHeight: 48
+    readonly property int barInset: Prefs.barMode === "full" ? 0 : 18
+    readonly property int barExtent: barHeight + 2 * barInset
 
     // A light accent wash for selected controls, independent of theme mode.
     readonly property color glowFill: alpha(accent, 0.14)

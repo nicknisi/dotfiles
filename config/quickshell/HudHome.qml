@@ -11,7 +11,7 @@ BarMenu {
     component Label: Text {
         textFormat: Text.PlainText
         color: Theme.fg
-        font.family: Theme.font
+        font.family: Theme.uiFont
         font.pixelSize: Theme.fontSize - 1
         Layout.alignment: Qt.AlignVCenter
         elide: Text.ElideRight
@@ -24,7 +24,7 @@ BarMenu {
         property color tint: Theme.accent
         Layout.fillWidth: true
         implicitHeight: 48
-        cornerRadius: hovered ? 22 : 16
+        cornerRadius: Theme.controlRadius
         highlighted: true
 
         Text {
@@ -33,21 +33,20 @@ BarMenu {
             font.family: Theme.icons
             font.pixelSize: 19
             Layout.alignment: Qt.AlignVCenter
-            rotation: tile.hovered ? -8 : 0
-            Behavior on rotation { NumberAnimation { duration: Theme.base; easing.type: Easing.OutBack } }
         }
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 3
-            Label { text: tile.text; font.bold: true; Layout.fillWidth: true }
+            Label { text: tile.text; font.family: Theme.headingFont; font.bold: true; Layout.fillWidth: true }
             Label { text: tile.caption; color: Theme.secondary; font.pixelSize: Theme.fontSize - 3; Layout.fillWidth: true }
         }
     }
 
     MediaCard {
+        visible: Media.player !== null
         Layout.fillWidth: true
         Layout.bottomMargin: 2
-        active: home.shown
+        active: home.shown && visible
     }
 
     RowLayout {
@@ -143,17 +142,27 @@ BarMenu {
         onTriggered: Quickshell.execDetached(["brightnessctl", "set", `${home.brightnessTarget}%`])
     }
 
+    BarModule {
+        Layout.fillWidth: true
+        text: Caffeine.active ? "Keep awake · " + Caffeine.status : "Keep awake"
+        highlighted: Caffeine.active
+        onClicked: home.navigate("caffeine")
+        Text { text: "\u{f0176}"; font.family: Theme.icons; font.pixelSize: 16; color: Caffeine.active ? Theme.accent : Theme.secondary }
+        Label { text: "Keep awake"; Layout.fillWidth: true }
+        Label { text: Caffeine.active ? Caffeine.status : "Off"; color: Theme.secondary; font.pixelSize: Theme.fontSize - 3 }
+    }
+
     RowLayout {
         Layout.fillWidth: true
         Layout.topMargin: 2
         spacing: 8
         BarModule {
             Layout.fillWidth: true
-            text: "Choose theme"
-            cornerRadius: 12
-            onClicked: home.navigate("theme")
+            text: "Appearance"
+            cornerRadius: Theme.controlRadius
+            onClicked: home.navigate("appearance")
             Text { text: "\u{f0e0c}"; font.family: Theme.icons; font.pixelSize: 16; color: Theme.accent }
-            Label { text: Theme.name || "Theme"; Layout.fillWidth: true }
+            Label { text: "Appearance"; font.family: Theme.headingFont; Layout.fillWidth: true }
         }
         Label {
             visible: Battery.present
@@ -164,22 +173,4 @@ BarMenu {
         }
     }
 
-    Rectangle {
-        Layout.fillWidth: true
-        Layout.topMargin: 2
-        implicitHeight: 38
-        radius: 16
-        color: Theme.raised
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.margins: 8
-            spacing: 10
-            Spark { values: Sys.cpuHistory; tint: Sys.cpu > 85 ? Theme.red : Theme.yellow }
-            Label { text: `CPU ${Sys.cpu}%`; font.pixelSize: Theme.fontSize - 3; color: Theme.secondary }
-            Item { Layout.fillWidth: true }
-            Gauge { value: Sys.mem; tint: Sys.mem > 85 ? Theme.red : Theme.cyan }
-            Label { text: `Memory ${Sys.mem}%`; font.pixelSize: Theme.fontSize - 3; color: Theme.secondary }
-        }
-    }
 }

@@ -19,5 +19,6 @@ bash "$here/native.sh"
 python3 "$here/extensions_helper_test.py"
 python3 "$here/extensions_qml_test.py"
 bash "$here/host-check.sh"
+bash "$here/preview.sh"
 LAUNCHER_QML_SHIM_ROOT="$shell_root" bash "$here/integrations.sh"
 printf 'LAUNCHER_TEST_PASS\n'

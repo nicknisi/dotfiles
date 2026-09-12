@@ -48,12 +48,10 @@ Item {
             width: 12
             height: control.pressed ? 22 : 16
             radius: control.pressed ? 5 : 6
-            rotation: control.pressed ? -8 : 0
             color: slider.tint
             border.width: control.visualFocus ? 2 : 0
             border.color: Theme.fg
             Behavior on height { NumberAnimation { duration: Theme.quick; easing.type: Easing.OutBack } }
-            Behavior on rotation { NumberAnimation { duration: Theme.quick; easing.type: Easing.OutBack } }
         }
     }
 }

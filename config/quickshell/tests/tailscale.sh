@@ -116,4 +116,6 @@ fi
 env -u WAYLAND_DISPLAY PATH="$tmp/bin:$PATH" TAILSCALE_TEST_DIR="$tmp" QT_QPA_PLATFORM=offscreen \
     timeout 20 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
 grep -q TAILSCALE_UI_PASS "$tmp/result"
-! grep -Eq 'TAILSCALE_UI_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|WARN scene:' "$tmp/result"
+# The isolated Prefs store creates its defaults on first load.
+! grep -E 'TAILSCALE_UI_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|WARN scene:' "$tmp/result" \
+    | grep -qv 'QML FileView.*capsule.json failed: File does not exist'

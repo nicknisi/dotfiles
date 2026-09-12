@@ -205,9 +205,13 @@ BarMenu {
         implicitHeight: contentHeight
         clip: true
         boundsBehavior: Flickable.StopAtBounds
+        activeFocusOnTab: true
         model: menu.rows
         currentIndex: menu.cursor
-        onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
+        onCurrentIndexChanged: if (currentIndex >= 0) {
+            menu.cursor = currentIndex;
+            positionViewAtIndex(currentIndex, ListView.Contain);
+        }
         spacing: 3
         delegate: BarModule {
             id: row
@@ -217,6 +221,7 @@ BarMenu {
             height: 43
             cornerRadius: 14
             highlighted: index === menu.cursor
+            activeFocusOnTab: false
             text: (modelData.name || modelData.label) + (modelData.selected ? ", selected" : "")
             enabled: !Tailscale.busy
             onClicked: menu.activate(index)

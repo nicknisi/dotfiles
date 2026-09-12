@@ -54,7 +54,7 @@ Item {
     else root.openRoute(payload.route || payload.initialMenu || payload.menu || "root", payload)
   }
   // Toggle uses close() for second-tap voice. Explicit IPC close, Esc and
-  // the scrim use cancel() and never start recording.
+  // outside clicks use cancel() and never start recording.
   function close() {
     if (root.opened && !root.dmenuActive && root.voiceEnabled && !root.confirmPending) {
       if (voice.phase === "starting" || voice.phase === "listening") { root.voiceStop(); return }
@@ -126,7 +126,6 @@ Item {
   property bool configKnown: false
   readonly property var paletteSchema: [
     { key: "density", type: "enum", label: "Layout density", "default": "compact", options: ["compact", "comfortable"], description: "Compact uses a narrower window and shorter rows" },
-    { key: "accent", type: "enum", label: "Accent color", "default": "theme", options: ["theme", "ember", "violet", "mint"], description: "Theme follows the active shell theme" },
     { key: "showPreview", type: "boolean", label: "Show result previews", "default": true },
     { key: "animations", type: "enum", label: "Animations", "default": "snappy", options: ["off", "snappy", "fluid"],
       description: "Off shows every change at once; Snappy ties changes together over a couple of frames; Fluid eases them" },
@@ -413,7 +412,7 @@ Item {
   property int dmenuWidth: 300
   property int dmenuMaxHeight: 0
   property bool requestActive: false
-  property string fontFamily: Style.font.menuFamily
+  property string fontFamily: Theme.uiFont
   property string scope: ""
   property string scopeTitle: ""
   property var history: []
@@ -434,9 +433,20 @@ Item {
   property var confirmPending: null       // { message, confirmText, run }
   readonly property var current: rows.length && selected >= 0 && selected < rows.length ? rows[selected] : ({})
   readonly property bool compact: paletteSettings.density !== "comfortable"
-  readonly property color accent: paletteSettings.accent === "ember" ? "#ee987e" : paletteSettings.accent === "violet" ? "#b5a0ef" : paletteSettings.accent === "mint" ? "#8bceb4" : Color.accent
+  readonly property color accent: Theme.accent
+  readonly property int shellRadius: Theme.panelRadius
+  readonly property int controlRadius: Theme.controlRadius
+  readonly property string headingFamily: Theme.headingFont
   readonly property bool clipboardChoice: root.dictationMode || !!(root.current.action && root.current.action.type === "dictation-copy")
-  readonly property bool previewVisible: !dmenuActive && paletteSettings.showPreview !== false && !!(current.preview || current.previewImage || current.swatch)
+  readonly property bool previewVisible: !dmenuActive && paletteSettings.showPreview !== false && root.usefulPreview(current)
+  function usefulPreview(row) {
+    if (!row || row.providerKey === "applications") return false
+    if (row.previewImage || row.swatch) return true
+    if (!row.preview) return false
+    if (row.providerKey === "hotkeys" || row.providerKey === "extensions" || row.providerKey === "settings") return false
+    var preview = String(row.preview || "")
+    return preview !== String(row.title || "") && preview !== String(row.subtitle || "") && preview !== String(row.hint || "") && preview !== String(row.previewDetail || "")
+  }
 
   // ---------------------------------------------------------------- motion
   // Three tiers (core/Motion.js) drive every transition: the window's
@@ -447,7 +457,7 @@ Item {
   // The window transition is chosen apart from the tier: Instant keeps the
   // rest of the palette animated while the window itself appears at once.
   readonly property int windowDuration: paletteSettings.windowTransition === "instant" ? 0 : motion.window
-  // 0 hidden … 1 shown; the scrim and the card follow it. The layer stays
+  // 0 hidden … 1 shown; the card follows it. The layer stays
   // mapped, without keyboard focus, while `closing` runs it back down.
   property real reveal: 0
   property bool closing: false
@@ -500,22 +510,23 @@ Item {
   }
 
   // Theme surfaces, same tokens as the stock menu.
-  readonly property color background: Color.menu.background
+  readonly property color background: Theme.surface
   readonly property color foreground: Color.menu.text
   readonly property color scrim: Color.menu.scrim
-  readonly property color selectedBackground: Color.menu.selectedBackground
-  readonly property color selectedText: Color.menu.selectedText
-  readonly property var borderSpec: Border.surfaceSpec("menu", "border", Color.menu.border, Math.max(1, Style.space(2)))
-  readonly property var selectedBorderSpec: Border.surfaceSpec("menu", "selected-border", Color.menu.selectedBorder, 0)
+  readonly property color selectedBackground: Theme.glowFill
+  readonly property color selectedText: Color.menu.text
+  readonly property var borderSpec: Border.surfaceSpec("menu", "border", Theme.borderIdle, Math.max(1, Style.space(1)))
+  readonly property var selectedBorderSpec: Border.none()
   readonly property color hairline: Util.alpha(foreground, 0.12)
-  readonly property color muted: Util.alpha(foreground, 0.55)
+  readonly property color muted: Theme.secondary
 
   // Type scale for provider views. A view covers the whole card, so it has to
   // carry the palette's own sizes -- including the density bump -- or it reads
   // a step smaller than the results it replaced. Ladder: fontInput is the
   // search field, fontTitle a row title, fontBody a preview body, fontLabel a
   // row subtitle or footer, fontCaption a keycap or the breadcrumb brand.
-  readonly property int fontInput: compact ? Style.font.heading : Style.font.heading + 2
+  readonly property int fontInput: compact ? Style.font.heading + 3 : Style.font.heading + 5
+  readonly property int searchFontSize: compact ? Style.space(44) : Style.space(50)
   readonly property int fontTitle: compact ? Style.font.title : Style.font.title + 1
   readonly property int fontBody: Style.font.body
   readonly property int fontLabel: Style.font.bodySmall
@@ -888,7 +899,7 @@ Item {
   }
 
   function display(row, index, previousSection) {
-    return { uid: row.uid, title: row.title, subtitle: row.subtitle, icon: row.icon, iconFont: row.iconFont, iconSource: row.iconSource,
+    return { uid: row.uid, providerKey: row.providerKey, title: row.title, subtitle: row.subtitle, icon: row.icon, iconFont: row.iconFont, iconSource: row.iconSource,
              tint: row.tint, section: row.section, sectionStart: row.section !== previousSection, verb: row.verb, accessory: row.accessory,
              disabled: row.disabled, badge: row.badge, answer: row.tier === "answer", hint: row.hint }
   }
@@ -1153,10 +1164,10 @@ Item {
   }
 
   // ------------------------------------------------------------------ view
-  readonly property int headerHeight: Style.space(compact ? 66 : 78)
-  readonly property int crumbHeight: Style.space(30)
-  readonly property int footerHeight: Style.space(46)
-  readonly property int rowHeight: Style.space(compact ? 46 : 56)
+  readonly property int headerHeight: Style.space(compact ? 118 : 128)
+  readonly property int crumbHeight: Style.space(34)
+  readonly property int footerHeight: Style.space(48)
+  readonly property int rowHeight: Style.space(compact ? 49 : 54)
   readonly property int rowSpacing: Style.space(3)
   readonly property int dmenuRowsHeight: {
     var count = Math.max(1, resultModel.count)
@@ -1175,24 +1186,30 @@ Item {
     WlrLayershell.layer: WlrLayer.Overlay
     // A launch must find the keyboard free at once, however long the fade-out runs.
     WlrLayershell.keyboardFocus: root.opened ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    mask: Region { width: root.opened ? panel.width : 0; height: root.opened ? panel.height : 0 }
 
-    Rectangle { anchors.fill: parent; color: root.scrim; opacity: root.reveal; MouseArea { anchors.fill: parent; onClicked: root.cancel() } }
+    MouseArea { objectName: "launcher-dismiss-area"; anchors.fill: parent; onClicked: root.cancel() }
 
     SurfaceShadow { surface: card }
 
-    BorderSurface {
+    ShellSurface {
       id: card
-      width: Math.min(root.dmenuActive ? Style.space(root.dmenuWidth) : Style.space(root.compact ? 640 : 760), panel.width - Style.gapsOut * 2)
+      prominent: true
+      readonly property real borderTop: outlineWidth
+      readonly property real borderRight: borderTop
+      readonly property real borderBottom: borderTop
+      readonly property real borderLeft: borderTop
+      width: Math.min(root.dmenuActive ? Style.space(root.dmenuWidth) : Style.space(root.compact ? 562 : 620), panel.width - Style.gapsOut * 2)
       height: root.dmenuActive
         ? Math.min(root.headerHeight + (root.mode === "input" ? Style.space(12) : root.dmenuRowsHeight + Style.space(20)), panel.height - Style.gapsOut * 2)
-        : Math.min(Style.space(root.compact ? 540 : 580), panel.height - Style.gapsOut * 2)
+        : Math.min(Style.space(root.compact ? 459 : 520), panel.height - Style.gapsOut * 2)
       anchors.horizontalCenter: parent.horizontalCenter
-      y: (root.dmenuActive ? Math.max(Style.gapsOut, Math.round((panel.height - height) / 2)) : Math.max(Style.gapsOut, Math.round((panel.height - height) * 0.38)))
-         + (root.windowSlides ? Math.round((1 - root.reveal) * Style.space(Motion.WINDOW_SLIDE_PX)) : 0)
+      y: Math.max(Style.gapsOut, Math.round((panel.height - height) / 2))
       opacity: root.reveal
-      radius: Theme.panelRadius
-      color: root.background
-      borderSpec: root.borderSpec
+      radius: root.shellRadius
+      fill: root.background
+      outlineWidth: root.borderSpec ? Math.max(0, root.borderSpec.width || 0) : 0
+      outlineColor: root.borderSpec?.color || Theme.accent
       clip: true
       Accessible.role: Accessible.Dialog
       Accessible.name: "Launcher command palette"
@@ -1226,16 +1243,24 @@ Item {
       Item {
         id: header
         visible: !root.providerViewActive
-        x: Style.space(root.compact ? 20 : 24); y: 0
+        x: Style.space(root.compact ? 27 : 30); y: Style.space(4)
         width: parent.width - x * 2
-        height: root.headerHeight
+        height: root.headerHeight - Style.space(4)
         Item {
           id: glyph
-          anchors.left: parent.left
+          anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter
-          width: Style.space(22); height: width
-          Rectangle { visible: !voice.active; x: 1; y: 1; width: Style.space(15); height: width; radius: width / 2; color: "transparent"; border.color: root.accent; border.width: 1.8 }
-          Rectangle { visible: !voice.active; x: Style.space(13); y: Style.space(13); width: Style.space(9); height: 1.8; radius: 0.9; rotation: 45; transformOrigin: Item.Left; color: root.accent }
+          width: Style.space(28); height: width
+          Text {
+            visible: !voice.active
+            anchors.centerIn: parent
+            text: "›"
+            textFormat: Text.PlainText
+            color: root.muted
+            font.family: root.headingFamily
+            font.pixelSize: Style.space(32)
+            font.weight: Font.Medium
+          }
           // Recording dot, swelling with the microphone.
           Rectangle {
             visible: voice.active
@@ -1265,18 +1290,20 @@ Item {
         }
         TextInput {
           id: search
-          anchors.left: glyph.right
-          anchors.leftMargin: Style.space(14)
-          anchors.right: root.liveText ? wave.left : escCap.left
+          anchors.left: parent.left
+          anchors.leftMargin: 0
+          anchors.right: root.liveText ? wave.left : glyph.left
           anchors.rightMargin: Style.space(12)
           anchors.verticalCenter: parent.verticalCenter
-          height: Style.space(40)
+          height: root.searchFontSize + Style.space(12)
           verticalAlignment: TextInput.AlignVCenter
           color: root.foreground
           selectionColor: Util.alpha(root.accent, 0.45)
           selectedTextColor: root.foreground
-          font.family: root.fontFamily
-          font.pixelSize: root.fontInput
+          font.family: root.headingFamily
+          font.pixelSize: root.searchFontSize
+          font.weight: Font.DemiBold
+          font.letterSpacing: -1.4
           selectByMouse: true
           clip: true
           focus: true
@@ -1285,7 +1312,7 @@ Item {
           Text {
             anchors.fill: parent
             verticalAlignment: Text.AlignVCenter
-            text: root.dictationMode ? "Speak or edit your dictation…" : root.dmenuActive ? root.dmenuPrompt + "…" : root.scope ? "Search " + root.scopeTitle.toLowerCase() + "…" : "What would you like to do?"
+            text: root.dictationMode ? "Speak…" : root.dmenuActive ? root.dmenuPrompt + "…" : root.scope ? "Search " + root.scopeTitle.toLowerCase() + "…" : "Open…"
             textFormat: Text.PlainText
             color: Util.alpha(root.foreground, 0.42)
             font: parent.font
@@ -1340,26 +1367,33 @@ Item {
             }
           }
         }
-        Keycap { id: escCap; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; label: "esc"; foreground: root.foreground }
+        Keycap { id: escCap; visible: false; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; label: "esc"; foreground: root.foreground }
       }
-      Rectangle { x: 0; y: root.headerHeight; width: parent.width; height: 1; color: root.hairline }
+      Rectangle { x: Style.space(27); y: root.headerHeight - Style.space(16); width: parent.width - Style.space(54); height: 1; color: root.accent; opacity: search.activeFocus ? 1 : 0.35 }
 
-      // Breadcrumb line (palette mode)
+      // Scope line (palette mode)
       Row {
         id: crumbs
         visible: !root.dmenuActive
         transform: levelShift
         opacity: root.levelOpacity
-        x: Style.space(root.compact ? 22 : 26); y: root.headerHeight + Style.space(8)
+        x: Style.space(27); y: root.headerHeight - Style.space(4)
         height: root.crumbHeight
-        spacing: Style.space(10)
-        Text { id: brand; anchors.verticalCenter: parent.verticalCenter; text: "LAUNCHER"; textFormat: Text.PlainText; color: root.accent; font.family: root.fontFamily; font.pixelSize: Style.font.caption; font.letterSpacing: 2; font.weight: Font.Bold }
-        Text { anchors.baseline: brand.baseline; text: root.scope ? "›" : "/"; textFormat: Text.PlainText; color: Util.alpha(root.foreground, 0.35); font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall }
-        Text {
-          anchors.baseline: brand.baseline
-          text: root.scope ? root.scopeTitle : search.text ? "Search results" : "Apps, commands, answers"
-          textFormat: Text.PlainText
-          color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall
+        spacing: Style.space(6)
+        Repeater {
+          model: [{label: "All", route: ""}, {label: "Applications", route: "applications"}, {label: "Files", route: "files"}, {label: "Commands", route: "system"}]
+          delegate: BarModule {
+            id: scopeButton
+            required property var modelData
+            objectName: "scope-" + (modelData.route || "all")
+            readonly property bool selected: modelData.route ? root.scope === modelData.route || root.scope.indexOf(modelData.route + "/") === 0 : !root.scope
+            height: root.crumbHeight - Style.space(4)
+            padding: Style.space(7)
+            text: modelData.label
+            highlighted: selected
+            onClicked: root.openRoute(modelData.route || "root", {query: search.text})
+            Text { text: scopeButton.modelData.label; color: scopeButton.selected ? root.accent : root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; font.weight: scopeButton.selected ? Font.DemiBold : Font.Normal }
+          }
         }
       }
 
@@ -1368,10 +1402,10 @@ Item {
         id: content
         transform: levelShift
         opacity: root.levelOpacity
-        x: Style.space(12)
-        y: root.dmenuActive ? root.headerHeight + Style.space(10) : root.headerHeight + root.crumbHeight + Style.space(10)
-        width: parent.width - Style.space(24)
-        height: parent.height - y - (root.dmenuActive ? Style.space(10) : root.footerHeight + Style.space(10))
+        x: Style.space(17)
+        y: root.dmenuActive ? root.headerHeight + Style.space(10) : root.headerHeight + root.crumbHeight - Style.space(2)
+        width: parent.width - Style.space(34)
+        height: parent.height - y - (root.dmenuActive ? Style.space(10) : root.footerHeight + Style.space(8))
 
         ListView {
           id: resultList
@@ -1396,7 +1430,7 @@ Item {
             height: row ? row.rowHeight : root.rowHeight
             y: row ? row.y + row.rowY : 0
             opacity: row && row.disabled ? 0.62 : 1
-            radius: Style.cornerRadius
+            radius: root.controlRadius
             color: root.selectedBackground
             borderSpec: root.selectedBorderSpec
             Behavior on y { enabled: root.selectionTouched && root.motion.selection > 0; NumberAnimation { duration: root.motion.selection; easing.type: Easing.OutCubic } }
@@ -1408,6 +1442,7 @@ Item {
             readonly property real rowHeight: rowItem.height
             required property int index
             required property string uid
+            required property string providerKey
             required property string title
             required property string subtitle
             required property string icon
@@ -1425,7 +1460,7 @@ Item {
             width: resultList.width
             // The idle root lists one row per provider, so headers would label single items there;
             // they return as soon as a query or a scope groups real sets.
-            readonly property bool showHeader: !root.dmenuActive && (!!root.scope || !!search.text) && sectionStart && !!section
+            readonly property bool showHeader: false
             Item {
               width: parent.width
               height: delegateRoot.showHeader ? Style.space(root.compact ? 22 : 26) : 0
@@ -1435,7 +1470,7 @@ Item {
                 text: delegateRoot.section
                 textFormat: Text.PlainText
                 color: Util.alpha(root.foreground, 0.5)
-                font.family: root.fontFamily; font.pixelSize: Style.font.caption; font.weight: Font.Medium; font.letterSpacing: 0.5
+                font.family: root.headingFamily; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold; font.letterSpacing: 0.3
               }
             }
             ResultRow {
@@ -1443,9 +1478,9 @@ Item {
               width: parent.width
               paintsSelection: false
               flashRise: root.motion.flashRise; flashFall: root.motion.flashFall
-              title: delegateRoot.title; subtitle: delegateRoot.subtitle; icon: delegateRoot.icon; iconFont: delegateRoot.iconFont
+              title: delegateRoot.title; subtitle: delegateRoot.providerKey === "applications" ? "" : delegateRoot.subtitle; icon: delegateRoot.icon; iconFont: delegateRoot.iconFont
               iconSource: delegateRoot.iconSource; tint: delegateRoot.tint; verb: delegateRoot.verb; accessory: delegateRoot.accessory
-              badge: delegateRoot.badge; hint: delegateRoot.hint; disabled: delegateRoot.disabled; answer: delegateRoot.answer
+              badge: delegateRoot.badge; hint: delegateRoot.providerKey === "applications" ? "" : delegateRoot.hint; disabled: delegateRoot.disabled; answer: delegateRoot.answer
               shortcut: root.ctrlHeld && !root.dmenuActive && delegateRoot.index < root.shortcutRows ? String(delegateRoot.index + 1) : ""
               compact: root.compact
               selected: root.selected === delegateRoot.index

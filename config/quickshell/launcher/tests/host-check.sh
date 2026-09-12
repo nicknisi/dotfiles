@@ -26,7 +26,7 @@ import pathlib, sys
 path = pathlib.Path(sys.argv[1])
 source = path.read_text().replace('  PanelWindow {', '  Window {\n    transientParent: null\n    width: 1000; height: 800')
 source = source.replace('    anchors { top: true; bottom: true; left: true; right: true }\n', '')
-path.write_text('\n'.join(line for line in source.splitlines() if not any(token in line for token in ['exclusionMode:', 'WlrLayershell.', 'screen: root.targetScreen'])))
+path.write_text('\n'.join(line for line in source.splitlines() if not any(token in line for token in ['exclusionMode:', 'WlrLayershell.', 'screen: root.targetScreen', 'mask: Region {'])))
 PY
 
 # No session bus, compositor or real app tools. Only mkdir, the picker writer

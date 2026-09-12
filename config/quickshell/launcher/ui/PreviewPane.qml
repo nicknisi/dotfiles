@@ -75,12 +75,23 @@ Item {
     border.width: 1
     border.color: Util.alpha(root.foreground, 0.15)
   }
+  // Measure without eliding: the displayed text's implicit height can depend
+  // on its clipped height, which otherwise creates a binding loop.
+  Text {
+    id: captionMeasure
+    visible: false
+    text: root.image ? caption.text : ""
+    textFormat: Text.PlainText
+    font: caption.font
+    width: caption.width
+    wrapMode: caption.wrapMode
+  }
   Text {
     id: caption
     y: root.row.swatch ? swatch.y + swatch.height + Style.space(18) : Style.space(46)
     width: parent.width
     readonly property int room: parent.height - y - Style.space(66)
-    height: root.image ? Math.min(implicitHeight, root.captionBudget(font.pixelSize, room)) : room
+    height: root.image ? Math.min(captionMeasure.implicitHeight, root.captionBudget(font.pixelSize, room)) : room
     visible: !!root.row.preview
     text: root.row.preview || ""
     textFormat: Text.PlainText

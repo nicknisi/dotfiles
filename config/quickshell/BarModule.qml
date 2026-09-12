@@ -19,7 +19,7 @@ AbstractButton {
     id: mod
 
     property bool highlighted: false
-    property real cornerRadius: height / 2
+    property real cornerRadius: Theme.controlRadius
     // Content runs left to right, or top to bottom when the capsule is stood
     // on its side and a glyph has to sit above its number.
     property bool stacked: false
@@ -38,23 +38,17 @@ AbstractButton {
     focusPolicy: Qt.StrongFocus
     Accessible.name: text
     opacity: enabled ? 1 : 0.35
+    Keys.onReturnPressed: event => { if (!event.isAutoRepeat) mod.clicked(); }
+    Keys.onEnterPressed: event => { if (!event.isAutoRepeat) mod.clicked(); }
 
-    // Hover is a colour, not a size. Growing 7% with an overshoot made the wide
-    // modules lurch past the capsule's edge and snap back, which reads as a
-    // rendering fault rather than as feedback. Only a press moves anything, and
-    // only a little.
-    scale: down ? 0.94 : 1
-    Behavior on scale {
-        NumberAnimation { duration: Theme.quick; easing.type: Easing.OutCubic }
-    }
-
+    // Hover and press are colour-only feedback. Size changes made modules
+    // lurch past the capsule edge in compact and vertical modes.
     background: Rectangle {
         radius: mod.cornerRadius
         color: mod.highlighted ? Theme.glowFill : (mod.hovered ? Theme.raised : "transparent")
         border.width: mod.visualFocus ? 2 : 0
         border.color: Theme.accent
         Behavior on color { ColorAnimation { duration: Theme.quick } }
-        Behavior on radius { NumberAnimation { duration: Theme.base; easing.type: Easing.OutBack } }
     }
 
     contentItem: GridLayout {

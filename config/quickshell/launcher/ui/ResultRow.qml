@@ -1,4 +1,5 @@
 import QtQuick
+import qs
 import qs.Commons
 import qs.Ui
 
@@ -37,10 +38,10 @@ BorderSurface {
   signal hovered(var item, var mouse)
 
   readonly property color textColor: selected ? selectedText : foreground
-  readonly property int chip: compact ? Style.space(28) : Style.space(34)
+  readonly property int chip: compact ? Style.space(26) : Style.space(30)
 
-  height: compact ? Style.space(46) : Style.space(56)
-  radius: Style.cornerRadius
+  height: compact ? Style.space(49) : Style.space(54)
+  radius: Theme.controlRadius
   color: selected && paintsSelection ? selectedBackground : "transparent"
   borderSpec: selected && paintsSelection ? selectedBorderSpec : Border.none()
   opacity: disabled ? 0.62 : 1
@@ -71,8 +72,8 @@ BorderSurface {
     anchors.verticalCenter: parent.verticalCenter
     width: root.chip
     height: width
-    radius: Math.min(Style.cornerRadius, Style.space(root.compact ? 7 : 9))
-    color: root.iconSource && !root.shortcut ? "transparent" : (root.answer || root.shortcut ? Util.alpha(root.accent, 0.16) : Util.alpha(root.foreground, 0.07))
+    radius: Math.min(Theme.controlRadius, Style.space(root.compact ? 7 : 9))
+    color: root.iconSource && !root.shortcut ? "transparent" : (root.answer || root.shortcut ? Util.alpha(root.accent, 0.12) : "transparent")
     Text {
       anchors.centerIn: parent
       visible: !!root.shortcut || !root.iconSource || appIcon.status !== Image.Ready
@@ -99,7 +100,7 @@ BorderSurface {
   Column {
     id: body
     anchors.left: iconChip.right
-    anchors.leftMargin: Style.space(11)
+    anchors.leftMargin: Style.space(12)
     anchors.right: trail.left
     anchors.rightMargin: Style.space(8)
     anchors.verticalCenter: parent.verticalCenter
@@ -113,9 +114,9 @@ BorderSurface {
         text: root.title
         textFormat: Text.PlainText
         color: root.textColor
-        font.family: root.answer ? Style.font.menuFamily : Style.font.menuFamily
-        font.pixelSize: root.answer ? Style.font.heading : (root.compact ? Style.font.title : Style.font.title + 1)
-        font.weight: root.selected || root.answer ? Font.DemiBold : Font.Medium
+        font.family: Theme.uiFont
+        font.pixelSize: root.answer ? Style.font.heading : Style.space(root.compact ? 18 : 19)
+        font.weight: root.selected || root.answer ? Font.DemiBold : Font.Normal
         elide: Text.ElideRight
       }
       Rectangle {
@@ -136,8 +137,8 @@ BorderSurface {
       width: parent.width
       text: root.subtitle
       textFormat: Text.PlainText
-      color: Util.alpha(root.textColor, root.selected ? 0.72 : 0.55)
-      font.family: Style.font.menuFamily
+      color: Util.alpha(root.textColor, root.selected ? 0.68 : 0.5)
+      font.family: Theme.uiFont
       font.pixelSize: Style.font.bodySmall
       elide: Text.ElideRight
     }
@@ -150,20 +151,20 @@ BorderSurface {
     anchors.verticalCenter: parent.verticalCenter
     spacing: Style.space(8)
     Text {
-      visible: root.selected && !!root.hint && !root.disabled
+      visible: !!root.hint
       anchors.verticalCenter: parent.verticalCenter
       text: root.hint
       textFormat: Text.PlainText
       color: Util.alpha(root.textColor, 0.55)
-      font.family: Style.font.menuFamily
+      font.family: Theme.uiFont
       font.pixelSize: Style.font.caption
     }
     Text {
       anchors.verticalCenter: parent.verticalCenter
-      text: root.accessory ? root.accessory : (root.disabled ? "" : (root.selected ? "↵" : (root.verb === "Open" ? "›" : "")))
+      text: root.accessory ? root.accessory : (root.disabled ? "" : (root.selected ? "›" : ""))
       textFormat: Text.PlainText
-      color: root.accessory ? root.textColor : Util.alpha(root.textColor, root.selected ? 0.9 : 0.4)
-      font.family: Style.font.menuFamily
+      color: root.accessory ? root.textColor : (root.selected ? root.accent : Util.alpha(root.textColor, 0.35))
+      font.family: Theme.uiFont
       font.pixelSize: root.accessory ? Style.font.bodySmall : Style.font.heading
     }
   }

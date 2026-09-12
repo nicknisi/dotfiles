@@ -33,13 +33,13 @@ BarMenu {
         Layout.fillWidth: true
         spacing: 8
 
-        MouseArea {
+        MenuAction {
             id: toggle
             Layout.alignment: Qt.AlignVCenter
             implicitWidth: 20
             implicitHeight: 20
-            hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            Accessible.name: lvl.off ? "Unmute" : "Mute"
             onClicked: lvl.toggled()
 
             Text {
@@ -72,7 +72,7 @@ BarMenu {
 
     // One row in a device list. The rail on the left is the same mark the bar
     // slides between workspaces: in this shell it always means "this is the one".
-    component DeviceRow: MouseArea {
+    component DeviceRow: MenuAction {
         id: dev
 
         property string label: ""
@@ -80,8 +80,8 @@ BarMenu {
 
         Layout.fillWidth: true
         implicitHeight: 26
-        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        Accessible.name: `Select audio device ${dev.label}`
 
         Rectangle {
             anchors.fill: parent

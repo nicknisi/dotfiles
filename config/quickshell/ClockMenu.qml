@@ -59,12 +59,12 @@ BarMenu {
                 { glyph: "\u{f0142}", step: 1 },  // md chevron-right
             ]
 
-            MouseArea {
+            MenuAction {
                 required property var modelData
                 implicitWidth: 20
                 implicitHeight: 20
-                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
+                Accessible.name: modelData.step < 0 ? "Previous month" : "Next month"
                 onClicked: menu.monthOffset += modelData.step
 
                 Text {
