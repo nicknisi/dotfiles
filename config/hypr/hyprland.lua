@@ -21,8 +21,7 @@
 
 -- Files next to this one (media-keys.lua) load relative to it, so the config
 -- can be verified from a checkout: Hyprland --verify-config -c path/to/hyprland.lua
-local hypr = (debug and debug.getinfo(1, "S").source:match("^@(.*)/[^/]*$"))
-  or (os.getenv("HOME") .. "/.config/hypr")
+local hypr = (debug and debug.getinfo(1, "S").source:match("^@(.*)/[^/]*$")) or (os.getenv("HOME") .. "/.config/hypr")
 local launcher_bindings = dofile(hypr .. "/launcher-bindings.lua")
 launcher_bindings.begin_registration()
 
@@ -32,7 +31,9 @@ hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1.6 })
 local display_state = os.getenv("HOME") .. "/.local/state/display-mode"
 local display_files = io.popen("ls " .. display_state .. "/*.lua 2>/dev/null")
 if display_files then
-  for file in display_files:lines() do pcall(dofile, file) end
+  for file in display_files:lines() do
+    pcall(dofile, file)
+  end
   display_files:close()
 end
 
@@ -63,8 +64,8 @@ hl.config({
     repeat_rate = 40,
     repeat_delay = 250,
     numlock_by_default = true,
-    sensitivity = 0.75,
-    accel_profile = "flat",
+    sensitivity = 0.65,
+    accel_profile = "adaptive",
     touchpad = {
       natural_scroll = true,
       clickfinger_behavior = true,
@@ -120,23 +121,28 @@ hl.on("hyprland.start", function()
   hl.exec_cmd("uwsm-app -- udiskie --automount --no-notify --no-tray")
 end)
 
-local function app(command) return hl.dsp.exec_cmd("uwsm-app -- " .. command) end
+local function app(command)
+  return hl.dsp.exec_cmd("uwsm-app -- " .. command)
+end
 
 -- The launcher already lives inside Quickshell, so this only sends its toggle
 -- message. It gives each chosen app its own uwsm scope before disappearing.
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
 pcall(dofile, hypr .. "/launcher-voice.lua")
 -- Global clipboard history. Ctrl+Shift+V remains direct terminal paste.
-hl.bind("SUPER + V", hl.dsp.exec_cmd([[
+hl.bind(
+  "SUPER + V",
+  hl.dsp.exec_cmd([[
   qs ipc call clipboard toggle "$(hyprctl activeworkspace -j | jq -r .monitor)"
-]]))
+]])
+)
 
 -- Capture. The launcher exposes every target; these are the fast paths.
-hl.bind("PRINT",                   hl.dsp.exec_cmd("capture shot region"))
-hl.bind("SHIFT + PRINT",           hl.dsp.exec_cmd("capture shot screen"))
-hl.bind("ALT + PRINT",             hl.dsp.exec_cmd("capture annotate region"))
-hl.bind("SUPER + PRINT",           hl.dsp.exec_cmd("capture record region"))
-hl.bind("SUPER + SHIFT + PRINT",   hl.dsp.exec_cmd("capture record stop"))
+hl.bind("PRINT", hl.dsp.exec_cmd("capture shot region"))
+hl.bind("SHIFT + PRINT", hl.dsp.exec_cmd("capture shot screen"))
+hl.bind("ALT + PRINT", hl.dsp.exec_cmd("capture annotate region"))
+hl.bind("SUPER + PRINT", hl.dsp.exec_cmd("capture record region"))
+hl.bind("SUPER + SHIFT + PRINT", hl.dsp.exec_cmd("capture record stop"))
 
 hl.bind("SUPER + RETURN", app("ghostty"))
 hl.bind("SUPER + SHIFT + RETURN", hl.dsp.exec_cmd("sh -c 'uwsm-app -- \"$(xdg-settings get default-web-browser)\"'"))
@@ -169,7 +175,9 @@ hl.bind("SUPER + COMMA", hl.dsp.group.toggle())
 
 local function workspace_selector(ws)
   if ws.name and ws.name ~= "" and ws.name ~= tostring(ws.id) then
-    if ws.name:match("^name:") or ws.name:match("^special:") then return ws.name end
+    if ws.name:match("^name:") or ws.name:match("^special:") then
+      return ws.name
+    end
     return "name:" .. ws.name
   end
   return tostring(ws.id)
@@ -177,7 +185,9 @@ end
 
 local function toggle_workspace_layout()
   local ws = hl.get_active_special_workspace() or hl.get_active_workspace()
-  if not ws then return end
+  if not ws then
+    return
+  end
 
   hl.workspace_rule({
     workspace = workspace_selector(ws),
@@ -206,7 +216,7 @@ hl.bind("SUPER + CTRL + SPACE", hl.dsp.window.center())
 -- the form the shipped default at /usr/share/hypr/hyprland.lua uses. Note that
 -- `hyprctl binds` reports these with "mouse": false either way, so that output
 -- is not a way to check whether the option took.
-hl.bind("SUPER + mouse:272", hl.dsp.window.drag(),   { mouse = true })
+hl.bind("SUPER + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind("SUPER + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- Theme. bin/theme is on PATH through dotfiles (see the PATH note above).
