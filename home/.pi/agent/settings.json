@@ -66,7 +66,8 @@
     "npm:@ff-labs/pi-fff",
     "npm:pi-context-view",
     "npm:@sting8k/pi-vcc",
-    "../../Developer/pi-extensions/packages/compact-tools"
+    "../../Developer/pi-extensions/packages/compact-tools",
+    "npm:@earendil-works/pi-radius"
   ],
   "tuiMode": "fullscreen",
   "defaultModel": "gpt-6-astra",
