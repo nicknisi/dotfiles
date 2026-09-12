@@ -119,7 +119,7 @@ ShellRoot {
                     const expectedEdge = edges[(step - 1) % 4];
                     test.check(Prefs.barMode === expectedMode, "layout preference settles: " + expectedMode);
                     test.check(Theme.controlRadius === 12 && Theme.panelRadius === 28, "controls stay rounded in every layout");
-                    test.check(Theme.barExtent === (expectedMode === "full" ? 48 : 84), "reservation matches layout geometry");
+                    test.check(Theme.barExtent === (expectedMode === "full" ? 40 : 56), "reservation matches layout geometry");
                     test.check(Prefs.edge === expectedEdge && Prefs.vertical === ["left", "right"].includes(expectedEdge), "edge preference settles: " + expectedEdge);
                     test.check(Theme.barExtent >= Theme.barHeight, "reservation includes bar inset");
                     test.check(Theme.contrast(Theme.accent, Theme.accentText) >= Math.max(Theme.contrast(Theme.accent, Theme.bg), Theme.contrast(Theme.accent, Theme.fg)), "accent text uses the contrasting palette color");
@@ -162,7 +162,7 @@ ShellRoot {
                 for (const mode of ["pill", "full", "rail"]) {
                     for (const origin of ["top", "bottom", "left", "right"]) {
                         const vertical = origin === "left" || origin === "right";
-                        const extent = mode === "full" ? 48 : 84;
+                        const extent = mode === "full" ? 40 : 56;
                         const w = vertical ? extent : 1920, h = vertical ? 1080 : extent;
                         const ox = origin === "right" ? 1920 - w : 0;
                         const oy = origin === "bottom" ? 1080 - h : 0;

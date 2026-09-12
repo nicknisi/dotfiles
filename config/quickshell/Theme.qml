@@ -81,8 +81,8 @@ Singleton {
 
     readonly property int fontSize:  13
     readonly property int iconSize:  14
-    readonly property int barHeight: 48
-    readonly property int barInset: Prefs.barMode === "full" ? 0 : 18
+    readonly property int barHeight: 40
+    readonly property int barInset: Prefs.barMode === "full" ? 0 : 8
     readonly property int barExtent: barHeight + 2 * barInset
 
     // A light accent wash for selected controls, independent of theme mode.

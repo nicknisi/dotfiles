@@ -65,8 +65,8 @@ QtObject {
     readonly property color glowFill: "#33302c"
     readonly property color accent: "#e9b291"
     readonly property int controlRadius: 12
-    readonly property int barHeight: 48
-    readonly property int barInset: Prefs.barMode === "full" ? 0 : 18
+    readonly property int barHeight: 40
+    readonly property int barInset: Prefs.barMode === "full" ? 0 : 8
     readonly property int quick: 0
 }
 ''')

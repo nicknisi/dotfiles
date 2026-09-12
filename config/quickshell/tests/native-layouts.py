@@ -49,7 +49,7 @@ ShellRoot {
             for mode in ['pill', 'full', 'rail']:
                 for edge in ['top', 'bottom', 'left', 'right']:
                     ipc('layout', mode, edge)
-                    extent = 48 if mode == 'full' else 84
+                    extent = 40 if mode == 'full' else 56
                     w, h, x, y = info['width'], info['height'], monitor['x'], monitor['y']
                     vertical = edge in ['left', 'right']
                     expected = (x + w - extent if edge == 'right' else x,

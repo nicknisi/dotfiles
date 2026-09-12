@@ -29,8 +29,8 @@ TestCase {
         const along = vertical ? 1080 : 1920;
         const expected = data.mode === "full" ? along : data.mode === "rail" ? along * 0.8 : 518;
         compare(vertical ? bar.surface.height : bar.surface.width, expected);
-        compare(vertical ? bar.surface.width : bar.surface.height, 48);
-        compare(vertical ? bar.width : bar.height, data.mode === "full" ? 48 : 84);
+        compare(vertical ? bar.surface.width : bar.surface.height, 40);
+        compare(vertical ? bar.width : bar.height, data.mode === "full" ? 40 : 56);
         compare(vertical ? bar.surface.y : bar.surface.x, (along - expected) / 2);
     }
     function test_doubleTapTransparency_data() { return test_layout_data(); }
