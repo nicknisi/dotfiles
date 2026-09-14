@@ -1,17 +1,15 @@
 #!/usr/bin/env bash
 # Now-playing chip: album art rendered inside the chip (as the icon's
-# background image) + "Title - Artist". Hidden when silent or paused.
-# Polls every 5s — probed 2026-08: the native media_change event never
-# fires on this unsigned patched build (macOS MediaRemote lockdown), so
-# an AppleScript poll is the honest path. One JXA call returns app+song;
-# artwork comes from bin/album-art, cached per track so repeats are free.
+# background image) + "Title - Artist". Hidden when silent, dimmed when paused.
+# Polls system Now Playing every 5s through nowplaying-cli because the native
+# media_change event does not fire on this unsigned build. Metadata and artwork
+# come from one snapshot; bin/album-art caches the normalized image.
 # Clicks: left = play/pause, right = next track (music_click.sh).
 
 source "$CONFIG_DIR/colors.sh"
 
 NP=$("$HOME/Developer/dotfiles/bin/current-song" --json 2>/dev/null)
 SONG=$(jq -r '.song // empty' <<<"$NP" 2>/dev/null)
-APP=$(jq -r '.app // empty' <<<"$NP" 2>/dev/null)
 STATE=$(jq -r '.state // empty' <<<"$NP" 2>/dev/null)
 
 # Hide only when no player is open with a track; paused stays, dimmed.
@@ -23,7 +21,7 @@ fi
 LABEL_COLOR="$FG" NOTE_COLOR="$MAGENTA"
 [ "$STATE" = "paused" ] && LABEL_COLOR="$FG_DIM" NOTE_COLOR="$GREY"
 
-ART=$("$HOME/Developer/dotfiles/bin/album-art" "$APP" "$SONG" 2>/dev/null)
+ART=$("$HOME/Developer/dotfiles/bin/album-art" <<<"$NP" 2>/dev/null)
 if [ -n "$ART" ]; then
   sketchybar --animate tanh 30 --set "$NAME" drawing=on \
     label="$SONG" label.color="$LABEL_COLOR" \

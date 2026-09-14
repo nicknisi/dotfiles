@@ -15,7 +15,7 @@
 #   fleet hook status files -> bin/sketchybar-fleet-watch (fswatch)
 #     -> fleet_state_change -> plugins/agents.sh (agents pill + chip)
 #   bin/claude-statusline tee -> claude_usage_update -> plugins/usage.sh
-#   music: 10s poll (AppleScript has no push surface)
+#   music: 5s system Now Playing poll via nowplaying-cli
 
 CONFIG_DIR="${CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/sketchybar}"
 PLUGIN_DIR="$CONFIG_DIR/plugins"
@@ -218,7 +218,7 @@ sketchybar --add item usage right \
   script="$PLUGIN_DIR/usage.sh"
 
 # now-playing: added last so it sits innermost, nearest the center.
-# 5s poll (media_change never fires on this unsigned build — probed);
+# 5s system Now Playing poll (media_change does not fire on this build);
 # album art renders inside the chip as the icon's background image.
 # Left-click play/pause, right-click next track.
 sketchybar --add item music right \

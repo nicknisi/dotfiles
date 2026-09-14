@@ -1,41 +1,23 @@
 #!/bin/bash
-# Reports the current track from a RUNNING player (Music or Spotify).
-# Default: prints "Title - Artist" only while actually playing (empty
-# when paused/stopped) — the audible truth, for statusline-style uses.
-# --json: {"app","song","state"} whenever a player is open with a track,
-# state = playing|paused, playing app preferred over a paused one — lets
-# consumers (sketchybar) show a dimmed paused chip instead of hiding.
+# Reports macOS system Now Playing, including browser media.
+# Default: "Title - Artist" while playing, empty when paused or silent.
+# --json: {app,song,state,artwork} for playing or paused media.
+# Artwork is base64 from the same snapshot, not a separate player query.
 
-get_now_playing() {
-  osascript -l JavaScript <<'EOF'
-  let playing = null, paused = null;
-  const grab = (name) => {
-    try {
-      const app = Application(name);
-      if (!app.running()) return;
-      const state = app.playerState();
-      if (state !== "playing" && state !== "paused") return;
-      const t = app.currentTrack;
-      const rec = JSON.stringify({
-        app: name,
-        song: `${t.name()} - ${t.artist()}`.substr(0, 50),
-        state: state,
-      });
-      if (state === "playing") playing = playing || rec;
-      else paused = paused || rec;
-    } catch (e) {}
-  };
-  grab("Music");
-  grab("Spotify");
-  playing || paused || "";
-EOF
-}
-
-np=$(get_now_playing)
+np=$(nowplaying-cli get --json title artist playbackRate clientBundleIdentifier artworkData 2>/dev/null) || exit 0
+np=$(jq -c '
+  select((.title // "") != "") |
+  {
+    app: (.clientBundleIdentifier // ""),
+    song: ([.title, .artist] | map(select(. != null and . != "")) | join(" - ") | .[0:50]),
+    state: (if (.playbackRate // 0) > 0 then "playing" else "paused" end),
+    artwork: (.artworkData // "")
+  }
+' <<<"$np" 2>/dev/null) || exit 0
 [ -n "$np" ] || exit 0
 
-if [ "$1" = "--json" ]; then
-  echo "$np"
+if [ "${1:-}" = "--json" ]; then
+  printf '%s\n' "$np"
 else
   jq -r 'select(.state == "playing").song // empty' <<<"$np"
 fi
