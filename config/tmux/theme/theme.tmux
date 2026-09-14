@@ -175,7 +175,7 @@ tmux set -g @fleet_rollup 1
 prefix_label="#[fg=${c_yellow}]#[bold]${BOLT} #S#[default]"
 tmux set -g status-left "  #{?client_prefix,${prefix_label},#(${BIN}/tmux-session-mood current '#{session_name}' '#{session_many_attached}')}   "
 
-# Right: ssh host, music, fleet, copy mode and clickable session labels.
+# Right: ssh host, fleet, copy mode and clickable session labels.
 # Prefix swaps these for the cheat sheet, theme tagline and moon.
 hint() { printf '#[fg=%s]#[bold]%s#[nobold]#[fg=%s] %s' "$c_yellow" "$1" "$c_dim" "$2"; }
 hints="$(hint s sessions)   $(hint g lazygit)   $(hint y fleet)   $(hint n next)   $(hint f sidebar)   $(hint = tile)   $(hint Esc copy)   $(hint T bar)   $(hint r reload)"
@@ -188,11 +188,10 @@ fi
 hints+="  #(${BIN}/tmux-vitals moon)  " # tonight's moon signs the sheet
 mode_label="#{?pane_in_mode,#[fg=${c_yellow}]#[bold]◈ #{s/-mode//:pane_mode}#{?scroll_position, ↑#{scroll_position},}#[default]  ,}"
 others="#(${BIN}/tmux-session-mood others '#{client_session}')"
-music="#(${BIN}/tmux-vitals music)"
 chips="#(${BIN}/tmux-fleet-chips)  "
 ssh=""
 [[ -n "${SSH_CONNECTION:-}${SSH_TTY:-}" ]] && ssh="#[fg=${c_dim}]${SSH} #h   "
-tmux set -g status-right "#{?client_prefix,${hints},${ssh}${music}${chips}${mode_label}${others}}"
+tmux set -g status-right "#{?client_prefix,${hints},${ssh}${chips}${mode_label}${others}}"
 tmux set -gu @sl_git 2>/dev/null || true
 tmux set -gu @sl_row1 2>/dev/null || true
 
