@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # tmux-vitals — small machine facts for the status line.
 #
 #   tmux-vitals music  →  󰎇 Timecop1983 – Tonight      what's playing, only while it plays

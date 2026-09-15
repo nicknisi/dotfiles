@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # tmux-session-mood — text session labels for the status line (see theme.tmux).
 #
 #   tmux-session-mood current <session> [shared]  status-left  →  ✦ alto ⧉
@@ -13,38 +13,50 @@
 cmd=${1:-current}
 target=${2:-}
 
-OPTS=$(tmux show-options -g 2>/dev/null)
-opt() { awk -v k="$1" '$1 == k { $1 = ""; sub(/^ "?/, ""); sub(/"$/, ""); print; exit }' <<<"$OPTS"; }
-
-palette=()
-for k in cyan orange green magenta blue yellow teal pink lavender purple; do
-  c=$(opt "@thm_sl_$k")
+# Parse the options once, without awk or one subshell per lookup. Sparse array
+# slots preserve the original palette order even when a theme omits colours.
+colours=() palette=() dim=colour245 rollup=""
+while read -r key value; do
+  value=${value#\"} value=${value%\"}
+  case $key in
+    @thm_sl_cyan) colours[0]=$value ;;
+    @thm_sl_orange) colours[1]=$value ;;
+    @thm_sl_green) colours[2]=$value ;;
+    @thm_sl_magenta) colours[3]=$value ;;
+    @thm_sl_blue) colours[4]=$value ;;
+    @thm_sl_yellow) colours[5]=$value ;;
+    @thm_sl_teal) colours[6]=$value ;;
+    @thm_sl_pink) colours[7]=$value ;;
+    @thm_sl_lavender) colours[8]=$value ;;
+    @thm_sl_purple) colours[9]=$value ;;
+    @thm_sl_dim) dim=${value:-colour245} ;;
+    @fleet_rollup) rollup=$value ;;
+  esac
+done < <(tmux show-options -g 2>/dev/null)
+for c in "${colours[@]}"; do
   [[ -n $c ]] && palette+=("$c")
 done
 ((${#palette[@]})) || palette=(cyan yellow green magenta blue)
-dim=$(opt @thm_sl_dim)         dim=${dim:-colour245}
 
 sigils=(✦ ❖ ✧ ✱ ✶ ✹ ❋ ❂ ✺ ✤ ❉ ✿)
 
 crest_parts() { # NAME → "COLOUR<TAB>SIGIL" — stable per name; colour and sigil hashed apart
   local hc hs
-  hc=$(cksum <<<"$1" | cut -d' ' -f1)
-  hs=$(cksum <<<"sigil:$1" | cut -d' ' -f1)
+  IFS=' ' read -r hc _ <<<"$(cksum <<<"$1")"
+  IFS=' ' read -r hs _ <<<"$(cksum <<<"sigil:$1")"
   printf '%s\t%s' "${palette[hc % ${#palette[@]}]}" "${sigils[hs % ${#sigils[@]}]}"
 }
 
 # fleet's rollup: one tmux call gives every window's attention colour.
-rollup=$(opt @fleet_rollup)
 STATES=""
 [[ $rollup == 1 ]] && STATES=$(tmux list-windows -a -F $'#{session_name}\t#{@fleet_state}' 2>/dev/null)
 
-rank() { case $1 in yellow) echo 3 ;; magenta) echo 2 ;; green) echo 1 ;; '') echo 0 ;; *) echo 1 ;; esac; }
 attention_parts() { # SESSION → "COLOUR<TAB>GLYPH" for its most urgent window, or nothing
   local best=0 colour="" s c r glyph
   if [[ $rollup == 1 ]]; then
     while IFS=$'\t' read -r s c; do
       [[ $s == "$1" && -n $c ]] || continue
-      r=$(rank "$c")
+      case $c in yellow) r=3 ;; magenta) r=2 ;; green) r=1 ;; '') r=0 ;; *) r=1 ;; esac
       ((r > best)) && { best=$r; colour=$c; }
     done <<<"$STATES"
     [[ -n $colour ]] || return 0

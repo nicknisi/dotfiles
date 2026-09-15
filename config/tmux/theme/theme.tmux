@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Tmux theme — follows the active desktop theme.
 #
 # Source: ~/.local/state/theme/current/theme/tmux.sh, rendered by bin/theme from

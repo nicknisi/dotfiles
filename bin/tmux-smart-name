@@ -1,127 +1,139 @@
-#!/usr/bin/env bash
-# tmux-smart-name — name a window after what matters in it.
-#
-#   tmux-smart-name <pane_current_command> <pane_current_path> <pane_tty> [<window_id>]
-#
-# tmux hands us the *active* pane, but a window's identity is the most
-# interesting thing running anywhere in it: with a window id we look at every
-# pane and rank them — agents (claude, pi, codex, opencode) beat editors beat
-# TUIs beat plain commands beat shells, and fleet's sidebar ranks below
-# everything so opening it never renames the window. The icon is the winner's
-# (bin/nerdwin), the name is the winner's project: the git toplevel of its cwd
-# (so a shell parked in a subdirectory doesn't rename the window), with
-# worktrees shown as "project (branch)" and $HOME as "~". Focus changes no
-# longer flip the name; only the mix of what's running does.
-#
-# Without a window id (old callers, or list-panes failing) it names from the
-# one pane it was given, exactly as before.
+#!/bin/bash
+# Name windows after their highest-ranked pane: agent > editor > TUI > shell.
+# Standalone: tmux-smart-name CMD PATH TTY [WINDOW_ID]
+# Status helper: source this file and call smart_name_refresh. One batch handles
+# all windows, at most once every five seconds, without a per-window shell job.
 
-# Resolve nerdwin next to this script: tmux runs us via an absolute path,
-# but the server's PATH can be stale and wouldn't find nerdwin anyway.
-# -P matters: tmux.conf calls us as ~/.config/tmux/../../bin/tmux-smart-name,
-# and a logical cd collapses that to ~/bin before following the symlink —
-# nerdwin vanishes and every window gets an empty icon.
-BIN_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+# Open the sibling directly so symlink/../ paths retain filesystem semantics.
+source "${BASH_SOURCE[0]%/*}/nerdwin"
+SMART_NAME_FORMAT=$'#{window_id}\037#{pane_active}\037#{pane_current_command}\037#{pane_current_path}\037#{pane_tty}\037#{automatic-rename}\037#{window_name}'
 
-ACTIVE_CMD="$1"
-ACTIVE_PATH="$2"
-ACTIVE_TTY="$3"
-WINDOW_ID="$4"
-
-export GIT_OPTIONAL_LOCKS=0
-
-# What a pane is really running. Claude Code titles its process with its
-# version (2.1.197 or 2_1_197); pi ships as a node shim and only stands out via
-# the process title on its tty (`ps -t <tty> -o comm=`). Degrades gracefully:
-# no tty / ps failure / other node -> stays "node".
-resolve_cmd() { # CMD TTY → canonical command
-  local cmd=$1 tty=${2#/dev/}
-  if [[ $cmd =~ ^[0-9]+[._][0-9]+[._][0-9]+$ ]]; then
-    cmd=claude
-  elif [[ $cmd == node && -n $tty ]] && ps -t "$tty" -o comm= 2>/dev/null | grep -qx pi; then
-    cmd=pi
-  fi
-  printf '%s' "$cmd"
-}
-
-rank_of() { # command → how much it deserves to name the window
-  case $1 in
-    claude | pi | codex | opencode | aider | gemini | amp | goose) echo 90 ;;
-    nvim | vim | vi | lvim | hx | helix | emacs | nano) echo 70 ;;
-    lazygit | tig | htop | btop | top | yazi | lf | lfcd | ranger | k9s | lazydocker) echo 50 ;;
-    zsh | bash | fish | sh | tcsh | nu) echo 10 ;;
-    fleet) echo 5 ;; # the sidebar never names the window
-    *) echo 40 ;;    # an unknown command still beats a bare shell
-  esac
-}
-
-smart_name() { # PATH → project name
+smart_name() {
   local path=$1 root dir_name parent_dir parent_name grandparent_dir branch project
   [[ -n $path ]] || return 0
-  [[ $path == "$HOME" ]] && { echo "~"; return; }
-
-  # Inside a repo, name the repo, not whatever subdirectory a pane sits in.
-  root=$(git -C "$path" rev-parse --show-toplevel 2>/dev/null)
+  [[ $path == "$HOME" ]] && { printf '~'; return; }
+  root=$(GIT_OPTIONAL_LOCKS=0 git -C "$path" rev-parse --show-toplevel 2>/dev/null)
   [[ -n $root ]] && path=$root
-  dir_name=$(basename "$path")
+  path=${path%/}
+  path=${path:-/}
+  dir_name=${path##*/}
+  dir_name=${dir_name:-/}
 
-  # A worktree keeps a .git *file*; show it as "project (branch)".
   if [[ -f "$path/.git" ]]; then
-    parent_dir=$(dirname "$path")
-    parent_name=$(basename "$parent_dir")
-    branch=$(git -C "$path" rev-parse --abbrev-ref HEAD 2>/dev/null)
-
-    # claude --worktree pattern: <project>/.claude/worktrees/<worktree>
-    grandparent_dir=$(dirname "$parent_dir")
-    if [[ $parent_name == worktrees && $(basename "$grandparent_dir") == .claude ]]; then
-      project=$(basename "$(dirname "$grandparent_dir")")
-      if [[ -n $branch && $branch != HEAD ]]; then
-        echo "$project ($branch)"
-      else
-        echo "$project ($dir_name)"
-      fi
+    parent_dir=${path%/*}
+    parent_dir=${parent_dir:-/}
+    parent_name=${parent_dir##*/}
+    branch=$(GIT_OPTIONAL_LOCKS=0 git -C "$path" rev-parse --abbrev-ref HEAD 2>/dev/null)
+    grandparent_dir=${parent_dir%/*}
+    if [[ $parent_name == worktrees && ${grandparent_dir##*/} == .claude ]]; then
+      project=${grandparent_dir%/*}
+      project=${project##*/}
+      [[ -n $branch && $branch != HEAD ]] || branch=$dir_name
+      printf '%s (%s)' "$project" "$branch"
       return
     fi
-
-    # Bare-repo worktree pattern: <project>/.bare + <project>/<worktree>
     if [[ -d "$parent_dir/.bare" && -n $branch ]]; then
-      echo "$parent_name ($branch)"
+      printf '%s (%s)' "$parent_name" "$branch"
       return
     fi
   fi
-
-  echo "$dir_name"
+  printf '%s' "$dir_name"
 }
 
-# Pick the pane that names the window: highest rank wins, the active pane wins
-# ties (it is listed first), then pane order.
-best_cmd="" best_path="" best_rank=-1
-consider() { # CMD PATH TTY
-  local cmd rank
-  cmd=$(resolve_cmd "$1" "$3")
-  rank=$(rank_of "$cmd")
-  if ((rank > best_rank)); then
-    best_rank=$rank
-    best_cmd=$cmd
-    best_path=$2
+# One process snapshot for only the node panes' terminals. The caller owns
+# pi_ttys so pane selection below needs no ps/grep subprocesses of its own.
+smart_name_pi_ttys() {
+  local window active cmd path tty auto name ttys="" comm
+  pi_ttys=" "
+  while IFS=$'\037' read -r window active cmd path tty auto name; do
+    [[ $auto == 1 && $cmd == node && -n $tty ]] || continue
+    ttys+="${ttys:+,}${tty#/dev/}"
+  done <<<"$1"
+  [[ -n $ttys ]] || return 0
+  while read -r tty comm; do
+    [[ $comm == pi ]] && pi_ttys+="$tty "
+  done < <(ps -t "$ttys" -o tty=,comm= 2>/dev/null)
+}
+
+smart_name_consider() {
+  local cmd=$1 tty=${3#/dev/} active=$4 rank
+  if [[ $cmd =~ ^[0-9]+[._][0-9]+[._][0-9]+$ ]]; then
+    cmd=claude
+  elif [[ $cmd == node && -n $tty && $pi_ttys == *" $tty "* ]]; then
+    cmd=pi
+  fi
+  case $cmd in
+    claude | pi | codex | opencode | aider | gemini | amp | goose) rank=90 ;;
+    nvim | vim | vi | lvim | hx | helix | emacs | nano) rank=70 ;;
+    lazygit | tig | htop | btop | top | yazi | lf | lfcd | ranger | k9s | lazydocker) rank=50 ;;
+    zsh | bash | fish | sh | tcsh | nu) rank=10 ;;
+    fleet) rank=5 ;;
+    *) rank=40 ;;
+  esac
+  if ((rank > best_rank || (rank == best_rank && active == 1 && best_active != 1))); then
+    best_rank=$rank best_cmd=$cmd best_path=$2 best_active=$active
   fi
 }
 
-panes=""
-[[ -n $WINDOW_ID ]] && panes=$(tmux list-panes -t "$WINDOW_ID" -F $'#{pane_active}\t#{pane_current_command}\t#{pane_current_path}\t#{pane_tty}' 2>/dev/null)
-if [[ -n $panes ]]; then
-  while IFS=$'\t' read -r active cmd path tty; do
-    [[ $active == 1 ]] && consider "$cmd" "$path" "$tty"
+smart_name_label() {
+  printf '%s %s' "$(nerdwin "$best_cmd")" "$(smart_name "$best_path")"
+}
+
+smart_name_queue() {
+  ((best_rank >= 0)) || return 0
+  local name
+  name=$(smart_name_label)
+  [[ $name != "$old_name" ]] || return 0
+  # rename-window opts out of automatic naming; restore it only for windows
+  # which already opted in. An explicit user rename stays opted out.
+  changes+=(rename-window -t "$window" "$name" \;
+    set-window-option -t "$window" automatic-rename on \;)
+}
+
+smart_name_refresh() {
+  local now next panes id active cmd path tty auto name window="" old_name=""
+  local best_rank=-1 best_active=0 best_cmd="" best_path="" pi_ttys seen=" " skip=0
+  local changes=()
+  IFS='|' read -r now next <<<"$(tmux display-message -p '%s|#{@smart_name_next}' 2>/dev/null)"
+  [[ $now =~ ^[0-9]+$ ]] || return 0
+  [[ $next =~ ^[0-9]+$ ]] || next=0
+  # Ignore an old deadline after a wall-clock jump backwards.
+  ((next > now && next <= now + 5)) && return 0
+  panes=$(tmux set-option -gq @smart_name_next "$((now + 5))" \; \
+    list-panes -a -F "$SMART_NAME_FORMAT" 2>/dev/null) || return 0
+  smart_name_pi_ttys "$panes"
+  while IFS=$'\037' read -r id active cmd path tty auto name; do
+    [[ -n $id ]] || continue
+    if [[ $id != "$window" ]]; then
+      smart_name_queue
+      window=$id old_name=$name best_rank=-1 best_active=0 skip=0
+      # Linked windows appear once per session in list-panes -a.
+      [[ $seen == *" $id "* ]] && skip=1
+      seen+="$id "
+    fi
+    [[ $auto == 1 && $skip == 0 ]] && smart_name_consider "$cmd" "$path" "$tty" "$active"
   done <<<"$panes"
-  while IFS=$'\t' read -r active cmd path tty; do
-    [[ $active == 1 ]] || consider "$cmd" "$path" "$tty"
+  smart_name_queue
+  ((${#changes[@]})) && tmux "${changes[@]:0:${#changes[@]}-1}" 2>/dev/null
+  return 0
+}
+
+smart_name_main() {
+  [[ ${1:-} == --refresh ]] && { smart_name_refresh; return; }
+  local panes="" window active cmd path tty auto name pi_ttys
+  local best_rank=-1 best_active=0 best_cmd="" best_path=""
+  [[ -n ${4:-} ]] && panes=$(tmux list-panes -t "$4" -F "$SMART_NAME_FORMAT" 2>/dev/null)
+  if [[ -z $panes ]]; then
+    printf -v panes '@0\0371\037%s\037%s\037%s\0371\037' "${1:-}" "${2:-}" "${3:-}"
+  fi
+  smart_name_pi_ttys "$panes"
+  while IFS=$'\037' read -r window active cmd path tty auto name; do
+    smart_name_consider "$cmd" "$path" "$tty" "$active"
   done <<<"$panes"
-else
-  consider "$ACTIVE_CMD" "$ACTIVE_PATH" "$ACTIVE_TTY"
+  smart_name_label
+  printf '\n'
+}
+
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+  smart_name_main "$@"
 fi
-
-ICON=$("$BIN_DIR/nerdwin" "$best_cmd" 2>/dev/null)
-[[ -n $ICON ]] || ICON=$'\xf3\xb0\x86\x8d' # U+F018D nf-md-console, if nerdwin is missing
-NAME=$(smart_name "$best_path")
-
-echo "$ICON $NAME"

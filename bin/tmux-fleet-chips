@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # tmux-fleet-chips — fleet's clickable agent chips, tidied for a one-row bar.
 #
 # `fleet status --statusline` renders one chip per agent that wants a look
@@ -9,6 +9,11 @@
 # what keeps the window digits and session labels coloured — it has to run even
 # when there is nothing to show. Fleet separates chips with │; the bar has no
 # pipes, so they become gaps.
+# Refresh custom names from this existing status job, not one shell per window.
+# ponytail: hidden status bars pause naming; use a tmux timer if that matters.
+source "${BASH_SOURCE[0]%/*}/tmux-smart-name"
+smart_name_refresh
+
 out=$(fleet status --statusline 2>/dev/null) || exit 0
 out=${out//│/ }
 printf '%s' "$out"

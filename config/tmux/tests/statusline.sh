@@ -25,7 +25,7 @@ tmux new-session -d -s review 'sleep 300'
 plain() { sed 's/#\[[^]]*\]//g'; }
 for mode in dark light; do
   printf '%s\n' "$mode" > "$HOME/.local/state/theme/current/mode"
-  bash "$ROOT/config/tmux/theme/theme.tmux"
+  "$ROOT/config/tmux/theme/theme.tmux"
   [[ $(tmux show-option -gqv status-right) != *'tmux-vitals music'* ]]
   orange=$(tmux show-option -gqv @thm_sl_orange)
   blue=$(tmux show-option -gqv @thm_sl_blue)
