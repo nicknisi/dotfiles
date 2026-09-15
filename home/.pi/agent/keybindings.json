@@ -4,6 +4,7 @@
   "app.thinking.cycle": ["shift+tab"],
   "app.model.cycleForward": ["ctrl+p", "ctrl+shift+m"],
   "app.models.save": ["ctrl+shift+v"],
+  "app.thinking.save": ["ctrl+shift+v"],
   "app.session.toggleSort": ["ctrl+shift+r"],
   "tui.editor.cursorLeft": ["left"],
   "model-switch.cycleForward": "ctrl+b",
