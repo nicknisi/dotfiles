@@ -8,6 +8,8 @@ This directory is the user-level Pi configuration. On this machine `~/.pi` is sy
 
 ## Core settings
 
+`settings.json` is tracked and identical on every machine. Every local entry is `~`-relative (`../../Developer/...` resolves from `~/.pi/agent`), so both machines need the same checkouts under `~/Developer`. `bin/pi-doctor` (run automatically after `mise run update:dotfiles`) lists any entry that does not resolve here.
+
 Main config:
 
 ```txt

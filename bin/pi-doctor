@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# pi-doctor — check that every local path in ~/.pi/agent/settings.json exists here.
+#
+# settings.json is tracked and identical on every machine, so a package or
+# skills entry can go stale on one of them (a repo not cloned, a package
+# renamed). Pi only warns about that at startup and quietStartup hides it.
+# This resolves each local entry the way Pi does (path.resolve against
+# ~/.pi/agent, lexically, symlinks untouched) and lists the missing ones.
+# Exit 1 when anything is missing.
+set -euo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+[ -L "$SOURCE" ] && SOURCE="$(readlink "$SOURCE")"
+DOTFILES="$(cd "$(dirname "$SOURCE")/.." && pwd)"
+FILE="${1:-$DOTFILES/home/.pi/agent/settings.json}"   # what ~/.pi/agent/settings.json links to
+[ -f "$FILE" ] || { echo "pi-doctor: no $FILE" >&2; exit 1; }
+
+jq -r '
+  def local: strings | select(test("^(npm:|git:|https?://)") | not);
+  def sources: (.packages // [])[] | (if type == "object" then .source else . end);
+  (sources | local | "packages\t" + .),
+  ((.extensions // [])[] | local | "extensions\t" + .),
+  ((.skills // [])[] | local | "skills\t" + .),
+  ((.prompts // [])[] | local | "prompts\t" + .),
+  ((.themes // [])[] | local | "themes\t" + .)
+' "$FILE" | node -e '
+  const fs = require("fs"), path = require("path"), os = require("os");
+  const agent = path.join(os.homedir(), ".pi", "agent");
+  const lines = fs.readFileSync(0, "utf8").split("\n").filter(Boolean);
+  let missing = 0;
+  for (const line of lines) {
+    const [kind, raw] = line.split("\t");
+    let p = raw.replace(/^[+!-]/, "");                       // Pi include/exclude prefixes
+    p = p.startsWith("~") ? path.join(os.homedir(), p.slice(1)) : path.resolve(agent, p);
+    if (!fs.existsSync(p)) { missing++; console.log(`missing  ${kind.padEnd(10)} ${raw}  ->  ${p}`); }
+  }
+  console.log(missing ? `${missing} missing path(s) on ${os.hostname()}` : `all ${lines.length} local paths resolve`);
+  process.exitCode = missing ? 1 : 0;
+'

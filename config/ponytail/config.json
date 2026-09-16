@@ -1,3 +1,4 @@
 {
-  "hideStatus": true
+  "hideStatus": true,
+  "defaultMode": "off"
 }

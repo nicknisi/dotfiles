@@ -46,6 +46,10 @@ superfile = "latest"
 "github:nicknisi/tm" = "latest"
 "github:nicknisi/sessions" = "latest"
 claude = "latest"
+uv = "0.12.12"
+ast-grep = "latest"
+ruby = "latest"
+"npm:@googleworkspace/cli" = "latest"
 
 [bootstrap.packages]
 # core utilities newer than what macOS ships
@@ -350,6 +354,9 @@ run = """
   else
     echo "not on main, skipping"
   fi
+
+  echo "==> pi doctor"
+  "$repo/bin/pi-doctor"
 """
 
 [tasks."update:all"]

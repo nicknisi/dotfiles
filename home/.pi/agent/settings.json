@@ -26,7 +26,6 @@
     "../../Developer/pi-extensions/packages/codemode",
     "../../Developer/pi-extensions/packages/codesearch",
     "../../Developer/pi-extensions/packages/composer",
-    "../../Developer/pi-extensions/packages/design",
     "../../Developer/pi-extensions/packages/handoff",
     "../../Developer/pi-extensions/packages/header",
     "../../Developer/pi-extensions/packages/llm-council",
@@ -44,20 +43,19 @@
     "../../Developer/pi-extensions/packages/turn-timer",
     "../../Developer/pi-extensions/packages/workflows",
     "npm:pi-prompt-template-model",
-    "../../Developer/ideation/packages/pi",
+    "../../Developer/ideation",
     "npm:pi-simplify",
     "npm:pi-mcp-adapter",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:pi-agent-browser-native",
     "npm:pi-web-access",
     "https://github.com/zerray/pi-remote-control",
-    "../../../../opt/homebrew/opt/fleet/hooks/pi",
+    "../../Developer/fleet/hooks/pi",
     "npm:@juicesharp/rpiv-todo",
     "npm:@injaneity/pi-computer-use",
     "git:github.com/DietrichGebert/ponytail",
     "npm:@ff-labs/pi-fff",
     "npm:pi-context-view",
-    "npm:@sting8k/pi-vcc",
     "../../Developer/pi-extensions/packages/compact-tools",
     "npm:@earendil-works/pi-radius"
   ],
@@ -65,10 +63,5 @@
   "defaultModel": "gpt-6-astra",
   "warnings": {
     "anthropicExtraUsage": false
-  },
-  "enabledModels": [
-    "fireworks/accounts/fireworks/routers/*",
-    "openai/gpt-6-astra",
-    "openai-codex/gpt-6-astra"
-  ]
+  }
 }
