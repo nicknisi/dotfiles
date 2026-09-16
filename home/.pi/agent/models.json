@@ -180,6 +180,22 @@
         "X-Title": "Pi",
         "HTTP-Referer": "fireconnect/v0.9.4"
       }
+    },
+    "openai-codex": {
+      "modelOverrides": {
+        "gpt-6-astra": {
+          "contextWindow": 1050000
+        },
+        "gpt-5.6-sol": {
+          "contextWindow": 1050000
+        },
+        "gpt-5.6-terra": {
+          "contextWindow": 1050000
+        },
+        "gpt-5.6-luna": {
+          "contextWindow": 1050000
+        }
+      }
     }
   }
 }
