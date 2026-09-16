@@ -170,7 +170,7 @@
     "sessions": {
       "source": {
         "source": "directory",
-        "path": "/Users/nicknisi/.local/share/sessions"
+        "path": "~/.local/share/sessions"
       }
     }
   },
