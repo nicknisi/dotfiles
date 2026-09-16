@@ -164,12 +164,16 @@ BarMenu {
             Text { text: "\u{f0e0c}"; font.family: Theme.icons; font.pixelSize: 16; color: Theme.accent }
             Label { text: "Appearance"; font.family: Theme.headingFont; Layout.fillWidth: true }
         }
-        Label {
+        BarModule {
             visible: Battery.present
-            text: `${Battery.charging ? "Charging" : "Battery"} ${Battery.percent}%` + (Battery.timeText ? ` · ${Battery.timeText}` : "")
-            color: Battery.low ? Theme.red : Theme.secondary
-            font.pixelSize: Theme.fontSize - 3
-            Layout.maximumWidth: home.width * 0.55
+            text: "Battery controls"
+            onClicked: home.navigate("battery")
+            Label {
+                text: `${Battery.statusText} ${Battery.percent}%`
+                color: Battery.low ? Theme.red : Theme.secondary
+                font.pixelSize: Theme.fontSize - 3
+            }
+            Text { text: "\u{f0142}"; font.family: Theme.icons; font.pixelSize: 16; color: Theme.secondary }
         }
     }
 

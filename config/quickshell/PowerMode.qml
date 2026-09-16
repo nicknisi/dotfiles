@@ -27,7 +27,7 @@ Scope {
 
     Connections {
         target: Battery
-        function onChargingChanged() { root.apply() }
+        function onPluggedInChanged() { root.apply() }
     }
 
     // `hyprctl reload`, or saving any hypr/*.lua, throws the runtime mode away

@@ -38,6 +38,7 @@ ShellRoot {
         MediaCard { id: card; width: 392; player: player }
         HudHome { id: home; width: 392; visible: false }
         CaffeineMenu { width: 320; visible: false }
+        BatteryMenu { id: batteryMenu; width: 360; visible: false }
         Flip { id: flip; width: 80; height: 20; front: "19:57"; back: "Sat 5 Sep" }
         NickAvatar { id: avatar; width: 30; height: 30 }
         SurfaceShadow { id: outerShadow; surface: samplePanel }
@@ -171,6 +172,18 @@ ShellRoot {
                         }
                     }
                 }
+
+                test.check(test.child(batteryMenu, "topUp80").text === "Top up to 80%", "battery has an 80% action");
+                test.check(test.child(batteryMenu, "topUp100").text === "Charge to 100%", "battery has a full-charge action");
+                const savedCare = Battery.care;
+                Battery.care = { supported: false, target: 0, recovery: false };
+                test.check(!test.child(batteryMenu, "topUp80").enabled && !test.child(batteryMenu, "topUp100").enabled, "unsupported battery controls are disabled");
+                Battery.topUp(80);
+                test.check(!Battery.busy, "unsupported battery action does not request authorization");
+                Battery.care = { supported: true, mode: "Custom", start: 50, end: 80, target: 100, recovery: true };
+                test.check(test.child(batteryMenu, "stopTopUp").text === "Restore battery care", "interrupted top-up exposes recovery");
+                test.check(!test.child(batteryMenu, "topUp80").enabled, "active top-up disables duplicate requests");
+                Battery.care = savedCare;
 
                 test.check(!Caffeine.active && Caffeine.selectedMinutes === 60, "stay-awake defaults to a one-hour timer");
                 const caffeineStarted = Date.now();

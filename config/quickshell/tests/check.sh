@@ -10,6 +10,7 @@ bash "$root/tests/bar-drag.sh"
 bash "$root/launcher/tests/check.sh"
 bash "$root/tests/voxtype-osd.sh"
 node "$root/tests/clipboard-model.cjs"
+python3 -B "$root/tests/battery-top-up.py"
 "$root/tests/net.sh"
 
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
@@ -18,6 +19,7 @@ for file in "$root"/*.qml; do
 done
 # Singletons may import a sibling .js, so those ride along with the .qml.
 cp "$root"/*.qml "$tmp/"
+cp "$root/battery-top-up.py" "$tmp/"
 cp "$root"/*.js "$tmp/" 2>/dev/null || true
 cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$tmp/"
 cp "$root/tests/check.qml" "$tmp/shell.qml"

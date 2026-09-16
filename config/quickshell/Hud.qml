@@ -122,7 +122,7 @@ PopupWindow {
                     width: viewport.width
                     implicitHeight: children[currentIndex]?.implicitHeight ?? 0
                     height: implicitHeight
-                    currentIndex: Math.max(0, ["home", "caffeine", "audio", "net", "bt", "display", "theme", "clock", "tailscale", "appearance"].indexOf(hud.page))
+                    currentIndex: Math.max(0, ["home", "caffeine", "audio", "net", "bt", "display", "theme", "clock", "tailscale", "appearance", "battery"].indexOf(hud.page))
                     HudHome { shown: hud.shown && hud.page === "home"; onNavigate: page => hud.navigate(page) }
                     CaffeineMenu { shown: hud.shown && hud.page === "caffeine"; onDismissed: hud.dismissed() }
                     AudioMenu { shown: hud.shown && hud.page === "audio"; onDismissed: hud.dismissed() }
@@ -133,6 +133,7 @@ PopupWindow {
                     ClockMenu { now: hud.now; shown: hud.shown && hud.page === "clock"; onDismissed: hud.dismissed() }
                     TailscaleMenu { shown: hud.shown && hud.page === "tailscale"; onDismissed: hud.dismissed() }
                     AppearanceMenu { shown: hud.shown && hud.page === "appearance"; onNavigate: page => hud.navigate(page); onDismissed: hud.dismissed() }
+                    BatteryMenu { shown: hud.shown && hud.page === "battery"; onDismissed: hud.dismissed() }
                 }
             }
         }
