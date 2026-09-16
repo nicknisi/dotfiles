@@ -11,11 +11,11 @@
       }
     },
     "sessions": {
-      "command": "/Users/nicknisi/.local/share/mise/installs/github-nicknisi-sessions/latest/sessions",
+      "command": "sessions",
       "args": [
         "--mcp"
       ],
-      "cwd": "/Users/nicknisi/Developer/sessions",
+      "cwd": "~/Developer/sessions",
       "type": "stdio"
     },
     "ctx": {
@@ -27,7 +27,7 @@
     "claude-design": {
       "url": "https://api.anthropic.com/v1/design/mcp",
       "headers": {
-        "Authorization": "!node /Users/nicknisi/Developer/pi-extensions/packages/claude-design/bin/claude-design-auth.mjs token"
+        "Authorization": "!node ~/Developer/pi-extensions/packages/claude-design/bin/claude-design-auth.mjs token"
       }
     },
     "notion": {
