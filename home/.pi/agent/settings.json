@@ -8,11 +8,11 @@
   "skills": [
     "~/Developer/skills"
   ],
-  "defaultThinkingLevel": "xhigh",
+  "defaultThinkingLevel": "high",
   "compaction": {
     "enabled": true,
     "reserveTokens": 16384,
-    "keepRecentTokens": 50000
+    "keepRecentTokens": 30000
   },
   "packages": [
     "../../Developer/pi-extensions/packages/adr",
@@ -47,7 +47,6 @@
     "npm:pi-simplify",
     "npm:pi-mcp-adapter",
     "npm:@juicesharp/rpiv-ask-user-question",
-    "npm:pi-agent-browser-native",
     "npm:pi-web-access",
     "https://github.com/zerray/pi-remote-control",
     "../../Developer/fleet/hooks/pi",
@@ -56,8 +55,7 @@
     "git:github.com/DietrichGebert/ponytail",
     "npm:@ff-labs/pi-fff",
     "npm:pi-context-view",
-    "../../Developer/pi-extensions/packages/compact-tools",
-    "npm:@earendil-works/pi-radius"
+    "../../Developer/pi-extensions/packages/compact-tools"
   ],
   "tuiMode": "fullscreen",
   "defaultModel": "gpt-6-astra",

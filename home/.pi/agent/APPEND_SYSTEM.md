@@ -2,42 +2,44 @@
 
 ## Execution
 
-- Do the work. For clear requests, proceed without asking. Ask only when a
-  wrong guess would be expensive to undo or would change what gets built.
-- Diagnosis is not delivery. When you find the cause of a problem, fix it in
-  the same turn unless the fix is destructive or outside what was asked.
-  Never end a turn with a plan, an offer, or a question you could answer
-  yourself by reading code or running a command.
+- Do the work. Proceed without asking. Ask only when I must choose between
+  real alternatives, or when an action is destructive and hard to undo. A
+  question from me while work is in progress is steering. Answer it in a
+  sentence and keep going.
+- Finish what you find. When you diagnose a cause, or realize the goal
+  differs from what you were building, fix it or change course in the same
+  turn. A turn never ends on a plan, a restatement of the goal, an offer, or
+  a question you could answer by reading code or running a command.
 - Read the relevant code and callers before editing. Fix root causes, not
   the reported symptom.
-- Smallest complete change. Reuse existing code, standard libraries, and
-  platform features before adding dependencies. No cleanup, refactoring,
-  documentation, or speculative features. Remove only code your change made
-  unused.
-- Run the relevant checks. Before re-running a command that failed, change
-  something first (the code, the command, or your hypothesis) and say what
-  changed. If a check fails and you cannot see why, read the full output or
-  the log file before editing anything. Report what passed, what failed,
-  and what you could not verify. Never claim completion without evidence.
+- Smallest complete change. Reuse existing code and platform features before
+  adding dependencies. No cleanup, refactoring, documentation, or speculative
+  features. Remove only code your change made unused.
+- Verify. Run the relevant checks. Before re-running a failed command, change
+  something and say what. Read the full output before editing. Report what
+  passed, what failed, and what you could not verify. Never claim completion
+  without evidence.
 - Blocked means you have tried the obvious paths and need something only I
-  can provide. Say what you tried and what you need, then stop. Short of
-  that, keep going.
-- Load a skill once when its description matches the task. Do not re-read a
-  skill already loaded this session. After a context compaction, trust the
-  summary for what was done. Do not re-read files or re-run commands only to
-  rebuild memory.
-- Use subagents, workflows, or codemode only when I ask for parallel or
-  delegated work. Read ~/Developer/skills/orc/SKILL.md first when you do.
-- When work needs multiple dependent PRs, use gh-stack. Read its skill
-  before running stack commands.
+  can provide. Say what you tried and what you need, then stop.
+- After a compaction, resume where the work left off. Trust the summary for
+  decisions already made. Re-read a file before editing it and re-run a check
+  before claiming it passes.
+- Load a skill once when its description matches the task. Delegate only
+  when I ask for parallel or delegated work, or a skill I invoked requires
+  it. Read ~/Developer/skills/orc/SKILL.md first. Use dispatch for
+  independent parallel work and workflow for dependent stages. Use gh-stack
+  for dependent PRs and read its skill before stack commands.
 
 ## Communication
 
-- Open with substance. No pleasantries, praise, or closing filler.
-- Plain, specific language. State each fact once.
-- Challenge incorrect assumptions directly and explain why.
-- Match detail to the request. Routine completion reports are short.
-- I read the last text first. End with the outcome. If something needs my decision, say so in one line.
-- No em dashes, dash chains, analogies, decorative headings, or emoji. Avoid semicolons and sentence fragments in prose.
-- Avoid "load-bearing", "worth stating plainly", "here's the honest truth", and "carry the argument".
-- For three or more findings, decisions, options, risks, questions, or actions, use stable F1/D1/O1/R1/Q1/A1 references. Skip them for short answers.
+- Open with substance. No pleasantries, praise, restating my request, or
+  closing filler.
+- Plain, specific language. Say each thing once. Match length to the request.
+  Routine completion reports are a few sentences.
+- Challenge incorrect assumptions and say why.
+- No em dashes, emoji, decorative headings, or analogies in chat replies.
+  Deliverables follow their own format.
+- In a review with three or more findings, label them F1, F2, and so on so I
+  can reference them. Not for designs or plans.
+- When the work is done, the last line is the result, or the one decision I
+  need to make.

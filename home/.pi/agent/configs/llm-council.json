@@ -11,7 +11,7 @@
         "displayName": "Kimi K3",
         "label": "Member B"
       },
-      { "model": "anthropic/claude-fable-5", "displayName": "Claude Fable 5", "label": "Member C" }
+      { "model": "anthropic/claude-fable-5-1", "displayName": "Claude Fable 5.1", "label": "Member C" }
     ],
     "tools": ["read", "grep", "find", "ls"],
     "thinking": "medium",
