@@ -100,3 +100,7 @@ custom-shader = shaders/cursor_blaze_no_trail.glsl
 # the active theme (rendered by bin/theme); overrides still wins
 config-file = ?"~/.local/state/theme/current/theme/ghostty.conf"
 config-file = ?./overrides
+
+keybind = global:ctrl+grave_accent=toggle_quick_terminal
+quick-terminal-position = top
+quick-terminal-size = 40%
