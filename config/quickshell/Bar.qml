@@ -132,12 +132,27 @@ PanelWindow {
 
     readonly property string focusedName: Hyprland.focusedWorkspace?.name ?? ""
     readonly property var workspaceSource: {
-        const list = Hyprland.workspaces.values.filter(w => (w.toplevels?.values?.length ?? 0) > 0 || w.name === bar.focusedName);
+        // Special workspaces (the scratchpad) are overlays, not places to go.
+        const list = Hyprland.workspaces.values.filter(w => !w.name.startsWith("special:") && ((w.toplevels?.values?.length ?? 0) > 0 || w.name === bar.focusedName));
         list.sort((a, b) => a.id - b.id);
         return list;
     }
     property var shownWorkspaces: []
     onWorkspaceSourceChanged: shownWorkspaces = workspaceSource
+
+    // Wheel over the strip steps through the chips in the order shown, no
+    // wrap. Touchpads send many small deltas, so they add up to one notch.
+    property real wheelAccumulator: 0
+    function stepWorkspace(delta) {
+        wheelAccumulator += delta;
+        if (Math.abs(wheelAccumulator) < 120)
+            return;
+        const direction = wheelAccumulator < 0 ? 1 : -1;
+        wheelAccumulator = 0;
+        const index = shownWorkspaces.findIndex(w => w.name === focusedName) + direction;
+        if (index >= 0 && index < shownWorkspaces.length)
+            shownWorkspaces[index].activate();
+    }
 
     Item {
         id: body
@@ -219,8 +234,14 @@ PanelWindow {
             y: bar.vertical ? 8 : 0
             width: bar.vertical ? bar.thick : workspaces.width + 12
             height: bar.vertical ? workspaces.height + 12 : bar.thick
+            WheelHandler {
+                onWheel: event => bar.stepWorkspace(event.angleDelta.y)
+            }
             ListView {
                 id: workspaces
+                // Not a flickable list: the wheel switches workspaces instead,
+                // and the current chip is scrolled into view by index below.
+                interactive: false
                 anchors.centerIn: parent
                 width: bar.vertical ? 30 : Math.min(contentWidth, Math.max(30, Math.min(body.width * 0.34, body.width - trailing.width - clockButton.width - 40)))
                 height: bar.vertical ? Math.min(contentHeight, Math.max(60, body.height * 0.34)) : 28
@@ -239,15 +260,20 @@ PanelWindow {
                     required property var modelData
                     required property int index
                     readonly property bool selected: modelData.name === bar.focusedName
+                    // A window there wants attention (a Slack mention, a
+                    // finished download). Hyprland marks the window; the chip
+                    // shows it until that workspace is visited.
+                    readonly property bool urgent: !selected && (modelData.toplevels?.values ?? []).some(t => t.urgent)
                     width: 30
                     height: 28
                     padding: 2
-                    text: "Workspace " + modelData.name
+                    text: "Workspace " + modelData.name + (urgent ? " · needs attention" : "")
                     onClicked: if (!bar.consumeClick())
                         modelData.activate()
+                    onScrolled: delta => bar.stepWorkspace(delta)
                     background: Rectangle {
                         radius: Theme.controlRadius
-                        color: workspaceButton.selected ? Theme.accent : (workspaceButton.hovered ? Theme.raised : "transparent")
+                        color: workspaceButton.selected ? Theme.accent : workspaceButton.urgent ? Theme.alpha(Theme.yellow, 0.22) : (workspaceButton.hovered ? Theme.raised : "transparent")
                         border.width: workspaceButton.visualFocus ? 2 : 0
                         border.color: Theme.fg
                     }
@@ -257,7 +283,7 @@ PanelWindow {
                         font.family: Theme.font
                         font.pixelSize: 11
                         font.bold: true
-                        color: workspaceButton.selected ? Theme.accentText : Theme.secondary
+                        color: workspaceButton.selected ? Theme.accentText : workspaceButton.urgent ? Theme.yellow : Theme.secondary
                         elide: Text.ElideRight
                         horizontalAlignment: Text.AlignHCenter
                     }
@@ -303,6 +329,28 @@ PanelWindow {
                 rowSpacing: 3
                 columnSpacing: 3
 
+                // Privacy. An app holding the microphone, and a running screen
+                // recording; each shows only while true. The record glyph
+                // stops the recording, the mic glyph opens the audio page,
+                // which lists who is listening.
+                StatusButton {
+                    id: micButton
+                    glyph: "\u{f036c}"
+                    visible: Audio.recorders.length > 0
+                    tint: Theme.red
+                    text: "Microphone in use · " + Audio.recorders.map(n => Audio.appFor(n)).join(", ")
+                    highlighted: bar.openMenu === "audio" && bar.menuAnchor === micButton
+                    onClicked: bar.toggleMenu("audio", micButton)
+                }
+                StatusButton {
+                    id: recordButton
+                    glyph: "\u{f044a}"
+                    visible: Capture.recording
+                    tint: Theme.red
+                    text: "Recording the screen · stop"
+                    onClicked: if (!bar.consumeClick())
+                        Capture.stop()
+                }
                 // StatusNotifierItem icons: 1Password, Slack, Discord, Spotify.
                 // Left click is the app's own primary action (usually show or
                 // hide its window), right click opens its menu as a HUD page,
@@ -445,8 +493,8 @@ PanelWindow {
                         width: 5
                         height: 5
                         radius: 2.5
-                        color: Audio.recorders.length > 0 || Battery.low ? Theme.red : Theme.yellow
-                        visible: Audio.recorders.length > 0 || Battery.low || Net.portal || (Net.device !== null && !Net.connected)
+                        color: Battery.low ? Theme.red : Theme.yellow
+                        visible: Battery.low || Net.portal || (Net.device !== null && !Net.connected)
                     }
                 }
             }

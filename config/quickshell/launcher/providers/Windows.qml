@@ -46,16 +46,19 @@ Item {
     return null
   }
 
-  // Most recently focused first, with the focused window itself last: on a
-  // fresh screen the first row is the window you came from, so Enter swaps.
+  // Windows asking for attention first, then most recently focused, with the
+  // focused window itself last: on a fresh screen the first row is the window
+  // you came from (or the one that pinged you), so Enter goes there.
   function entries() {
     var out = [], list = ToplevelManager.toplevels.values
     for (var i = 0; i < list.length; i++) {
       var t = list[i], h = root.hyprFor(t)
       var ipc = h && h.lastIpcObject ? h.lastIpcObject : {}
-      out.push({ toplevel: t, hypr: h, recency: typeof ipc.focusHistoryID === "number" ? ipc.focusHistoryID : 1000 + i })
+      out.push({ toplevel: t, hypr: h, urgent: !!(h && h.urgent),
+                 recency: typeof ipc.focusHistoryID === "number" ? ipc.focusHistoryID : 1000 + i })
     }
     out.sort(function(a, b) {
+      if (a.urgent !== b.urgent) return a.urgent ? -1 : 1
       if (a.toplevel.activated !== b.toplevel.activated) return a.toplevel.activated ? 1 : -1
       return a.recency - b.recency
     })
@@ -72,7 +75,7 @@ Item {
       title: title, subtitle: [app, where].filter(Boolean).join(" · "), keywords: app,
       icon: "󰖯", iconSource: entry && root.host && root.host.appLibrary ? root.host.appLibrary.iconSource(entry.icon) : "",
       section: "Windows", verb: "Focus", tier: "item", score: score, order: order,
-      accessory: t.activated ? "Current" : "", hint: "Ctrl+↵ close",
+      accessory: e.urgent ? "Needs you" : t.activated ? "Current" : "", hint: "Ctrl+↵ close",
       toplevel: t, action: { type: "window-focus" }, altAction: { type: "window-close" },
       description: appId, descriptionKey: app
     }

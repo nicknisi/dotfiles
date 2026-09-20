@@ -4,11 +4,11 @@ Native Quickshell port of [Keystroke 1.3.0](https://github.com/evindor/keystroke
 
 The UI and search bindings remain QML/JavaScript. External helpers and `bin/launcher` use LuaJIT with its built-in system interface and the vendored MIT [Lunajson parser](helpers/vendor/lunajson/README.md). Smart Match uses the compiled Rust engine. The launcher no longer runs Python or needs a Python environment.
 
-The calculator provider and Calpad are omitted. The upstream arithmetic parser remains an internal dependency of spoken-input classification, not a calculator screen.
+Calpad is omitted. The calculator is a single answer row over the upstream arithmetic parser (also used to classify spoken input): `12*34`, `sqrt(2)*pi`, `2^10 % 7`; Enter copies the result. A bare number or word never produces an answer.
 
 ## Use
 
-Open with Super+Space. Type an application, open window, desktop command, keybinding, filename, `2m in feet`, `10am in London`, `#ff6644`, `:smile`, or `timer 10m tea`. `~` restricts file search. Clipboard history stays in its own screen and continues to use our existing cliphist text/image/video backend. Super+V remains available separately. Alt+Tab opens the Windows screen: open windows most recently focused first, the current one last, so Enter returns to the previous window; Ctrl+Enter closes the selected one.
+Open with Super+Space. Type an application, open window, desktop command, keybinding, filename, `12*34`, `2m in feet`, `10am in London`, `#ff6644`, `:smile`, or `timer 10m tea`. `~` restricts file search. Clipboard history stays in its own screen and continues to use our existing cliphist text/image/video backend. Super+V remains available separately. Alt+Tab opens the Windows screen: open windows most recently focused first, the current one last, so Enter returns to the previous window; Ctrl+Enter closes the selected one.
 
 Arrow keys, Ctrl+N/P and Tab select results. Enter activates, Ctrl+Enter uses the alternate action, Ctrl+1 through Ctrl+8 activate numbered results, Ctrl+, opens settings, and Ctrl+K opens provider settings. Backspace or Left with an empty query goes back. Escape closes. Destructive confirmations default to Cancel.
 

@@ -127,8 +127,20 @@ hl.config({
   dwindle = {
     preserve_split = true,
   },
-  decoration = { blur = { enabled = true } },
-  misc = { disable_hyprland_logo = true, disable_splash_rendering = true },
+  -- A light dim on unfocused windows; the border already says which one has
+  -- focus, this makes it readable at a glance. Set dim_inactive = false to drop it.
+  decoration = { blur = { enabled = true }, dim_inactive = true, dim_strength = 0.1 },
+  misc = {
+    disable_hyprland_logo = true,
+    disable_splash_rendering = true,
+    -- A GUI app started from a terminal takes the terminal's tile until it
+    -- closes, instead of splitting it. Every ghostty, the scratchpad included.
+    -- wev is the classic exception: a debug window that belongs beside the
+    -- shell it was typed into.
+    enable_swallow = true,
+    swallow_regex = "^com\\.mitchellh\\.ghostty(\\..*)?$",
+    swallow_exception_regex = "^(wev)$",
+  },
 })
 
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace", scale = 0.5 })
@@ -179,6 +191,91 @@ hl.bind("SUPER + PRINT", hl.dsp.exec_cmd("capture record region"))
 hl.bind("SUPER + SHIFT + PRINT", hl.dsp.exec_cmd("capture record stop"))
 
 hl.bind("SUPER + RETURN", app("ghostty"))
+
+-- Scratchpad terminal. SUPER+GRAVE drops a ghostty down from under the bar,
+-- Guake style, and pulls it back up; it lives on the special workspace "term"
+-- and keeps its shell between visits. It runs under its own app id so the rule can tell it
+-- from the everyday terminals, which workspaces.lua routes to D (ghostty's
+-- class must be a dotted GTK application id, or it is silently ignored). The first
+-- press launches it: Hyprland shows a special workspace when a rule sends a
+-- new window there, so toggling on top of the launch would hide it again.
+local SCRATCHPAD = "com.mitchellh.ghostty.scratchpad"
+hl.window_rule({
+  name = "scratchpad",
+  match = { class = "^com\\.mitchellh\\.ghostty\\.scratchpad$" },
+  workspace = "special:term",
+  float = true,
+})
+-- Geometry is set as the window opens rather than by the rule: 0.56's Lua
+-- rules take size and move as plain pixels only ("70% 50%" is dropped and
+-- ghostty keeps its 100x30 cells), and the pixels depend on the monitor it
+-- opens on. 70% wide, half the height, flush under the bar's reserved strip.
+-- Both dispatchers take a window selector, so this never touches another
+-- window even if focus has not settled on the scratchpad yet.
+local function drop_scratchpad(win)
+  local m = win.monitor or hl.get_active_monitor()
+  if not m then
+    return
+  end
+  local target = "address:" .. win.address
+  local mw, mh = m.width / m.scale, m.height / m.scale
+  local top = type(m.reserved) == "table" and m.reserved.top or 0
+  local w, h = math.floor(mw * 0.7), math.floor((mh - top) * 0.5)
+  hl.dispatch(hl.dsp.window.resize({ x = w, y = h, window = target }))
+  hl.dispatch(hl.dsp.window.move({ x = m.x + math.floor((mw - w) / 2), y = m.y + top, window = target }))
+end
+hl.on("window.open", function(win)
+  if win and win.class == SCRATCHPAD then
+    drop_scratchpad(win)
+  end
+end)
+-- The special workspace slides in from the top edge rather than fading, which
+-- is what sells the dropdown. dim_special (default 0.2) shades the rest.
+hl.animation({ leaf = "specialWorkspace", enabled = true, speed = 4, bezier = "workspaceSettle", style = "slidevert" })
+hl.bind("SUPER + GRAVE", function()
+  for _, w in ipairs(hl.get_windows()) do
+    if w.class == SCRATCHPAD then
+      hl.dispatch(hl.dsp.workspace.toggle_special("term"))
+      return
+    end
+  end
+  hl.exec_cmd("uwsm-app -- ghostty --class=" .. SCRATCHPAD)
+end)
+
+-- Helpers float, centred, instead of taking a tile. Dialogs that declare a
+-- parent (GTK and Chromium file dialogs) float on their own; these do not.
+hl.window_rule({
+  name = "float-helpers",
+  match = { class = "^(xdg-desktop-portal-gtk|xdg-desktop-portal-hyprland|hyprpolkitagent|org\\.gnome\\.Seahorse|nm-connection-editor|pavucontrol|blueman-manager)$" },
+  float = true,
+  center = true,
+})
+hl.window_rule({
+  name = "float-1password-quick-access",
+  match = { class = "^1Password$", title = "^Quick Access" },
+  float = true,
+  center = true,
+})
+-- Browser picture-in-picture: a plain toplevel to Hyprland, so it would tile.
+-- Pinned, it rides along to every workspace, bottom right.
+-- Zoom. Everything it opens is a plain toplevel to Hyprland, so meeting
+-- controls, the screen-share toolbar, the floating self-view and every
+-- settings popup would take a tile. Float the lot, then put the real windows
+-- back in the layout; a later matching rule wins.
+hl.window_rule({ name = "zoom-float", match = { class = "^zoom$" }, float = true })
+hl.window_rule({
+  name = "zoom-main",
+  match = { class = "^zoom$", title = "^(Zoom Workplace|Zoom Meeting|Zoom Webinar)$" },
+  tile = true,
+})
+hl.window_rule({ name = "zoom-share-toolbar", match = { class = "^zoom$", title = "^as_toolbar$" }, float = true, pin = true })
+hl.window_rule({
+  name = "pip",
+  match = { title = "^Picture-in-Picture$" },
+  float = true,
+  pin = true,
+  move = "monitor_w-w-24 monitor_h-h-24",
+})
 hl.bind("SUPER + SHIFT + RETURN", hl.dsp.exec_cmd("sh -c 'uwsm-app -- \"$(xdg-settings get default-web-browser)\"'"))
 hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("loginctl lock-session")) -- hypridle runs hyprlock
@@ -206,6 +303,11 @@ hl.bind("SUPER + SHIFT + SPACE", hl.dsp.window.float({ action = "toggle" }))
 -- form of: a tabbed group is the nearest thing, one window visible at a time.
 hl.bind("SUPER + SLASH", hl.dsp.layout("togglesplit"))
 hl.bind("SUPER + COMMA", hl.dsp.group.toggle())
+-- Tabs inside a group: SUPER+[ and ] step through them, as ctrl-tab would in
+-- a browser. Without these only the front window of a group is reachable
+-- from the keyboard.
+hl.bind("SUPER + BRACKETLEFT", hl.dsp.group.prev())
+hl.bind("SUPER + BRACKETRIGHT", hl.dsp.group.next())
 
 local function workspace_selector(ws)
   if ws.name and ws.name ~= "" and ws.name ~= tostring(ws.id) then

@@ -100,7 +100,11 @@ annotate() {
   fi
 }
 
-clear_recording_state() { rm -f -- "$PIDFILE" "$PATHFILE"; }
+# The capsule shows a record glyph while $PIDFILE names a live wf-recorder.
+# Told explicitly at start and stop: Quickshell cannot watch a file that does
+# not exist yet, so the first recording of a session would otherwise be missed.
+shell_refresh() { command -v qs >/dev/null 2>&1 && qs ipc call capture refresh >/dev/null 2>&1 || true; }
+clear_recording_state() { rm -f -- "$PIDFILE" "$PATHFILE"; shell_refresh; }
 
 record_pid() {
   [[ -s $PIDFILE ]] || return 1
@@ -174,6 +178,7 @@ record() {
     exit "$status"
   fi
   disown "$pid" 2>/dev/null || true
+  shell_refresh
   notify "Recording started" "$(short "$file")"
   printf '%s\n' "$file"
 }
