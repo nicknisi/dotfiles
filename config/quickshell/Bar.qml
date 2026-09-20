@@ -352,9 +352,11 @@ PanelWindow {
                         Capture.stop()
                 }
                 // StatusNotifierItem icons: 1Password, Slack, Discord, Spotify.
-                // Left click is the app's own primary action (usually show or
-                // hide its window), right click opens its menu as a HUD page,
-                // middle click is its secondary action, and the wheel scrolls.
+                // Left click is the app's own primary action, then a jump to
+                // its window wherever that workspace is: the app only asks
+                // Hyprland for focus, this makes sure of it. Right click opens
+                // its menu as a HUD page, middle click is its secondary action,
+                // and the wheel scrolls.
                 Repeater {
                     model: SystemTray.items
                     BarModule {
@@ -370,10 +372,12 @@ PanelWindow {
                         onClicked: {
                             if (bar.consumeClick())
                                 return;
-                            if (modelData.onlyMenu)
+                            if (modelData.onlyMenu) {
                                 trayButton.openMenu();
-                            else
-                                modelData.activate();
+                                return;
+                            }
+                            modelData.activate();
+                            NotificationState.focusApp([modelData.title, modelData.tooltipTitle, modelData.id]);
                         }
                         onScrolled: delta => modelData.scroll(Math.round(delta / 120), false)
                         function openMenu() {

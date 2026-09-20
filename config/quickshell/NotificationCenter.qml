@@ -166,9 +166,13 @@ PopupWindow {
                 boundsBehavior: Flickable.StopAtBounds
                 activeFocusOnTab: true
 
+                // Enter or a click on an entry goes to the app that sent it.
+                Keys.onReturnPressed: if (currentItem) currentItem.open()
+                Keys.onEnterPressed: if (currentItem) currentItem.open()
                 delegate: ShellSurface {
                     required property int index
                     required property string appName
+                    required property string desktopEntry
                     required property string summary
                     required property string body
                     required property bool critical
@@ -180,6 +184,17 @@ PopupWindow {
                     fill: Theme.raised
                     prominent: critical
                     outlineColor: history.activeFocus && index === history.currentIndex ? Theme.accent : critical ? Theme.red : Theme.borderIdle
+
+                    function open() {
+                        if (NotificationState.focusSource(appName, desktopEntry))
+                            NotificationState.closeCenter();
+                    }
+                    TapHandler {
+                        onTapped: parent.open()
+                    }
+                    HoverHandler {
+                        cursorShape: NotificationState.sourceWindow(appName, desktopEntry) ? Qt.PointingHandCursor : Qt.ArrowCursor
+                    }
 
                     ColumnLayout {
                         id: notificationText

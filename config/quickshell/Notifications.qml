@@ -17,6 +17,7 @@ Scope {
 
     NotificationServer {
         id: server
+        Component.onCompleted: NotificationState.server = server
 
         // Advertised capabilities. Senders check these, so only claim what the
         // delegate below actually renders.
@@ -32,6 +33,7 @@ Scope {
             notification.tracked = true;
             NotificationState.remember({
                 appName: notification.appName,
+                desktopEntry: notification.desktopEntry,
                 summary: notification.summary,
                 body: notification.body,
                 image: notification.image,
@@ -205,13 +207,21 @@ Scope {
                         }
                     }
 
-                    // Click anywhere else to dismiss. Placed after the content so
-                    // action buttons win the click.
+                    // Click to go to it: the sender's default action first (Slack
+                    // jumps to the message), then the window itself, whatever
+                    // workspace it is on. Right click only dismisses. Placed after
+                    // the content so action buttons win the click.
                     MouseArea {
                         anchors.fill: parent
                         z: -1
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        onClicked: modelData.dismiss()
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: mouse => {
+                            if (mouse.button === Qt.LeftButton)
+                                NotificationState.open(modelData);
+                            else
+                                modelData.dismiss();
+                        }
                     }
                 }
             }

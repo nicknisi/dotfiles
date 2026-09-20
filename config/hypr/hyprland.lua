@@ -140,6 +140,11 @@ hl.config({
     enable_swallow = true,
     swallow_regex = "^com\\.mitchellh\\.ghostty(\\..*)?$",
     swallow_exception_regex = "^(wev)$",
+    -- An app that asks for focus gets it, workspace switch included: Slack
+    -- after its tray icon or a notification is clicked, the browser when a
+    -- link is opened from elsewhere. Off, Hyprland only marks the window
+    -- urgent (the yellow chip) and leaves you where you were.
+    focus_on_activate = true,
   },
 })
 
