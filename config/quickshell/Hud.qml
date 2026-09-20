@@ -11,6 +11,7 @@ PopupWindow {
     property string edge: "top"
     property string alignment: "end"
     property string page: ""
+    property var trayItem: null
     readonly property bool shown: page !== ""
     readonly property var offset: MenuAnchor.position(edge, alignment,
         anchorItem?.width ?? 0, anchorItem?.height ?? 0,
@@ -73,7 +74,7 @@ PopupWindow {
                     anchors.rightMargin: 6
                     spacing: 10
                     BarModule {
-                        visible: hud.page !== "home"
+                        visible: hud.page !== "home" && hud.page !== "tray"
                         text: hud.page === "tailscale" ? "Back to network" : hud.page === "theme" ? "Back to appearance" : "Back to controls"
                         onClicked: hud.navigate(hud.page === "tailscale" ? "net" : hud.page === "theme" ? "appearance" : "home")
                         Text {
@@ -84,7 +85,7 @@ PopupWindow {
                         }
                     }
                     Text {
-                        text: hud.page === "home" ? "System" : hud.page === "net" ? "Network" : hud.page === "bt" ? "Bluetooth" : hud.page
+                        text: hud.page === "home" ? "System" : hud.page === "net" ? "Network" : hud.page === "bt" ? "Bluetooth" : hud.page === "tray" ? (hud.trayItem?.title || hud.trayItem?.id || "Tray") : hud.page
                         color: Theme.fg
                         font.family: Theme.headingFont
                         font.pixelSize: 26
@@ -122,7 +123,7 @@ PopupWindow {
                     width: viewport.width
                     implicitHeight: children[currentIndex]?.implicitHeight ?? 0
                     height: implicitHeight
-                    currentIndex: Math.max(0, ["home", "caffeine", "audio", "net", "bt", "display", "theme", "clock", "tailscale", "appearance", "battery"].indexOf(hud.page))
+                    currentIndex: Math.max(0, ["home", "caffeine", "audio", "net", "bt", "display", "theme", "clock", "tailscale", "appearance", "battery", "tray"].indexOf(hud.page))
                     HudHome { shown: hud.shown && hud.page === "home"; onNavigate: page => hud.navigate(page) }
                     CaffeineMenu { shown: hud.shown && hud.page === "caffeine"; onDismissed: hud.dismissed() }
                     AudioMenu { shown: hud.shown && hud.page === "audio"; onDismissed: hud.dismissed() }
@@ -134,6 +135,7 @@ PopupWindow {
                     TailscaleMenu { shown: hud.shown && hud.page === "tailscale"; onDismissed: hud.dismissed() }
                     AppearanceMenu { shown: hud.shown && hud.page === "appearance"; onNavigate: page => hud.navigate(page); onDismissed: hud.dismissed() }
                     BatteryMenu { shown: hud.shown && hud.page === "battery"; onDismissed: hud.dismissed() }
+                    TrayMenu { item: hud.trayItem; shown: hud.shown && hud.page === "tray"; onDismissed: hud.dismissed() }
                 }
             }
         }

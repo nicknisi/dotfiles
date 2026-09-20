@@ -191,18 +191,25 @@ run = """
 """
 
 # This mise build has no AUR package manager, so use the installed AUR helper
-# for Voxtype. Packaged user services only need enabling. Quickshell ships no
+# for Voxtype, the Yaru icon variants every theme pack names, and the Bibata
+# cursors bin/theme defaults to. Packaged user services only need enabling. Quickshell ships no
 # unit, so keep its generated .wants link outside the symlinked dotfiles tree.
 # The time-zone dispatcher script is installed here rather than through
 # [bootstrap.files], which has no OS filter and would create /etc/NetworkManager
 # on macOS too.
 [bootstrap.hooks.post-packages]
 run = """
-  if [ "$(uname)" = "Linux" ] && command -v pacman >/dev/null 2>&1 \
-      && ! pacman -Q voxtype-bin >/dev/null 2>&1; then
-    aur_helper="$(command -v yay || command -v paru || true)"
-    [ -n "$aur_helper" ] || { echo "install yay or paru to bootstrap voxtype-bin" >&2; exit 1; }
-    "$aur_helper" -S --needed --noconfirm voxtype-bin
+  if [ "$(uname)" = "Linux" ] && command -v pacman >/dev/null 2>&1; then
+    aur_missing=""
+    for pkg in voxtype-bin yaru-icon-theme bibata-cursor-theme-bin; do
+      pacman -Q "$pkg" >/dev/null 2>&1 || aur_missing="$aur_missing $pkg"
+    done
+    if [ -n "$aur_missing" ]; then
+      aur_helper="$(command -v yay || command -v paru || true)"
+      [ -n "$aur_helper" ] || { echo "install yay or paru to bootstrap:$aur_missing" >&2; exit 1; }
+      # shellcheck disable=SC2086
+      "$aur_helper" -S --needed --noconfirm $aur_missing
+    fi
   fi
 
   if [ "$(uname)" = "Linux" ] && command -v systemctl >/dev/null 2>&1; then
@@ -225,6 +232,18 @@ RestartSec=1s
 
 [Install]
 WantedBy=graphical-session.target
+EOF
+    # Chromium-based apps (1Password, and Slack, Discord and Spotify if they
+    # autostart) probe org.kde.StatusNotifierWatcher once at startup and drop
+    # their tray icon for good when nobody owns it yet. Quickshell owns it
+    # once its bar is up, so autostarted 1Password waits for that first.
+    mkdir -p "$unit_dir/app-1password@autostart.service.d"
+    cat >"$unit_dir/app-1password@autostart.service.d/tray.conf" <<'EOF'
+[Unit]
+After=quickshell.service
+
+[Service]
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 50); do busctl --user status org.kde.StatusNotifierWatcher >/dev/null 2>&1 && exit 0; sleep 0.2; done; exit 0'
 EOF
     systemctl --user daemon-reload
     systemctl --user enable quickshell.service hypridle.service hyprsunset.service \

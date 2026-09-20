@@ -3,9 +3,9 @@ set -euo pipefail
 root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
-cp "$root"/{BarMenu,BarModule,MenuAction,MenuSlider,PopupSurface,ShellSurface}.qml "$tmp/"
+cp "$root"/{BarMenu,BarModule,MenuAction,MenuSlider,PopupSurface,ShellSurface,MenuRule,MenuHint,TrayMenu,TrayMenuEntries,TrayMenuEntry}.qml "$tmp/"
 [[ ! -f "$root/MenuNavigation.qml" ]] || cp "$root/MenuNavigation.qml" "$tmp/"
-cp "$root/tests/"tst_{menu_keys,motion}.qml "$tmp/"
+cp "$root/tests/"tst_{menu_keys,motion,tray_menu}.qml "$tmp/"
 printf 'singleton Theme 1.0 Theme.qml\n' > "$tmp/qmldir"
 cat > "$tmp/Theme.qml" <<'QML'
 pragma Singleton
@@ -22,6 +22,10 @@ QtObject {
     readonly property int controlRadius: 12
     readonly property int panelRadius: 28
     readonly property color borderIdle: "#444444"
+    readonly property color muted: "#666666"
+    readonly property string uiFont: "sans-serif"
+    readonly property string icons: "monospace"
+    readonly property real surfaceOpacity: 1
     function alpha(color, a) { return Qt.rgba(color.r, color.g, color.b, a) }
     readonly property int quick: 90
     readonly property int base: 160
@@ -29,4 +33,4 @@ QtObject {
 QML
 runner=$(command -v qmltestrunner || printf /usr/lib/qt6/bin/qmltestrunner)
 env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen timeout 15 "$runner" -input "$tmp" 2>&1 | tee "$tmp/result"
-! grep -E 'ReferenceError|TypeError|Binding loop|Cannot assign|is not a type' "$tmp/result"
+! grep -E 'ReferenceError|TypeError|Binding loop|Cannot assign|Unable to assign|is not a type' "$tmp/result"

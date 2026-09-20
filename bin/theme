@@ -63,7 +63,8 @@ rendered from themes/templates/*.tpl into ~/.local/state/theme/current/theme/.
 switches: ghostty, kitty, wezterm, tmux, nvim, btop, lazygit, delta, fzf,
           starship, pi, claude code,
           wallpaper, and Chromium/Helium after `theme browser install`; Linux adds
-          hyprland borders, hyprlock, wofi, quickshell, GTK dark/light + icons;
+          hyprland borders, hyprlock, wofi, quickshell, GTK dark/light + colours,
+          icons (icons.theme) and the cursor (cursor.theme, default by mode);
           macOS adds appearance, sketchybar, borders, slack.
           The boot splash is rendered too but only installed by `theme plymouth`,
           because that means rebuilding the initramfs.
@@ -429,6 +430,9 @@ stage() { # NAME MODE -> $STATE/next-theme: the pack's files, then templates for
     esac
   done
   "$COLOR" -f "$pack/colors.toml" --name "$1" --mode "$2" --render "$next" "$TEMPLATES_DIR"/*.tpl
+  # The cursor is a pack file like icons.theme. A pack that names none gets a
+  # white cursor in dark mode and a black one in light (Bibata, from the AUR).
+  [ -s "$next/cursor.theme" ] || printf '%s\n' "$([ "$2" = light ] && echo Bibata-Modern-Classic || echo Bibata-Modern-Ice)" >"$next/cursor.theme"
 }
 
 swap() { # next-theme becomes theme; consumers never see an empty directory
@@ -728,7 +732,7 @@ hypr_borders() { # rendered theme dir -> 0 if the colours went in without a relo
   hyprctl eval "local active = $active; local inactive = $inactive; hl.config({ general = { col = { active_border = active, inactive_border = inactive } }, group = { col = { border_active = active, border_inactive = inactive } } })" >/dev/null 2>&1
 }
 
-linux_gtk() { # dark|light: GTK3/4 + libadwaita follow color-scheme; icons if the pack names an installed set
+linux_gtk() { # dark|light: GTK3/4 + libadwaita follow color-scheme and the rendered gtk.css; icons and cursor when the named set is installed
   command -v gsettings >/dev/null 2>&1 && [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] || return 0
   if [ "$1" = light ]; then
     gsettings set org.gnome.desktop.interface color-scheme prefer-light
@@ -737,11 +741,56 @@ linux_gtk() { # dark|light: GTK3/4 + libadwaita follow color-scheme; icons if th
     gsettings set org.gnome.desktop.interface color-scheme prefer-dark
     gsettings set org.gnome.desktop.interface gtk-theme Adwaita-dark
   fi
-  local icons; icons="$(cat "$STATE/theme/icons.theme" 2>/dev/null || true)"
-  [ -n "$icons" ] || return 0
+  gtk_point
+
+  # Every pack names a Yaru variant, or nothing; nothing means plain Yaru,
+  # rather than leaving the previous pack's icons behind.
+  local icons cursor
+  icons="$(cat "$STATE/theme/icons.theme" 2>/dev/null || true)"
+  icons="${icons:-Yaru}"
+  if icon_set_installed "$icons"; then
+    gsettings set org.gnome.desktop.interface icon-theme "$icons"
+  else
+    echo "theme: icon set $icons is not installed (yay -S yaru-icon-theme); keeping $(gsettings get org.gnome.desktop.interface icon-theme)" >&2
+  fi
+
+  # gsettings is the live channel: Hyprland watches it (cursor:sync_gsettings_theme)
+  # and so do GTK apps. Qt, Electron and Chromium read XCURSOR_THEME when they
+  # start, so the user manager and D-Bus get it for the next uwsm-app launch;
+  # hyprland.lua sets the same env at compositor start.
+  cursor="$(cat "$STATE/theme/cursor.theme" 2>/dev/null || true)"
+  [ -n "$cursor" ] || return 0
+  if icon_set_installed "$cursor"; then
+    gsettings set org.gnome.desktop.interface cursor-theme "$cursor"
+    [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && hyprctl setcursor "$cursor" 24 >/dev/null 2>&1 || true
+    systemctl --user set-environment "XCURSOR_THEME=$cursor" "HYPRCURSOR_THEME=$cursor" 2>/dev/null || true
+    dbus-update-activation-environment "XCURSOR_THEME=$cursor" "HYPRCURSOR_THEME=$cursor" 2>/dev/null || true
+  else
+    echo "theme: cursor set $cursor is not installed (yay -S bibata-cursor-theme-bin); keeping $(gsettings get org.gnome.desktop.interface cursor-theme)" >&2
+  fi
+}
+
+icon_set_installed() { # NAME: an icon or cursor theme directory with an index.theme
   local d
   for d in /usr/share/icons "$HOME/.local/share/icons" "$HOME/.icons"; do
-    if [ -d "$d/$icons" ]; then gsettings set org.gnome.desktop.interface icon-theme "$icons"; return 0; fi
+    [ -f "$d/$1/index.theme" ] && return 0
+  done
+  return 1
+}
+
+gtk_point() { # ~/.config/gtk-{3,4}.0/gtk.css @import the rendered colours
+  # The directories are GTK's, not the repo's: GTK keeps its file-chooser
+  # bookmarks there, so they are pointed at rather than symlinked. One line,
+  # prepended once; @import has to come before any rule the user adds.
+  local v f line="@import url(\"$STATE/theme/gtk.css\");"
+  for v in gtk-3.0 gtk-4.0; do
+    f="$HOME/.config/$v/gtk.css"
+    mkdir -p "$HOME/.config/$v"
+    if [ ! -f "$f" ]; then
+      printf '%s\n' "$line" >"$f"
+    elif ! grep -qF -- "$line" "$f"; then
+      { printf '%s\n' "$line"; cat "$f"; } >"$f.tmp" && mv "$f.tmp" "$f"
+    fi
   done
 }
 

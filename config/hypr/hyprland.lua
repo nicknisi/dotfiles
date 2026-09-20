@@ -57,6 +57,37 @@ hl.env("ELECTRON_OZONE_PLATFORM_HINT", "wayland")
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 
+-- Cursor theme. bin/theme writes the pack's cursor.theme (or the mode's
+-- default) into the state dir. Hyprland and GTK follow gsettings live
+-- (cursor.sync_gsettings_theme), so this env only serves the apps that read
+-- XCURSOR_THEME once at startup: Qt, Electron, Chromium. Set only when the set
+-- is installed; naming a missing theme leaves Qt with no cursor at all.
+local function cursor_theme()
+  local home = os.getenv("HOME")
+  local f = io.open(home .. "/.local/state/theme/current/theme/cursor.theme")
+  if not f then
+    return nil
+  end
+  local name = f:read("*l")
+  f:close()
+  if not name or name == "" then
+    return nil
+  end
+  for _, dir in ipairs({ "/usr/share/icons/", home .. "/.local/share/icons/", home .. "/.icons/" }) do
+    local index = io.open(dir .. name .. "/index.theme")
+    if index then
+      index:close()
+      return name
+    end
+  end
+  return nil
+end
+local cursor = cursor_theme()
+if cursor then
+  hl.env("XCURSOR_THEME", cursor)
+  hl.env("HYPRCURSOR_THEME", cursor)
+end
+
 hl.config({
   input = {
     kb_layout = "us",
@@ -128,6 +159,9 @@ end
 -- The launcher already lives inside Quickshell, so this only sends its toggle
 -- message. It gives each chosen app its own uwsm scope before disappearing.
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
+-- Open windows, most recently focused first with the current one last, so
+-- Enter on a fresh screen returns to the previous window. Ctrl+Enter closes.
+hl.bind("ALT + TAB", hl.dsp.exec_cmd("qs ipc call launcher route windows"))
 pcall(dofile, hypr .. "/launcher-voice.lua")
 -- Global clipboard history. Ctrl+Shift+V remains direct terminal paste.
 hl.bind(
@@ -244,6 +278,21 @@ hl.config({
       color_inactive = "rgba(00000030)",
     },
   },
+})
+
+-- Blur behind the shell. decoration.blur only blurs surfaces that ask for
+-- it, and a layer surface asks through a rule. The capsule's window spans the
+-- whole edge with the pill drawn in the middle, so ignore_alpha keeps the
+-- fully transparent rest of it (and the shadow's faint edge) from smearing
+-- the desktop; blur_popups covers the HUD menus, which are popups of that
+-- layer. Opaque surfaces are unaffected: this only shows once the capsule's
+-- translucent mode is on (double-click the pill, or "Toggle Bar Transparency").
+hl.layer_rule({
+  name = "shell-blur",
+  match = { namespace = "^(quickshell|quickshell-capsule|launcher|clipboard-history|theme-picker|quickshell-voxtype-osd)$" },
+  blur = true,
+  blur_popups = true,
+  ignore_alpha = 0.3,
 })
 
 -- Workspaces: 1-9, the lettered set, and the tab bindings.

@@ -88,6 +88,10 @@ Singleton {
     // A light accent wash for selected controls, independent of theme mode.
     readonly property color glowFill: alpha(accent, 0.14)
 
+    // Shell surfaces (HUD, launcher, notification center) go see-through with
+    // the capsule; Hyprland blurs behind them (shell-blur rule in hyprland.lua).
+    readonly property real surfaceOpacity: Prefs.translucent ? 0.82 : 1
+
     // ---- window manager geometry -------------------------------------------
     // Keep window-manager geometry for window-like overlays. The capsule and
     // HUD have their own rounded silhouette, regardless of window rounding.

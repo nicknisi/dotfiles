@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
+import Quickshell.Services.SystemTray
 import QtQuick
 import QtQuick.Layouts
 import "BarGeometry.js" as BarGeometry
@@ -25,6 +26,8 @@ PanelWindow {
     property bool suppressClicks: false
     property string dragEdge: edge
     property string openMenu: ""
+    // The tray icon whose menu the HUD is showing, when openMenu is "tray".
+    property var trayItem: null
     property Item menuAnchor: systemButton
     property string menuAlignment: "end"
     property date now: new Date()
@@ -300,6 +303,62 @@ PanelWindow {
                 rowSpacing: 3
                 columnSpacing: 3
 
+                // StatusNotifierItem icons: 1Password, Slack, Discord, Spotify.
+                // Left click is the app's own primary action (usually show or
+                // hide its window), right click opens its menu as a HUD page,
+                // middle click is its secondary action, and the wheel scrolls.
+                Repeater {
+                    model: SystemTray.items
+                    BarModule {
+                        id: trayButton
+                        required property var modelData
+                        Layout.preferredWidth: 28
+                        Layout.preferredHeight: 32
+                        padding: 3
+                        cornerRadius: Theme.controlRadius
+                        opacity: modelData.status === Status.Passive ? 0.55 : 1
+                        text: modelData.tooltipTitle || modelData.title || modelData.id
+                        highlighted: bar.openMenu === "tray" && bar.trayItem === modelData
+                        onClicked: {
+                            if (bar.consumeClick())
+                                return;
+                            if (modelData.onlyMenu)
+                                trayButton.openMenu();
+                            else
+                                modelData.activate();
+                        }
+                        onScrolled: delta => modelData.scroll(Math.round(delta / 120), false)
+                        function openMenu() {
+                            if (!modelData.hasMenu)
+                                return;
+                            bar.trayItem = modelData;
+                            bar.toggleMenu("tray", trayButton);
+                        }
+                        Image {
+                            source: trayButton.modelData.icon
+                            sourceSize.width: 16
+                            sourceSize.height: 16
+                            Layout.preferredWidth: 16
+                            Layout.preferredHeight: 16
+                            Layout.alignment: Qt.AlignCenter
+                        }
+                        // Sits over the button for the buttons it does not
+                        // take; a left press falls through to the module.
+                        Item {
+                            parent: trayButton
+                            anchors.fill: parent
+                            TapHandler {
+                                acceptedButtons: Qt.RightButton | Qt.MiddleButton
+                                onTapped: (point, button) => {
+                                    if (button === Qt.RightButton)
+                                        trayButton.openMenu();
+                                    else
+                                        trayButton.modelData.secondaryActivate();
+                                }
+                            }
+                        }
+                    }
+                }
                 StatusButton {
                     id: awakeButton
                     glyph: "\u{f0176}"
@@ -483,6 +542,7 @@ PanelWindow {
         monitor: bar.screen
         now: bar.now
         page: bar.openMenu
+        trayItem: bar.trayItem
         onNavigate: page => bar.openMenu = page
         onDismissed: {
             bar.openMenu = "";
