@@ -2,27 +2,26 @@
   "member": {
     "council": [
       {
-        "model": "fireworks/accounts/fireworks/models/glm-5p2",
-        "displayName": "GLM 5.2",
-        "label": "Member A"
+        "model": "cloudflare-ai-gateway/gpt-6-astra"
       },
       {
-        "model": "fireworks/accounts/fireworks/models/kimi-k3",
-        "displayName": "Kimi K3",
-        "label": "Member B"
-      },
-      { "model": "anthropic/claude-fable-5-1", "displayName": "Claude Fable 5.1", "label": "Member C" }
+        "model": "cloudflare-ai-gateway/claude-fable-5.1"
+      }
     ],
-    "tools": ["read", "grep", "find", "ls"],
-    "thinking": "medium",
+    "tools": [
+      "read",
+      "grep",
+      "find",
+      "ls"
+    ],
+    "thinking": "xhigh",
     "extensions": [],
     "skills": [],
     "contextFiles": false
   },
   "chairman": {
-    "model": "anthropic/claude-opus-5",
-    "displayName": "Claude Opus 5",
+    "model": "cloudflare-ai-gateway/gpt-6-astra",
     "exposePersonas": true,
-    "thinking": "medium"
+    "thinking": "max"
   }
 }
