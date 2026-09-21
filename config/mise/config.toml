@@ -50,6 +50,7 @@ uv = "0.12.12"
 ast-grep = "latest"
 ruby = "latest"
 "npm:@googleworkspace/cli" = "latest"
+just = "latest"
 
 [bootstrap.packages]
 # core utilities newer than what macOS ships
