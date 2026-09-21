@@ -11,6 +11,7 @@ bash "$root/launcher/tests/check.sh"
 bash "$root/tests/voxtype-osd.sh"
 node "$root/tests/clipboard-model.cjs"
 python3 -B "$root/tests/battery-top-up.py"
+python3 -B "$root/tests/audio-hotplug.py"
 "$root/tests/net.sh"
 
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)

@@ -73,10 +73,10 @@ Singleton {
         if (node?.audio) node.audio.volume = Math.max(0, Math.min(1, v));
     }
 
-    // Nothing on a PipeWire node is populated until something declares interest,
-    // so every node the menu can show has to be tracked, not just the default
-    // sink. Without this their `audio` sub-objects read as undefined forever.
+    // Track the raw node list, not lists filtered by properties populated by
+    // this tracker. During disconnect, unbinding clears those properties and
+    // re-enters the tracker, causing a double unbind and a native crash.
     PwObjectTracker {
-        objects: [root.sink, root.source].concat(root.sinks, root.streams, root.sources, root.recorders)
+        objects: Pipewire.nodes.values
     }
 }
