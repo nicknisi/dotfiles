@@ -42,6 +42,7 @@
     "../../Developer/pi-extensions/packages/subagents",
     "../../Developer/pi-extensions/packages/turn-timer",
     "../../Developer/pi-extensions/packages/workflows",
+    "../../Developer/pi-extensions/packages/checkpoint",
     "npm:pi-prompt-template-model",
     "../../Developer/ideation",
     "npm:pi-simplify",
