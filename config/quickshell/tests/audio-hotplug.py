@@ -31,8 +31,10 @@ context.objects = [ { factory = metadata args = { metadata.name = default } } ]
     (tmp / 'qmldir').write_text('singleton Audio 1.0 Audio.qml\n')
     (tmp / 'shell.qml').write_text('''import Quickshell
 ShellRoot {
-    property var inputs: Audio.sources.map(n => n.name)
-    property var outputs: Audio.sinks.map(n => n.name)
+    property var inputs: Audio.sources.map(n => ({ name: n.name, volume: n.audio?.volume, current: Audio.isDefaultSource(n) }))
+    property var outputs: Audio.sinks.map(n => ({ name: n.name, volume: n.audio?.volume, current: Audio.isDefault(n) }))
+    property var defaults: [Audio.volume, Audio.muted, Audio.ready, Audio.micVolume, Audio.micMuted]
+    onDefaultsChanged: console.log("DEFAULTS", JSON.stringify(defaults))
     onInputsChanged: console.log("INPUTS", JSON.stringify(inputs))
     onOutputsChanged: console.log("OUTPUTS", JSON.stringify(outputs))
 }
@@ -62,6 +64,26 @@ ShellRoot {
                 for node in nodes:
                     run('pw-cli', 'destroy', str(node))
                 time.sleep(.25)
+            # Resume can deliver many queued removals in one PipeWire dispatch.
+            for cycle in range(3):
+                for index, kind in enumerate(['Sink'] * 6 + ['Source'] * 2):
+                    name = f'fixture_{kind.lower()}_{index}'
+                    run('pw-cli', 'create-node', 'adapter', '{ factory.name = support.null-audio-sink node.name = "' + name + '" media.class = "Audio/' + kind + '" audio.position = [ FL FR ] object.linger = true }')
+                    run('pw-metadata', '0', 'default.audio.' + kind.lower(), json.dumps({'name': name}), 'Spa:String:JSON')
+                time.sleep(.5)
+                shell = tmp / 'shell.qml'
+                shell.write_text(shell.read_text() + f'\n// reload {cycle}\n')
+                time.sleep(.5)
+                graph = json.loads(run('pw-dump'))
+                nodes = [n['id'] for n in graph if n.get('info', {}).get('props', {}).get('node.name', '').startswith('fixture_')]
+                assert len(nodes) == 8, 'batch test nodes missing'
+                os.killpg(processes[-1].pid, signal.SIGSTOP)
+                try:
+                    for node in nodes:
+                        run('pw-cli', 'destroy', str(node))
+                finally:
+                    os.killpg(processes[-1].pid, signal.SIGCONT)
+                time.sleep(.5)
             for kind in ['Sink', 'Source']:
                 name = f'fixture_{kind.lower()}'
                 run('pw-cli', 'create-node', 'adapter', '{ factory.name = support.null-audio-sink node.name = "' + name + '" media.class = "Audio/' + kind + '" audio.position = [ FL FR ] object.linger = true }')
@@ -72,10 +94,11 @@ ShellRoot {
             time.sleep(1)
             shell_log.seek(0)
             output = shell_log.read()
+            assert 'Reloading configuration' in output, 'hot reload did not run\n' + output
             assert 'fixture_source' in output and 'fixture_sink' in output, 'audio menus did not discover fixture nodes\n' + output
             assert not any(s in output for s in ['Binding loop', 'has crashed', 'TypeError', 'Failed to load']), 'audio hotplug failed\n' + output
             assert processes[-1].poll() is None, 'Quickshell exited\n' + output
-            print('PASS: 5 default sink/source hotplug cycles and server disconnect without binding loops or crashes')
+            print('PASS: audio hotplug, queued removals after reload, and server disconnect without binding loops or crashes')
         finally:
             for process in reversed(processes):
                 if process.poll() is None:

@@ -5,6 +5,7 @@ pragma Singleton
 // Without it `sink.audio.volume` reads as undefined forever.
 import Quickshell
 import Quickshell.Services.Pipewire
+import QtQml
 
 Singleton {
     id: root
@@ -73,10 +74,13 @@ Singleton {
         if (node?.audio) node.audio.volume = Math.max(0, Math.min(1, v));
     }
 
-    // Track the raw node list, not lists filtered by properties populated by
-    // this tracker. During disconnect, unbinding clears those properties and
-    // re-enters the tracker, causing a double unbind and a native crash.
-    PwObjectTracker {
-        objects: Pipewire.nodes.values
+    // Track raw nodes independently of their populated properties. Defer the
+    // assignment so a registry change cannot re-enter native node cleanup.
+    PwObjectTracker { id: nodeTracker }
+    Binding {
+        target: nodeTracker
+        property: "objects"
+        value: Pipewire.nodes.values
+        delayed: true
     }
 }
