@@ -28,6 +28,8 @@ exec-on-workspace-change = ['/bin/bash', '-c',
 # windows of already-running apps that front_app_switched misses
 on-focus-changed = ['exec-and-forget sketchybar --trigger aerospace_focus_change']
 
+focus-follows-mouse.enabled = true
+
 # Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
