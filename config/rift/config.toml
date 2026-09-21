@@ -1,0 +1,179 @@
+# AeroSpace approximation for Rift 0.5.10.
+# Link with: mise bootstrap dotfiles apply ~/.config/rift
+# Do not run AeroSpace and Rift's window management at the same time.
+#
+# Rift has no binding modes. Service-mode actions use Ctrl-modified shortcuts
+# below instead. There is no native flatten-workspace-tree or close-others.
+# Workspaces are display-local, not AeroSpace's globally named workspaces.
+
+[settings]
+animate = false
+default_disable = false
+hot_reload = true
+focus_follows_mouse = false
+mouse_hides_on_focus = false
+# Rift cannot warp only on monitor changes; avoid warping on every window focus.
+mouse_follows_focus = false
+# SketchyBar still uses AeroSpace queries/clicks and exits when AeroSpace stops.
+# Do not launch it here until its integration has been ported to Rift.
+run_on_start = []
+
+[settings.layout]
+mode = "traditional"
+window_insertion_point = "next_to_selection"
+
+[settings.layout.traditional]
+equalize_nodes = true
+
+[settings.layout.stack]
+# Closest equivalent to accordion-padding = 30.
+stack_offset = 30.0
+default_orientation = "perpendicular"
+
+[settings.layout.gaps.inner]
+horizontal = 12.0
+vertical = 12.0
+
+[settings.layout.gaps.outer]
+# Preserve AeroSpace's bar clearance on every display.
+top = 50.0
+left = 12.0
+bottom = 12.0
+right = 12.0
+
+[virtual_workspaces]
+default_workspace_count = 19
+workspace_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "C", "D", "M", "N", "S", "T", "W", "X", "Z"]
+default_workspace = 0
+workspace_auto_back_and_forth = false
+prevent_wrapping = false
+reapply_app_rules_on_title_change = false
+
+app_rules = [
+  # Chat
+  { app_id = "com.apple.MobileSMS", workspace = "C" },
+  { app_id = "com.hnc.Discord", workspace = "C" },
+
+  # Development (Ghostty goes to D, not T, matching AeroSpace).
+  { app_id = "com.github.wez.wezterm", workspace = "D" },
+  { app_id = "com.mitchellh.ghostty", workspace = "D" },
+  { app_id = "com.microsoft.VSCode", workspace = "D" },
+
+  # Browsers
+  { app_id = "com.apple.Safari", workspace = "W" },
+  { app_id = "com.google.Chrome.canary", workspace = "W" },
+  { app_id = "net.imput.helium", workspace = "W" },
+  { app_id = "com.brave.Browser.origin", workspace = "W" },
+
+  # Productivity
+  { app_id = "com.apple.iCal", workspace = "S" },
+  { app_id = "notion.id", workspace = "S" },
+  { app_id = "com.mimestream.Mimestream", workspace = "S" },
+  { app_id = "com.readdle.SparkDesktop", workspace = "S" },
+  { app_id = "com.linear", workspace = "S" },
+  { app_id = "com.tinyspeck.slackmacgap", workspace = "S" },
+  { app_id = "md.obsidian", workspace = "S" },
+  { app_id = "com.omnigroup.OmniFocus4", workspace = "X" },
+
+  # Screen sharing
+  { app_id = "us.zoom.xos", workspace = "Z" },
+
+  # Floating apps
+  { app_id = "com.apple.Music", floating = true },
+  { app_id = "ch.protonvpn.mac", floating = true },
+  { app_id = "com.apple.finder", floating = true },
+  { app_id = "com.cisco.secureclient.gui", floating = true },
+  { app_id = "com.1password.1password", floating = true },
+  { app_id = "com.apple.FaceTime", floating = true },
+  { app_id = "com.apple.ScreenContinuity", floating = true },
+  { app_id = "com.raycast.macos", floating = true },
+]
+
+# This table replaces Rift's entire default keymap, including Alt-Z activation
+# and Alt-0 workspace selection. Those keys retain their AeroSpace meanings.
+[keys]
+"Alt + Enter" = { exec = ["/usr/bin/open", "-a", "Ghostty"] }
+"Alt + Shift + Enter" = { exec = ["/usr/bin/open", "-a", "Helium"] }
+# launchd may not include Homebrew in PATH (as in AeroSpace's exec.env-vars).
+"Alt + 0" = { exec = ["/bin/bash", "-c", 'export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"; exec /Users/nicknisi/Developer/dotfiles/bin/theme next'] }
+
+# Unlike AeroSpace, these toggle orientation/stacking independently rather
+# than selecting tiles/accordion and cycling through orientations.
+"Alt + Slash" = "toggle_orientation"
+"Alt + Comma" = "toggle_stack"
+
+"Alt + H" = { move_focus = "left" }
+"Alt + J" = { move_focus = "down" }
+"Alt + K" = { move_focus = "up" }
+"Alt + L" = { move_focus = "right" }
+"Alt + Shift + H" = { move_node = "left" }
+"Alt + Shift + J" = { move_node = "down" }
+"Alt + Shift + K" = { move_node = "up" }
+"Alt + Shift + L" = { move_node = "right" }
+
+# Smart split selection, but Rift controls the step size (not exactly 100px).
+"Alt + Shift + Minus" = { resize_window_shrink = "smart" }
+"Alt + Shift + Equal" = { resize_window_grow = "smart" }
+
+# Workspace indexes are zero-based. Keep the aliases B/W and P/S.
+"Alt + 1" = { switch_to_workspace = 0 }
+"Alt + 2" = { switch_to_workspace = 1 }
+"Alt + 3" = { switch_to_workspace = 2 }
+"Alt + 4" = { switch_to_workspace = 3 }
+"Alt + 5" = { switch_to_workspace = 4 }
+"Alt + 6" = { switch_to_workspace = 5 }
+"Alt + 7" = { switch_to_workspace = 6 }
+"Alt + 8" = { switch_to_workspace = 7 }
+"Alt + 9" = { switch_to_workspace = 8 }
+"Alt + A" = { switch_to_workspace = 9 }  # AI
+"Alt + B" = { switch_to_workspace = 16 } # Web
+"Alt + C" = { switch_to_workspace = 10 } # Chat
+"Alt + D" = { switch_to_workspace = 11 } # Development
+"Alt + M" = { switch_to_workspace = 12 } # Mail
+"Alt + N" = { switch_to_workspace = 13 } # Notes
+"Alt + P" = { switch_to_workspace = 14 } # Productivity
+"Alt + S" = { switch_to_workspace = 14 }
+"Alt + T" = { switch_to_workspace = 15 } # Terminal
+"Alt + W" = { switch_to_workspace = 16 }
+"Alt + X" = { switch_to_workspace = 17 }
+"Alt + Z" = { switch_to_workspace = 18 } # Zoom
+
+"Alt + Shift + 1" = { move_window_to_workspace = 0 }
+"Alt + Shift + 2" = { move_window_to_workspace = 1 }
+"Alt + Shift + 3" = { move_window_to_workspace = 2 }
+"Alt + Shift + 4" = { move_window_to_workspace = 3 }
+"Alt + Shift + 5" = { move_window_to_workspace = 4 }
+"Alt + Shift + 6" = { move_window_to_workspace = 5 }
+"Alt + Shift + 7" = { move_window_to_workspace = 6 }
+"Alt + Shift + 8" = { move_window_to_workspace = 7 }
+"Alt + Shift + 9" = { move_window_to_workspace = 8 }
+"Alt + Shift + A" = { move_window_to_workspace = 9 }
+"Alt + Shift + B" = { move_window_to_workspace = 16 }
+"Alt + Shift + C" = { move_window_to_workspace = 10 }
+"Alt + Shift + D" = { move_window_to_workspace = 11 }
+"Alt + Shift + M" = { move_window_to_workspace = 12 }
+"Alt + Shift + N" = { move_window_to_workspace = 13 }
+"Alt + Shift + P" = { move_window_to_workspace = 14 }
+"Alt + Shift + S" = { move_window_to_workspace = 14 }
+"Alt + Shift + T" = { move_window_to_workspace = 15 }
+"Alt + Shift + W" = { move_window_to_workspace = 16 }
+"Alt + Shift + X" = { move_window_to_workspace = 17 }
+"Alt + Shift + Z" = { move_window_to_workspace = 18 }
+
+"Alt + Shift + F" = "toggle_fullscreen"
+"Alt + Tab" = "switch_to_last_workspace"
+# Directional wrap approximates AeroSpace's next-monitor cycling. Moves windows
+# into the destination display's workspace at the same index.
+"Alt + Shift + Tab" = { move_workspace_to_display = { selector = "right", wrap_around = true } }
+
+# Service-mode replacements: direct bindings with Ctrl, no modal state/badge.
+"Alt + Ctrl + Escape" = "reload_config"
+"Alt + Ctrl + F" = "toggle_window_floating"
+# This toggles management of the current macOS Space, not the entire WM.
+"Alt + Ctrl + Q" = "toggle_space_activated"
+# Unjoin the selected group; not a full workspace-tree reset.
+"Alt + Ctrl + R" = "unjoin_windows"
+"Alt + Ctrl + Shift + H" = { join_window = "left" }
+"Alt + Ctrl + Shift + J" = { join_window = "down" }
+"Alt + Ctrl + Shift + K" = { join_window = "up" }
+"Alt + Ctrl + Shift + L" = { join_window = "right" }
