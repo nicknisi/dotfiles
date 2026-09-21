@@ -1,0 +1,2 @@
+-- >>> keystroke hotkeys: shortcuts set from the palette with Ctrl+B (written by Keystroke, edits inside are replaced)
+-- <<< keystroke hotkeys

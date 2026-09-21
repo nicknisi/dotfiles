@@ -14,6 +14,7 @@ Scope {
     property bool activationConfirmed: false
     property bool started: false
     property int serviceStep: 0
+    property int hotkeyStep: 0
     readonly property bool shimsOnly: Quickshell.env("LAUNCHER_TEST_SHIMS_ONLY") === "1"
     function check(condition, message) {
         if (!condition) throw new Error(message)
@@ -185,6 +186,38 @@ Scope {
         check(host.providerViewActive, "community-compatible view opens")
         host.goBack()
         check(!host.providerViewActive && dismissed === 1, "provider view dismiss lifecycle")
+        // Palette hotkeys: a chord recorded for a catalog row becomes a native bind.
+        check(host.hotkeysPath === Quickshell.env("HOME") + "/.config/hypr/launcher-hotkeys.lua", "dedicated hotkeys file")
+        check(host.hotkeysKnown && host.hotkeys.entries.length === 0, "absent hotkeys file is safe to write")
+        check(!host.bindable(host.rows[0]), "rows without a catalog cannot be bound")
+        // The catalog fixture is an enabled extension on disk, so it survives the registry rebuild on every open.
+        check(host.providerEnabled(host.registryEntry("local.host-catalog")), "catalog fixture enabled")
+        host.navigate("local.host-catalog", "Host catalog")
+        check(host.rows.length === 3 && !host.bindable(host.rows[0]) && host.bindable(host.rows[1]), "only rows with an action to run can be bound")
+        const pick = function(id) { host.selectionTouched = true; host.selected = host.rows.findIndex(function(r) { return r.id === id }); return host.current.id === id }
+        check(pick("runs") && host.hotkeyHint, "footer offers ctrl B for a bindable row")
+        check(!host.capturing && host.beginCapture() && host.capturing && host.captureRow.uid === "local.host-catalog/runs", "capture starts")
+        const press = function(key, modifiers, text) { host.captureKey({ key: key, modifiers: modifiers, text: text || "", isAutoRepeat: false }) }
+        press(Qt.Key_Meta, Qt.MetaModifier)
+        check(host.capturePartial === "SUPER" && host.captureChord === "", "held modifier is shown, not recorded")
+        press(Qt.Key_Return, Qt.NoModifier, "\r")
+        check(host.capturing && host.confirmPending === null, "enter without a chord does nothing")
+        press(Qt.Key_B, Qt.NoModifier, "b")
+        check(host.captureChord === "B" && host.captureCheck.state === "invalid" && !host.captureReady, "bare letters are refused")
+        press(Qt.Key_B, Qt.MetaModifier, "b")
+        check(host.captureChord === "SUPER + B" && host.captureCheck.state === "available" && host.captureReady, "chord is available")
+        press(Qt.Key_Escape, Qt.NoModifier)
+        check(!host.capturing && host.confirmPending === null, "escape cancels the recorder")
+        host.beginCapture()
+        press(Qt.Key_B, Qt.MetaModifier, "b")
+        const hotkeyWrites = host.writeQueue.length
+        press(Qt.Key_Return, Qt.NoModifier, "\r")
+        check(!host.capturing && host.confirmPending !== null && host.confirmPending.confirmText === "Bind", "a chord confirms before writing")
+        check(host.writeQueue.length === hotkeyWrites, "nothing is written before confirmation")
+        const bindHotkey = host.confirmPending.run
+        host.confirmPending = null
+        bindHotkey()
+        check(host.writing !== null || host.writeQueue.length > hotkeyWrites, "confirmed hotkey is queued for writing")
         const queuedWrites = host.writeQueue.length
         host.installVoiceBindings()
         check(host.confirmPending !== null && host.writeQueue.length === queuedWrites, "bindings require confirmation before writing")
@@ -229,7 +262,8 @@ Scope {
         onTriggered: {
             try {
                 if (!test.started) {
-                    if (!test.shimsOnly && (launcher.status !== Loader.Ready || !launcher.item.launcherHost.configKnown || !launcher.item.launcherHost.registry.manifests["local.host-test"])) return
+                    if (!test.shimsOnly && (launcher.status !== Loader.Ready || !launcher.item.launcherHost.configKnown || !launcher.item.launcherHost.registry.manifests["local.host-test"]
+                                            || !launcher.item.launcherHost.registry.services["local.host-catalog"] || !launcher.item.launcherHost.hotkeysKnown)) return
                     test.started = true
                     test.shims()
                     if (!test.shimsOnly) test.hostChecks()
@@ -237,6 +271,52 @@ Scope {
                 if (!test.shimsOnly) {
                     const host = launcher.item.launcherHost
                     if (host.writing || host.writeQueue.length) return
+                    const wrapper = launcher.item
+                    const pick = function(id) { host.selectionTouched = true; host.selected = host.rows.findIndex(function(r) { return r.id === id }); return host.current.id === id }
+                    if (test.hotkeyStep === 0) {
+                        const catalog = host.registry.services["local.host-catalog"].instance
+                        const press = function(key, modifiers, text) { host.captureKey({ key: key, modifiers: modifiers, text: text || "", isAutoRepeat: false }) }
+                        test.check(host.hotkeys.entries.length === 1 && host.hotkeys.entries[0].route === "local.host-catalog/runs" && host.hotkeys.entries[0].combo === "SUPER + B", "hotkey parsed back from the file")
+                        test.check(host.hotkeysByRoute["local.host-catalog/runs"].label === "Runs headless", "bound row is known by route")
+                        test.check(wrapper.run("local.host-catalog/runs") === "ok" && catalog.ran.indexOf("runs") >= 0 && !host.opened, "a hotkey runs its row without the palette")
+                        test.check(wrapper.run("local.host-catalog/asks") === "ok" && host.opened && host.confirmPending !== null && catalog.ran.indexOf("asks") < 0, "a confirming row opens the palette and asks")
+                        host.goBack()
+                        const missing = wrapper.run("local.host-catalog/missing"), bogus = wrapper.run("bogus"), disabled = wrapper.run("local.host-test/one")
+                        test.check(missing === "pending", "a row its provider does not list retries once")
+                        test.check(bogus === "unavailable", "a malformed route never runs")
+                        test.check(disabled === "unavailable", "a provider without a catalog never runs")
+                        wrapper.route("local.host-catalog")
+                        test.check(host.rows[1].accessory === "Super + B" && host.rows[0].accessory === "", "a bound row shows its chord")
+                        test.check(pick("asks") && host.beginCapture(), "capture for a second row")
+                        press(Qt.Key_B, Qt.MetaModifier, "b")
+                        test.check(host.captureCheck.state === "replace" && host.captureCheck.message === "Replaces Runs headless's hotkey", "a chord in use by the palette can be taken over")
+                        press(Qt.Key_B, Qt.MetaModifier | Qt.ShiftModifier, "B")
+                        test.check(host.captureChord === "SUPER + SHIFT + B" && host.captureCheck.state === "available", "shifted chord")
+                        press(Qt.Key_Return, Qt.NoModifier, "\r")
+                        const bindSecond = host.confirmPending.run
+                        host.confirmPending = null
+                        bindSecond()
+                        test.hotkeyStep = 1
+                        return
+                    }
+                    if (test.hotkeyStep === 1) {
+                        test.check(host.hotkeys.entries.length === 2 && host.hotkeysByRoute["local.host-catalog/asks"].combo === "SUPER + SHIFT + B", "second hotkey written")
+                        test.check(pick("asks") && host.beginCapture() && host.captureCurrent !== null && host.captureCurrent.combo === "SUPER + SHIFT + B", "recorder shows the current chord")
+                        host.captureKey({ key: Qt.Key_Backspace, modifiers: Qt.NoModifier, text: "", isAutoRepeat: false })
+                        test.check(!host.capturing && host.confirmPending !== null && host.confirmPending.confirmText === "Remove", "backspace offers removal")
+                        const remove = host.confirmPending.run
+                        host.confirmPending = null
+                        remove()
+                        test.hotkeyStep = 2
+                        return
+                    }
+                    if (test.hotkeyStep === 2) {
+                        test.check(host.hotkeys.entries.length === 1 && host.hotkeys.entries[0].route === "local.host-catalog/runs", "removed hotkey leaves the other")
+                        test.check(host.removeHotkey("local.host-catalog/asks", "Asks first", "") === undefined && host.confirmPending === null && host.errorMessage.indexOf("No palette hotkey") === 0, "removing a missing hotkey reports it")
+                        host.errorMessage = ""
+                        wrapper.close()
+                        test.hotkeyStep = 3
+                    }
                     if (test.serviceStep === 0) {
                         const service = host.registry.services["local.host-test"]
                         if (!service) return

@@ -22,24 +22,54 @@ function slug(text) {
   return String(text || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
 }
 
+// One grammar for every spelling of a chord: "SUPER + SHIFT + B" as written
+// in hyprland.lua, "SUPER SHIFT + B" as the helper reports it, "super shift b"
+// as typed. Modifiers in a fixed order; the key keeps XF86 names and code:N.
+var MODIFIER_ORDER = ["SUPER", "SHIFT", "CTRL", "ALT"]
+var MODIFIER_ALIASES = { SUPER: "SUPER", MOD4: "SUPER", WIN: "SUPER", SHIFT: "SHIFT", CTRL: "CTRL", CONTROL: "CTRL", ALT: "ALT", MOD1: "ALT" }
+function parseCombo(text) {
+  var tokens = String(text || "").split(/[\s+]+/).filter(function(t) { return t })
+  if (!tokens.length) return null
+  var mods = [], key = ""
+  for (var i = 0; i < tokens.length; i++) {
+    var token = tokens[i], mod = MODIFIER_ALIASES[token.toUpperCase()]
+    if (mod && i < tokens.length - 1) { if (mods.indexOf(mod) < 0) mods.push(mod) }
+    else if (i === tokens.length - 1 && !mod) key = token
+    else return null
+  }
+  if (!key) return null
+  if (/^code:\d+$/i.test(key)) key = key.toLowerCase()
+  else if (key.indexOf("XF86") !== 0) key = key.toUpperCase()
+  mods.sort(function(a, b) { return MODIFIER_ORDER.indexOf(a) - MODIFIER_ORDER.indexOf(b) })
+  return { mods: mods, key: key }
+}
+function canonical(text) { var p = parseCombo(text); return p ? p.mods.concat([p.key]).join(" ") : "" }
+
 // Merge identical actions while keeping submaps and trigger modes distinct.
-function parse(text) {
+// `managed` are the palette's own binds (core/UserHotkeys.js entries): a live
+// bind on one of their chords takes that entry's label and route, whatever
+// Hyprland reports for the callback.
+function parse(text, managed) {
   var records
   try { records = JSON.parse(String(text || "[]")) } catch (e) { return [] }
+  var own = ({})
+  for (var m = 0; managed && m < managed.length; m++) { var ck = canonical(managed[m].combo); if (ck) own[ck] = managed[m] }
   var binds = [], byAction = ({}), byLabel = ({})
   for (var i = 0; Array.isArray(records) && i < records.length; i++) {
     var record = records[i]
     if (!record || !record.combo || !record.label) continue
-    var actionKey = JSON.stringify([record.label, record.dispatcher, record.arg, record.argv, record.registration, record.submap, record.release, record.repeat, record.longPress, record.mouse, record.catch_all, record.enabled])
+    var entry = own[canonical(record.combo)] || null
+    var label = entry ? String(entry.label) : String(record.label)
+    var actionKey = JSON.stringify([label, record.dispatcher, record.arg, record.argv, record.registration, record.submap, record.release, record.repeat, record.longPress, record.mouse, record.catch_all, record.enabled])
     var hit = byAction[actionKey]
     if (hit) { if (hit.combos.indexOf(record.combo) < 0) hit.combos.push(record.combo); continue }
-    var id = slug(record.label) || "bind", n = (byLabel[id] || 0) + 1
+    var id = slug(label) || "bind", n = (byLabel[id] || 0) + 1
     byLabel[id] = n
     if (n > 1) id += "-" + n
-    var bind = { id: id, label: String(record.label), combos: [String(record.combo)], dispatcher: String(record.dispatcher || ""),
+    var bind = { id: id, label: label, combos: [String(record.combo)], dispatcher: String(record.dispatcher || ""),
                  arg: String(record.arg || ""), argv: dispatchArgv(record), registration: record.registration || null, submap: String(record.submap || ""),
                  release: !!record.release, repeat: !!record.repeat, longPress: !!record.longPress, mouse: !!record.mouse,
-                 catch_all: !!record.catch_all, enabled: record.enabled !== false, labelHint: !!record.labelHint, order: binds.length }
+                 catch_all: !!record.catch_all, enabled: record.enabled !== false, labelHint: !!record.labelHint && !entry, managed: entry ? String(entry.route) : "", order: binds.length }
     byAction[actionKey] = bind
     binds.push(bind)
   }
@@ -92,6 +122,7 @@ function runnable(bind) { return dispatchArgv(bind).length > 0 }
 
 function subtitle(bind) {
   var detail = bind.dispatcher + (bind.arg ? " " + bind.arg : "")
+  if (bind.managed) return "Palette hotkey · " + bind.managed
   if (!runnable(bind)) return "Only from the keyboard · " + detail
   if (bind.dispatcher === "__lua") return "Registered Hyprland binding"
   return bind.dispatcher === "exec" ? bind.arg : "Hyprland " + detail
@@ -106,6 +137,7 @@ function keywords(bind) {
   var words = []
   for (var i = 0; i < bind.combos.length; i++) words.push(comboKey(bind.combos[i]))
   if (bind.dispatcher === "exec" && bind.arg) words.push(bind.arg.split(/\s+/)[0])
+  if (bind.managed) words.push("palette", bind.managed.split("/")[0])
   return (bind.searchKeywords = words.join(" "))
 }
 
@@ -115,6 +147,8 @@ function row(bind, score) {
     id: bind.id, title: bind.label, subtitle: subtitle(bind), icon: "",
     section: "Hotkeys", verb: can ? "Run" : "", tier: "item", score: score, order: bind.order,
     accessory: accessory(bind), disabled: !can, remember: can,
+    hint: bind.managed ? "ctrl ↵ unbind" : "",
+    altAction: bind.managed ? { type: "unbind-hotkey", route: bind.managed, label: bind.label, combo: bind.combos[0] } : undefined,
     confirm: can && /\b(log\s*out|shut\s*down|power\s*off|reboot|restart|hibernate|close window|kill|delete|remove)\b/i.test(bind.label + " " + (bind.dispatcher === "exec" ? bind.arg : ""))
       ? "Run " + bind.label + "? Unsaved work may be lost." : "",
     previewLabel: "HOTKEY", preview: subtitle(bind),

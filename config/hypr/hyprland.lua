@@ -180,6 +180,17 @@ hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
 -- Enter on a fresh screen returns to the previous window. Ctrl+Enter closes.
 hl.bind("ALT + TAB", hl.dsp.exec_cmd("qs ipc call launcher route windows"))
 pcall(dofile, hypr .. "/launcher-voice.lua")
+-- Hotkeys set from the launcher (Ctrl+B on a result) live in their own file,
+-- written by Quickshell. Sourced inside the registration window so the
+-- launcher's Hotkeys screen can run them like any other bind.
+pcall(dofile, hypr .. "/launcher-hotkeys.lua")
+-- While the launcher records a chord it switches to this empty submap, so the
+-- keys reach the palette instead of firing whatever they are bound to. Escape
+-- leaves it even if the palette is gone; non_consuming lets the palette see
+-- that Escape as well.
+hl.define_submap("keystroke-capture", function()
+  hl.bind("ESCAPE", hl.dsp.submap("reset"), { non_consuming = true })
+end)
 -- Global clipboard history. Ctrl+Shift+V remains direct terminal paste.
 hl.bind(
   "SUPER + V",

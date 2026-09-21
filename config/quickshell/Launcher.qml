@@ -27,6 +27,8 @@ Scope {
     function summon(payload) { host.targetScreen = targetScreen(); host.open(payload) }
     function route(route) { host.targetScreen = targetScreen(); host.openRoute(route, {}) }
     function query(query) { if (!host.opened) root.open(); return host.setQuery(query) }
+    // A palette hotkey: run one provider row headlessly, `<provider>/<id>`.
+    function run(route) { var result = host.run(route); return result ? String(result) : "unavailable" }
 
     Keystroke { id: host }
 
@@ -38,6 +40,7 @@ Scope {
         function summon(payload: string): void { root.summon(payload) }
         function route(route: string): void { root.route(route) }
         function query(query: string): string { return root.query(query) }
+        function run(route: string): string { return root.run(route) }
         function cancelPicker(doneFile: string): void { if (host.requestActive && host.doneFile === doneFile) host.cancel() }
         function inspect(): string { return host.inspect() }
         function inspectConversation(): string { return host.inspectConversation() }

@@ -14,7 +14,26 @@ printf '{}\n' > "$tmp/home/.local/state/theme/current/colors.json"
 mkdir -p "$tmp/data/keystroke/extensions/local.host-test"
 printf '%s\n' '{"id":"local.host-test","name":"Host fixture","kinds":["service"],"entryPoints":{"service":"Service.qml"},"x-keystroke":{"apiVersion":1}}' > "$tmp/data/keystroke/extensions/local.host-test/manifest.json"
 printf '%s\n' 'import QtQuick' 'Item { property var host: null; property var manifest: null; property var shell: null; property string omarchyPath: ""; readonly property var provider: ({ apiVersion: 1, name: "Host fixture", settings: [], query: function(ctx) { return [] } }) }' > "$tmp/data/keystroke/extensions/local.host-test/Service.qml"
-printf '%s\n' '{"version":1,"palette":{"animations":"off"},"voice":{"enabled":false},"matching":{"mode":"off"},"providers":{"extensions":{"autoCheck":false,"indexUrl":"","autoUpdate":false,"marketplace":false}}}' > "$tmp/config/quickshell-launcher.json"
+# A second fixture with a catalog, enabled from the start: a row a hotkey can name.
+mkdir -p "$tmp/data/keystroke/extensions/local.host-catalog"
+printf '%s\n' '{"id":"local.host-catalog","name":"Host catalog","kinds":["service"],"entryPoints":{"service":"Service.qml"},"x-keystroke":{"apiVersion":1}}' > "$tmp/data/keystroke/extensions/local.host-catalog/manifest.json"
+cat > "$tmp/data/keystroke/extensions/local.host-catalog/Service.qml" <<'QML'
+import QtQuick
+Item {
+  id: root
+  property var host: null; property var manifest: null; property var shell: null; property string omarchyPath: ""
+  property var ran: []
+  function rows() { return [
+    { id: "plain", title: "Plain row", score: 10, action: { type: "noop" } },
+    { id: "runs", title: "Runs headless", score: 9, action: { type: "exec", argv: ["true"] } },
+    { id: "asks", title: "Asks first", score: 8, confirm: "Really?", action: { type: "exec", argv: ["true"] } } ] }
+  readonly property var provider: ({ apiVersion: 1, name: "Host catalog", settings: [],
+    query: function(ctx) { return ctx.scope && ctx.scope !== "local.host-catalog" ? [] : root.rows() },
+    catalog: function(ctx) { return root.rows() },
+    activate: function(row, ctx) { root.ran = root.ran.concat([row.id]); return row.action } })
+}
+QML
+printf '%s\n' '{"version":1,"palette":{"animations":"off"},"voice":{"enabled":false},"matching":{"mode":"off"},"providers":{"extensions":{"autoCheck":false,"indexUrl":"","autoUpdate":false,"marketplace":false},"local.host-catalog":{"enabled":true}}}' > "$tmp/config/quickshell-launcher.json"
 cp "$root"/*.qml "$root"/*.js "$tmp/root/"
 cp -R "$root/Commons" "$root/Ui" "$root/launcher" "$tmp/root/"
 cp "$root/launcher/tests/host-check.qml" "$tmp/root/shell.qml"
@@ -114,6 +133,10 @@ bindings = (root / 'home/.config/hypr/launcher-voice.lua').read_text()
 assert 'hl.bind' in bindings and 'qs ipc call launcher voiceHold' in bindings
 assert 'omarchy' not in bindings
 assert not (root / 'home/.config/hypr/bindings.lua').exists(), 'legacy bindings must not change'
+hotkeys = (root / 'home/.config/hypr/launcher-hotkeys.lua').read_text()
+assert hotkeys.startswith('-- >>> keystroke hotkeys') and hotkeys.rstrip().endswith('-- <<< keystroke hotkeys')
+assert 'hl.bind("SUPER + B", hl.dsp.exec_cmd("qs ipc call launcher run local.host-catalog/runs"), { description = "Runs headless" })' in hotkeys
+assert 'local.host-catalog/asks' not in hotkeys and hotkeys.count('hl.bind') == 1
 done = root / 'runtime/quickshell-launcher/request/done'
 for _ in range(50):
     if done.exists(): break

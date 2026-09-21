@@ -9,6 +9,7 @@ Item {
   id: root
   property var host: null
   property var binds: []
+  property string loadedText: ""
   property bool loaded: false
   property real loadedAt: 0
   readonly property string helperPath: decodeURIComponent(Qt.resolvedUrl("../helpers/hotkeys.lua").toString().replace(/^file:\/\//, ""))
@@ -45,13 +46,25 @@ Item {
     stdout: StdioCollector {
       onStreamFinished: {
         // Empty results and failed helpers both clear stale binds.
-        root.binds = Hotkeys.parse(text)
+        root.loadedText = text
+        root.binds = Hotkeys.parse(text, root.managed())
       }
     }
     onExited: {
       root.loaded = true
       root.loadedAt = Date.now()
       if (root.host) root.host.requery({ provider: root.provider.id })
+    }
+  }
+
+  // The palette's own binds (written to launcher-hotkeys.lua) label their rows.
+  function managed() { return root.host && root.host.hotkeys ? root.host.hotkeys.entries : [] }
+  Connections {
+    target: root.host
+    function onHotkeysChanged() {
+      if (!root.loaded) return
+      root.binds = Hotkeys.parse(root.loadedText, root.managed())
+      root.host.requery({ provider: root.provider.id })
     }
   }
 

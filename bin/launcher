@@ -49,7 +49,7 @@ local function parse(args)
     local value=args[i]
     if not literal and value=='--' then literal=true
     elseif not literal and (value=='--help' or value=='-h') then
-      print('Usage: launcher [toggle|open|close|route|query|dictate|select|input] [text ...] [--prompt TEXT] [--width N] [--height N] [--timeout SECONDS]'); return nil
+      print('Usage: launcher [toggle|open|close|route|query|run|dictate|select|input] [text ...] [--prompt TEXT] [--width N] [--height N] [--timeout SECONDS]'); return nil
     elseif not literal and value:sub(1,2)=='--' then
       local key, val = value:match('^%-%-([%w]+)=(.*)$')
       if not key then key=value:sub(3); i=i+1; val=args[i] end
@@ -59,7 +59,7 @@ local function parse(args)
     else out.text[#out.text+1]=value end
     i=i+1
   end
-  assert(({toggle=true,open=true,close=true,route=true,query=true,dictate=true,select=true,input=true})[out.command],'Unknown command')
+  assert(({toggle=true,open=true,close=true,route=true,query=true,run=true,dictate=true,select=true,input=true})[out.command],'Unknown command')
   assert(out.width>=1 and out.width<math.huge and out.width%1==0 and out.height>=1 and out.height<math.huge and out.height%1==0 and out.timeout>0 and out.timeout<=86400,'Invalid dimensions or timeout')
   return out
 end
@@ -114,6 +114,7 @@ local ok, code=pcall(function()
   local args=parse(arg); if not args then return 0 end
   if args.command=='input' or args.command=='select' then return picker(args) end
   if args.command=='route' or args.command=='query' then ipc(args.command,table.concat(args.text,' '))
+  elseif args.command=='run' then assert(#args.text==1,'run takes one <provider>/<id> route'); assert(ipc('run',args.text[1]):gsub('%s+$','')~='unavailable','Nothing to run for '..args.text[1])
   elseif args.command=='dictate' then ipc('summon',U.encode({scope='dictation',title='Dictate to Clipboard',dictate=true}))
   else ipc(args.command) end
   return 0

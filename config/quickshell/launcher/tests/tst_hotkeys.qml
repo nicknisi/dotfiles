@@ -51,6 +51,33 @@ TestCase {
         compare(Hotkeys.rows("", binds, { keyboardOnly: false }, true).length, 4)
         compare(Hotkeys.rows("", binds, settings, false).length, 0)
     }
+    function test_palette_hotkeys_label_their_rows_and_offer_unbind() {
+        var managed = [{ combo: "SUPER + SHIFT + B", route: "applications/firefox.desktop", label: "Firefox" }]
+        var binds = Hotkeys.parse(records, managed)
+        compare(binds.length, 7)                                    // Super+Shift+B no longer merges into Browser
+        compare(binds[1].combos, ["SUPER SHIFT + RETURN"])
+        compare(binds[2].label, "Firefox")
+        compare(binds[2].id, "firefox")
+        compare(binds[2].managed, "applications/firefox.desktop")
+        compare(binds[2].labelHint, false)
+        var row = Hotkeys.row(binds[2], 1)
+        compare(row.subtitle, "Palette hotkey · applications/firefox.desktop")
+        compare(row.hint, "ctrl ↵ unbind")
+        compare(row.altAction, { type: "unbind-hotkey", route: "applications/firefox.desktop", label: "Firefox", combo: "SUPER SHIFT + B" })
+        verify(Hotkeys.row(binds[0], 1).altAction === undefined)
+        compare(Hotkeys.row(binds[0], 1).hint, "")
+        verify(Hotkeys.keywords(binds[2]).indexOf("palette applications") >= 0)
+        compare(Hotkeys.parse(records).length, 6)
+    }
+    function test_one_combo_grammar_for_every_spelling() {
+        compare(Hotkeys.canonical("SUPER SHIFT + B"), "SUPER SHIFT B")
+        compare(Hotkeys.canonical("shift + super + b"), "SUPER SHIFT B")
+        compare(Hotkeys.canonical("SUPER + code:10"), "SUPER code:10")
+        compare(Hotkeys.canonical("XF86AudioPlay"), "XF86AudioPlay")
+        compare(Hotkeys.canonical("SUPER +"), "")
+        compare(Hotkeys.parseCombo("CTRL ALT + DELETE"), { mods: ["CTRL", "ALT"], key: "DELETE" })
+        compare(Hotkeys.parseCombo("B SUPER"), null)
+    }
     function registeredRecord(generation, id) {
         return { combo: "SUPER + Q", label: "Close window", dispatcher: "__lua", arg: "42",
                  registration: { generation: generation, id: id },

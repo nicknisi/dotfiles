@@ -15,6 +15,7 @@ import "core/Frecency.js" as Frecency
 import "core/Files.js" as FileSearch
 import "core/Settings.js" as Settings
 import "core/VoiceBindings.js" as VoiceBindings
+import "core/UserHotkeys.js" as UserHotkeys
 import "core/Intent.js" as Intent
 import "core/Patterns.js" as Patterns
 import "core/SmartMatch.js" as SmartMatch
@@ -289,6 +290,238 @@ Item {
     return { schemas: root.voiceSchema, values: root.voiceSettings, detected: voice.detected, version: voice.version, daemonState: voice.daemonState,
              bindings: root.voiceBindingsStatus, bindingsPath: "~/.config/hypr/launcher-voice.lua" }
   }
+  // --------------------------------------------------------------- hotkeys
+  // Ctrl+B on a result records a chord and writes a native bind into the
+  // dedicated ~/.config/hypr/launcher-hotkeys.lua (core/UserHotkeys.js). The
+  // file is the store: its lines are parsed back to label rows, show a bound
+  // row's chord and detect conflicts. Each bind runs `qs ipc call launcher run
+  // <provider>/<id>`, which activates the row exactly as Enter would.
+  readonly property string hotkeysPath: home + "/.config/hypr/launcher-hotkeys.lua"
+  property string hotkeysText: ""
+  property bool hotkeysKnown: false        // read, or confirmed absent: safe to rewrite
+  property var hotkeys: UserHotkeys.parse("")
+  readonly property var hotkeysByRoute: UserHotkeys.byRoute(root.hotkeys.entries)
+  FileView {
+    id: hotkeysFile
+    path: root.hotkeysPath
+    watchChanges: true
+    atomicWrites: true
+    printErrors: false
+    onLoaded: { root.hotkeysText = text(); root.hotkeysKnown = true; root.hotkeys = UserHotkeys.parse(root.hotkeysText); root.requery() }
+    onLoadFailed: function(error) { root.hotkeysText = ""; root.hotkeysKnown = error === FileViewError.FileNotFound; root.hotkeys = UserHotkeys.parse("") }
+    onSaved: root.written(true)
+    onSaveFailed: root.written(false)
+    onFileChanged: reload()
+  }
+  function hotkeysProvider() {
+    for (var i = 0; i < providerRegistry.bundled.length; i++) if (providerRegistry.bundled[i].provider.id === "hotkeys") return providerRegistry.bundled[i]
+    return null
+  }
+  function liveBinds() { var p = root.hotkeysProvider(); return p ? p.binds : [] }
+
+  // Rows that can be bound: stable ids a provider can hand back from its
+  // catalog. Answers, picker rows, files and clipboard entries have none.
+  readonly property var unbindableActions: ({ noop: true, setting: true, edit: true, close: true, "matching-retry": true, "voice-bindings": true, "dictation-copy": true, "unbind-hotkey": true })
+  function bindable(row) {
+    if (!row || !row.uid || row.disabled || row.tier !== "item" || root.dmenuActive || row.providerKey === "dmenu") return false
+    if (!row.action || root.unbindableActions[row.action.type] || !UserHotkeys.validRoute(row.uid)) return false
+    var entry = root.registryEntry(row.providerKey)
+    if (!entry || !root.providerEnabled(entry)) return false
+    return typeof entry.provider.catalog === "function" || (entry.source === "bundled" && row.action.type === "navigate")
+  }
+  // The row a route names, from its provider's catalog, or null.
+  function resolveRoute(route) {
+    var text = String(route || "")
+    if (!UserHotkeys.validRoute(text)) return null
+    var slash = text.indexOf("/"), entry = root.registryEntry(text.slice(0, slash)), id = text.slice(slash + 1)
+    if (!entry || !root.providerEnabled(entry)) return null
+    var ctx = { query: "", rawQuery: "", scope: "", sub: "", generation: root.generation, settings: root.settingsFor(entry),
+                patterns: Patterns.evaluate(entry.patterns, ""), pending: function() {}, host: root, shell: root.shell, appLibrary: root.appLibrary, omarchyPath: root.omarchyPath }
+    var rows = []
+    try {
+      if (typeof entry.provider.catalog === "function") rows = entry.provider.catalog(ctx) || []
+      else if (entry.source === "bundled") rows = (entry.provider.query(ctx) || []).filter(function(c) { return c.action && c.action.type === "navigate" })
+    } catch (e) { return null }
+    var row = rows.find(function(candidate) { return candidate && String(candidate.id) === id })
+    return row ? root.normalize(row, entry, "", 0) : null
+  }
+  // `qs ipc call launcher run <provider>/<id>`: the Hyprland side of a palette
+  // hotkey. A row that confirms or opens a screen needs the palette; anything
+  // else runs without showing it. A provider still loading gets one retry.
+  property string pendingRun: ""
+  Timer {
+    id: runRetry; interval: 600
+    onTriggered: {
+      var route = root.pendingRun
+      root.pendingRun = ""
+      if (!root.runRoute(route, false)) Quickshell.execDetached(["notify-send", "--", "Launcher", "Nothing to run for " + route])
+    }
+  }
+  function run(route) { return root.runRoute(String(route || ""), true) }
+  function runRoute(route, retry) {
+    var row = root.resolveRoute(route)
+    if (!row || row.disabled) {
+      if (!retry) return false
+      var slash = route.indexOf("/"), entry = slash > 0 ? root.registryEntry(route.slice(0, slash)) : null
+      if (!entry || !root.providerEnabled(entry)) return false
+      if (typeof entry.provider.catalog !== "function" && entry.source !== "bundled") return false   // nothing to list later either
+      if (typeof entry.provider.opened === "function") { try { entry.provider.opened() } catch (e) { } }
+      root.pendingRun = route
+      runRetry.restart()
+      return "pending"
+    }
+    var type = row.action ? row.action.type : ""
+    var needsPalette = !!row.confirm || type === "navigate" || type === "provider-view" || type === "system-view" || type === "dictate"
+    if (needsPalette && !root.opened) root.openRoute("root", {})
+    root.activateRow(row, false, true)
+    return "ok"
+  }
+
+  // Recording a chord. Hyprland sits in an empty submap meanwhile, so a chord
+  // that is already bound reaches the palette (and is reported as taken)
+  // instead of firing. Escape leaves the submap even if the palette is gone.
+  property var captureRow: null
+  property string captureChord: ""
+  property string capturePartial: ""
+  property var captureCheck: ({ state: "invalid", message: "Press a key combination" })
+  readonly property bool capturing: captureRow !== null
+  readonly property bool hotkeyHint: !root.capturing && !root.clipboardChoice && root.bindable(root.current)
+  function beginCapture() {
+    var row = root.current
+    if (root.capturing || root.confirmPending || voice.active) return false
+    if (!root.bindable(row)) { root.errorMessage = "This result can't be given a hotkey"; return false }
+    if (!root.hotkeysKnown) { root.errorMessage = "Could not read " + root.hotkeysPath; return false }
+    if (!root.resolveRoute(row.uid)) { root.errorMessage = "This result can't be given a hotkey"; return false }
+    var hotkeys = root.hotkeysProvider()
+    if (hotkeys) hotkeys.refresh(true)
+    root.errorMessage = ""
+    root.statusMessage = ""
+    root.captureChord = ""
+    root.capturePartial = ""
+    root.captureCheck = { state: "invalid", message: "Press a key combination" }
+    root.captureRow = row
+    Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.submap(\"" + UserHotkeys.SUBMAP + "\")"])
+    return true
+  }
+  function endCapture() {
+    if (!root.capturing) return
+    root.captureRow = null
+    root.captureChord = ""
+    root.capturePartial = ""
+    Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.submap(\"reset\")"])
+  }
+  function captureKey(event) {
+    if (event.isAutoRepeat) return
+    if (event.key === Qt.Key_Escape) { root.endCapture(); return }
+    var result = UserHotkeys.chord(event.key, event.modifiers, event.text)
+    if (result.partial !== undefined) { root.capturePartial = result.partial; return }
+    var bare = !(event.modifiers & (Qt.MetaModifier | Qt.ControlModifier | Qt.AltModifier))
+    if (bare && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) { root.commitCapture(); return }
+    if (bare && (event.key === Qt.Key_Backspace || event.key === Qt.Key_Delete)) {
+      if (root.captureChord) { root.captureChord = ""; root.captureCheck = { state: "invalid", message: "Press a key combination" } }
+      else root.removeCaptureBinding()
+      return
+    }
+    root.capturePartial = ""
+    root.captureChord = result.combo || ""
+    root.captureCheck = result.error ? { state: "invalid", message: result.error }
+                      : UserHotkeys.check(result.combo, root.captureRow.uid, root.hotkeys.entries, root.liveBinds())
+  }
+  readonly property var captureCurrent: root.captureRow ? root.hotkeysByRoute[root.captureRow.uid] || null : null
+  readonly property bool captureReady: root.captureChord !== "" && (captureCheck.state === "available" || captureCheck.state === "replace" || captureCheck.state === "move")
+  function commitCapture() {
+    if (!root.captureReady) return
+    var row = root.captureRow, chord = root.captureChord, check = root.captureCheck
+    var entries = UserHotkeys.withBinding(root.hotkeys.entries, chord, row.uid, row.title)
+    root.endCapture()
+    root.confirmPending = {
+      message: "Bind " + UserHotkeys.display(chord) + " to " + row.title + "?" + (check.state === "available" ? "" : " " + check.message + ".")
+               + " This writes " + root.hotkeysPath.replace(root.home, "~") + " and reloads Hyprland.",
+      confirmText: "Bind",
+      run: function() { root.saveHotkeys(entries, UserHotkeys.display(chord) + " → " + row.title) }
+    }
+  }
+  function removeCaptureBinding() {
+    var current = root.captureCurrent
+    if (!current) return
+    root.endCapture()
+    root.removeHotkey(current.route, current.label, current.combo)
+  }
+  function removeHotkey(route, label, combo) {
+    var current = UserHotkeys.forRoute(root.hotkeys.entries, String(route || ""))
+    if (!current) { root.errorMessage = "No palette hotkey for " + (label || route); return }
+    var entries = UserHotkeys.withoutRoute(root.hotkeys.entries, current.route)
+    root.confirmPending = {
+      message: "Remove " + UserHotkeys.display(current.combo) + " from " + current.label + "? This rewrites " + root.hotkeysPath.replace(root.home, "~") + " and reloads Hyprland.",
+      confirmText: "Remove",
+      run: function() { root.saveHotkeys(entries, "Removed " + UserHotkeys.display(current.combo)) }
+    }
+  }
+  // Write, reload, then ask Hyprland for config errors: a rejected config
+  // puts the previous text back and reloads again.
+  property string hotkeysRollback: ""
+  property string hotkeysStatus: ""
+  property bool hotkeysReverting: false
+  property bool hotkeysReloadAgain: false
+  function saveHotkeys(entries, status) {
+    if (!root.hotkeysKnown) { root.errorMessage = "Could not read " + root.hotkeysPath; return }
+    var previous = root.hotkeysText
+    var next = UserHotkeys.apply(previous, entries, root.hotkeys.foreign)
+    root.writeFile(hotkeysFile, next, root.home + "/.config/hypr", function() {
+      root.hotkeysText = next
+      root.hotkeys = UserHotkeys.parse(next)
+      root.hotkeysRollback = previous
+      root.hotkeysStatus = status
+      root.hotkeysReverting = false
+      root.statusMessage = status + " · reloading Hyprland…"
+      root.requery()
+      root.reloadHyprland()
+    })
+  }
+  // A save landing while the previous reload runs queues one more reload.
+  function reloadHyprland() {
+    if (hyprReload.running) root.hotkeysReloadAgain = true
+    else hyprReload.running = true
+  }
+  function hotkeysApplied() {
+    var hotkeys = root.hotkeysProvider()
+    if (hotkeys) hotkeys.refresh(true)
+    root.requery()
+  }
+  function revertHotkeys(report) {
+    var previous = root.hotkeysRollback
+    root.errorMessage = "Hyprland rejected the config; hotkey reverted: " + report.split("\n")[0]
+    root.writeFile(hotkeysFile, previous, root.home + "/.config/hypr", function() {
+      root.hotkeysText = previous
+      root.hotkeys = UserHotkeys.parse(previous)
+      root.hotkeysReverting = true
+      root.requery()
+      root.reloadHyprland()
+    })
+  }
+  Process {
+    id: hyprReload
+    command: ["hyprctl", "reload"]
+    onExited: function(code) {
+      if (root.hotkeysReloadAgain) { root.hotkeysReloadAgain = false; hyprReload.running = true; return }
+      if (root.hotkeysReverting) { root.hotkeysReverting = false; root.hotkeysApplied(); return }
+      if (code !== 0) { root.statusMessage = root.hotkeysStatus + " · saved, reload Hyprland to apply"; root.hotkeysApplied(); return }
+      hyprErrors.running = true
+    }
+  }
+  Process {
+    id: hyprErrors
+    command: ["hyprctl", "configerrors"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var report = String(text || "").trim()
+        if (report) { root.revertHotkeys(report); return }
+        root.statusMessage = root.hotkeysStatus
+        root.hotkeysApplied()
+      }
+    }
+  }
+
   readonly property bool dictationMode: !root.dmenuActive && root.scope === "dictation"
   property string dictationPending: ""   // explicit Enter intent: copy | paste
   ClipboardTransfer {
@@ -553,6 +786,7 @@ Item {
   }
 
   function openRoute(input, payload) {
+    root.endCapture()
     root.closeProviderView()
     clipboardTransfer.cancel()
     if (root.dmenuActive && root.requestActive) root.finishRequest(null)
@@ -627,6 +861,7 @@ Item {
       return false
     }
     matchingSession.cancelRequest()
+    root.endCapture()
     root.closeProviderView()
     clipboardTransfer.cancel()
     if (root.dmenuActive && root.requestActive) root.finishRequest(null)   // a new caller cancels the previous one
@@ -671,6 +906,7 @@ Item {
 
   function cancel(preserveTransfer) {
     matchingSession.cancelRequest()
+    root.endCapture()
     root.closeProviderView()
     if (preserveTransfer !== true) clipboardTransfer.cancel()
     if (root.dmenuActive) root.finishRequest(null)
@@ -873,6 +1109,7 @@ Item {
     // A matched provider pattern lifts rows that already match; it never revives a row the matcher dropped.
     out.score = q && base > 0 && boost > 0 ? base + boost : base
     out.accessory = String(row.accessory || "")
+    if (!out.accessory && root.hotkeysByRoute[out.uid]) out.accessory = UserHotkeys.display(root.hotkeysByRoute[out.uid].combo)
     out.badge = String(row.badge || (entry.source === "community" ? "plugin" : ""))
     out.hint = String(row.hint || "")
     out.disabled = row.disabled === true
@@ -1056,7 +1293,8 @@ Item {
     root.activateRow(row, alternate)
   }
 
-  function activateRow(row, alternate) {
+  // headless: a palette hotkey ran the row; nothing flashes and usage is not recorded.
+  function activateRow(row, alternate, headless) {
     if (!row || row.disabled || root.confirmPending) return
     var entry = root.registryEntry(row.providerKey)
     if (!entry || !root.providerEnabled(entry)) return
@@ -1064,6 +1302,7 @@ Item {
     var confirmation = alternate && row.altAction && row.altConfirm !== undefined ? String(row.altConfirm) : row.confirm
     // Voice binding installation owns its confirmation, including direct calls.
     if (action && action.type === "voice-bindings") { root.installVoiceBindings(); return }
+    if (action && action.type === "unbind-hotkey") { root.removeHotkey(action.route, action.label, action.combo); return }
     var run = function() {
       var currentEntry = root.registryEntry(row.providerKey)
       if (!currentEntry || currentEntry.provider !== entry.provider || !root.providerEnabled(currentEntry)) return
@@ -1073,8 +1312,7 @@ Item {
         catch (e) { root.errorMessage = currentEntry.provider.name + ": " + e; return }
       }
       if (!effect) return
-      root.flash(row.uid)
-      root.remember(row)
+      if (!headless) { root.flash(row.uid); root.remember(row) }
       root.perform(effect, row)
     }
     if (confirmation) root.confirmPending = { message: confirmation, confirmText: "Confirm", run: run }
@@ -1159,6 +1397,7 @@ Item {
       applications: { library: !!root.appLibrary, entries: appEntries.length },
       matching: { mode: root.matchingSettings.mode, model: root.matchingSettings.model, loaded: matchingSession.loaded, status: matchingSession.status, error: matchingSession.error },
       error: root.errorMessage, configError: root.configError, status: root.statusMessage,
+      hotkeys: { path: root.hotkeysPath, known: root.hotkeysKnown, entries: root.hotkeys.entries, capturing: root.capturing, chord: root.captureChord, check: root.captureCheck },
       voice: { backend: "voxtype", state: voice.phase, trigger: root.voiceTrigger, enabled: root.voiceEnabled, detected: voice.detected, version: voice.version,
                command: voice.command, daemon: voice.daemonState, bindings: root.voiceBindingsStatus, frames: voice.history.length, live: voice.liveText } })
   }
@@ -1327,6 +1566,7 @@ Item {
             // modifier is still down). A tap's release must not end anything.
             if (voice.active && root.voiceTrigger === "hold" && root.isSuperKey(event.key)) { root.voiceStop(); event.accepted = true }
             if (event.key === Qt.Key_Control) root.ctrlHeld = false
+            if (root.capturing && !root.captureChord && root.isModifierKey(event.key)) root.capturePartial = ""
           }
           Keys.onPressed: function(event) {
             // Ctrl's own press carries no modifier flag yet; a chord pressed
@@ -1334,6 +1574,7 @@ Item {
             root.ctrlHeld = event.key === Qt.Key_Control || !!(event.modifiers & Qt.ControlModifier)
             if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && event.isAutoRepeat) { event.accepted = true; return }
             if (root.confirmPending) { confirmDialog.handleKey(event); event.accepted = true; return }
+            if (root.capturing) { root.captureKey(event); event.accepted = true; return }
             if (voice.active) {
               if (event.key === Qt.Key_Escape) { root.cancel(); event.accepted = true; return }
               if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
@@ -1360,6 +1601,7 @@ Item {
             else if (event.key === Qt.Key_Delete && !text && root.current.appId) { root.requestUninstall(); event.accepted = true }
             else if (ctrl && event.key >= Qt.Key_1 && event.key <= Qt.Key_8) { root.activateAt(event.key - Qt.Key_1); event.accepted = true }
             else if (ctrl && event.key === Qt.Key_Comma && !root.dmenuActive) { root.navigate("settings", "Settings"); event.accepted = true }
+            else if (ctrl && event.key === Qt.Key_B && !root.dmenuActive) { root.beginCapture(); event.accepted = true }
             else if (ctrl && event.key === Qt.Key_K && !root.dmenuActive) {
               var key = root.current.providerKey && root.current.providerKey !== "settings" ? "settings/" + root.current.providerKey : "settings"
               root.navigate(key, root.current.providerName || "Settings")
@@ -1542,8 +1784,74 @@ Item {
           Text { text: root.dictationMode ? "Copy" : voice.active ? "Finish" : root.current.verb || "Select"; textFormat: Text.PlainText; color: Util.alpha(root.foreground, 0.8); font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
           Keycap { label: "↵"; bright: true; foreground: root.foreground }
           Item { width: Style.space(8); height: 1 }
+          Text { visible: root.hotkeyHint; text: root.hotkeysByRoute[root.current.uid] ? "Rebind" : "Hotkey"; textFormat: Text.PlainText; color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
+          Keycap { visible: root.hotkeyHint; label: "ctrl B"; foreground: root.foreground }
+          Item { visible: root.hotkeyHint; width: Style.space(8); height: 1 }
           Text { text: root.clipboardChoice ? "Paste" : root.compact ? "Settings" : "Provider settings"; textFormat: Text.PlainText; color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
           Keycap { label: root.clipboardChoice ? "ctrl ↵" : "ctrl K"; foreground: root.foreground }
+        }
+      }
+
+      // Hotkey recorder: covers the results while a chord is captured.
+      Rectangle {
+        id: recorder
+        visible: root.capturing
+        z: 9
+        anchors.fill: parent
+        anchors.margins: card.borderTop
+        radius: Math.max(0, card.radius - card.borderTop)
+        color: root.background
+        MouseArea { anchors.fill: parent }
+        Column {
+          anchors.centerIn: parent
+          width: parent.width - Style.space(80)
+          spacing: Style.space(14)
+          Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: root.captureCurrent ? "Change the hotkey for" : "Set a hotkey for"
+            textFormat: Text.PlainText; color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall
+          }
+          Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: root.captureRow ? root.captureRow.title : ""
+            textFormat: Text.PlainText; elide: Text.ElideRight
+            color: root.foreground; font.family: root.headingFamily; font.pixelSize: root.fontTitle; font.weight: Font.DemiBold
+          }
+          Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: root.captureChord ? UserHotkeys.display(root.captureChord)
+                : root.capturePartial ? UserHotkeys.displayPartial(root.capturePartial)
+                : root.captureCurrent ? UserHotkeys.display(root.captureCurrent.combo) : "Press keys…"
+            textFormat: Text.PlainText; elide: Text.ElideRight
+            color: root.captureChord ? root.foreground : Util.alpha(root.foreground, 0.5)
+            font.family: root.headingFamily; font.pixelSize: root.searchFontSize; font.weight: Font.DemiBold; font.letterSpacing: -1.4
+          }
+          Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: root.captureChord ? root.captureCheck.message
+                : root.captureCurrent ? "Press a new combination, or ⌫ to remove it" : "Hold a modifier, then press a key"
+            textFormat: Text.PlainText; elide: Text.ElideRight
+            color: !root.captureChord ? root.muted : root.captureReady ? (root.captureCheck.state === "available" ? root.muted : root.accent) : Color.urgent
+            font.family: root.fontFamily; font.pixelSize: Style.font.body
+          }
+          Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: Style.space(8)
+            Text { text: "Bind"; textFormat: Text.PlainText; color: Util.alpha(root.foreground, root.captureReady ? 0.8 : 0.35); font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
+            Keycap { label: "↵"; bright: root.captureReady; foreground: root.foreground }
+            Item { width: Style.space(8); height: 1 }
+            Text { visible: !!root.captureCurrent; text: root.captureChord ? "Clear" : "Remove"; textFormat: Text.PlainText; color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
+            Keycap { visible: !!root.captureCurrent; label: "⌫"; foreground: root.foreground }
+            Item { visible: !!root.captureCurrent; width: Style.space(8); height: 1 }
+            Text { text: "Cancel"; textFormat: Text.PlainText; color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
+            Keycap { label: "esc"; foreground: root.foreground }
+          }
         }
       }
 

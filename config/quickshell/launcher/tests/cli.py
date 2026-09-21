@@ -30,6 +30,9 @@ if method == 'summon':
     pathlib.Path(data['doneFile']).touch()
 elif method=='query':
     assert sys.argv[5]=='literal $(not-executed)'
+elif method=='run':
+    assert sys.argv[5]=='applications/org.mozilla.firefox.desktop'
+    print('unavailable' if os.environ.get('NO_ROW') else 'ok')
 elif method!='cancelPicker': sys.exit(2)
 ''')
     fake.chmod(0o700)
@@ -46,5 +49,8 @@ elif method!='cancelPicker': sys.exit(2)
     assert run('input', ['--timeout', '-1']).returncode == 2
     assert run('select', data='bad\0value').returncode == 2
     assert run('query', ['literal $(not-executed)']).returncode == 0
+    assert run('run', ['applications/org.mozilla.firefox.desktop']).returncode == 0
+    assert run('run', ['applications/org.mozilla.firefox.desktop'], NO_ROW='1').returncode == 2
+    assert run('run', ['a/b', 'c/d']).returncode == 2
     assert list((root / 'quickshell-launcher').iterdir()) == []
 print('LAUNCHER_CLI_PASS: select, input, cancel, timeout, validation, literals and cleanup')

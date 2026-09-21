@@ -10,7 +10,13 @@ Calpad is omitted. The calculator is a single answer row over the upstream arith
 
 Open with Super+Space. Type an application, open window, desktop command, keybinding, filename, `12*34`, `2m in feet`, `10am in London`, `#ff6644`, `:smile`, or `timer 10m tea`. `~` restricts file search. Clipboard history stays in its own screen and continues to use our existing cliphist text/image/video backend. Super+V remains available separately. Alt+Tab opens the Windows screen: open windows most recently focused first, the current one last, so Enter returns to the previous window; Ctrl+Enter closes the selected one.
 
-Arrow keys, Ctrl+N/P and Tab select results. Enter activates, Ctrl+Enter uses the alternate action, Ctrl+1 through Ctrl+8 activate numbered results, Ctrl+, opens settings, and Ctrl+K opens provider settings. Backspace or Left with an empty query goes back. Escape closes. Destructive confirmations default to Cancel.
+Arrow keys, Ctrl+N/P and Tab select results. Enter activates, Ctrl+Enter uses the alternate action, Ctrl+1 through Ctrl+8 activate numbered results, Ctrl+, opens settings, Ctrl+K opens provider settings, and Ctrl+B sets a hotkey for the selected result. Backspace or Left with an empty query goes back. Escape closes. Destructive confirmations default to Cancel.
+
+## Hotkeys from the palette
+
+Select an app, command, screen or existing keybinding and press Ctrl+B, then press the chord. The recorder shows whether it is free, taken by a bind in your Hyprland config, or already used by another palette hotkey (which it then replaces). Enter confirms, Backspace removes the row's current hotkey, Escape cancels. While recording, Hyprland sits in the empty `keystroke-capture` submap defined in `config/hypr/hyprland.lua`, so a taken chord is reported instead of fired; Escape leaves the submap even if the palette is gone. Bare letters, digits and Shift-only chords are refused; function and media keys may stand alone. Digits are written as `code:10` through `code:19`, like `workspaces.lua`.
+
+Each hotkey is one native `hl.bind` in the marked block of `~/.config/hypr/launcher-hotkeys.lua`, sourced by `hyprland.lua`, running `qs ipc call launcher run <provider>/<id>` (also `launcher run …` from a shell). The row is resolved from its provider's catalog and activated as Enter would: a row that confirms still confirms, in the palette; anything else runs without showing it. Only rows a provider can hand back by id can be bound, so files, clipboard entries and calculator answers cannot. Saving writes the file, runs `hyprctl reload`, then `hyprctl configerrors`; an error puts the previous text back and reloads again. Bound rows show their chord on the right, the Hotkeys screen labels them "Palette hotkey" with Ctrl+Enter to unbind, and hand-written lines inside the block are kept.
 
 Tap Super+Space again to dictate while open, or hold it to talk. Copilot dictation keeps its existing hold/latch bindings and direct typing. A passive Quickshell popup shares the launcher's waveform instead of voxtype's GTK popup. The dedicated `config/hypr/launcher-voice.lua` file is sourced by Hyprland. Installing changed voice bindings through settings writes that file only. Reload Hyprland to apply them.
 
@@ -19,6 +25,7 @@ The launcher can also serve shell scripts:
 ```sh
 launcher route files
 launcher query 'record region'
+launcher run applications/org.mozilla.firefox.desktop
 launcher dictate
 printf 'One\nTwo\n' | launcher select --prompt 'Choose one'
 launcher input --prompt 'Project name'
