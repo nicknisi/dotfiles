@@ -52,6 +52,10 @@ end
 
 hl.env("GDK_BACKEND", "wayland,x11,*")
 hl.env("QT_QPA_PLATFORM", "wayland;xcb")
+-- qt6-base already ships this plugin: Qt Widgets inherit our GTK palette,
+-- fonts, icons and dialogs without qt6ct/Kvantum or a widget-style override.
+-- Apps read the generated GTK CSS at startup; restart them after a theme switch.
+hl.env("QT_QPA_PLATFORMTHEME", "gtk3")
 hl.env("MOZ_ENABLE_WAYLAND", "1")
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "wayland")
 hl.env("XCURSOR_SIZE", "24")
@@ -164,7 +168,7 @@ hl.device({
 hl.on("hyprland.start", function()
   -- Hand WAYLAND_DISPLAY & co. to the user manager and D-Bus; uwsm then
   -- activates graphical-session.target. Hyprland does not do this by itself.
-  hl.exec_cmd("uwsm finalize")
+  hl.exec_cmd("uwsm finalize QT_QPA_PLATFORMTHEME")
   hl.exec_cmd("uwsm-app -- awww-daemon --quiet")
   hl.exec_cmd("uwsm-app -- udiskie --automount --no-notify --no-tray")
 end)
@@ -296,6 +300,9 @@ hl.bind("SUPER + SHIFT + RETURN", hl.dsp.exec_cmd("sh -c 'uwsm-app -- \"$(xdg-se
 hl.bind("SUPER + Q", hl.dsp.window.close())
 hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("loginctl lock-session")) -- hypridle runs hyprlock
 hl.bind("SUPER + SHIFT + ESCAPE", hl.dsp.exec_cmd("uwsm stop"))
+
+-- Native compositor cursor zoom (SUPER+=/- and SUPER+SHIFT+0).
+dofile(hypr .. "/zoom.lua")
 
 -- Focus, move and resize. The move and resize halves both need more than a
 -- bare dispatcher, so they live in their own file.

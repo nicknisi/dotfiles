@@ -3,32 +3,12 @@
     "autoAuth": true
   },
   "mcpServers": {
-    "sessions": {
-      "command": "sessions",
-      "args": [
-        "--mcp"
-      ],
-      "cwd": "~/Developer/sessions",
-      "type": "stdio"
-    },
-    "ctx": {
-      "url": "https://ctx.nicknisi.com/mcp",
-      "headers": {
-        "Authorization": "Bearer ${CTX_TOKEN}"
-      }
-    },
-    "claude-design": {
-      "url": "https://api.anthropic.com/v1/design/mcp",
-      "headers": {
-        "Authorization": "!node ~/Developer/pi-extensions/packages/claude-design/bin/claude-design-auth.mjs token"
-      }
-    },
     "notion": {
       "url": "https://mcp.notion.com/mcp",
       "auth": "oauth",
       "directTools": false
     },
-    "granola": {
+    "granola-workos": {
       "url": "https://mcp.granola.ai/mcp",
       "auth": "oauth",
       "directTools": false

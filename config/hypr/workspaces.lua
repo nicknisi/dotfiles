@@ -66,6 +66,6 @@ for ws = 1, 9 do
   hl.bind("SUPER + SHIFT + " .. key, hl.dsp.window.move({ workspace = tostring(ws), follow = false }))
 end
 
--- alt-tab / alt-shift-tab in aerospace.
-hl.bind("SUPER + TAB", hl.dsp.focus({ workspace = "previous" }))
+-- Open the same window picker as Alt+Tab; Enter selects a window.
+hl.bind("SUPER + TAB", hl.dsp.exec_cmd("qs ipc call launcher route windows"))
 hl.bind("SUPER + SHIFT + TAB", hl.dsp.workspace.move({ monitor = "next" }))

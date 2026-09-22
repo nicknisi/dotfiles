@@ -1,0 +1,32 @@
+{
+  "settings": {
+    "autoAuth": true
+  },
+  "mcpServers": {
+    "sessions": {
+      "command": "sessions",
+      "args": [
+        "--mcp"
+      ],
+      "cwd": "~/Developer/sessions",
+      "type": "stdio"
+    },
+    "claude-design": {
+      "url": "https://api.anthropic.com/v1/design/mcp",
+      "headers": {
+        "Authorization": "!node ~/Developer/pi-extensions/packages/claude-design/bin/claude-design-auth.mjs token"
+      }
+    },
+    "granola-personal": {
+      "url": "https://mcp.granola.ai/mcp",
+      "auth": "oauth",
+      "directTools": false
+    },
+    "excalidraw": {
+      "url": "https://api.excalidraw.com/api/v1/mcp",
+      "headers": {
+        "Authorization": "Bearer ${EXCALIDRAW_API_TOKEN}"
+      }
+    }
+  }
+}

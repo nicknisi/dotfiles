@@ -11,6 +11,7 @@
 # State (the only paths consumers read):
 #   ~/.local/state/theme/current/theme/      the rendered pack, swapped atomically
 #   ~/.local/state/theme/current/background  -> the active wallpaper
+#   ~/.local/state/theme/current/wallpapers/<name> -> that theme's last wallpaper
 #   ~/.local/state/theme/current/theme.name
 #   ~/.local/state/theme/current/mode        dark | light
 #   ~/.local/state/theme/current/colors.json the resolved palette (quickshell watches it)
@@ -36,7 +37,7 @@ theme — the whole desktop theme, one command
 
 usage:
   theme                       pick a theme (and wallpaper) interactively
-  theme <name> [N]            switch; N = Nth wallpaper (default 1)
+  theme <name> [N]            switch; restore last wallpaper unless N is given
   theme set <name> [N]        same
   theme next | prev           cycle themes
   theme bg [next|prev|N|path] change only the wallpaper
@@ -78,6 +79,7 @@ list_themes() {
   for d in "$THEMES_DIR"/*/; do
     [ -f "$d/colors.toml" ] && basename "$d"
   done
+  return 0
 }
 current_theme() { cat "$STATE/theme.name" 2>/dev/null || echo none; }
 current_mode() { cat "$STATE/mode" 2>/dev/null || echo dark; }
@@ -86,6 +88,19 @@ backgrounds() { # theme -> image paths, sorted
     \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.webp' -o -iname '*.bmp' \) \
     2>/dev/null | sort
 }
+default_background() { # theme -> saved wallpaper, falling back to its first image
+  local wall
+  wall="$(readlink "$STATE/wallpapers/$1" 2>/dev/null || true)"
+  if [ -f "$wall" ]; then printf '%s\n' "$wall"; else backgrounds "$1" | head -1 || true; fi
+}
+
+set_background() { # NAME IMAGE: remember the choice independently of the active theme
+  [ -n "$2" ] || return 0
+  mkdir -p "$STATE/wallpapers"
+  ln -sfn "$2" "$STATE/wallpapers/$1"
+  ln -sfn "$2" "$STATE/background"
+}
+
 tagline() { (source "$1/theme.conf" 2>/dev/null; printf '%s' "${TAGLINE:-}"); }
 
 # ── Palette helpers (grep, not theme-color: `theme list` runs these 26×7 times) ─
@@ -170,7 +185,7 @@ cmd_menu() { # wofi picker, for a keybind
   pick="$(list_themes | sed "s/^$cur\$/& ✓/" | wofi --dmenu --insensitive --prompt theme "${style[@]}" 2>/dev/null)" || exit 0
   pick="${pick% ✓}"
   [ -n "$pick" ] || exit 0
-  apply "$pick" 1
+  apply "$pick"
 }
 
 neighbour_theme() { # next|prev
@@ -442,8 +457,8 @@ swap() { # next-theme becomes theme; consumers never see an empty directory
   rm -rf "$STATE/theme.old"
 }
 
-apply() { # NAME  BG (1-based index | image path | keep)
-  local name="$1" bg_spec="${2:-1}" pack="$THEMES_DIR/$1"
+apply() { # NAME  BG (1-based index | image path | keep; omitted restores saved choice)
+  local name="$1" bg_spec="${2:-}" pack="$THEMES_DIR/$1"
   [ -f "$pack/colors.toml" ] || die "unknown theme '$name'. Available:
 $(list_themes)"
 
@@ -452,6 +467,7 @@ $(list_themes)"
   local wall="" b
   while IFS= read -r b; do [ -n "$b" ] && bgs+=("$b"); done < <(backgrounds "$name")
   case "$bg_spec" in
+    "") wall="$(default_background "$name")" ;;
     keep)
       wall="$(readlink "$STATE/background" 2>/dev/null || true)"
       [ -f "$wall" ] || wall="${bgs[0]:-}"
@@ -482,7 +498,7 @@ $(list_themes)"
   # one write: quickshell watches this file and re-reads it on change
   local json; json="$("$COLOR" -f "$STATE/theme/colors.toml" --name "$name" --mode "$mode" --json)"
   printf '%s\n' "$json" >"$STATE/colors.json"
-  [ -n "$wall" ] && ln -sfn "$wall" "$STATE/background"
+  set_background "$name" "$wall"
 
   reload_apps "$name" "$mode" "$wall"
   finale "$name" "$mode" "$TAGLINE"
@@ -850,7 +866,7 @@ cmd_bg() { # next|prev|N|path — wallpaper only
       wall="${bgs[$(($1 - 1))]}"
       ;;
   esac
-  ln -sfn "$wall" "$STATE/background"
+  set_background "$name" "$wall"
   if $IS_MAC; then mac_wallpaper "$wall"; else paint_wallpaper; fi
   if [ ! -t 1 ] && ! $IS_MAC; then
     notify-send -a theme -t 2000 "wallpaper" "$(basename "$wall")" 2>/dev/null || true
@@ -910,7 +926,7 @@ cmd_rows() { # themes|backgrounds -> JSON rows for the picker
   else
     cur="$(current_theme)"
     while IFS= read -r t; do
-      img="$(backgrounds "$t" | head -1)"
+      img="$(default_background "$t")"
       printf '%s{"name":%s,"label":%s,"image":%s,"tagline":%s,"swatches":[%s],"current":%s}' "$sep" \
         "$(json_str "$t")" "$(json_str "$(humanize "$t")")" "$(json_str "$([ -n "$img" ] && thumb_for "$img")")" \
         "$(json_str "$(tagline "$THEMES_DIR/$t")")" "$(swatch_json "$THEMES_DIR/$t")" "$([ "$t" = "$cur" ] && echo true || echo false)"
@@ -933,7 +949,7 @@ make_thumb() { # image: 1440x900 centre crop (the 720x450 card at scale 1.6, sha
   fi
 }
 
-cmd_thumbs() { # every pack's first wallpaper first (the theme picker), then the current theme's, then the rest
+cmd_thumbs() { # each pack's remembered/default wallpaper first, then the current theme's, then the rest
   command -v magick >/dev/null 2>&1 || die "thumbs needs ImageMagick"
   mkdir -p "$CACHE/thumbs"
   if command -v flock >/dev/null 2>&1; then
@@ -942,7 +958,7 @@ cmd_thumbs() { # every pack's first wallpaper first (the theme picker), then the
   fi
   local t img
   {
-    for t in $(list_themes); do backgrounds "$t" | head -1; done
+    for t in $(list_themes); do default_background "$t"; done
     backgrounds "$(current_theme)"
     for t in $(list_themes); do backgrounds "$t"; done
   } | awk '!seen[$0]++' | while IFS= read -r img; do
@@ -1040,7 +1056,7 @@ case "${1:-}" in
     fi
     ;;
   current) current_theme ;;
-  next | prev) apply "$(neighbour_theme "$1")" 1 ;;
+  next | prev) apply "$(neighbour_theme "$1")" ;;
   bg) shift; cmd_bg "$@" ;;
   menu) cmd_menu ;;
   picker) cmd_picker "${2:-themes}" ;;
@@ -1057,6 +1073,6 @@ case "${1:-}" in
   -*) usage >&2; die "unknown flag '$1'" 2 ;;
   *)
     case "${2:-1}" in *[!0-9]* | "") die "wallpaper must be a number, got '${2:-}'" 2 ;; esac
-    apply "$1" "${2:-1}"
+    apply "$1" "${2:-}"
     ;;
 esac
