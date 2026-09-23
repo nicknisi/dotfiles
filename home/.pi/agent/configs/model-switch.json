@@ -18,7 +18,8 @@
       "fireworks/accounts/fireworks/routers/glm-5p2-fast",
       "cloudflare-ai-gateway/grok-4.5",
       "fireworks/accounts/fireworks/models/deepseek-v4-pro",
-      "anthropic/claude-fable-5-1"
+      "anthropic/claude-fable-5-1",
+      "anthropic/claude-opus-5-5"
     ],
     "personal": [
       "openai-codex/gpt-6-astra",
