@@ -66,6 +66,13 @@ for ws = 1, 9 do
   hl.bind("SUPER + SHIFT + " .. key, hl.dsp.window.move({ workspace = tostring(ws), follow = false }))
 end
 
--- Open the same window picker as Alt+Tab; Enter selects a window.
-hl.bind("SUPER + TAB", hl.dsp.exec_cmd("qs ipc call launcher route windows"))
-hl.bind("SUPER + SHIFT + TAB", hl.dsp.workspace.move({ monitor = "next" }))
+-- Thumbnail switcher: hold Super and cycle; releasing it activates the choice.
+-- Global shortcuts deliver ordered events directly to Quickshell. Once the
+-- overlay has keyboard focus it handles Tab/Escape/Super release itself.
+hl.bind("SUPER + TAB", hl.dsp.global("quickshell:window-switcher-next"))
+hl.bind("SUPER + SHIFT + TAB", hl.dsp.global("quickshell:window-switcher-previous"))
+for _, key in ipairs({ "Super_L", "Super_R" }) do
+  hl.bind(key, hl.dsp.global("quickshell:window-switcher-commit"), {
+    release = true, ignore_mods = true, non_consuming = true,
+  })
+end

@@ -41,6 +41,7 @@ ShellRoot {
         onVisibleChanged: if (visible) screen = launcher.targetScreen()
     }
     ClipboardPicker {}
+    WindowSwitcher {}
 
     // Refresh rate follows the charger. Global, not per-monitor: it drives the
     // internal panel only, and one UPower watcher is enough for the session.

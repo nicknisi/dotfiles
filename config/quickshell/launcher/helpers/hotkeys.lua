@@ -17,8 +17,8 @@ local labels={
  ['SUPER SHIFT + SPACE']='Toggle floating',['SUPER + SLASH']='Toggle split',['SUPER + COMMA']='Toggle window group',
  ['SUPER ALT + L']='Toggle workspace layout',['SUPER CTRL + SPACE']='Center window',
  ['SUPER + mouse:272']='Drag window',['SUPER + mouse:273']='Resize window',['SUPER + code:19']='Next theme',
- ['SUPER CTRL + code:19']='Next wallpaper',['SUPER + TAB']='Previous workspace',
- ['SUPER SHIFT + TAB']='Move workspace to next monitor',['SUPER SHIFT + EQUAL']='Grow window',['SUPER SHIFT + MINUS']='Shrink window'
+ ['SUPER CTRL + code:19']='Next wallpaper',['SUPER + TAB']='Next window thumbnail',
+ ['SUPER SHIFT + TAB']='Previous window thumbnail',['SUPER SHIFT + EQUAL']='Grow window',['SUPER SHIFT + MINUS']='Shrink window'
 }
 for i,key in ipairs({'H','J','K','L'}) do
  for mods,action in pairs({SUPER='Focus',['SUPER SHIFT']='Move window',['SUPER CTRL']='Nudge floating window'}) do
