@@ -16,6 +16,8 @@ export CACHEDIR="$HOME/.local/share"
 export VIM_TMP="$HOME/.vim-tmp"
 # add a config file for ripgrep
 export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
+# pi launch_browser runs windowless Chrome; PI_BROWSER_HEADED=1 pi to watch it
+export PI_COMPUTER_USE_CHROME_EXECUTABLE="$DOTFILES/bin/chrome-headless"
 
 [[ -d "$CACHEDIR" ]] || mkdir -p "$CACHEDIR"
 [[ -d "$VIM_TMP" ]] || mkdir -p "$VIM_TMP"

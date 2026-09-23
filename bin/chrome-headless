@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Windowless Chrome for pi-computer-use's launch_browser (via PI_COMPUTER_USE_CHROME_EXECUTABLE).
+# Same engine as headed Chrome (--headless=new); fixes the two headless tells that change results:
+# the 800x600 default viewport, 1x pixel density, and the "HeadlessChrome" user agent.
+# PI_BROWSER_HEADED=1 runs a normal visible window instead.
+set -euo pipefail
+
+app="/Applications/Google Chrome.app"
+chrome="$app/Contents/MacOS/Google Chrome"
+
+if [[ -n "${PI_BROWSER_HEADED:-}" ]]; then
+  exec "$chrome" "$@"
+fi
+
+version=$(defaults read "$app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo 0.0.0.0)
+ua="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${version%%.*}.0.0.0 Safari/537.36"
+
+exec "$chrome" --headless=new --window-size=1440,900 --force-device-scale-factor=2 --user-agent="$ua" "$@"
