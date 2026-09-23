@@ -17,7 +17,6 @@ Item {
 
   System { id: system; host: root.host }
   Applications { id: applications; host: root.host }
-  Windows { id: windows; host: root.host }
   Converter { id: converter; host: root.host }
   Calculator { id: calculator; host: root.host }
   Colors { id: colors; host: root.host }
@@ -32,7 +31,7 @@ Item {
   SettingsProvider { id: settingsProvider; host: root.host }
   Providers.Timer { id: timerProvider; host: root.host }
 
-  readonly property var bundled: [system, applications, windows, converter, calculator, colors, emoji, clipboard, dictation, files, hotkeys, codex, aiWeb, extensions, settingsProvider, timerProvider]
+  readonly property var bundled: [system, applications, converter, calculator, colors, emoji, clipboard, dictation, files, hotkeys, codex, aiWeb, extensions, settingsProvider, timerProvider]
 
   // Declared patterns are compiled here, once per rebuild, never per keystroke.
   // A pattern that does not compile is reported and skipped; the provider loads.

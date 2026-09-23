@@ -180,9 +180,6 @@ end
 -- The launcher already lives inside Quickshell, so this only sends its toggle
 -- message. It gives each chosen app its own uwsm scope before disappearing.
 hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
--- Open windows, most recently focused first with the current one last, so
--- Enter on a fresh screen returns to the previous window. Ctrl+Enter closes.
-hl.bind("ALT + TAB", hl.dsp.exec_cmd("qs ipc call launcher route windows"))
 pcall(dofile, hypr .. "/launcher-voice.lua")
 -- Hotkeys set from the launcher (Ctrl+B on a result) live in their own file,
 -- written by Quickshell. Sourced inside the registration window so the

@@ -8,7 +8,9 @@ Calpad is omitted. The calculator is a single answer row over the upstream arith
 
 ## Use
 
-Open with Super+Space. Type an application, open window, desktop command, keybinding, filename, `12*34`, `2m in feet`, `10am in London`, `#ff6644`, `:smile`, or `timer 10m tea`. `~` restricts file search. Clipboard history stays in its own screen and continues to use our existing cliphist text/image/video backend. Super+V remains available separately. Alt+Tab opens the Windows screen: open windows most recently focused first, the current one last, so Enter returns to the previous window; Ctrl+Enter closes the selected one.
+Open with Super+Space. Type an application, desktop command, keybinding, filename, `12*34`, `2m in feet`, `10am in London`, `#ff6644`, `:smile`, or `timer 10m tea`. `~` restricts file search. Clipboard history stays in its own screen and continues to use our existing cliphist text/image/video backend. Super+V remains available separately.
+
+Window selection lives in the thumbnail switcher, outside the launcher. Hold Super and press Tab to cycle windows, add Shift to reverse, and release Super to activate the selection. Escape cancels.
 
 Arrow keys, Ctrl+N/P and Tab select results. Enter activates, Ctrl+Enter uses the alternate action, Ctrl+1 through Ctrl+8 activate numbered results, Ctrl+, opens settings, Ctrl+K opens provider settings, and Ctrl+B sets a hotkey for the selected result. Backspace or Left with an empty query goes back. Escape closes. Destructive confirmations default to Cancel.
 
