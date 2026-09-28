@@ -18,6 +18,6 @@ cat >"$JQ" <<'EOF'
 (.byModel[:6][] | "  \((.label | split("/") | last))  $\(.costUSD*100|round/100)")
 EOF
 
-aerospace workspace D
+"$CONFIG_DIR/plugins/wm.sh" focus-label D || exit 1
 tmux display-popup -E -w 55% -h 40% \
   "echo 'crunching sessions…'; sessions report --today --stdout 2>/dev/null | jq -rf '$JQ'; echo; read -r"

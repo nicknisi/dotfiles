@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Single-pass renderer for ALL workspace pills + their focus rings + the
 # center module (window title, layout badge), run from the invisible
-# spaces_controller item. Three aerospace queries + one batched sketchybar
-# call per event — per-pill spawning is the documented lag/flicker trap
+# spaces_controller item. WM snapshots + one batched sketchybar call per
+# event — per-pill spawning is the documented lag/flicker trap
 # (SketchyBar #726, AeroSpace #430). Needs bash 4+ (brew bash) for the
 # associative arrays.
 #
@@ -11,13 +11,32 @@
 
 source "$CONFIG_DIR/colors.sh"
 source "$CONFIG_DIR/plugins/icons.sh"
+source "$CONFIG_DIR/plugins/wm.sh"
 
 STATE_DIR="$HOME/.cache/sketchybar"
 mkdir -p "$STATE_DIR"
 
-FOCUSED="${FOCUSED_WORKSPACE:-$(aerospace list-workspaces --focused 2>/dev/null)}"
-# Read by space_hover.sh (restore-after-hover) and agents.sh (suppression)
-echo "$FOCUSED" >"$STATE_DIR/focused-workspace"
+WORKSPACES=$(wm_workspaces) || exit 1
+if [ "$SKETCHYBAR_WM" = omniwm ]; then
+  # Query inventory, not workspace-bar: that projection can omit empty
+  # workspaces and floating windows, and can be disabled independently.
+  WINDOWS=$("$OMNIWMCTL" query windows --format json) || exit 1
+  ACTIVE=$("$OMNIWMCTL" query active-workspace --format json) || exit 1
+  FOCUSED=$(jq -r '.result.payload.workspace.number // empty' <<<"$ACTIVE")
+  WINDOW_APPS=$(jq -r '.result.payload.windows[] | "\(.workspace.number)|\(.app.name)"' <<<"$WINDOWS") || exit 1
+  RAW=$(jq -r '[.result.payload.windows[] | select(.isFocused)][0].title // empty' <<<"$WINDOWS")
+else
+  FOCUSED="${FOCUSED_WORKSPACE:-$(aerospace list-workspaces --focused 2>/dev/null)}"
+  WINDOW_APPS=$(aerospace list-windows --all --format '%{workspace}|%{app-name}' 2>/dev/null)
+  RAW=$(aerospace list-windows --focused --format '%{window-title}' 2>/dev/null | head -1)
+fi
+# Hover needs the item ID; fleet suppression still uses the D display label.
+printf '%s\n' "$FOCUSED" >"$STATE_DIR/focused-workspace-id"
+FOCUSED_LABEL=""
+while IFS='|' read -r sid label; do
+  [ "$sid" = "$FOCUSED" ] && FOCUSED_LABEL="$label"
+done <<<"$WORKSPACES"
+printf '%s\n' "$FOCUSED_LABEL" >"$STATE_DIR/focused-workspace"
 
 declare -A APPS SEEN
 while IFS='|' read -r ws app; do
@@ -26,10 +45,12 @@ while IFS='|' read -r ws app; do
     SEEN[$ws|$app]=1
     APPS[$ws]+="$(app_icon "$app") "
   fi
-done < <(aerospace list-windows --all --format '%{workspace}|%{app-name}' 2>/dev/null)
+done <<<"$WINDOW_APPS"
 
 args=()
-for sid in $(aerospace list-workspaces --all); do
+while IFS='|' read -r sid label; do
+  [ -n "$sid" ] || continue
+  args+=(--set "space.$sid" icon="$label")
   icons="${APPS[$sid]:-}"
   icons="${icons% }"
   if [ "$sid" = "$FOCUSED" ]; then
@@ -52,7 +73,7 @@ for sid in $(aerospace list-workspaces --all); do
     args+=(--set "space.$sid" drawing=off
       --set "ring.$sid" background.border_color="$TRANSPARENT")
   fi
-done
+done <<<"$WORKSPACES"
 
 # Center module: focused-window title.
 # Agent panes title their windows "<state-glyph> <task summary>", so the
@@ -62,7 +83,6 @@ done
 # floats alone. The state prefix and the 󱙺 window glyph are stripped for
 # display (Monaspace lacks the glyph; byte prefixes matched raw since the
 # daemon locale may be C).
-RAW=$(aerospace list-windows --focused --format '%{window-title}' 2>/dev/null | head -1)
 IS_AGENT=0
 LED_COLOR="$ACCENT"
 case "$RAW" in
@@ -89,3 +109,7 @@ else
 fi
 
 sketchybar --animate tanh 10 "${args[@]}"
+# Run suppression only after the focused-label cache has been updated.
+if [ "${SENDER:-}" != fleet_state_change ]; then
+  sketchybar --trigger wm_workspace_rendered
+fi

@@ -35,6 +35,9 @@ for i = 1, #arg + 1 do
   themed_borders, pack_loaded = nil, false
   assert(loadfile(config))()
   assert(not pack or pack_loaded, "theme failed to load: " .. tostring(pack))
+  local layout = state.layout
+  assert(layout.single_window_aspect_ratio[1] == 4 and layout.single_window_aspect_ratio[2] == 3, "lone tile is 4:3")
+  assert(layout.single_window_aspect_ratio_tolerance == 0, "apply lone-tile padding on 16:10 displays")
   local decoration = state.decoration
   assert(decoration.rounding == 6 and decoration.rounding_power == 2, "window shape: " .. tostring(pack))
   assert(decoration.shadow.enabled and decoration.shadow.range == 16 and decoration.shadow.render_power == 3, "shadow geometry")

@@ -2,7 +2,7 @@
 # Agents pill clicks: left = fleet dashboard popup (mirrors prefix-y),
 # right = jump to next waiting agent (mirrors prefix-n).
 
-aerospace workspace D
+"$CONFIG_DIR/plugins/wm.sh" focus-label D || exit 1
 
 case "$BUTTON" in
 right)

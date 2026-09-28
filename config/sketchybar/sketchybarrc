@@ -5,12 +5,12 @@
 # drawn with 1px luminous strokes, not fills; Monaspace labels.
 #
 # Complements (never duplicates) the macOS menu bar OR the tmux statusline:
-# AeroSpace workspaces with per-app icons, focused window title + layout
+# OmniWM / AeroSpace workspaces with per-app icons, focused window title + layout
 # glyph in the center, fleet-driven agent state with an attention chip,
 # PRs awaiting review, Claude usage when running hot, now-playing.
 #
 # Event flow (all push, polling only where no push exists):
-#   aerospace exec-on-workspace-change / on-focus-changed
+#   omniwmctl watch / aerospace exec-on-workspace-change / on-focus-changed
 #     -> plugins/workspaces.sh (ONE batched render: pills, rings, center)
 #   fleet hook status files -> bin/sketchybar-fleet-watch (fswatch)
 #     -> fleet_state_change -> plugins/agents.sh (agents pill + chip)
@@ -22,6 +22,8 @@ PLUGIN_DIR="$CONFIG_DIR/plugins"
 DOTFILES_BIN="$HOME/Developer/dotfiles/bin"
 # colors.sh itself sources the active named theme (bin/theme) at the end
 source "$CONFIG_DIR/colors.sh"
+source "$PLUGIN_DIR/wm.sh"
+WORKSPACES=$(wm_workspaces) || exit 1
 
 GAUGE=$(printf '\xf3\xb0\x89\x81')  # nf-md-gauge  U+F0241
 GITHUB=$(printf '\xef\x82\x9b')     # nf-fa-github U+F09B
@@ -73,18 +75,22 @@ sketchybar --default \
 sketchybar --add event aerospace_workspace_change \
   --add event aerospace_focus_change \
   --add event aerospace_mode_change \
+  --add event omniwm_change \
+  --add event wm_workspace_rendered \
   --add event fleet_state_change \
   --add event claude_usage_update
 
-# ── AeroSpace workspaces ─────────────────────────────────────────
+# ── Workspaces ──────────────────────────────────────────────────
 # Pills are dumb views (hover handler only); workspaces.sh renders all of
 # them in one batch. Each pill gets a personal bracket ring — the dim
 # outer stroke of the focused glow (bright inner border on the pill).
-for sid in $(aerospace list-workspaces --all); do
+while IFS='|' read -r sid label; do
+  [ -n "$sid" ] || continue
+  printf -v focus_command '%q focus %q' "$PLUGIN_DIR/wm.sh" "$sid"
   sketchybar --add item space."$sid" left \
     --subscribe space."$sid" mouse.entered mouse.exited \
     --set space."$sid" \
-    icon="$sid" \
+    icon="$label" \
     icon.font="$MONO:Bold:11.0" \
     label.font="Symbols Nerd Font Mono:Regular:13.0" \
     label.drawing=off \
@@ -92,7 +98,7 @@ for sid in $(aerospace list-workspaces --all); do
     updates=when_shown \
     background.height=22 \
     background.color="$PILL_BG" \
-    click_script="aerospace workspace $sid" \
+    click_script="$focus_command" \
     script="$PLUGIN_DIR/space_hover.sh" \
     --add bracket ring."$sid" space."$sid" \
     --set ring."$sid" \
@@ -101,14 +107,14 @@ for sid in $(aerospace list-workspaces --all); do
     background.border_color="$TRANSPARENT" \
     background.height=26 \
     background.corner_radius=6
-done
+done <<<"$WORKSPACES"
 
 # Invisible controller: one batched render per event (pills+rings+center).
 # fleet_state_change is included so the title's robot LED recolors when the
 # focused agent's state flips, even with no window/pane switch.
 sketchybar --add item spaces_controller left \
   --subscribe spaces_controller aerospace_workspace_change \
-  aerospace_focus_change fleet_state_change display_change \
+  aerospace_focus_change omniwm_change fleet_state_change display_change \
   --set spaces_controller drawing=off width=0 \
   script="$PLUGIN_DIR/workspaces.sh"
 
@@ -133,7 +139,7 @@ sketchybar --add item aerospace_mode left \
 
 # ── Center: ❯ window title · layout glyph ───────────────────────
 # Title floats on the glass (no chip) — the calm center's anchor.
-# Rendered by workspaces.sh on the same aerospace events as the pills.
+# Rendered by workspaces.sh on the same WM events as the pills.
 sketchybar --add item title center \
   --set title \
   icon.font="Symbols Nerd Font Mono:Regular:13.0" \
@@ -148,7 +154,7 @@ sketchybar --add item title center \
 # agents: calm = dim green robot (fleet healthy); alerts light the edge
 # in fleet tier hues. Left-click = fleet popup, right-click = fleet next.
 sketchybar --add item agents right \
-  --subscribe agents fleet_state_change aerospace_workspace_change \
+  --subscribe agents fleet_state_change wm_workspace_rendered \
   --set agents \
   update_freq=60 \
   click_script="$PLUGIN_DIR/agents_click.sh" \
@@ -233,13 +239,18 @@ sketchybar --add item music right \
   click_script="$PLUGIN_DIR/music_click.sh" \
   script="$PLUGIN_DIR/music.sh"
 
-# ── AeroSpace lifeline ───────────────────────────────────────────
-# The bar only exists alongside the WM: AeroSpace launches it
-# (after-startup-command in aerospace.toml) and this watchdog exits it
-# when AeroSpace quits. Process exit has no push surface, so a slow poll.
-sketchybar --add item aerospace_watchdog left \
-  --set aerospace_watchdog drawing=off width=0 update_freq=10 \
-  script="pgrep -xq AeroSpace || { pkill -f 'fswatch.*claude-status'; pkill -x sketchybar; }"
+# ── WM lifeline + OmniWM push events ─────────────────────────────
+# AeroSpace launches SketchyBar itself; with OmniWM, start sketchybar
+# after OmniWM is running. Exit only when neither WM is running.
+sketchybar --add item wm_watchdog left \
+  --set wm_watchdog drawing=off width=0 update_freq=10 \
+  script="$PLUGIN_DIR/wm.sh watchdog"
+
+# Reloads replace only our own subscription; --reconnect handles IPC drops.
+wm_stop_watch
+if [ "$SKETCHYBAR_WM" = omniwm ]; then
+  (nohup "$PLUGIN_DIR/wm.sh" watch >/dev/null 2>&1 &)
+fi
 
 
 # ── Fleet push watcher ───────────────────────────────────────────

@@ -4,7 +4,7 @@
 
 source "$CONFIG_DIR/colors.sh"
 
-FOCUSED=$(cat "$HOME/.cache/sketchybar/focused-workspace" 2>/dev/null)
+FOCUSED=$(cat "$HOME/.cache/sketchybar/focused-workspace-id" 2>/dev/null)
 
 case "$SENDER" in
 mouse.entered)

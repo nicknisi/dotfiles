@@ -1,0 +1,1239 @@
+monitorBarOverrides = []
+monitorDwindleOverrides = []
+monitorGapOverrides = []
+monitorNiriOverrides = []
+monitorOrientationOverrides = []
+schemaVersion = 3
+
+[appearance]
+mode = "dark"
+tabRailAppIcons = false
+
+[borders]
+enabled = true
+width = 2.0
+
+[borders.color]
+alpha = 1.0
+blue = 1.0
+green = 0.8239732384681702
+red = 0.0
+
+[borders.glow]
+enabled = false
+opacity = 0.6
+radius = 8.0
+
+[borders.gradient]
+direction = "topLeftToBottomRight"
+enabled = false
+
+[borders.gradient.end]
+alpha = 1.0
+blue = 0.7
+green = 1.0
+red = 0.0
+
+[borders.gradient.start]
+alpha = 1.0
+blue = 0.6496116518974304
+green = 0.08994189649820328
+red = 0.43886440992355347
+
+[clipboard]
+historyEnabled = false
+ignoredTypes = []
+maxItemBytes = 8388608
+maxItems = 200
+maxTotalBytes = 67108864
+
+[dwindle]
+defaultSplitRatio = 1.0
+moveToRootStable = true
+singleWindowFit = "1600x900"
+smartSplit = true
+splitWidthMultiplier = 1.0
+useGlobalGaps = true
+
+[focus]
+crossesMonitorAtEdge = true
+followsMouse = false
+followsWindowToMonitor = false
+lockModifier = "off"
+moveCrossesMonitorAtEdge = true
+moveMouseToFocusedWindow = false
+raiseOnMouseFocus = false
+
+[gaps]
+fullscreenUsesOuterGaps = true
+size = 8.0
+
+[gaps.outer]
+bottom = 8.0
+left = 8.0
+right = 8.0
+top = 0.0
+
+[general]
+animationsEnabled = true
+defaultLayoutType = "dwindle"
+hotkeysEnabled = true
+hyperKeyModifiers = "Control+Option+Shift+Command"
+ipcEnabled = true
+preventSleepEnabled = false
+systemHyperTrigger = "None"
+updateChecksEnabled = true
+
+[gestures]
+fingerCount = 4
+invertDirection = true
+mouseMoveModifierKey = "option"
+mouseResizeModifierKey = "option"
+overviewGestureEnabled = false
+overviewGestureFingerCount = 4
+scrollEnabled = true
+scrollModifierKey = "optionShift"
+scrollSensitivity = 5.0
+trackpadScrollStyle = "snap"
+windowGestureSensitivity = 1.0
+windowMoveEnabled = false
+windowMoveFingerCount = 4
+windowResizeEnabled = false
+windowResizeFingerCount = 3
+workspaceSwipeAxis = "horizontal"
+workspaceSwipeEnabled = true
+workspaceSwipeFingerCount = 3
+
+[hiddenBar]
+enabled = true
+hiddenBundleIDs = []
+rehideIntervalSeconds = 5.0
+
+[mouseWarp]
+constrainToArrangement = false
+enabled = true
+margin = 1
+
+[niri]
+alwaysCenterSingleColumn = true
+centerFocusedColumn = "never"
+containerPrimarySpanPresets = [0.3333333333333333, 0.5, 0.6666666666666666]
+defaultContainerPrimarySpan = 0.5
+infiniteLoop = false
+singleWindowFit = "fill"
+visibleContainerCount = 2
+
+[overview]
+invertScrollDirection = false
+matchFocusBorder = true
+mouseScrollSpeed = 1.0
+zoom = 1.0
+
+[overview.backdrop]
+alpha = 0.0
+blue = 0.08
+green = 0.05
+red = 0.05
+
+[overview.windowBorders]
+
+[overview.windowBorders.hovered]
+alpha = 1.0
+blue = 1.0
+green = 0.6
+red = 0.4
+
+[overview.windowBorders.normal]
+alpha = 0.5
+blue = 0.35
+green = 0.3
+red = 0.3
+
+[overview.windowBorders.selected]
+alpha = 1.0
+blue = 0.4
+green = 0.8
+red = 0.3
+
+[quakeTerminal]
+animationDuration = 0.2
+autoHide = false
+backgroundBlurRadius = 0
+backgroundEffect = "standardBlur"
+enabled = true
+heightPercent = 50.0
+monitorMode = "focusedWindow"
+opacity = 1.0
+position = "top"
+widthPercent = 70.0
+
+[routing]
+arrangements = []
+mode = "macOS"
+
+[scratchpads]
+
+[scratchpads.labels]
+
+[statusBar]
+showAppNames = false
+showWorkspaceName = false
+useWorkspaceId = false
+
+[workspaceBar]
+backgroundOpacity = 0.1
+deduplicateAppIcons = false
+enabled = false
+excludedBundleIDs = []
+height = 24.0
+hideEmptyWorkspaces = true
+hideInNativeFullscreen = false
+notchActiveZoneWidth = 180.0
+notchMode = "splitActiveLeft"
+position = "overlappingMenuBar"
+reserveLayoutSpace = false
+revealHoldMilliseconds = 200.0
+revealModifier = "off"
+showAccentHighlights = true
+showFloatingWindows = false
+showItemBackgrounds = true
+showLabels = true
+solidBlackBackground = false
+systemStatsButton = false
+transparentBackground = false
+windowLevel = "popup"
+xOffset = 0.0
+yOffset = 0.0
+
+[workspaceBar.iconOverrides]
+
+[[appRules]]
+bundleId = "com.openai.codex"
+id = "6A31F08A-4051-4354-B439-42F4C71894A3"
+minHeight = 600.0
+minWidth = 800.0
+
+[[appRules]]
+bundleId = "com.eltima.cmd1.pro.mas"
+id = "4BA546DA-2875-4BEF-B13F-1539E833B1A0"
+minHeight = 550.0
+minWidth = 950.0
+
+[[appRules]]
+assignToWorkspace = "6"
+bundleId = "com.google.Chrome"
+id = "486CEFA6-69AA-4A3C-AF27-BCD38F4F138B"
+minHeight = 375.0
+minWidth = 500.0
+
+[[appRules]]
+bundleId = "dev.zed.Zed"
+id = "979F05F4-FFA2-4EDD-B23F-08A9944C759F"
+minHeight = 240.0
+minWidth = 360.0
+
+[[appRules]]
+assignToWorkspace = "6"
+bundleId = "com.apple.Safari"
+id = "81426D13-C1A5-475E-AFBC-00BBA05042D0"
+minHeight = 220.0
+minWidth = 574.0
+
+[[appRules]]
+bundleId = "app.zen-browser.zen"
+id = "1CF39647-F30D-4E76-9686-79B551F1B094"
+minHeight = 495.0
+minWidth = 500.0
+
+[[appRules]]
+bundleId = "org.mozilla.firefox"
+id = "005C00D3-F665-47F8-BDAE-D80790E9E46B"
+minHeight = 120.0
+minWidth = 500.0
+
+[[appRules]]
+bundleId = "company.thebrowser.dia"
+id = "C21156B1-0224-4998-97E3-8F4FA65B9F3B"
+minHeight = 420.0
+minWidth = 500.0
+
+[[appRules]]
+bundleId = "com.spotify.client"
+id = "2DE9390B-0DB4-4D0C-9ABA-06F76F1D4EA9"
+minHeight = 600.0
+minWidth = 800.0
+
+[[appRules]]
+assignToWorkspace = "2"
+bundleId = "com.hnc.Discord"
+id = "AF752D95-8497-4844-BE20-4C93E73BAEF2"
+minHeight = 500.0
+minWidth = 800.0
+
+[[appRules]]
+assignToWorkspace = "3"
+bundleId = "com.mitchellh.ghostty"
+id = "7876C9EF-437E-4D4F-9C27-B1B02F4AABCE"
+minHeight = 48.0
+minWidth = 90.0
+
+[[appRules]]
+bundleId = "com.microsoft.Outlook"
+id = "8ECAB78B-BCDD-4245-BC25-1609A49B1C86"
+minHeight = 650.0
+minWidth = 930.0
+
+[[appRules]]
+assignToWorkspace = "2"
+bundleId = "com.apple.MobileSMS"
+id = "552FB77D-BF0E-4737-90A6-B5BC6986C579"
+minHeight = 320.0
+minWidth = 660.0
+
+[[appRules]]
+assignToWorkspace = "3"
+bundleId = "com.microsoft.VSCode"
+id = "3490FA81-BB8B-44EB-8BCB-26F6A19EF2CD"
+
+[[appRules]]
+assignToWorkspace = "3"
+bundleId = "com.github.wez.wezterm"
+id = "4CEE2F58-EDB2-4212-9241-146E6ADF3B05"
+
+[[appRules]]
+assignToWorkspace = "6"
+bundleId = "net.imput.helium"
+id = "6FF27042-385C-4A1E-AE12-2D21F6A1B9B8"
+
+[[appRules]]
+assignToWorkspace = "6"
+bundleId = "com.brave.Browser.origin"
+id = "DF48DEBA-8C63-492F-9725-F5CD78103F29"
+
+[[appRules]]
+assignToWorkspace = "6"
+bundleId = "com.google.Chrome.canary"
+id = "962F76CD-FE21-46EA-94DA-18B4FF9661E7"
+
+[[appRules]]
+assignToWorkspace = "5"
+bundleId = "com.apple.iCal"
+id = "0FEC3930-7778-4E55-A13E-9EC253277680"
+
+[[appRules]]
+assignToWorkspace = "5"
+bundleId = "notion.id"
+id = "7A37FACF-D33A-498C-AC58-FF45BE431217"
+
+[[appRules]]
+assignToWorkspace = "5"
+bundleId = "com.mimestream.Mimestream"
+id = "0CCAD862-1473-4F71-89FA-431D33A3B07A"
+
+[[appRules]]
+assignToWorkspace = "5"
+bundleId = "com.readdle.SparkDesktop"
+id = "74A84B5D-DB69-4DE3-B3D0-2AC9ACCA4811"
+
+[[appRules]]
+assignToWorkspace = "5"
+bundleId = "com.linear"
+id = "F7C2316E-F5B1-4910-8B77-B7C5E7B6F0E8"
+
+[[appRules]]
+assignToWorkspace = "5"
+bundleId = "com.tinyspeck.slackmacgap"
+id = "59D789A1-8981-450F-9F98-8106F3AD3210"
+
+[[appRules]]
+assignToWorkspace = "5"
+bundleId = "md.obsidian"
+id = "53D5A58F-134A-47F3-AECE-8C43882B6558"
+
+[[appRules]]
+assignToWorkspace = "7"
+bundleId = "com.omnigroup.OmniFocus4"
+id = "93B0A6ED-644D-492D-B97D-D46ED67F932D"
+
+[[appRules]]
+assignToWorkspace = "8"
+bundleId = "us.zoom.xos"
+id = "30169B8A-E71A-4C27-8DA5-9A9C2EA8F878"
+
+[[appRules]]
+bundleId = "com.apple.Music"
+id = "6DFF1A2E-2F0F-47F8-B168-CF25905201DB"
+layout = "float"
+
+[[appRules]]
+bundleId = "ch.protonvpn.mac"
+id = "C0E8796F-8429-490C-9D5D-342127B724D3"
+layout = "float"
+
+[[appRules]]
+bundleId = "com.apple.finder"
+id = "549307F7-E831-4253-8BFE-F0274084EBD5"
+layout = "float"
+
+[[appRules]]
+bundleId = "com.cisco.secureclient.gui"
+id = "D2FB4374-811D-420C-BBAD-00B45C3239F6"
+layout = "float"
+
+[[appRules]]
+bundleId = "com.1password.1password"
+id = "6B7FB136-D1A4-4EF8-B921-6394627CC923"
+layout = "float"
+
+[[appRules]]
+bundleId = "com.apple.FaceTime"
+id = "F83CFBB6-E603-4A03-BAEA-82F4949AE061"
+layout = "float"
+
+[[appRules]]
+bundleId = "com.apple.ScreenContinuity"
+id = "E8A931DE-EBB7-42CF-8D4F-7C92922E3D7A"
+layout = "float"
+
+[[appRules]]
+bundleId = "com.raycast.macos"
+id = "884F63F5-24D6-4D95-A4FA-658861534314"
+layout = "float"
+
+[[appRules]]
+bundleId = ""
+id = "868B32F5-BD89-4736-9CB8-24C3BFC7FD1A"
+layout = "float"
+titleRegex = "^Picture-in-Picture$"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.9"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.9"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.10"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.10"
+
+[[hotkeys]]
+binding = "Option+A"
+id = "switchWorkspace.0"
+
+[[hotkeys]]
+binding = "Option+Shift+A"
+id = "moveToWorkspace.0"
+
+[[hotkeys]]
+binding = "Option+C"
+id = "switchWorkspace.1"
+
+[[hotkeys]]
+binding = "Option+Shift+C"
+id = "moveToWorkspace.1"
+
+[[hotkeys]]
+binding = "Option+D"
+id = "switchWorkspace.2"
+
+[[hotkeys]]
+binding = "Option+Shift+D"
+id = "moveToWorkspace.2"
+
+[[hotkeys]]
+binding = "Option+N"
+id = "switchWorkspace.3"
+
+[[hotkeys]]
+binding = "Option+Shift+N"
+id = "moveToWorkspace.3"
+
+[[hotkeys]]
+binding = "Option+S"
+id = "switchWorkspace.4"
+
+[[hotkeys]]
+binding = "Option+Shift+S"
+id = "moveToWorkspace.4"
+
+[[hotkeys]]
+binding = "Option+W"
+id = "switchWorkspace.5"
+
+[[hotkeys]]
+binding = "Option+Shift+W"
+id = "moveToWorkspace.5"
+
+[[hotkeys]]
+binding = "Option+X"
+id = "switchWorkspace.6"
+
+[[hotkeys]]
+binding = "Option+Shift+X"
+id = "moveToWorkspace.6"
+
+[[hotkeys]]
+binding = "Option+Z"
+id = "switchWorkspace.7"
+
+[[hotkeys]]
+binding = "Option+Shift+Z"
+id = "moveToWorkspace.7"
+
+[[hotkeys]]
+binding = "Option+9"
+id = "switchWorkspace.8"
+
+[[hotkeys]]
+binding = "Option+Shift+9"
+id = "moveToWorkspace.8"
+
+[[hotkeys]]
+binding = "Option+1"
+id = "switchWorkspaceSlot.1"
+
+[[hotkeys]]
+binding = "Option+Shift+1"
+id = "moveToWorkspaceSlot.1"
+
+[[hotkeys]]
+binding = "Option+2"
+id = "switchWorkspaceSlot.2"
+
+[[hotkeys]]
+binding = "Option+Shift+2"
+id = "moveToWorkspaceSlot.2"
+
+[[hotkeys]]
+binding = "Option+3"
+id = "switchWorkspaceSlot.3"
+
+[[hotkeys]]
+binding = "Option+Shift+3"
+id = "moveToWorkspaceSlot.3"
+
+[[hotkeys]]
+binding = "Option+4"
+id = "switchWorkspaceSlot.4"
+
+[[hotkeys]]
+binding = "Option+Shift+4"
+id = "moveToWorkspaceSlot.4"
+
+[[hotkeys]]
+binding = "Option+5"
+id = "switchWorkspaceSlot.5"
+
+[[hotkeys]]
+binding = "Option+Shift+5"
+id = "moveToWorkspaceSlot.5"
+
+[[hotkeys]]
+binding = "Option+6"
+id = "switchWorkspaceSlot.6"
+
+[[hotkeys]]
+binding = "Option+Shift+6"
+id = "moveToWorkspaceSlot.6"
+
+[[hotkeys]]
+binding = "Option+7"
+id = "switchWorkspaceSlot.7"
+
+[[hotkeys]]
+binding = "Option+Shift+7"
+id = "moveToWorkspaceSlot.7"
+
+[[hotkeys]]
+binding = "Option+8"
+id = "switchWorkspaceSlot.8"
+
+[[hotkeys]]
+binding = "Option+Shift+8"
+id = "moveToWorkspaceSlot.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspaceSlot.9"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToWorkspaceSlot.9"
+
+[[hotkeys]]
+binding = "Control+Option+Tab"
+id = "workspaceBackAndForth"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspace.next"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspace.previous"
+
+[[hotkeys]]
+binding = "Option+H"
+id = "focus.left"
+
+[[hotkeys]]
+binding = "Option+J"
+id = "focus.down"
+
+[[hotkeys]]
+binding = "Option+K"
+id = "focus.up"
+
+[[hotkeys]]
+binding = "Option+L"
+id = "focus.right"
+
+[[hotkeys]]
+binding = "Option+Tab"
+id = "focusPrevious"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusDownOrLeft"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusUpOrRight"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowTop"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowBottom"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowDownOrTop"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowUpOrBottom"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowOrWorkspaceDown"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowOrWorkspaceUp"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "centerColumn"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "centerVisibleColumns"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Up Arrow"
+id = "moveWindowToWorkspaceUp"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Down Arrow"
+id = "moveWindowToWorkspaceDown"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Page Up"
+id = "moveColumnToWorkspaceUp"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Page Down"
+id = "moveColumnToWorkspaceDown"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.0"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.8"
+
+[[hotkeys]]
+binding = "Option+Shift+H"
+id = "move.left"
+
+[[hotkeys]]
+binding = "Option+Shift+J"
+id = "move.down"
+
+[[hotkeys]]
+binding = "Option+Shift+K"
+id = "move.up"
+
+[[hotkeys]]
+binding = "Option+Shift+L"
+id = "move.right"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowDown"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowUp"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowDownOrToWorkspaceDown"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowUpOrToWorkspaceUp"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "consumeWindowIntoColumn"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "expelWindowFromColumn"
+
+[[hotkeys]]
+binding = "Control+Command+Tab"
+id = "focusMonitorNext"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusMonitorPrevious"
+
+[[hotkeys]]
+binding = "Control+Command+Grave"
+id = "focusMonitorLast"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWorkspaceToMonitor.left"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWorkspaceToMonitor.right"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWorkspaceToMonitor.up"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWorkspaceToMonitor.down"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowToMonitor.left"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowToMonitor.right"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowToMonitor.up"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowToMonitor.down"
+
+[[hotkeys]]
+binding = "Option+F"
+id = "toggleFullscreen"
+
+[[hotkeys]]
+binding = "Option+Shift+F"
+id = "toggleNativeFullscreen"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Left Arrow"
+id = "moveColumn.left"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Right Arrow"
+id = "moveColumn.right"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumn.up"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumn.down"
+
+[[hotkeys]]
+binding = "Control+Option+Home"
+id = "moveColumnToFirst"
+
+[[hotkeys]]
+binding = "Control+Option+End"
+id = "moveColumnToLast"
+
+[[hotkeys]]
+binding = "Option+Comma"
+id = "toggleColumnTabbed"
+
+[[hotkeys]]
+binding = "Option+Home"
+id = "focusColumnFirst"
+
+[[hotkeys]]
+binding = "Option+End"
+id = "focusColumnLast"
+
+[[hotkeys]]
+binding = "Control+Option+1"
+id = "focusColumn.0"
+
+[[hotkeys]]
+binding = "Control+Option+2"
+id = "focusColumn.1"
+
+[[hotkeys]]
+binding = "Control+Option+3"
+id = "focusColumn.2"
+
+[[hotkeys]]
+binding = "Control+Option+4"
+id = "focusColumn.3"
+
+[[hotkeys]]
+binding = "Control+Option+5"
+id = "focusColumn.4"
+
+[[hotkeys]]
+binding = "Control+Option+6"
+id = "focusColumn.5"
+
+[[hotkeys]]
+binding = "Control+Option+7"
+id = "focusColumn.6"
+
+[[hotkeys]]
+binding = "Control+Option+8"
+id = "focusColumn.7"
+
+[[hotkeys]]
+binding = "Control+Option+9"
+id = "focusColumn.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.9"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.9"
+
+[[hotkeys]]
+binding = "Option+Period"
+id = "cycleSizeForward"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "cycleSizeBackward"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "cycleWindowPrimarySpanForward"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "cycleWindowPrimarySpanBackward"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "cycleWindowSecondarySpanForward"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "cycleWindowSecondarySpanBackward"
+
+[[hotkeys]]
+binding = "Control+Option+Return"
+id = "toggleContainerFullPrimarySpan"
+
+[[hotkeys]]
+binding = "Control+Option+F"
+id = "expandContainerToAvailablePrimarySpan"
+
+[[hotkeys]]
+binding = "Control+Option+R"
+id = "resetWindowSecondarySpan"
+
+[[hotkeys]]
+binding = "Option+Minus"
+id = "setContainerPrimarySpan.decrease10Percent"
+
+[[hotkeys]]
+binding = "Option+Equal"
+id = "setContainerPrimarySpan.increase10Percent"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "setWindowPrimarySpan.decrease10Percent"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "setWindowPrimarySpan.increase10Percent"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Minus"
+id = "setWindowSecondarySpan.decrease10Percent"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Equal"
+id = "setWindowSecondarySpan.increase10Percent"
+
+[[hotkeys]]
+binding = "Option+Shift+B"
+id = "balanceSizes"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToRoot"
+
+[[hotkeys]]
+binding = "Option+Slash"
+id = "toggleSplit"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "swapSplit"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "resizeGrow.horizontal"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "resizeGrow.vertical"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "resizeShrink.horizontal"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "resizeShrink.vertical"
+
+[[hotkeys]]
+binding = "Option+Shift+Equal"
+id = "resizeFocusedWindow.grow"
+
+[[hotkeys]]
+binding = "Option+Shift+Minus"
+id = "resizeFocusedWindow.shrink"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "preselect.left"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "preselect.right"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "preselect.up"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "preselect.down"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "preselectClear"
+
+[[hotkeys]]
+binding = "Option+Space"
+id = "openCommandPalette"
+
+[[hotkeys]]
+binding = "Option+Shift+R"
+id = "raiseAllFloatingWindows"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "rescueOffscreenWindows"
+
+[[hotkeys]]
+binding = "Option+Shift+Space"
+id = "toggleFocusedWindowFloating"
+
+[[hotkeys]]
+binding = "Option+Q"
+id = "closeFocusedWindow"
+
+[[hotkeys]]
+binding = "Control+Option+M"
+id = "openMenuAnywhere"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleWorkspaceBarVisibility"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleHiddenBarPanel"
+
+[[hotkeys]]
+binding = "Option+Grave"
+id = "toggleQuakeTerminal"
+
+[[hotkeys]]
+binding = "Control+Option+L"
+id = "toggleWorkspaceLayout"
+
+[[hotkeys]]
+binding = "Option+Shift+Tab"
+id = "toggleOverview"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleSystemStats"
+
+[[workspaces]]
+displayName = "A"
+id = "AD36F001-C57E-41A5-AC1D-DF5249D007F0"
+layoutType = "default"
+name = "1"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "C"
+id = "454CECD4-5E9D-4ED1-95D7-979D48817F5F"
+layoutType = "default"
+name = "2"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "D"
+id = "BEB842B5-E894-4791-9FD1-397C3CDD3538"
+layoutType = "dwindle"
+name = "3"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "N"
+id = "248AA883-2261-4D45-943C-79C0E46A232B"
+layoutType = "default"
+name = "4"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "S"
+id = "8B8C45D6-CE9E-41D9-BD50-BE4989D5E3DE"
+layoutType = "default"
+name = "5"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "W"
+id = "5953F2BF-A378-4266-91B2-287174C4FA4D"
+layoutType = "default"
+name = "6"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "X"
+id = "A7D5E104-6985-4516-8ED5-07F144F2A33D"
+layoutType = "default"
+name = "7"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "Z"
+id = "0E18F6B0-345A-4078-8B21-33641F07A861"
+layoutType = "default"
+name = "8"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+id = "8D4D711C-2B2F-4FEC-86BF-FA952037738A"
+layoutType = "default"
+name = "9"
+
+[workspaces.monitorAssignment]
+type = "main"

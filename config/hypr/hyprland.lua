@@ -131,6 +131,12 @@ hl.config({
   dwindle = {
     preserve_split = true,
   },
+  -- Center a lone tile at 4:3; a second tile restores normal layout.
+  -- Zero tolerance keeps the narrower padding on our 16:10 panel enabled.
+  layout = {
+    single_window_aspect_ratio = { 4, 3 },
+    single_window_aspect_ratio_tolerance = 0,
+  },
   -- A light dim on unfocused windows; the border already says which one has
   -- focus, this makes it readable at a glance. Set dim_inactive = false to drop it.
   decoration = { blur = { enabled = true }, dim_inactive = true, dim_strength = 0.1 },

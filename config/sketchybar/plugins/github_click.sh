@@ -4,7 +4,7 @@
 
 case "$BUTTON" in
 right)
-  aerospace workspace W
+  "$CONFIG_DIR/plugins/wm.sh" focus-label W || exit 1
   open https://github.com/pulls/review-requested
   ;;
 *)

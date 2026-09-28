@@ -137,7 +137,7 @@ if [ "$WAITING" -gt 0 ] && [ "$SUPPRESS" -eq 0 ]; then
     --set attention drawing=on icon="$GLYPH" icon.color="$COLOR" \
     label="$SESSION $VERB: $TASK" label.color="$COLOR" \
     background.color="$FILL" background.border_color="$EDGE" \
-    click_script="aerospace workspace D; fleet switch $PANE"
+    click_script="\"$CONFIG_DIR/plugins/wm.sh\" focus-label D && fleet switch $PANE"
 
   # Escalation bounce: only when the top tier got MORE urgent
   if [ "$RANK" -gt "${PREV_RANK:-0}" ]; then
