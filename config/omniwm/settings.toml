@@ -50,8 +50,8 @@ maxTotalBytes = 67108864
 [dwindle]
 defaultSplitRatio = 1.0
 moveToRootStable = true
-singleWindowFit = "1600x900"
-smartSplit = true
+singleWindowFit = "2660x1440"
+smartSplit = false
 splitWidthMultiplier = 1.0
 useGlobalGaps = true
 
@@ -807,11 +807,11 @@ binding = "Control+Command+Grave"
 id = "focusMonitorLast"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Control+Option+Shift+H"
 id = "moveWorkspaceToMonitor.left"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Control+Option+Shift+L"
 id = "moveWorkspaceToMonitor.right"
 
 [[hotkeys]]

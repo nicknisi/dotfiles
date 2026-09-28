@@ -1,5 +1,5 @@
 {
-  "defaultProvider": "openai-codex",
+  "defaultProvider": "anthropic",
   "editorPaddingX": 1,
   "outputPad": 1,
   "theme": "system",
@@ -42,7 +42,6 @@
     "../../Developer/pi-extensions/packages/subagents",
     "../../Developer/pi-extensions/packages/turn-timer",
     "../../Developer/pi-extensions/packages/workflows",
-    "../../Developer/pi-extensions/packages/checkpoint",
     "npm:pi-prompt-template-model",
     "../../Developer/ideation",
     "npm:pi-simplify",
@@ -56,10 +55,11 @@
     "git:github.com/DietrichGebert/ponytail",
     "npm:@ff-labs/pi-fff",
     "npm:pi-context-view",
-    "../../Developer/pi-extensions/packages/compact-tools"
+    "../../Developer/pi-extensions/packages/compact-tools",
+    "../../Developer/riker-live/packages/riker"
   ],
   "tuiMode": "fullscreen",
-  "defaultModel": "gpt-6-astra",
+  "defaultModel": "claude-opus-5-5",
   "warnings": {
     "anthropicExtraUsage": false
   }

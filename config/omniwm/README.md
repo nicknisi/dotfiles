@@ -54,6 +54,7 @@ All use **Option** in place of Super, leaving Command shortcuts to macOS apps.
 | Option + Tab | Focus previous window (not Hyprland's thumbnail switcher) |
 | Option + Shift + Tab | Overview |
 | Control + Option + Tab | Previous workspace |
+| Control + Option + Shift + H/L | Move the current workspace and all its windows to the left/right monitor |
 | Option + Space | OmniWM command palette |
 | Option + grave | Built-in Quake terminal: top, 70% wide, 50% high |
 | Option + drag / right-drag | Swap tiled windows / resize |
