@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "sessions": {
+      "command": "sessions",
+      "args": [
+        "--mcp"
+      ],
+      "cwd": "~/Developer/sessions",
+      "type": "stdio"
+    },
+    "claude-design": {
+      "url": "https://api.anthropic.com/v1/design/mcp",
+      "headers": {
+        "Authorization": "!node ~/Developer/pi-extensions/packages/claude-design/bin/claude-design-auth.mjs token"
+      }
+    },
+    "notion": {
+      "url": "https://mcp.notion.com/mcp"
+    },
+    "granola-workos": {
+      "url": "https://mcp.granola.ai/mcp"
+    },
+    "excalidraw": {
+      "url": "https://api.excalidraw.com/api/v1/mcp",
+      "headers": {
+        "Authorization": "Bearer ${EXCALIDRAW_API_TOKEN}"
+      }
+    },
+    "linear": {
+      "url": "https://mcp.linear.app/mcp"
+    },
+    "slack-workos": {
+      "url": "https://mcp.slack.com/mcp",
+      "oauth": {
+        "clientId": "387624527059.11624337656930",
+        "callbackUrl": "http://localhost:8787/callback"
+      }
+    }
+  }
+}
