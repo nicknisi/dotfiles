@@ -1,5 +1,4 @@
 monitorBarOverrides = []
-monitorDwindleOverrides = []
 monitorGapOverrides = []
 monitorNiriOverrides = []
 monitorOrientationOverrides = []
@@ -50,10 +49,30 @@ maxTotalBytes = 67108864
 [dwindle]
 defaultSplitRatio = 1.0
 moveToRootStable = true
-singleWindowFit = "2660x1440"
+singleWindowFit = "fill"
 smartSplit = false
 splitWidthMultiplier = 1.0
 useGlobalGaps = true
+
+# Lone-window size per display (~83% x 81% of the visible frame, i.e. a centered
+# margin). The global value above is the fallback for unknown displays.
+[[monitorDwindleOverrides]]
+id = "666D0DA0-BDF2-4301-B892-8B47BE8E5F66"
+monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
+monitorName = "Built-in Retina Display"
+singleWindowFit = "1500x920"
+
+[[monitorDwindleOverrides]]
+id = "221B2D24-E23A-4C74-AF3E-1420431315FF"
+monitorDisplayUUID = "2EBFAA40-3303-44D9-8466-01AAB4B286A5"
+monitorName = "Studio Display (1)"
+singleWindowFit = "2660x1440"
+
+[[monitorDwindleOverrides]]
+id = "6022ADC6-6F6D-4A42-9D07-AB38504A611C"
+monitorDisplayUUID = "5A4B5238-1F02-409B-B53C-A74391F61800"
+monitorName = "Studio Display (2)"
+singleWindowFit = "2660x1440"
 
 [focus]
 crossesMonitorAtEdge = true
