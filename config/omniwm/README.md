@@ -79,8 +79,11 @@ if macOS intercepts them. This config does not change system preferences.
   or Raycast shortcuts instead. Command+Space remains untouched.
 - Clipboard history stays disabled. No global keyboard remapping is enabled.
 - Borders are 2pt, inner gaps 8pt (Hyprland's two 4px half-gaps), and side/bottom
-  outer gaps 8pt. Top clearance is 40pt measured from the physical screen edge;
-  macOS menu-bar/notch geometry means it is not a pixel-perfect Linux match.
+  outer gaps 8pt. Top clearance matches AeroSpace's 50pt below the menu bar
+  (SketchyBar: y_offset 6 + height 36 + 8pt gap). OmniWM measures `outer.top`
+  from the physical edge and subtracts the menu bar, so it is menu bar + 50:
+  89 on the notched built-in display (39pt bar), 74 via `monitorGapOverrides`
+  on the Studio Displays (24pt bar).
 - Don't run AeroSpace alongside OmniWM. SketchyBar supports both WMs; with IPC
   enabled, start `sketchybar` to use its workspace pills and custom widgets (see
   `../sketchybar/README.md`). Disable the native workspace bar separately if desired.
