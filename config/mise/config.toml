@@ -281,8 +281,6 @@ run = """
   brew tap 'nikitabobko/tap'
 
   brew install borders sketchybar
-  brew install --cask nikitabobko/tap/aerospace
-  brew services start borders
 """
 
 # `mise bootstrap` runs this after [tools] are installed.
