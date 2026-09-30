@@ -39,7 +39,7 @@ green = 0.08994189649820328
 red = 0.43886440992355347
 
 [clipboard]
-historyEnabled = false
+historyEnabled = true
 ignoredTypes = []
 maxItemBytes = 8388608
 maxItems = 200
@@ -154,16 +154,16 @@ green = 0.8
 red = 0.3
 
 [quakeTerminal]
-animationDuration = 0.2
+animationDuration = 0.1
 autoHide = false
 backgroundBlurRadius = 0
-backgroundEffect = "standardBlur"
+backgroundEffect = "glassClear"
 enabled = true
-heightPercent = 50.0
+heightPercent = 65.0
 monitorMode = "focusedWindow"
-opacity = 1.0
-position = "top"
-widthPercent = 70.0
+opacity = 0.85
+position = "bottom"
+widthPercent = 80.0
 
 [routing]
 arrangements = []
@@ -1156,18 +1156,6 @@ id = "toggleOverview"
 binding = "Unassigned"
 id = "toggleSystemStats"
 
-[[monitorGapOverrides]]
-id = "9C1E6F52-3B7A-4D8E-A1F0-5B2C7D9E4A11"
-monitorDisplayUUID = "2EBFAA40-3303-44D9-8466-01AAB4B286A5"
-monitorName = "Studio Display (1)"
-outerGapTop = 74.0
-
-[[monitorGapOverrides]]
-id = "9C1E6F52-3B7A-4D8E-A1F0-5B2C7D9E4A12"
-monitorDisplayUUID = "5A4B5238-1F02-409B-B53C-A74391F61800"
-monitorName = "Studio Display (2)"
-outerGapTop = 74.0
-
 [[monitorDwindleOverrides]]
 id = "666D0DA0-BDF2-4301-B892-8B47BE8E5F66"
 monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
@@ -1185,6 +1173,18 @@ id = "6022ADC6-6F6D-4A42-9D07-AB38504A611C"
 monitorDisplayUUID = "5A4B5238-1F02-409B-B53C-A74391F61800"
 monitorName = "Studio Display (2)"
 singleWindowFit = "2660x1440"
+
+[[monitorGapOverrides]]
+id = "9C1E6F52-3B7A-4D8E-A1F0-5B2C7D9E4A11"
+monitorDisplayUUID = "2EBFAA40-3303-44D9-8466-01AAB4B286A5"
+monitorName = "Studio Display (1)"
+outerGapTop = 74.0
+
+[[monitorGapOverrides]]
+id = "9C1E6F52-3B7A-4D8E-A1F0-5B2C7D9E4A12"
+monitorDisplayUUID = "5A4B5238-1F02-409B-B53C-A74391F61800"
+monitorName = "Studio Display (2)"
+outerGapTop = 74.0
 
 [[workspaces]]
 displayName = "A"
