@@ -1,37 +1,38 @@
 # OmniWM
 
-Native OmniWM 0.7.3 configuration based on `../hypr/`, with macOS app rules
+Native OmniWM 0.7.4 configuration based on `../hypr/`, with macOS app rules
 from `../aerospace/`. No Karabiner, skhd, or shortcut daemon required.
 
-`settings.toml` is a full schema-v3 file because OmniWM requires every hotkey
+`settings.toml` is a full schema-v4 file because OmniWM requires every hotkey
 action exactly once, including unassigned actions. It live-reloads; changes in
 OmniWM Settings also write back to this file. Local IPC is enabled for the bundled
 `/Applications/OmniWM.app/Contents/MacOS/omniwmctl` CLI.
 
 ## Workspaces
 
+Like Hyprland and AeroSpace, there are two sets: nine plain numbered workspaces
+and eight lettered ones. OmniWM workspace IDs must be positive integers, so the
+lettered workspaces are numbers 11–18 with a letter display name.
+
 | Number | Label / Option key | Purpose | Layout |
 | --- | --- | --- | --- |
-| 1 | A | AI | Dwindle |
-| 2 | C | Chat: Discord, Messages | Dwindle |
-| 3 | D | Development: Ghostty, WezTerm, VS Code | Niri (scrolling) |
-| 4 | N | Notes / spare | Dwindle |
-| 5 | S | Productivity: Slack, Obsidian, Notion, calendar, mail, Linear | Dwindle |
-| 6 | W | Web: Brave Origin, Helium, Safari, Chrome | Dwindle |
-| 7 | X | OmniFocus | Dwindle |
-| 8 | Z | Zoom | Dwindle |
-| 9 | 9 | Spare | Dwindle |
+| 1–9 | 1–9 | General purpose, no app rules | Dwindle |
+| 11 | A | AI | Dwindle |
+| 12 | C | Chat: Discord, Messages | Dwindle |
+| 13 | D | Development: Ghostty, WezTerm, VS Code | Dwindle |
+| 14 | N | Notes / spare | Dwindle |
+| 15 | S | Productivity: Slack, Obsidian, Notion, calendar, mail, Linear | Dwindle |
+| 16 | W | Web: Brave Origin, Helium, Safari, Chrome | Dwindle |
+| 17 | X | OmniFocus | Dwindle |
+| 18 | Z | Zoom | Dwindle |
 
-Option + letter switches; add Shift to send the focused window without following.
-These are fixed workspace targets, so the letter shortcuts survive monitor
-reassignment. Option + 1–8 (and Shift to send) uses OmniWM's **current-monitor
-slots**; Option + 9 targets workspace 9 directly. All workspaces start on Main,
-so numbers and letters reach the same nine workspaces. If you distribute them
-across monitors, the slot numbers become monitor-local; letter targets stay fixed.
+Option + digit or letter switches; add Shift to send the focused window without
+following. All are fixed workspace targets that survive monitor reassignment;
+OmniWM's per-monitor slot actions are left unassigned. Hotkey IDs are zero-based
+(`switchWorkspace.10` is workspace 11); IDs above `.8` need OmniWM 0.7.4+.
 
-This replaces Hyprland's separate numbered and lettered sets with nine shared
-workspaces. B→W and P→S duplicate aliases are omitted. N stays unassigned to apps,
-as in Hyprland: Obsidian goes to S, not N.
+B→W and P→S duplicate aliases are omitted because each OmniWM action takes one
+binding. N stays unassigned to apps, as in Hyprland: Obsidian goes to S, not N.
 
 ## Window keys
 
@@ -56,7 +57,7 @@ All use **Option** in place of Super, leaving Command shortcuts to macOS apps.
 | Control + Option + Tab | Previous workspace |
 | Control + Option + Shift + H/L | Move the current workspace and all its windows to the left/right monitor |
 | Option + Space | OmniWM command palette |
-| Option + grave | Built-in Quake terminal: top, 70% wide, 50% high |
+| Option + grave | Built-in Quake terminal: bottom, 80% wide, 65% high |
 | Option + drag / right-drag | Swap tiled windows / resize |
 
 Dwindle groups use J/K to change tabs; Shift+H/J/K/L joins or extracts a tab.
@@ -77,7 +78,7 @@ if macOS intercepts them. This config does not change system preferences.
 - No shell-command hotkeys: Option+Return (Ghostty), Option+Shift+Return (browser),
   theme cycling, lock, and capture shortcuts are not ported. Use existing macOS
   or Raycast shortcuts instead. Command+Space remains untouched.
-- Clipboard history stays disabled. No global keyboard remapping is enabled.
+- Clipboard history is enabled. No global keyboard remapping is enabled.
 - Borders are 2pt, inner gaps 8pt (Hyprland's two 4px half-gaps), and side/bottom
   outer gaps 8pt. Top clearance matches AeroSpace's 50pt below the menu bar
   (SketchyBar: y_offset 6 + height 36 + 8pt gap). OmniWM measures `outer.top`
