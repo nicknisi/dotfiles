@@ -1,7 +1,7 @@
 monitorBarOverrides = []
 monitorNiriOverrides = []
 monitorOrientationOverrides = []
-schemaVersion = 3
+schemaVersion = 4
 
 [appearance]
 mode = "dark"
@@ -117,11 +117,13 @@ alwaysCenterSingleColumn = true
 centerFocusedColumn = "never"
 containerPrimarySpanPresets = [0.3333333333333333, 0.5, 0.6666666666666666]
 defaultContainerPrimarySpan = 0.5
+edgeGaps = true
 infiniteLoop = false
 singleWindowFit = "fill"
 visibleContainerCount = 2
 
 [overview]
+enabled = true
 invertScrollDirection = false
 matchFocusBorder = true
 mouseScrollSpeed = 1.0
@@ -186,6 +188,7 @@ excludedBundleIDs = []
 height = 24.0
 hideEmptyWorkspaces = true
 hideInNativeFullscreen = false
+hoverPreviewsEnabled = true
 notchActiveZoneWidth = 180.0
 notchMode = "splitActiveLeft"
 position = "overlappingMenuBar"
@@ -218,7 +221,7 @@ minHeight = 550.0
 minWidth = 950.0
 
 [[appRules]]
-assignToWorkspace = "6"
+assignToWorkspace = "16"
 bundleId = "com.google.Chrome"
 id = "486CEFA6-69AA-4A3C-AF27-BCD38F4F138B"
 minHeight = 375.0
@@ -231,7 +234,7 @@ minHeight = 240.0
 minWidth = 360.0
 
 [[appRules]]
-assignToWorkspace = "6"
+assignToWorkspace = "16"
 bundleId = "com.apple.Safari"
 id = "81426D13-C1A5-475E-AFBC-00BBA05042D0"
 minHeight = 220.0
@@ -262,14 +265,14 @@ minHeight = 600.0
 minWidth = 800.0
 
 [[appRules]]
-assignToWorkspace = "2"
+assignToWorkspace = "12"
 bundleId = "com.hnc.Discord"
 id = "AF752D95-8497-4844-BE20-4C93E73BAEF2"
 minHeight = 500.0
 minWidth = 800.0
 
 [[appRules]]
-assignToWorkspace = "3"
+assignToWorkspace = "13"
 bundleId = "com.mitchellh.ghostty"
 id = "7876C9EF-437E-4D4F-9C27-B1B02F4AABCE"
 minHeight = 48.0
@@ -282,79 +285,79 @@ minHeight = 650.0
 minWidth = 930.0
 
 [[appRules]]
-assignToWorkspace = "2"
+assignToWorkspace = "12"
 bundleId = "com.apple.MobileSMS"
 id = "552FB77D-BF0E-4737-90A6-B5BC6986C579"
 minHeight = 320.0
 minWidth = 660.0
 
 [[appRules]]
-assignToWorkspace = "3"
+assignToWorkspace = "13"
 bundleId = "com.microsoft.VSCode"
 id = "3490FA81-BB8B-44EB-8BCB-26F6A19EF2CD"
 
 [[appRules]]
-assignToWorkspace = "3"
+assignToWorkspace = "13"
 bundleId = "com.github.wez.wezterm"
 id = "4CEE2F58-EDB2-4212-9241-146E6ADF3B05"
 
 [[appRules]]
-assignToWorkspace = "6"
+assignToWorkspace = "16"
 bundleId = "net.imput.helium"
 id = "6FF27042-385C-4A1E-AE12-2D21F6A1B9B8"
 
 [[appRules]]
-assignToWorkspace = "6"
+assignToWorkspace = "16"
 bundleId = "com.brave.Browser.origin"
 id = "DF48DEBA-8C63-492F-9725-F5CD78103F29"
 
 [[appRules]]
-assignToWorkspace = "6"
+assignToWorkspace = "16"
 bundleId = "com.google.Chrome.canary"
 id = "962F76CD-FE21-46EA-94DA-18B4FF9661E7"
 
 [[appRules]]
-assignToWorkspace = "5"
+assignToWorkspace = "15"
 bundleId = "com.apple.iCal"
 id = "0FEC3930-7778-4E55-A13E-9EC253277680"
 
 [[appRules]]
-assignToWorkspace = "5"
+assignToWorkspace = "15"
 bundleId = "notion.id"
 id = "7A37FACF-D33A-498C-AC58-FF45BE431217"
 
 [[appRules]]
-assignToWorkspace = "5"
+assignToWorkspace = "15"
 bundleId = "com.mimestream.Mimestream"
 id = "0CCAD862-1473-4F71-89FA-431D33A3B07A"
 
 [[appRules]]
-assignToWorkspace = "5"
+assignToWorkspace = "15"
 bundleId = "com.readdle.SparkDesktop"
 id = "74A84B5D-DB69-4DE3-B3D0-2AC9ACCA4811"
 
 [[appRules]]
-assignToWorkspace = "5"
+assignToWorkspace = "15"
 bundleId = "com.linear"
 id = "F7C2316E-F5B1-4910-8B77-B7C5E7B6F0E8"
 
 [[appRules]]
-assignToWorkspace = "5"
+assignToWorkspace = "15"
 bundleId = "com.tinyspeck.slackmacgap"
 id = "59D789A1-8981-450F-9F98-8106F3AD3210"
 
 [[appRules]]
-assignToWorkspace = "5"
+assignToWorkspace = "15"
 bundleId = "md.obsidian"
 id = "53D5A58F-134A-47F3-AECE-8C43882B6558"
 
 [[appRules]]
-assignToWorkspace = "7"
+assignToWorkspace = "17"
 bundleId = "com.omnigroup.OmniFocus4"
 id = "93B0A6ED-644D-492D-B97D-D46ED67F932D"
 
 [[appRules]]
-assignToWorkspace = "8"
+assignToWorkspace = "18"
 bundleId = "us.zoom.xos"
 id = "30169B8A-E71A-4C27-8DA5-9A9C2EA8F878"
 
@@ -485,67 +488,67 @@ binding = "Unassigned"
 id = "assignFocusedWindowToScratchpad.10"
 
 [[hotkeys]]
-binding = "Option+A"
+binding = "Option+1"
 id = "switchWorkspace.0"
 
 [[hotkeys]]
-binding = "Option+Shift+A"
+binding = "Option+Shift+1"
 id = "moveToWorkspace.0"
 
 [[hotkeys]]
-binding = "Option+C"
+binding = "Option+2"
 id = "switchWorkspace.1"
 
 [[hotkeys]]
-binding = "Option+Shift+C"
+binding = "Option+Shift+2"
 id = "moveToWorkspace.1"
 
 [[hotkeys]]
-binding = "Option+D"
+binding = "Option+3"
 id = "switchWorkspace.2"
 
 [[hotkeys]]
-binding = "Option+Shift+D"
+binding = "Option+Shift+3"
 id = "moveToWorkspace.2"
 
 [[hotkeys]]
-binding = "Option+N"
+binding = "Option+4"
 id = "switchWorkspace.3"
 
 [[hotkeys]]
-binding = "Option+Shift+N"
+binding = "Option+Shift+4"
 id = "moveToWorkspace.3"
 
 [[hotkeys]]
-binding = "Option+S"
+binding = "Option+5"
 id = "switchWorkspace.4"
 
 [[hotkeys]]
-binding = "Option+Shift+S"
+binding = "Option+Shift+5"
 id = "moveToWorkspace.4"
 
 [[hotkeys]]
-binding = "Option+W"
+binding = "Option+6"
 id = "switchWorkspace.5"
 
 [[hotkeys]]
-binding = "Option+Shift+W"
+binding = "Option+Shift+6"
 id = "moveToWorkspace.5"
 
 [[hotkeys]]
-binding = "Option+X"
+binding = "Option+7"
 id = "switchWorkspace.6"
 
 [[hotkeys]]
-binding = "Option+Shift+X"
+binding = "Option+Shift+7"
 id = "moveToWorkspace.6"
 
 [[hotkeys]]
-binding = "Option+Z"
+binding = "Option+8"
 id = "switchWorkspace.7"
 
 [[hotkeys]]
-binding = "Option+Shift+Z"
+binding = "Option+Shift+8"
 id = "moveToWorkspace.7"
 
 [[hotkeys]]
@@ -557,67 +560,131 @@ binding = "Option+Shift+9"
 id = "moveToWorkspace.8"
 
 [[hotkeys]]
-binding = "Option+1"
+binding = "Option+A"
+id = "switchWorkspace.10"
+
+[[hotkeys]]
+binding = "Option+Shift+A"
+id = "moveToWorkspace.10"
+
+[[hotkeys]]
+binding = "Option+C"
+id = "switchWorkspace.11"
+
+[[hotkeys]]
+binding = "Option+Shift+C"
+id = "moveToWorkspace.11"
+
+[[hotkeys]]
+binding = "Option+D"
+id = "switchWorkspace.12"
+
+[[hotkeys]]
+binding = "Option+Shift+D"
+id = "moveToWorkspace.12"
+
+[[hotkeys]]
+binding = "Option+N"
+id = "switchWorkspace.13"
+
+[[hotkeys]]
+binding = "Option+Shift+N"
+id = "moveToWorkspace.13"
+
+[[hotkeys]]
+binding = "Option+S"
+id = "switchWorkspace.14"
+
+[[hotkeys]]
+binding = "Option+Shift+S"
+id = "moveToWorkspace.14"
+
+[[hotkeys]]
+binding = "Option+W"
+id = "switchWorkspace.15"
+
+[[hotkeys]]
+binding = "Option+Shift+W"
+id = "moveToWorkspace.15"
+
+[[hotkeys]]
+binding = "Option+X"
+id = "switchWorkspace.16"
+
+[[hotkeys]]
+binding = "Option+Shift+X"
+id = "moveToWorkspace.16"
+
+[[hotkeys]]
+binding = "Option+Z"
+id = "switchWorkspace.17"
+
+[[hotkeys]]
+binding = "Option+Shift+Z"
+id = "moveToWorkspace.17"
+
+[[hotkeys]]
+binding = "Unassigned"
 id = "switchWorkspaceSlot.1"
 
 [[hotkeys]]
-binding = "Option+Shift+1"
+binding = "Unassigned"
 id = "moveToWorkspaceSlot.1"
 
 [[hotkeys]]
-binding = "Option+2"
+binding = "Unassigned"
 id = "switchWorkspaceSlot.2"
 
 [[hotkeys]]
-binding = "Option+Shift+2"
+binding = "Unassigned"
 id = "moveToWorkspaceSlot.2"
 
 [[hotkeys]]
-binding = "Option+3"
+binding = "Unassigned"
 id = "switchWorkspaceSlot.3"
 
 [[hotkeys]]
-binding = "Option+Shift+3"
+binding = "Unassigned"
 id = "moveToWorkspaceSlot.3"
 
 [[hotkeys]]
-binding = "Option+4"
+binding = "Unassigned"
 id = "switchWorkspaceSlot.4"
 
 [[hotkeys]]
-binding = "Option+Shift+4"
+binding = "Unassigned"
 id = "moveToWorkspaceSlot.4"
 
 [[hotkeys]]
-binding = "Option+5"
+binding = "Unassigned"
 id = "switchWorkspaceSlot.5"
 
 [[hotkeys]]
-binding = "Option+Shift+5"
+binding = "Unassigned"
 id = "moveToWorkspaceSlot.5"
 
 [[hotkeys]]
-binding = "Option+6"
+binding = "Unassigned"
 id = "switchWorkspaceSlot.6"
 
 [[hotkeys]]
-binding = "Option+Shift+6"
+binding = "Unassigned"
 id = "moveToWorkspaceSlot.6"
 
 [[hotkeys]]
-binding = "Option+7"
+binding = "Unassigned"
 id = "switchWorkspaceSlot.7"
 
 [[hotkeys]]
-binding = "Option+Shift+7"
+binding = "Unassigned"
 id = "moveToWorkspaceSlot.7"
 
 [[hotkeys]]
-binding = "Option+8"
+binding = "Unassigned"
 id = "switchWorkspaceSlot.8"
 
 [[hotkeys]]
-binding = "Option+Shift+8"
+binding = "Unassigned"
 id = "moveToWorkspaceSlot.8"
 
 [[hotkeys]]
@@ -751,6 +818,38 @@ id = "moveColumnToWorkspace.7"
 [[hotkeys]]
 binding = "Unassigned"
 id = "moveColumnToWorkspace.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.10"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.11"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.12"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.13"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.14"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.15"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.16"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.17"
 
 [[hotkeys]]
 binding = "Option+Shift+H"
@@ -1134,6 +1233,14 @@ id = "openMenuAnywhere"
 
 [[hotkeys]]
 binding = "Unassigned"
+id = "setWindowMark"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "removeWindowMark"
+
+[[hotkeys]]
+binding = "Unassigned"
 id = "toggleWorkspaceBarVisibility"
 
 [[hotkeys]]
@@ -1187,8 +1294,7 @@ monitorName = "Studio Display (2)"
 outerGapTop = 74.0
 
 [[workspaces]]
-displayName = "A"
-id = "AD36F001-C57E-41A5-AC1D-DF5249D007F0"
+id = "E5D6C2B4-F906-456D-87E0-44C3E59D39F0"
 layoutType = "default"
 name = "1"
 
@@ -1196,8 +1302,7 @@ name = "1"
 type = "main"
 
 [[workspaces]]
-displayName = "C"
-id = "454CECD4-5E9D-4ED1-95D7-979D48817F5F"
+id = "8CA00878-69B1-45B7-9B4F-CF7B0F3FB307"
 layoutType = "default"
 name = "2"
 
@@ -1205,17 +1310,15 @@ name = "2"
 type = "main"
 
 [[workspaces]]
-displayName = "D"
-id = "BEB842B5-E894-4791-9FD1-397C3CDD3538"
-layoutType = "dwindle"
+id = "2177B755-89F4-4B65-A668-13A0DA1D1A4D"
+layoutType = "default"
 name = "3"
 
 [workspaces.monitorAssignment]
 type = "main"
 
 [[workspaces]]
-displayName = "N"
-id = "248AA883-2261-4D45-943C-79C0E46A232B"
+id = "ABD48896-C98E-4AA4-8337-CCE355D5F197"
 layoutType = "default"
 name = "4"
 
@@ -1223,8 +1326,7 @@ name = "4"
 type = "main"
 
 [[workspaces]]
-displayName = "S"
-id = "8B8C45D6-CE9E-41D9-BD50-BE4989D5E3DE"
+id = "C488DF6A-4552-4F37-A8BA-5A2B372D882B"
 layoutType = "default"
 name = "5"
 
@@ -1232,8 +1334,7 @@ name = "5"
 type = "main"
 
 [[workspaces]]
-displayName = "W"
-id = "5953F2BF-A378-4266-91B2-287174C4FA4D"
+id = "B6456373-B48F-47FA-9411-FD31BC6A2592"
 layoutType = "default"
 name = "6"
 
@@ -1241,8 +1342,7 @@ name = "6"
 type = "main"
 
 [[workspaces]]
-displayName = "X"
-id = "A7D5E104-6985-4516-8ED5-07F144F2A33D"
+id = "536CF138-4EBA-41CF-927B-6018AF2041DF"
 layoutType = "default"
 name = "7"
 
@@ -1250,8 +1350,7 @@ name = "7"
 type = "main"
 
 [[workspaces]]
-displayName = "Z"
-id = "0E18F6B0-345A-4078-8B21-33641F07A861"
+id = "7922CF60-B018-41A7-82E3-695A0E169DF4"
 layoutType = "default"
 name = "8"
 
@@ -1262,6 +1361,78 @@ type = "main"
 id = "8D4D711C-2B2F-4FEC-86BF-FA952037738A"
 layoutType = "default"
 name = "9"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "A"
+id = "AD36F001-C57E-41A5-AC1D-DF5249D007F0"
+layoutType = "default"
+name = "11"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "C"
+id = "454CECD4-5E9D-4ED1-95D7-979D48817F5F"
+layoutType = "default"
+name = "12"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "D"
+id = "BEB842B5-E894-4791-9FD1-397C3CDD3538"
+layoutType = "dwindle"
+name = "13"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "N"
+id = "248AA883-2261-4D45-943C-79C0E46A232B"
+layoutType = "default"
+name = "14"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "S"
+id = "8B8C45D6-CE9E-41D9-BD50-BE4989D5E3DE"
+layoutType = "default"
+name = "15"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "W"
+id = "5953F2BF-A378-4266-91B2-287174C4FA4D"
+layoutType = "default"
+name = "16"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "X"
+id = "A7D5E104-6985-4516-8ED5-07F144F2A33D"
+layoutType = "default"
+name = "17"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "Z"
+id = "0E18F6B0-345A-4078-8B21-33641F07A861"
+layoutType = "default"
+name = "18"
 
 [workspaces.monitorAssignment]
 type = "main"

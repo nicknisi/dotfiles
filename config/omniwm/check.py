@@ -7,9 +7,9 @@ import tomllib
 with Path(__file__).with_name("settings.toml").open("rb") as file:
     config = tomllib.load(file)
 
-assert config["schemaVersion"] == 3
+assert config["schemaVersion"] == 4
 hotkeys = config["hotkeys"]
-assert len({entry["id"] for entry in hotkeys}) == len(hotkeys) == 188
+assert len({entry["id"] for entry in hotkeys}) == len(hotkeys) == 214
 bindings = {entry["id"]: entry["binding"] for entry in hotkeys}
 assigned = Counter(value for value in bindings.values() if value != "Unassigned")
 assert all(count == 1 for count in assigned.values()), assigned
@@ -17,20 +17,22 @@ assert config["general"]["systemHyperTrigger"] == "None"
 assert config["general"]["defaultLayoutType"] == "dwindle"
 assert config["focus"]["followsWindowToMonitor"] is False
 
-labels = ["A", "C", "D", "N", "S", "W", "X", "Z", "9"]
+# Workspaces 1-9 are plain numbers on Option+digit; the lettered workspaces
+# live at 11-18 on Option+letter. Hotkey ids are zero-based (workspace N -> .N-1).
+letters = dict(zip(range(11, 19), "ACDNSWXZ"))
+expected = {n: str(n) for n in range(1, 10)} | {n: l for n, l in letters.items()}
 workspaces = config["workspaces"]
-assert len(workspaces) == len(labels)
-for index, (workspace, label) in enumerate(zip(workspaces, labels)):
-    number = str(index + 1)
-    assert workspace["name"] == number
-    assert workspace.get("displayName", number) == label
-    assert workspace["layoutType"] == ("niri" if label == "D" else "default")
+assert [int(w["name"]) for w in workspaces] == list(expected)
+for workspace in workspaces:
+    number = int(workspace["name"])
+    key = expected[number]
+    assert workspace.get("displayName", str(number)) == key
     assert workspace["monitorAssignment"] == {"type": "main"}
-    assert bindings[f"switchWorkspace.{index}"] == f"Option+{label}"
-    assert bindings[f"moveToWorkspace.{index}"] == f"Option+Shift+{label}"
-    if label != "9":
-        assert bindings[f"switchWorkspaceSlot.{number}"] == f"Option+{number}"
-        assert bindings[f"moveToWorkspaceSlot.{number}"] == f"Option+Shift+{number}"
+    assert bindings[f"switchWorkspace.{number - 1}"] == f"Option+{key}"
+    assert bindings[f"moveToWorkspace.{number - 1}"] == f"Option+Shift+{key}"
+for slot in range(1, 10):
+    assert bindings[f"switchWorkspaceSlot.{slot}"] == "Unassigned"
+    assert bindings[f"moveToWorkspaceSlot.{slot}"] == "Unassigned"
 
 for key, direction in zip("HJKL", ("left", "down", "up", "right")):
     assert bindings[f"focus.{direction}"] == f"Option+{key}"
@@ -48,13 +50,13 @@ for rule in config["appRules"]:
         assert rule["assignToWorkspace"] in names, rule
 routes = {rule["bundleId"]: rule.get("assignToWorkspace") for rule in config["appRules"]}
 for bundle, target in {
-    "com.mitchellh.ghostty": "3",
-    "com.hnc.Discord": "2",
-    "com.brave.Browser.origin": "6",
-    "net.imput.helium": "6",
-    "com.tinyspeck.slackmacgap": "5",
-    "md.obsidian": "5",
-    "us.zoom.xos": "8",
+    "com.mitchellh.ghostty": "13",
+    "com.hnc.Discord": "12",
+    "com.brave.Browser.origin": "16",
+    "net.imput.helium": "16",
+    "com.tinyspeck.slackmacgap": "15",
+    "md.obsidian": "15",
+    "us.zoom.xos": "18",
 }.items():
     assert routes[bundle] == target
 
@@ -62,7 +64,7 @@ assert config["gestures"]["fingerCount"] == 4
 assert config["gestures"]["workspaceSwipeFingerCount"] == 3
 assert config["gestures"]["workspaceSwipeAxis"] == "horizontal"
 assert config["gestures"]["workspaceSwipeEnabled"] is True
-assert config["quakeTerminal"]["position"] == "top"
-assert config["quakeTerminal"]["widthPercent"] == 70.0
-assert config["quakeTerminal"]["heightPercent"] == 50.0
+assert config["quakeTerminal"]["position"] == "bottom"
+assert config["quakeTerminal"]["widthPercent"] == 80.0
+assert config["quakeTerminal"]["heightPercent"] == 65.0
 print(f"OK: {len(workspaces)} workspaces, {len(hotkeys)} action IDs, {len(assigned)} unique shortcuts; routes and gestures checked")
