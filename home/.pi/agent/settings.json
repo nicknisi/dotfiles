@@ -40,6 +40,7 @@
     "../../Developer/pi-extensions/packages/statusline",
     "../../Developer/pi-extensions/packages/subagents",
     "../../Developer/pi-extensions/packages/turn-timer",
+    "../../Developer/pi-extensions/packages/heads-up",
     "../../Developer/pi-extensions/packages/workflows",
     "npm:pi-prompt-template-model",
     "../../Developer/ideation",
