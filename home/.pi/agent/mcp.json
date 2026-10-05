@@ -2,9 +2,7 @@
   "mcpServers": {
     "sessions": {
       "command": "sessions",
-      "args": [
-        "--mcp"
-      ],
+      "args": ["--mcp"],
       "cwd": "~/Developer/sessions",
       "type": "stdio"
     },
@@ -13,6 +11,9 @@
       "headers": {
         "Authorization": "!node ~/Developer/pi-extensions/packages/claude-design/bin/claude-design-auth.mjs token"
       }
+    },
+    "todoist": {
+      "url": "https://ai.todoist.net/mcp"
     },
     "notion": {
       "url": "https://mcp.notion.com/mcp"
