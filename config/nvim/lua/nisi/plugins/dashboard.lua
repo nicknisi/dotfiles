@@ -65,26 +65,6 @@ return {
               enabled = false,
             },
             {
-              title = "Open Issues",
-              cmd = "gh issue list -L 3",
-              key = "i",
-              action = function()
-                vim.fn.jobstart("gh issue list --web", { detach = true })
-              end,
-              icon = " ",
-              height = 7,
-            },
-            {
-              icon = " ",
-              title = "Open PRs",
-              cmd = "gh pr list -L 3",
-              key = "p",
-              action = function()
-                vim.fn.jobstart("gh pr list --web", { detach = true })
-              end,
-              height = 7,
-            },
-            {
               icon = " ",
               title = "Git Status",
               cmd = "git --no-pager diff --stat -B -M -C",
