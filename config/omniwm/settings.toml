@@ -916,11 +916,11 @@ binding = "Control+Option+Shift+L"
 id = "moveWorkspaceToMonitor.right"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Control+Option+Shift+K"
 id = "moveWorkspaceToMonitor.up"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Control+Option+Shift+J"
 id = "moveWorkspaceToMonitor.down"
 
 [[hotkeys]]
@@ -1440,3 +1440,27 @@ name = "18"
 
 [workspaces.monitorAssignment]
 type = "main"
+
+[[monitorDwindleOverrides]]
+id = "50E7FA5D-E54A-48F3-9B72-7CD05E80063D"
+monitorDisplayUUID = "982B7801-0561-4638-9D74-36AF14B599F3"
+monitorName = "Studio Display XDR"
+singleWindowFit = "2400x1300"
+
+[[monitorGapOverrides]]
+id = "5B8E28E9-11DB-41B7-BC08-6E3DE2D7FCC5"
+monitorDisplayUUID = "982B7801-0561-4638-9D74-36AF14B599F3"
+monitorName = "Studio Display XDR"
+outerGapTop = 80.0
+
+[[monitorDwindleOverrides]]
+id = "9FD4A9E3-736F-4866-AD7A-A004CCA0C9CB"
+monitorDisplayUUID = "B5F2488F-64B8-47CB-898A-6380841F2C4D"
+monitorName = ""
+singleWindowFit = "1600x860"
+
+[[monitorGapOverrides]]
+id = "F926FB11-20B3-4AC4-9874-47671A605FBE"
+monitorDisplayUUID = "B5F2488F-64B8-47CB-898A-6380841F2C4D"
+monitorName = ""
+outerGapTop = 80.0

@@ -37,6 +37,7 @@ for slot in range(1, 10):
 for key, direction in zip("HJKL", ("left", "down", "up", "right")):
     assert bindings[f"focus.{direction}"] == f"Option+{key}"
     assert bindings[f"move.{direction}"] == f"Option+Shift+{key}"
+    assert bindings[f"moveWorkspaceToMonitor.{direction}"] == f"Control+Option+Shift+{key}"
 assert bindings["toggleWorkspaceLayout"] == "Control+Option+L"
 assert bindings["toggleFullscreen"] == "Option+F"
 assert bindings["toggleNativeFullscreen"] == "Option+Shift+F"

@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+"""Add OmniWM per-display overrides for any display that lacks them.
+
+OmniWM's single-window size only takes a fixed WIDTHxHEIGHT, and its top gap
+is measured from the physical edge (menu bar included), so both differ per
+display. For each connected display without an entry this appends:
+
+  monitorDwindleOverrides  singleWindowFit = ~83% x 80% of the screen
+  monitorGapOverrides      outerGapTop = menu bar + 50 (SketchyBar clearance)
+
+Existing entries are never changed. `--watch` runs it on every display change
+(the LaunchAgent from config/mise/config.toml does this); `--dry-run` prints.
+Stays Python 3.9 compatible for launchd's /usr/bin/python3.
+"""
+
+import ctypes
+import json
+import os
+import re
+import subprocess
+import sys
+import uuid
+from pathlib import Path
+
+CTL = "/Applications/OmniWM.app/Contents/MacOS/omniwmctl"
+SETTINGS = Path.home() / ".config/omniwm/settings.toml"
+WIDTH, HEIGHT, TOP_CLEARANCE = 5 / 6, 0.8, 50
+
+
+class CGRect(ctypes.Structure):
+    _fields_ = [("x", ctypes.c_double), ("y", ctypes.c_double), ("w", ctypes.c_double), ("h", ctypes.c_double)]
+
+
+def display_uuids():
+    """Map Cocoa-space (x, y, w, h) frames to display UUIDs via CoreGraphics."""
+    cg = ctypes.CDLL("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")
+    cf = ctypes.CDLL("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")
+    cs = ctypes.CDLL("/System/Library/Frameworks/ColorSync.framework/ColorSync")
+    cg.CGDisplayBounds.restype = CGRect
+    cg.CGMainDisplayID.restype = ctypes.c_uint32
+    cs.CGDisplayCreateUUIDFromDisplayID.restype = ctypes.c_void_p
+    cf.CFUUIDCreateString.restype = ctypes.c_void_p
+    cf.CFUUIDCreateString.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+    cf.CFStringGetCString.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_long, ctypes.c_uint32]
+    cf.CFRelease.argtypes = [ctypes.c_void_p]
+
+    ids, count = (ctypes.c_uint32 * 16)(), ctypes.c_uint32()
+    cg.CGGetActiveDisplayList(16, ids, ctypes.byref(count))
+    main_h = cg.CGDisplayBounds(cg.CGMainDisplayID()).h
+    result = {}
+    for display in ids[: count.value]:
+        b = cg.CGDisplayBounds(display)
+        cfuuid = cs.CGDisplayCreateUUIDFromDisplayID(display)
+        cfstr = cf.CFUUIDCreateString(None, cfuuid)
+        buf = ctypes.create_string_buffer(64)
+        cf.CFStringGetCString(cfstr, buf, 64, 0x08000100)  # UTF-8
+        cf.CFRelease(cfstr)
+        cf.CFRelease(cfuuid)
+        # CoreGraphics is top-left origin; OmniWM reports Cocoa bottom-left.
+        result[(b.x, main_h - b.y - b.h, b.w, b.h)] = buf.value.decode()
+    return result
+
+
+def omniwm_displays():
+    out = subprocess.run([CTL, "query", "displays", "--format", "json"], capture_output=True, text=True, check=True)
+    return json.loads(out.stdout)["result"]["payload"]["displays"]
+
+
+def covered(text, table):
+    """UUIDs that already have a [[table]] entry."""
+    uuids = set()
+    for block in re.split(r"(?m)^(?=\[)", text):
+        if block.startswith(f"[[{table}]]"):
+            uuids.update(re.findall(r'(?m)^monitorDisplayUUID = "([^"]+)"', block))
+    return uuids
+
+
+def entry(table, display_uuid, name, key, value):
+    return (
+        f'\n[[{table}]]\nid = "{str(uuid.uuid4()).upper()}"\n'
+        f'monitorDisplayUUID = "{display_uuid}"\nmonitorName = "{name}"\n{key} = {value}\n'
+    )
+
+
+def main(dry_run):
+    text = SETTINGS.read_text()
+    global_top = float(re.search(r"(?ms)^\[gaps\.outer\].*?^top = ([\d.]+)", text).group(1))
+    have_fit = covered(text, "monitorDwindleOverrides")
+    have_gap = covered(text, "monitorGapOverrides")
+    uuids = display_uuids()
+
+    additions = []
+    for d in omniwm_displays():
+        f, v = d["frame"], d["visibleFrame"]
+        display_uuid = uuids.get((f["x"], f["y"], f["width"], f["height"]))
+        if not display_uuid:
+            print(f"skip {d['name']}: no matching CoreGraphics display", file=sys.stderr)
+            continue
+        if display_uuid not in have_fit:
+            w = round(f["width"] * WIDTH / 10) * 10
+            h = round(f["height"] * HEIGHT / 10) * 10
+            additions.append(entry("monitorDwindleOverrides", display_uuid, d["name"], "singleWindowFit", f'"{w}x{h}"'))
+        menu_bar = (f["y"] + f["height"]) - (v["y"] + v["height"])
+        top = float(round(menu_bar + TOP_CLEARANCE))
+        if display_uuid not in have_gap and top != global_top:
+            additions.append(entry("monitorGapOverrides", display_uuid, d["name"], "outerGapTop", top))
+
+    if not additions:
+        return
+    if dry_run:
+        print("".join(additions))
+        return
+    # An empty `table = []` inline array can't coexist with [[table]] entries.
+    for table in ("monitorDwindleOverrides", "monitorGapOverrides"):
+        text = re.sub(rf"(?m)^{table} = \[\]\n", "", text)
+    # Write in place so the dotfiles symlink survives; OmniWM live-reloads.
+    SETTINGS.write_text(text.rstrip("\n") + "\n" + "".join(additions))
+    print(f"added {len(additions)} override(s) to {SETTINGS}")
+
+
+if __name__ == "__main__":
+    if not os.access(CTL, os.X_OK):
+        sys.exit(0)
+    if "--watch" in sys.argv:
+        os.execv(CTL, [CTL, "watch", "display-changed", "--reconnect", "--exec", os.path.abspath(__file__)])
+    main("--dry-run" in sys.argv)

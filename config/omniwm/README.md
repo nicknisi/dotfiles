@@ -55,7 +55,7 @@ All use **Option** in place of Super, leaving Command shortcuts to macOS apps.
 | Option + Tab | Focus previous window (not Hyprland's thumbnail switcher) |
 | Option + Shift + Tab | Overview |
 | Control + Option + Tab | Previous workspace |
-| Control + Option + Shift + H/L | Move the current workspace and all its windows to the left/right monitor |
+| Control + Option + Shift + H/J/K/L | Move the current workspace and all its windows to the monitor left/below/above/right (use J/K when displays are stacked vertically) |
 | Option + Space | OmniWM command palette |
 | Option + grave | Built-in Quake terminal: bottom, 80% wide, 65% high |
 | Option + drag / right-drag | Swap tiled windows / resize |
@@ -84,7 +84,16 @@ if macOS intercepts them. This config does not change system preferences.
   (SketchyBar: y_offset 6 + height 36 + 8pt gap). OmniWM measures `outer.top`
   from the physical edge and subtracts the menu bar, so it is menu bar + 50:
   89 on the notched built-in display (39pt bar), 74 via `monitorGapOverrides`
-  on the Studio Displays (24pt bar).
+  on the Studio Displays (24pt bar), 80 on the Studio Display XDR (30pt bar).
+- New displays are handled automatically. OmniWM only takes a fixed single-window
+  size and an edge-measured top gap, so `bin/omniwm-monitors` appends a
+  `monitorDwindleOverrides` entry (about 83% × 80% of the screen) and, if the
+  menu bar differs, a `monitorGapOverrides` entry (menu bar + 50) for any
+  connected display that lacks one. It never changes existing entries; edit
+  them by hand to tune a display. On macOS, `mise bootstrap` installs the
+  `com.nicknisi.omniwm-monitors` LaunchAgent, which runs the script on every
+  display change (log: `/tmp/com.nicknisi.omniwm-monitors.log`). Run
+  `omniwm-monitors --dry-run` to preview.
 - Don't run AeroSpace alongside OmniWM. SketchyBar supports both WMs; with IPC
   enabled, start `sketchybar` to use its workspace pills and custom widgets (see
   `../sketchybar/README.md`). Disable the native workspace bar separately if desired.
