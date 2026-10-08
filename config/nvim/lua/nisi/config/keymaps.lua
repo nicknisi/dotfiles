@@ -40,18 +40,8 @@ vim.keymap.set("n", "<Down>", "<cmd>m .+1<cr>==", { desc = "Move line down" })
 vim.keymap.set("v", "<Up>", ":m '<-2<cr>gv=gv", { desc = "Move selection up", silent = true })
 vim.keymap.set("v", "<Down>", ":m '>+1<cr>gv=gv", { desc = "Move selection down", silent = true })
 
--- If you want to keep J/K in visual mode for moving (doesn't conflict there)
 vim.keymap.set("v", "J", ":m '>+1<cr>gv=gv", { desc = "Move selection down", silent = true })
 vim.keymap.set("v", "K", ":m '<-2<cr>gv=gv", { desc = "Move selection up", silent = true })
-
--- wrap visual selection in provided wrapper
-vim.keymap.set("v", "$(", "<esc>`>a)<esc>`<i(<esc>", { desc = "Wrap in parentheses" })
-vim.keymap.set("v", "$[", "<esc>`>a]<esc>`<i[<esc>", { desc = "Wrap in brackets" })
-vim.keymap.set("v", "${", "<esc>`>a}<esc>`<i{<esc>", { desc = "Wrap in braces" })
-vim.keymap.set("v", "$'", "<esc>`>a'<esc>`<i'<esc>", { desc = "Wrap in single quotes" })
-vim.keymap.set("v", '$"', '<esc>`>a"<esc>`<i"<esc>', { desc = "Wrap in double quotes" })
-vim.keymap.set("v", "$\\", "<esc>`>o*/<esc>`<O/*<esc>", { desc = "Wrap in C-style comment" })
-vim.keymap.set("v", "$<", "<esc>`>a><esc>`<i<<esc>", { desc = "Wrap in angle brackets" })
 
 -- toggle cursorline
 vim.keymap.set("n", "<leader>i", "<cmd>set cursorline!<cr>", { desc = "Toggle cursor line" })
