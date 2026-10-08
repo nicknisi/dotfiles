@@ -13,7 +13,6 @@ vim.keymap.set({ "n", "i", "v" }, "<D-s>", "<cmd>w<cr><esc>", { desc = "Save Fil
 vim.keymap.set("n", "<space>", "<cmd>silent set hlsearch! hlsearch?<cr>", { desc = "Toggle search results" })
 vim.keymap.set("n", "<leader>l", "<cmd>set list!<cr>", { desc = "Toggle invisible characters" })
 vim.keymap.set("n", "<leader>.", "<c-^>", { desc = "Go to last buffer" })
-vim.keymap.set("n", "<leader>z", "<Plug>Zoom", { desc = "Toggle zoom", remap = true })
 
 -- helpers for dealing with other people's code
 vim.keymap.set("n", "\\t", "<cmd>set ts=4 sts=4 sw=4 noet<cr>", { desc = "Set tabs" })

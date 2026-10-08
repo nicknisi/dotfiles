@@ -24,14 +24,13 @@ return {
       "MunifTanjim/nui.nvim",
       {
         "s1n7ax/nvim-window-picker",
-        -- tag = "v1.*",
         config = function()
           require("window-picker").setup({
             autoselect_one = true,
             include_current = false,
             filter_rules = {
               bo = {
-                filetype = { "nep-tree", "neo-tree-popup", "notify" },
+                filetype = { "neo-tree", "neo-tree-popup", "notify" },
                 buftype = { "terminal", "quickfix" },
               },
             },
@@ -45,28 +44,19 @@ return {
       { "<leader>k", "<cmd>Neotree toggle reveal<cr>", desc = "Toggle file drawer" },
     },
     opts = {
-      -- don't reset the cursor position when opening a file
       disable_netrw = true,
       hijack_netrw = true,
-      close_if_last_window = false,
-      enable_git_status = true,
-      enable_diagnostics = true,
-      sort_case_insensitive = false, -- used when sorting files and directories in the tree
       use_default_mappings = false,
-      sort_function = nil, -- use a custom function for sorting files and directories in the tree
       source_selector = { winbar = true, statusline = false },
       default_component_configs = {
         container = { enable_character_fade = true },
         indent = {
           indent_size = 2,
           padding = 1, -- extra padding on left hand side
-          -- indent guides
           with_markers = true,
           indent_marker = "│",
           last_indent_marker = "└",
           highlight = "NeoTreeIndentMarker",
-          -- expander config, needed for nesting files
-          with_expanders = nil, -- if nil and file nesting is enabled, will enable expanders
           expander_collapsed = icons.arrow_closed,
           expander_expanded = icons.arrow_open,
           expander_highlight = "NeoTreeExpander",
@@ -75,8 +65,6 @@ return {
           folder_closed = icons.default,
           folder_open = icons.open,
           folder_empty = icons.empty,
-          -- The next two settings are only a fallback, if you use nvim-web-devicons and configure default icons there
-          -- then these will never be used.
           default = "*",
           highlight = "NeoTreeFileIcon",
         },
@@ -84,12 +72,10 @@ return {
         name = { trailing_slash = false, use_git_status_colors = true, highlight = "NeoTreeFileName" },
         git_status = {
           symbols = {
-            -- Change type
             added = icons.added,
             modified = "",
             deleted = icons.deleted,
             renamed = icons.renamed,
-            -- Status type
             untracked = icons.untracked,
             ignored = icons.ignored,
             unstaged = icons.unstaged,
@@ -114,20 +100,12 @@ return {
           ["l"] = "focus_preview",
           ["S"] = "open_split",
           ["s"] = "open_vsplit",
-          -- ["S"] = "split_with_window_picker",
-          -- ["s"] = "vsplit_with_window_picker",
           ["t"] = "open_tabnew",
-          -- ["<cr>"] = "open_drop",
-          -- ["t"] = "open_tab_drop",
           ["w"] = "open_with_window_picker",
-          -- ["P"] = "toggle_preview", -- enter preview mode, which shows the current node without focusing
           ["C"] = "close_node",
           ["z"] = "close_all_nodes",
-          -- ["Z"] = "expand_all_nodes",
           ["a"] = {
             "add",
-            -- this command supports BASH style brace expansion ("x{a,b,c}" -> xa,xb,xc). see `:h neo-tree-file-actions` for details
-            -- some commands may take optional config options, see `:h neo-tree-mappings` for details
             config = {
               show_path = "none", -- "none", "relative", "absolute"
             },
@@ -139,12 +117,6 @@ return {
           ["x"] = "cut_to_clipboard",
           ["p"] = "paste_from_clipboard",
           ["c"] = "copy", -- takes text input for destination, also accepts the optional config.show_path option like "add":
-          -- ["c"] = {
-          --  "copy",
-          --  config = {
-          --    show_path = "none" -- "none", "relative", "absolute"
-          --  }
-          -- }
           ["m"] = "move", -- takes text input for destination, also accepts the optional config.show_path option like "add".
           ["q"] = "close_window",
           ["R"] = "refresh",
@@ -165,40 +137,19 @@ return {
           hide_dotfiles = false,
           hide_gitignored = true,
           hide_hidden = true, -- only works on Windows for hidden files/directories
-          hide_by_name = {
-            -- "node_modules"
-          },
-          hide_by_pattern = { -- uses glob style patterns
-            -- "*.meta",
-            -- "*/src/*/tsconfig.json",
-          },
-          always_show = { -- remains visible even if other settings would normally hide it
-            -- ".gitignored",
-          },
           never_show = { -- remains hidden even if visible is toggled to true, this overrides always_show
             ".DS_Store",
             "thumbs.db",
-          },
-          never_show_by_pattern = { -- uses glob style patterns
-            -- ".null-ls_*",
           },
         },
         bind_to_cwd = true,
         cwd_target = { sidebar = "tab", current = "window" },
         follow_current_file = { enabled = true }, -- This will find and focus the file in the active buffer every
-        -- time the current file is changed while the tree is open.
         group_empty_dirs = false, -- when true, empty folders will be grouped together
         hijack_netrw_behavior = "open_default", -- netrw disabled, opening a directory opens neo-tree
-        -- in whatever position is specified in window.position
-        -- "open_current",  -- netrw disabled, opening a directory opens within the
-        -- window like netrw would, regardless of window.position
-        -- "disabled",    -- netrw left alone, neo-tree does not handle opening dirs
-        use_libuv_file_watcher = false, -- This will use the OS level file watchers to detect changes
-        -- instead of relying on nvim autocmd events.
         window = {
           mappings = {
             ["<bs>"] = "navigate_up",
-            -- ["<c-.>"] = "set_root",
             ["H"] = "toggle_hidden",
             ["/"] = "fuzzy_finder",
             ["D"] = "fuzzy_finder_directory",
@@ -211,14 +162,12 @@ return {
       },
       buffers = {
         follow_current_file = { enabled = true }, -- This will find and focus the file in the active buffer every
-        -- time the current file is changed while the tree is open.
         group_empty_dirs = true, -- when true, empty folders will be grouped together
         show_unloaded = true,
         window = {
           mappings = {
             ["bd"] = "buffer_delete",
             ["<bs>"] = "navigate_up",
-            -- ["<c-.>"] = "set_root",
           },
         },
       },
@@ -262,12 +211,9 @@ return {
         { "<leader>r", "<cmd>Telescope buffers<cr>", desc = "Find in buffers" },
         { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Find in help" },
       }
-      local utils = require("nisi.utils")
-
-      if utils.is_in_git_repo() then
-        utils.table_append(keys, {
+      if vim.fs.root(vim.fn.getcwd(), ".git") then
+        vim.list_extend(keys, {
           { "<leader>fs", "<cmd>Telescope git_files<cr>", desc = "Find Git files" },
-          -- { "<leader>t", "<cmd>Telescope git_files<cr>", desc = "Find in Git files" },
           {
             "<leader>t",
             function()
@@ -282,7 +228,7 @@ return {
           { "<leader>gs", "<cmd>Telescope git_status<cr>", desc = "Status" },
         })
       else
-        utils.table_append(keys, {
+        vim.list_extend(keys, {
           { "<leader>t", "<cmd>Telescope find_files<cr>", desc = "Find in files" },
           { "<D-p>", "<cmd>Telescope find_files<cr>", desc = "Find in files" },
         })
@@ -292,8 +238,6 @@ return {
     end,
     opts = function()
       local actions = require("telescope.actions")
-      local sorters = require("telescope.sorters")
-      local previewers = require("telescope.previewers")
 
       return {
         defaults = {
@@ -302,8 +246,6 @@ return {
               ["<Esc>"] = actions.close, -- don't go into normal mode, just close
               ["<C-j>"] = actions.move_selection_next, -- scroll the list with <c-j>
               ["<C-k>"] = actions.move_selection_previous, -- scroll the list with <c-k>
-              -- ["<C-\\->"] = actions.select_horizontal, -- open selection in new horizantal split
-              -- ["<C-\\|>"] = actions.select_vertical, -- open selection in new vertical split
               ["<C-t>"] = actions.select_tab, -- open selection in new tab
               ["<C-y>"] = actions.preview_scrolling_up,
               ["<C-e>"] = actions.preview_scrolling_down,
@@ -322,10 +264,7 @@ return {
           prompt_prefix = "   ",
           selection_caret = "  ",
           entry_prefix = "  ",
-          initial_mode = "insert",
-          selection_strategy = "reset",
           sorting_strategy = "ascending",
-          layout_strategy = "horizontal",
           layout_config = {
             horizontal = { prompt_position = "top", preview_width = 0.55, results_width = 0.8 },
             vertical = { mirror = false },
@@ -333,21 +272,9 @@ return {
             height = 0.80,
             preview_cutoff = 120,
           },
-          file_sorter = sorters.get_fuzzy_file,
           file_ignore_patterns = { "node_modules" },
-          generic_sorter = sorters.get_generic_fuzzy_sorter,
           path_display = { "truncate" },
-          winblend = 0,
-          border = {},
           borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" },
-          color_devicons = true,
-          use_less = true,
-          set_env = { ["COLORTERM"] = "truecolor" }, -- default = nil,
-          file_previewer = previewers.vim_buffer_cat.new,
-          grep_previewer = previewers.vim_buffer_vimgrep.new,
-          qflist_previewer = previewers.vim_buffer_qflist.new,
-          -- Developer configurations: Not meant for general override
-          buffer_previewer_maker = previewers.buffer_previewer_maker,
         },
         pickers = { find_files = { find_command = { "fd", "--type", "f", "--hidden", "--strip-cwd-prefix" } } },
       }

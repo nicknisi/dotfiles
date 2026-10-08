@@ -1,12 +1,8 @@
 local config = require("nisi").config
 local ascii = require("nisi.assets").ascii
-local utils = require("nisi.utils")
-
-local group = vim.api.nvim_create_augroup("Startup", { clear = true })
-vim.api.nvim_create_autocmd("FileType", { group = group, pattern = "startup", command = "setlocal list&" })
 
 -- if in a git directory, open git files, otherwise open all files when pressing the "Find File" shortcut
-local find_command = utils.is_in_git_repo() and ":Telescope git_files" or ":Telescope find_files"
+local find_command = vim.fs.root(vim.fn.getcwd(), ".git") and ":Telescope git_files" or ":Telescope find_files"
 
 ---@module 'snacks'
 
@@ -16,8 +12,6 @@ return {
   opts = {
     dashboard = {
       enabled = true,
-      row = nil,
-      col = nil,
       preset = {
         header = table.concat(ascii[config.startup_art] or ascii.meatboy, "\n"),
         ---@type snacks.dashboard.Item[]
@@ -50,38 +44,20 @@ return {
             Snacks.gitbrowse()
           end,
         },
-        function()
-          local in_git = Snacks.git.get_root() ~= nil
-          local cmds = {
-            {
-              title = "Notifications",
-              cmd = "gh notify -s -a -n5",
-              action = function()
-                vim.ui.open("https://github.com/notifications")
-              end,
-              key = "n",
-              icon = " ",
-              height = 5,
-              enabled = false,
-            },
-            {
-              icon = " ",
-              title = "Git Status",
-              cmd = "git --no-pager diff --stat -B -M -C",
-              height = 10,
-            },
-          }
-          return vim.tbl_map(function(cmd)
-            return vim.tbl_extend("force", {
-              pane = 2,
-              section = "terminal",
-              enabled = in_git,
-              padding = 1,
-              ttl = 5 * 60,
-              indent = 3,
-            }, cmd)
-          end, cmds)
-        end,
+        {
+          pane = 2,
+          section = "terminal",
+          icon = " ",
+          title = "Git Status",
+          cmd = "git --no-pager diff --stat -B -M -C",
+          height = 10,
+          padding = 1,
+          ttl = 5 * 60,
+          indent = 3,
+          enabled = function()
+            return Snacks.git.get_root() ~= nil
+          end,
+        },
         { section = "startup" },
       },
     },

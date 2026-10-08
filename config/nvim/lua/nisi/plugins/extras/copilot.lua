@@ -6,21 +6,8 @@ return {
     build = ":Copilot auth",
     event = "InsertEnter",
     opts = {
-      suggestion = {
-        enabled = false,
-        auto_trigger = true,
-        keymap = {
-          accept = "<Tab>",
-          close = "<Esc>",
-          next = "<C-J>",
-          prev = "<C-K>",
-          select = "<CR>",
-          dismiss = "<C-X>",
-        },
-      },
-      panel = {
-        enabled = false,
-      },
+      suggestion = { enabled = false },
+      panel = { enabled = false },
       filetypes = {
         markdown = true,
         help = true,

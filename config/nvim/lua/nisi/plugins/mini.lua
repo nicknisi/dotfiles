@@ -26,9 +26,6 @@ return {
         },
       })
 
-      -- Highlight word under cursor
-      require("mini.cursorword").setup({})
-
       -- Move text in any direction
       require("mini.move").setup({
         mappings = {

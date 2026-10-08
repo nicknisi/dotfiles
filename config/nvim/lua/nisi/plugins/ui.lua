@@ -1,7 +1,7 @@
 return {
   {
     "MeanderingProgrammer/render-markdown.nvim",
-    ft = { "markdown", "codecompanion" },
+    ft = { "markdown" },
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
     opts = {},
   },
@@ -24,7 +24,6 @@ return {
       },
     },
   },
-  -- file drawer plugin
   -- Floating statuslines. This is used to show buffer names in splits
   {
     "b0o/incline.nvim",
@@ -52,7 +51,6 @@ return {
   },
   { "alvarosevilla95/luatab.nvim", config = true },
   -- improve the default neovim interfaces, such as refactoring
-  { "stevearc/dressing.nvim", event = "VeryLazy" },
   { "MunifTanjim/nui.nvim", lazy = true },
   {
     "folke/noice.nvim",
@@ -64,7 +62,6 @@ return {
         override = {
           ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
           ["vim.lsp.util.stylize_markdown"] = true,
-          ["cmp.entry.get_documentation"] = true,
         },
       },
       -- you can enable a preset for easier configuration
@@ -82,13 +79,6 @@ return {
         },
       },
     },
-    dependencies = {
-      -- if you lazy-load any plugin below, make sure to add proper `module="..."` entries
-      "MunifTanjim/nui.nvim",
-      -- OPTIONAL:
-      --   `nvim-notify` is only needed, if you want to use the notification view.
-      --   If not available, we use `mini` as the fallback
-      "rcarriga/nvim-notify",
-    },
+    dependencies = { "MunifTanjim/nui.nvim" },
   },
 }

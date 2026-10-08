@@ -1,19 +1,4 @@
 return {
-  -- Python syntax and indent
-  {
-    "vim-python/python-syntax",
-    ft = { "python" },
-    init = function()
-      vim.g.python_highlight_all = 1
-    end,
-  },
-
-  -- Python indentation
-  {
-    "Vimjas/vim-python-pep8-indent",
-    ft = { "python" },
-  },
-
   -- Python virtual environment support
   {
     "AckslD/swenv.nvim",

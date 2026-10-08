@@ -8,7 +8,6 @@
     "library": [
       "$VIMRUNTIME",
       "${3rd}/luv/library",
-      "${HOME}/.local/share/nvim/lazy/snacks.nvim",
       "~/.local/share/nvim/lazy/snacks.nvim/lua"
     ],
     "maxPreload": 2000,

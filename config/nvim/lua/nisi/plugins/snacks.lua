@@ -8,7 +8,6 @@ return {
     ---@type snacks.Config
     opts = {
       bigfile = { enabled = true },
-      dashboard = { enabled = true },
       image = { enabled = true },
       input = { enabled = true },
       notifier = {
@@ -143,13 +142,6 @@ return {
         end,
         desc = "Prev Reference",
         mode = { "n", "t" },
-      },
-      {
-        "<leader>N",
-        desc = "Neovim News",
-        function()
-          Snacks.win()
-        end,
       },
     },
     config = function(_, opts)

@@ -20,15 +20,6 @@ local formatters = {
 
 return {
   {
-    "liuchengxu/vista.vim",
-    lazy = true,
-    cmd = "Vista",
-    cond = not vim.g.vscode,
-    config = function()
-      vim.g.vista_default_executive = "nvim_lsp"
-    end,
-  },
-  {
     "neovim/nvim-lspconfig",
     lazy = false,
     cond = not vim.g.vscode,
@@ -38,6 +29,7 @@ return {
         "williamboman/mason.nvim",
         opts = {
           ui = {
+            border = "rounded",
             icons = {
               package_installed = "✓",
               package_pending = "➜",

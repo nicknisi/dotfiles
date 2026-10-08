@@ -191,9 +191,9 @@ vim.api.nvim_create_autocmd("VimEnter", {
         assert(vim.fn.readfile(path)[1] == "const answer = { value: 1 };", "JavaScript was not formatted")
       end)
       check("setup is idempotent", function()
-        local colorscheme = require("nisi").config.colorscheme
-        require("nisi").setup({ colorscheme = "not-a-colorscheme" })
-        assert(require("nisi").config.colorscheme == colorscheme, "second setup changed the config")
+        local art = require("nisi").config.startup_art
+        require("nisi").setup({ startup_art = "not-an-art" })
+        assert(require("nisi").config.startup_art == art, "second setup changed the config")
       end)
       vim.wait(200)
       check("no plugin configuration errors", function()
