@@ -8,7 +8,7 @@
   "skills": [
     "~/Developer/skills"
   ],
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "xhigh",
   "compaction": {
     "enabled": true,
     "reserveTokens": 16384,
