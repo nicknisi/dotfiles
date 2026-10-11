@@ -27,6 +27,11 @@
         "Authorization": "Bearer ${EXCALIDRAW_API_TOKEN}"
       }
     },
+    "xapi": {
+      "command": "xurl",
+      "args": ["--app", "nicknisi-x-mcp", "mcp", "https://api.x.com/mcp"],
+      "description": "X (Twitter) API acting as Nick: search posts, users, timelines, bookmarks, trends, news, Articles"
+    },
     "linear": {
       "url": "https://mcp.linear.app/mcp"
     },
