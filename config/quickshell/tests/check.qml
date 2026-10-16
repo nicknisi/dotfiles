@@ -253,6 +253,18 @@ ShellRoot {
                 test.check(Media.choosePlayer([paused, playing], "paused") === paused, "retain chosen app");
                 test.check(Media.choosePlayer([playing], "paused") === playing, "removed player fallback");
 
+                const mediaPage = test.child(hud.contentItem, "mediaPage");
+                test.check(mediaPage !== null, "dedicated media popup exists");
+                mediaPage.player = player;
+                hud.page = "media";
+                test.check(mediaPage.active && mediaPage.parent.children[mediaPage.parent.currentIndex] === mediaPage, "media route selects playback controls, not system home");
+                const popupPlay = test.child(mediaPage, "playPause");
+                popupPlay.click();
+                test.check(player.isPlaying, "popup playback control works");
+                popupPlay.click();
+                hud.page = "";
+                test.check(!mediaPage.active, "closed media popup stops polling");
+
                 const play = test.child(card, "playPause");
                 const next = test.child(card, "next");
                 const previous = test.child(card, "previous");

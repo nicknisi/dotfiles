@@ -74,7 +74,7 @@ PopupWindow {
                     anchors.rightMargin: 6
                     spacing: 10
                     BarModule {
-                        visible: hud.page !== "home" && hud.page !== "tray"
+                        visible: hud.page !== "home" && hud.page !== "tray" && hud.page !== "media"
                         text: hud.page === "tailscale" ? "Back to network" : hud.page === "theme" ? "Back to appearance" : "Back to controls"
                         onClicked: hud.navigate(hud.page === "tailscale" ? "net" : hud.page === "theme" ? "appearance" : "home")
                         Text {
@@ -123,7 +123,7 @@ PopupWindow {
                     width: viewport.width
                     implicitHeight: children[currentIndex]?.implicitHeight ?? 0
                     height: implicitHeight
-                    currentIndex: Math.max(0, ["home", "caffeine", "audio", "net", "bt", "display", "theme", "clock", "tailscale", "appearance", "battery", "tray"].indexOf(hud.page))
+                    currentIndex: Math.max(0, ["home", "caffeine", "audio", "net", "bt", "display", "theme", "clock", "tailscale", "appearance", "battery", "tray", "media"].indexOf(hud.page))
                     HudHome { shown: hud.shown && hud.page === "home"; onNavigate: page => hud.navigate(page) }
                     CaffeineMenu { shown: hud.shown && hud.page === "caffeine"; onDismissed: hud.dismissed() }
                     AudioMenu { shown: hud.shown && hud.page === "audio"; onDismissed: hud.dismissed() }
@@ -136,6 +136,7 @@ PopupWindow {
                     AppearanceMenu { shown: hud.shown && hud.page === "appearance"; onNavigate: page => hud.navigate(page); onDismissed: hud.dismissed() }
                     BatteryMenu { shown: hud.shown && hud.page === "battery"; onDismissed: hud.dismissed() }
                     TrayMenu { item: hud.trayItem; shown: hud.shown && hud.page === "tray"; onDismissed: hud.dismissed() }
+                    MediaCard { objectName: "mediaPage"; active: hud.shown && hud.page === "media" }
                 }
             }
         }

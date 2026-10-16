@@ -10,6 +10,7 @@ TestCase {
     height: 1080
     BarDragFixture { id: bar }
     function init() {
+        Media.player = null;
         Prefs.translucent = false;
         bar.suppressClicks = false;
         bar.clicks = 0;
@@ -34,6 +35,21 @@ TestCase {
         compare(vertical ? bar.surface.width : bar.surface.height, 40);
         compare(vertical ? bar.width : bar.height, data.mode === "full" ? 40 : 56);
         compare(vertical ? bar.surface.y : bar.surface.x, (along - expected) / 2);
+    }
+    function test_mediaExpansion_data() { return test_layout_data(); }
+    function test_mediaExpansion(data) {
+        Prefs.barMode = data.mode;
+        Prefs.edge = data.edge;
+        const idleLength = bar.vertical ? bar.surface.height : bar.surface.width;
+        Media.player = {isPlaying: false, trackTitle: "A very long track title ".repeat(20)};
+        const extra = data.mode === "pill" && !bar.vertical ? 128 : 0;
+        tryCompare(bar, "bodyLength", idleLength + extra, 1000, "capsule makes room for artwork and metadata");
+        if (extra) {
+            Media.player = {isPlaying: false, trackTitle: "Hi", trackArtist: "AB"};
+            tryVerify(() => bar.bodyLength < idleLength + extra, 1000, "short tracks shrink the capsule too");
+        }
+        Media.player = null;
+        compare(bar.vertical ? bar.surface.height : bar.surface.width, idleLength, "capsule shrinks when player closes");
     }
     function test_barReaction_data() { return test_layout_data(); }
     function test_barReaction(data) {

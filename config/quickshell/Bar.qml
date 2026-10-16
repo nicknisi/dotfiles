@@ -19,7 +19,8 @@ PanelWindow {
     readonly property int thick: Theme.barHeight
     readonly property int inset: full ? 0 : Theme.barInset
     readonly property real along: vertical ? height : width
-    readonly property real targetLength: full ? along : Math.min(along - 2 * inset, rail ? along * 0.8 : 518)
+    readonly property real mediaExtra: Media.player ? Math.max(0, (vertical ? mediaButton.implicitHeight : mediaButton.implicitWidth) - 32) : 0
+    readonly property real targetLength: full ? along : Math.min(along - 2 * inset, rail ? along * 0.8 : 518 + mediaExtra)
     readonly property real bodyLength: Math.max(thick, targetLength)
     readonly property real bodyX: vertical ? inset : (full ? 0 : (width - body.width) / 2)
     readonly property real bodyY: vertical ? (full ? 0 : (height - body.height) / 2) : inset
@@ -244,7 +245,7 @@ PanelWindow {
                 interactive: false
                 anchors.centerIn: parent
                 width: bar.vertical ? 30 : Math.min(contentWidth, Math.max(30, Math.min(body.width * 0.34, body.width - trailing.width - clockButton.width - 40)))
-                height: bar.vertical ? Math.min(contentHeight, Math.max(60, body.height * 0.34)) : 28
+                height: bar.vertical ? Math.min(contentHeight, Math.max(30, Math.min(body.height * 0.34, body.height - trailing.height - clockButton.height - 40))) : 28
                 orientation: bar.vertical ? ListView.Vertical : ListView.Horizontal
                 spacing: 3
                 clip: true
@@ -295,7 +296,7 @@ PanelWindow {
             id: clockButton
             readonly property real span: bar.vertical ? 54 : clockText.implicitWidth + 22
             x: bar.vertical ? 0 : Math.max(leading.x + leading.width + 6, Math.min((body.width - width) / 2, trailing.x - width - 6))
-            y: bar.vertical ? (body.height - height) / 2 : 0
+            y: bar.vertical ? Math.max(leading.y + leading.height + 6, Math.min((body.height - height) / 2, trailing.y - height - 6)) : 0
             width: bar.vertical ? bar.thick : span
             height: bar.vertical ? span : bar.thick
             padding: 4
@@ -420,13 +421,16 @@ PanelWindow {
                     highlighted: bar.openMenu === "caffeine"
                     onClicked: bar.toggleMenu("caffeine", awakeButton)
                 }
-                StatusButton {
+                BarMedia {
                     id: mediaButton
-                    glyph: ""
-                    visible: Media.player !== null
-                    tint: Media.player?.isPlaying ? Theme.accent : Theme.secondary
-                    text: "Media controls"
-                    onClicked: bar.toggleMenu("home", mediaButton)
+                    vertical: bar.vertical
+                    showDetails: !vertical && bar.along >= 800
+                    suppressClicks: bar.suppressClicks
+                    consumeClick: () => bar.consumeClick()
+                    highlighted: bar.openMenu === "media"
+                    onClicked: bar.toggleMenu("media", mediaButton)
+                    Layout.preferredWidth: implicitWidth
+                    Layout.preferredHeight: implicitHeight
                 }
                 StatusButton {
                     id: networkButton
@@ -449,12 +453,24 @@ PanelWindow {
                         bar.registerBell();
                         NotificationState.toggleCenter(bar.screen);
                     }
+                    Accessible.description: "Left-click for notifications; right-click to toggle do not disturb"
+                    Item {
+                        parent: notificationsButton
+                        anchors.fill: parent
+                        TapHandler {
+                            acceptedButtons: Qt.RightButton
+                            onTapped: {
+                                if (!bar.consumeClick())
+                                    NotificationState.toggleDnd();
+                            }
+                        }
+                    }
                 }
                 StatusButton {
                     id: audioButton
-                    glyph: Audio.muted ? "\u{f0581}" : "\u{f057e}"
+                    glyph: Audio.outputIcon
                     tint: Audio.muted ? Theme.red : Theme.secondary
-                    text: Audio.muted ? "Muted" : "Volume " + Math.round(Audio.volume * 100) + "%"
+                    text: (Audio.muted ? "Muted" : "Volume " + Math.round(Audio.volume * 100) + "%") + " · " + Audio.labelFor(Audio.sink)
                     enabled: Audio.ready
                     highlighted: bar.openMenu === "audio"
                     onClicked: bar.toggleMenu("audio", audioButton)

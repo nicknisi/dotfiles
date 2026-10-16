@@ -26,7 +26,7 @@ ShellRoot {
     IpcHandler {
         target: "bar-test"
         function layout(mode: string, edge: string): void { Prefs.setBarMode(mode); Prefs.setEdge(edge) }
-        function inspect(): string { return JSON.stringify({screen: bar.screen.name, width: bar.screen.width, height: bar.screen.height, mode: bar.mode, edge: bar.edge, length: bar.bodyLength, nonReserving: reserve.exclusionMode === ExclusionMode.Ignore, reserveMode: reserve.exclusionMode, reserveZone: reserve.exclusiveZone, anchors: {top: bar.anchors.top, bottom: bar.anchors.bottom, left: bar.anchors.left, right: bar.anchors.right}}) }
+        function inspect(): string { return JSON.stringify({screen: bar.screen.name, width: bar.screen.width, height: bar.screen.height, mode: bar.mode, edge: bar.edge, length: bar.bodyLength, mediaExtra: bar.mediaExtra, nonReserving: reserve.exclusionMode === ExclusionMode.Ignore, reserveMode: reserve.exclusionMode, reserveZone: reserve.exclusiveZone, anchors: {top: bar.anchors.top, bottom: bar.anchors.bottom, left: bar.anchors.left, right: bar.anchors.right}}) }
     }
 }
 ''')
@@ -55,7 +55,6 @@ ShellRoot {
                     expected = (x + w - extent if edge == 'right' else x,
                                 y + h - extent if edge == 'bottom' else y,
                                 extent if vertical else w, h if vertical else extent)
-                    length = (h if vertical else w) * (0.8 if mode == 'rail' else 1) if mode != 'pill' else 518
                     reserve_bounds = (x + w - 1 if edge == 'right' else x if edge == 'left' else x + w // 2,
                                       y + h - 1 if edge == 'bottom' else y if edge == 'top' else y + h // 2, 1, 1)
                     deadline = time.monotonic() + 5
@@ -64,6 +63,9 @@ ShellRoot {
                         actual = [(v['x'], v['y'], v['w'], v['h']) for entries in layers[info['screen']]['levels'].values() for v in entries if v['namespace'] == 'quickshell-capsule' and v['pid'] == process.pid]
                         actual_reserve = [(v['x'], v['y'], v['w'], v['h']) for entries in layers[info['screen']]['levels'].values() for v in entries if v['namespace'] == 'quickshell-capsule-reserve' and v['pid'] == process.pid]
                         current = json.loads(ipc('inspect'))
+                        along = h if vertical else w
+                        extra = current['mediaExtra']
+                        length = along if mode == 'full' else max(40, min(along - 16, along * 0.8 if mode == 'rail' else 518 + extra))
                         assert current['nonReserving'], ('Test must not change desktop work areas', current)
                         if actual == [expected] and actual_reserve == [reserve_bounds] and current['length'] == length and current['mode'] == mode and current['edge'] == edge:
                             break

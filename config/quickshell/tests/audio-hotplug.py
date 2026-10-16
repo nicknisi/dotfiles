@@ -28,12 +28,13 @@ context.modules = [
 context.objects = [ { factory = metadata args = { metadata.name = default } } ]
 ''')
     shutil.copy(root / 'Audio.qml', tmp / 'Audio.qml')
+    shutil.copy(root / 'AudioOutput.js', tmp / 'AudioOutput.js')
     (tmp / 'qmldir').write_text('singleton Audio 1.0 Audio.qml\n')
     (tmp / 'shell.qml').write_text('''import Quickshell
 ShellRoot {
     property var inputs: Audio.sources.map(n => ({ name: n.name, volume: n.audio?.volume, current: Audio.isDefaultSource(n) }))
     property var outputs: Audio.sinks.map(n => ({ name: n.name, volume: n.audio?.volume, current: Audio.isDefault(n) }))
-    property var defaults: [Audio.volume, Audio.muted, Audio.ready, Audio.micVolume, Audio.micMuted]
+    property var defaults: [Audio.volume, Audio.muted, Audio.ready, Audio.micVolume, Audio.micMuted, Audio.outputIcon]
     onDefaultsChanged: console.log("DEFAULTS", JSON.stringify(defaults))
     onInputsChanged: console.log("INPUTS", JSON.stringify(inputs))
     onOutputsChanged: console.log("OUTPUTS", JSON.stringify(outputs))
