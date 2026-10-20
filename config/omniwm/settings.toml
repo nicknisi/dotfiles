@@ -14,13 +14,13 @@ width = 2.0
 [borders.color]
 alpha = 1.0
 blue = 1.0
-green = 0.8239732384681702
-red = 0.0
+green = 0.3237426280975342
+red = 0.5351385474205017
 
 [borders.glow]
-enabled = false
-opacity = 0.6
-radius = 8.0
+enabled = true
+opacity = 0.25
+radius = 3.0
 
 [borders.gradient]
 direction = "topLeftToBottomRight"
@@ -56,7 +56,7 @@ useGlobalGaps = true
 [focus]
 crossesMonitorAtEdge = true
 followsMouse = true
-followsWindowToMonitor = false
+followsWindowToMonitor = true
 lockModifier = "off"
 moveCrossesMonitorAtEdge = true
 moveMouseToFocusedWindow = false
@@ -176,26 +176,31 @@ mode = "macOS"
 [scratchpads]
 
 [scratchpads.labels]
+1 = "Comms"
 
 [statusBar]
 showAppNames = false
-showWorkspaceName = false
+showIcon = true
+showWorkspaceName = true
 useWorkspaceId = false
 
 [workspaceBar]
+autoHide = true
+autoHideHideDelayMilliseconds = 0.0
+autoHideRevealDelayMilliseconds = 0.0
 backgroundOpacity = 0.1
 deduplicateAppIcons = false
-enabled = false
+enabled = true
 excludedBundleIDs = []
-height = 24.0
+height = 28.0
 hideEmptyWorkspaces = true
 hideInNativeFullscreen = false
 hoverPreviewsEnabled = true
 notchActiveZoneWidth = 180.0
-notchMode = "splitActiveLeft"
+notchMode = "fillLeftOfNotch"
 notificationBadgeRefreshIntervalSeconds = 5.0
 notificationBadges = "off"
-position = "overlappingMenuBar"
+position = "belowMenuBar"
 reserveLayoutSpace = false
 revealHoldMilliseconds = 200.0
 revealModifier = "off"
@@ -206,7 +211,7 @@ showLabels = true
 solidBlackBackground = false
 systemStatsButton = false
 transparentBackground = false
-windowLevel = "popup"
+windowLevel = "floating"
 xOffset = 0.0
 yOffset = 0.0
 
@@ -412,11 +417,11 @@ layout = "float"
 titleRegex = "^Picture-in-Picture$"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Option+M"
 id = "toggleScratchpad.1"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Option+Shift+M"
 id = "assignFocusedWindowToScratchpad.1"
 
 [[hotkeys]]
@@ -1221,6 +1226,10 @@ id = "raiseAllFloatingWindows"
 
 [[hotkeys]]
 binding = "Unassigned"
+id = "toggleFloatingFocus"
+
+[[hotkeys]]
+binding = "Unassigned"
 id = "rescueOffscreenWindows"
 
 [[hotkeys]]
@@ -1285,6 +1294,36 @@ monitorDisplayUUID = "5A4B5238-1F02-409B-B53C-A74391F61800"
 monitorName = "Studio Display (2)"
 singleWindowFit = "2660x1440"
 
+[[monitorDwindleOverrides]]
+id = "50E7FA5D-E54A-48F3-9B72-7CD05E80063D"
+monitorDisplayUUID = "982B7801-0561-4638-9D74-36AF14B599F3"
+monitorName = "Studio Display XDR"
+singleWindowFit = "2400x1300"
+
+[[monitorDwindleOverrides]]
+id = "9FD4A9E3-736F-4866-AD7A-A004CCA0C9CB"
+monitorDisplayUUID = "B5F2488F-64B8-47CB-898A-6380841F2C4D"
+monitorName = ""
+singleWindowFit = "1600x860"
+
+[[monitorDwindleOverrides]]
+id = "99B740F7-D523-4076-9101-D604E9B41B3A"
+monitorDisplayUUID = "5346D07A-0CF1-46F2-92D9-DF5E34A0C0E8"
+monitorName = "Sidecar Display (AirPlay)"
+singleWindowFit = "2800x1150"
+
+[[monitorDwindleOverrides]]
+id = "8889F67D-0A32-4E44-A3FD-48CF157DF15E"
+monitorDisplayUUID = "318DBC88-870E-46AC-9F91-13A76495C181"
+monitorName = "Studio Display XDR"
+singleWindowFit = "2130x1150"
+
+[[monitorDwindleOverrides]]
+id = "00773898-F626-4DF2-85F0-EED6BC9B64CB"
+monitorDisplayUUID = "C839632D-4C6A-41D2-8DCC-F5B175FE7EAA"
+monitorName = ""
+singleWindowFit = "1600x860"
+
 [[monitorGapOverrides]]
 id = "9C1E6F52-3B7A-4D8E-A1F0-5B2C7D9E4A11"
 monitorDisplayUUID = "2EBFAA40-3303-44D9-8466-01AAB4B286A5"
@@ -1296,6 +1335,36 @@ id = "9C1E6F52-3B7A-4D8E-A1F0-5B2C7D9E4A12"
 monitorDisplayUUID = "5A4B5238-1F02-409B-B53C-A74391F61800"
 monitorName = "Studio Display (2)"
 outerGapTop = 74.0
+
+[[monitorGapOverrides]]
+id = "5B8E28E9-11DB-41B7-BC08-6E3DE2D7FCC5"
+monitorDisplayUUID = "982B7801-0561-4638-9D74-36AF14B599F3"
+monitorName = "Studio Display XDR"
+outerGapTop = 80.0
+
+[[monitorGapOverrides]]
+id = "F926FB11-20B3-4AC4-9874-47671A605FBE"
+monitorDisplayUUID = "B5F2488F-64B8-47CB-898A-6380841F2C4D"
+monitorName = ""
+outerGapTop = 80.0
+
+[[monitorGapOverrides]]
+id = "958302A6-63C0-4B41-8341-A936E8F0BAC7"
+monitorDisplayUUID = "5346D07A-0CF1-46F2-92D9-DF5E34A0C0E8"
+monitorName = "Sidecar Display (AirPlay)"
+outerGapTop = 80.0
+
+[[monitorGapOverrides]]
+id = "F4D4764B-B148-4E84-8CE3-A253C01BFDC8"
+monitorDisplayUUID = "318DBC88-870E-46AC-9F91-13A76495C181"
+monitorName = "Studio Display XDR"
+outerGapTop = 80.0
+
+[[monitorGapOverrides]]
+id = "C1028D6F-43BE-4ADC-9192-FC3BE0E79265"
+monitorDisplayUUID = "C839632D-4C6A-41D2-8DCC-F5B175FE7EAA"
+monitorName = ""
+outerGapTop = 80.0
 
 [[workspaces]]
 id = "E5D6C2B4-F906-456D-87E0-44C3E59D39F0"
@@ -1408,7 +1477,7 @@ type = "main"
 [[workspaces]]
 displayName = "S"
 id = "8B8C45D6-CE9E-41D9-BD50-BE4989D5E3DE"
-layoutType = "default"
+layoutType = "dwindle"
 name = "15"
 
 [workspaces.monitorAssignment]
@@ -1442,25 +1511,19 @@ name = "18"
 type = "main"
 
 [[monitorDwindleOverrides]]
-id = "50E7FA5D-E54A-48F3-9B72-7CD05E80063D"
-monitorDisplayUUID = "982B7801-0561-4638-9D74-36AF14B599F3"
-monitorName = "Studio Display XDR"
-singleWindowFit = "2400x1300"
-
-[[monitorGapOverrides]]
-id = "5B8E28E9-11DB-41B7-BC08-6E3DE2D7FCC5"
-monitorDisplayUUID = "982B7801-0561-4638-9D74-36AF14B599F3"
-monitorName = "Studio Display XDR"
-outerGapTop = 80.0
-
-[[monitorDwindleOverrides]]
-id = "9FD4A9E3-736F-4866-AD7A-A004CCA0C9CB"
-monitorDisplayUUID = "B5F2488F-64B8-47CB-898A-6380841F2C4D"
-monitorName = ""
+id = "C1666C76-2450-4301-BDA4-28161295CEC0"
+monitorDisplayUUID = "8DEDF285-B0B2-49B2-A5B3-46EFC9C0E238"
+monitorName = "Blackmagic"
 singleWindowFit = "1600x860"
 
 [[monitorGapOverrides]]
-id = "F926FB11-20B3-4AC4-9874-47671A605FBE"
-monitorDisplayUUID = "B5F2488F-64B8-47CB-898A-6380841F2C4D"
-monitorName = ""
+id = "8054A10D-C99E-42FE-98D8-4E7E3FCCEAFE"
+monitorDisplayUUID = "8DEDF285-B0B2-49B2-A5B3-46EFC9C0E238"
+monitorName = "Blackmagic"
 outerGapTop = 80.0
+
+[[monitorGapOverrides]]
+id = "AC024972-7473-4A7C-BE72-BAE79126E0DC"
+monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
+monitorName = "Built-in Retina Display"
+outerGapTop = 83.0
