@@ -62,6 +62,7 @@ fi
 
 # Claude aliases
 alias claude!="claude --dangerously-skip-permissions"
+alias mythos="claude --model claude-mythos-5"
 alias cc="claude"
 alias cc!="claude!"
 
