@@ -9,6 +9,9 @@
     "~/Developer/skills"
   ],
   "defaultThinkingLevel": "xhigh",
+  "defaultTools": [
+    "+codemode"
+  ],
   "compaction": {
     "enabled": true,
     "reserveTokens": 16384,
