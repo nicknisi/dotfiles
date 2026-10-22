@@ -68,8 +68,8 @@ gui:
       - "#cdd6f4"
     searchingActiveBorderColor:
       - "#f9e2af"
-  authorColors:
-    "*": "#b4befe"
+    authorColors:
+      "*": "#b4befe"
   # Config relating to the commit length indicator
   commitLength:
     # If true, show an indicator of commit message length

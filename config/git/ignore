@@ -32,6 +32,9 @@ npm-debug.log
 .pi-subagents/
 .pi-goal/
 .pi/
+home/.pi/agent/crashes.json
+home/.pi/agent/experimental/
 home/.pi/agent/missions/
+home/.pi/pnpm-lock.yaml
 !home/.pi
 .pi/artifacts/
