@@ -1,3 +1,7 @@
 {
-  "idleMinutes": 5
+  "idleMinutes": 5,
+  "model": {
+    "provider": "fireworks",
+    "id": "accounts/fireworks/routers/glm-fast-latest"
+  }
 }

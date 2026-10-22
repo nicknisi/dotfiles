@@ -30,7 +30,10 @@
       "replace": "$1"
     },
     {
-      "filePattern": ["**/*.json", "**/*.jsonc"],
+      "filePattern": [
+        "**/*.json",
+        "**/*.jsonc"
+      ],
       "cloakPattern": [
         {
           "pattern": "(\\\"(?:CLOUDFLARE_ACCESS_TEAM_DOMAIN|CLOUDFLARE_ACCESS_AUD)\\\"\\s*:\\s*\\\")[^\\\"]+",
@@ -39,13 +42,22 @@
       ]
     },
     {
-      "filePattern": ["~/.pi/agent/auth.json", "**/.pi/agent/auth.json", "**/auth.json"],
+      "filePattern": [
+        "~/.pi/agent/auth.json",
+        "**/.pi/agent/auth.json",
+        "**/auth.json"
+      ],
       "cloakPattern": [
         {
           "pattern": "(\\\"(?:token|access|refresh|accessToken|refreshToken|apiKey|secret|password|clientSecret|idToken|sessionToken|authorization|api_key|key)\\\"\\s*:\\s*\\\")[^\\\"]+",
           "replace": "$1"
         }
       ]
+    },
+    {
+      "filePattern": "**/*",
+      "global": true,
+      "cloakPattern": "\\b(?:sk-[A-Za-z0-9_-]{20,}|sk_(?:live|test)_[A-Za-z0-9]{16,}|gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{22,}|xox[abposr]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16})"
     }
   ]
 }

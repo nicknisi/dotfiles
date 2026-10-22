@@ -1,3 +1,4 @@
 {
-  "shortcut": "ctrl+shift+h"
+  "shortcut": "ctrl+shift+h",
+  "model": "anthropic/claude-sonnet-5"
 }
