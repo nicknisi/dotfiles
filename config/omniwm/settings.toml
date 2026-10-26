@@ -1527,3 +1527,39 @@ id = "AC024972-7473-4A7C-BE72-BAE79126E0DC"
 monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
 monitorName = "Built-in Retina Display"
 outerGapTop = 83.0
+
+[[monitorDwindleOverrides]]
+id = "5EBA8C05-4F03-450D-8A5F-852A87A3D751"
+monitorDisplayUUID = "045E2DB0-2674-4E51-A9E8-3F434E68FC5E"
+monitorName = "GSV HDMI2.1"
+singleWindowFit = "1600x860"
+
+[[monitorGapOverrides]]
+id = "F7B01C71-DF14-48E6-A3D5-393CB2E1437C"
+monitorDisplayUUID = "045E2DB0-2674-4E51-A9E8-3F434E68FC5E"
+monitorName = "GSV HDMI2.1"
+outerGapTop = 80.0
+
+[[monitorDwindleOverrides]]
+id = "9114F1B5-A36B-4700-8C03-0494090C2028"
+monitorDisplayUUID = "B237D210-2257-433A-AF5E-A859A1C6F7B0"
+monitorName = "ROG PG248Q"
+singleWindowFit = "1600x860"
+
+[[monitorGapOverrides]]
+id = "312F6305-C999-46C3-9DEF-B14171E962E3"
+monitorDisplayUUID = "B237D210-2257-433A-AF5E-A859A1C6F7B0"
+monitorName = "ROG PG248Q"
+outerGapTop = 80.0
+
+[[monitorDwindleOverrides]]
+id = "A7CC5B57-7802-4970-BCC3-AB22C3FBB29D"
+monitorDisplayUUID = "C3ADD678-A280-46D0-A6B6-617B360CFCD3"
+monitorName = "Beam Stage"
+singleWindowFit = "3410x1840"
+
+[[monitorGapOverrides]]
+id = "3E29A35E-693F-4A9A-8980-F093FA148C59"
+monitorDisplayUUID = "C3ADD678-A280-46D0-A6B6-617B360CFCD3"
+monitorName = "Beam Stage"
+outerGapTop = 80.0
