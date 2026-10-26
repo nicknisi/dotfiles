@@ -12,12 +12,10 @@
       "anthropic/claude-opus-5",
       "cloudflare-ai-gateway/claude-sonnet-5",
       "anthropic/claude-sonnet-5",
-      "fireworks/accounts/fireworks/models/kimi-k3",
-      "fireworks/accounts/fireworks/routers/kimi-k3-fast",
-      "fireworks/accounts/fireworks/models/glm-5p3",
-      "fireworks/accounts/fireworks/routers/glm-5p3-fast",
+      "cloudflare-ai-gateway/workers-ai/@cf/zai-org/glm-5.3",
+      "cloudflare-ai-gateway/workers-ai/@cf/zai-org/glm-5.3-flash",
       "cloudflare-ai-gateway/grok-4.5",
-      "fireworks/accounts/fireworks/routers/deepseek-pro-latest",
+      "cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-pro-0813",
       "anthropic/claude-opus-5-5"
     ],
     "personal": [

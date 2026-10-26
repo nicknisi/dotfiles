@@ -2,7 +2,7 @@
   "autoName": "llm",
   "heuristicMaxLength": 60,
   "llmMaxWords": 6,
-  "llmModel": "fireworks/accounts/fireworks/routers/glm-fast-latest",
+  "llmModel": "anthropic/claude-haiku-4-5",
   "notifyOnAutoName": true,
   "setTitle": true,
   "titleFormat": "{summary}"

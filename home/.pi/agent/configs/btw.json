@@ -1,4 +1,4 @@
 {
-  "model": "fireworks/accounts/fireworks/routers/glm-latest",
+  "model": "cloudflare-ai-gateway/workers-ai/@cf/zai-org/glm-5.3",
   "thinking": "medium"
 }

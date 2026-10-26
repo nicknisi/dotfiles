@@ -1,7 +1,7 @@
 {
   "idleMinutes": 5,
   "model": {
-    "provider": "fireworks",
-    "id": "accounts/fireworks/routers/glm-fast-latest"
+    "provider": "cloudflare-ai-gateway",
+    "id": "workers-ai/@cf/zai-org/glm-5.3-flash"
   }
 }
