@@ -355,10 +355,20 @@ run = """
 """
 
 [tasks."update:system"]
-description = "Update Homebrew packages (macOS only)."
+description = "Update system packages: Homebrew, and pacman/AUR on Arch."
 run = """
-  command -v brew >/dev/null 2>&1 || { echo "no brew, skipping"; exit 0; }
-  brew update && brew upgrade
+  if command -v brew >/dev/null 2>&1; then
+    brew update && brew upgrade
+  fi
+  if command -v pacman >/dev/null 2>&1; then
+    # --sudoloop keeps sudo fresh through long AUR builds
+    aur_helper="$(command -v yay || command -v paru || true)"
+    if [ -n "$aur_helper" ]; then
+      "$aur_helper" -Syu --noconfirm --sudoloop
+    else
+      sudo pacman -Syu --noconfirm
+    fi
+  fi
 """
 
 [tasks."update:tools"]
@@ -408,13 +418,9 @@ run = """
 """
 
 [tasks."update:all"]
-description = "Update system packages, tools, plugins, and this repository."
-run = [
-  { task = "update:system" },
-  { task = "update:tools" },
-  { task = "update:plugins" },
-  { task = "update:dotfiles" },
-]
+description = "Update system packages, tools, plugins, and this repository, showing only what changed."
+# runs each update:* task quietly; run one directly for its full output
+run = '"${DOTFILES_DIR:-${DOTFILES:-$HOME/Developer/dotfiles}}/bin/update-all"'
 
 # [dotfiles] lives in the repo-root mise.toml, NOT here: its sources are
 # relative to the declaring file's directory, so from the global config they'd

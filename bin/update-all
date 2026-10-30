@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# update-all — run the update:* mise tasks behind a spinner and print only
+# what changed. Each step snapshots "name version" lines before and after its
+# task and diffs them. Full task output goes to a log, tailed on failure.
+set -uo pipefail
+
+SOURCE="${BASH_SOURCE[0]}"
+[ -L "$SOURCE" ] && SOURCE="$(readlink "$SOURCE")"
+DOTFILES="$(cd "$(dirname "$SOURCE")/.." && pwd)"
+
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+  B=$'\e[1m' D=$'\e[2m' R=$'\e[31m' G=$'\e[32m' X=$'\e[0m'
+else
+  B='' D='' R='' G='' X=''
+fi
+
+# "name sha" for each git checkout given
+heads() {
+  local d
+  for d in "$@"; do
+    [ -d "$d/.git" ] && echo "$(basename "$d") $(git -C "$d" rev-parse --short HEAD)"
+  done
+}
+
+snap_system() {
+  if command -v brew >/dev/null 2>&1; then
+    brew list --versions
+    brew list --cask --versions
+  fi
+  command -v pacman >/dev/null 2>&1 && pacman -Q
+}
+
+snap_tools() {
+  local npm="$HOME/.pi/agent/npm"
+  mise --version | awk '{print "mise", $1}'
+  mise ls --current --no-header | awk '{print $1, $2}'
+  command -v uv >/dev/null 2>&1 && uv tool list | awk '!/^- / {print $1, $2}'
+  heads "$HOME"/.pi/agent/git/*/*/*
+  [ -f "$npm/package.json" ] &&
+    jq -r --arg d "$npm/node_modules" '.dependencies | keys[] | "\($d)/\(.)/package.json"' "$npm/package.json" |
+    xargs jq -r '"\(.name) \(.version)"'
+}
+
+snap_plugins() {
+  jq -r 'to_entries[] | "\(.key) \(.value.commit[0:7])"' "${XDG_CONFIG_HOME:-$HOME/.config}/nvim/lazy-lock.json"
+  heads "${ZPLUGDIR:-${CACHEDIR:-$HOME/.local/share}/zsh/plugins}"/*/*
+}
+
+snap_dotfiles() { heads "$DOTFILES"; }
+
+# before after -> "name<TAB>old<TAB>new" for every name whose version moved
+changes() {
+  awk 'NF < 2 { next }
+       !second { old[$1] = $NF; next }
+       { new[$1] = $NF }
+       END {
+         for (k in new) if (!(k in old)) print k "\t(new)\t" new[k]; else if (old[k] != new[k]) print k "\t" old[k] "\t" new[k]
+         for (k in old) if (!(k in new)) print k "\t" old[k] "\t(removed)"
+       }' "$1" second=1 "$2" | sort
+}
+
+# changes on stdin -> indented, aligned "name  old → new" lines
+show() {
+  awk -F'\t' -v d="$D" -v g="$G" -v x="$X" '
+    { n[NR] = $1; o[NR] = $2; v[NR] = $3
+      if (length($1) > w) w = length($1); if (length($2) > ow) ow = length($2) }
+    END { for (i = 1; i <= NR; i++) printf "      %-" w "s  " d "%-" ow "s →" x " " g "%s" x "\n", n[i], o[i], v[i] }'
+}
+
+step() { # label task snapshot-fn
+  local label=$1 task=$2 snap=$3 log="$LOGS/${2#update:}.log" status diff n
+  "$snap" >"$LOGS/before" 2>/dev/null
+  # shellcheck disable=SC2016 # $1/$2 expand in the inner bash
+  gum spin --spinner dot --title " $label" -- bash -c 'mise run "$1" >"$2" 2>&1' _ "$task" "$log"
+  status=$?
+  "$snap" >"$LOGS/after" 2>/dev/null
+  diff=$(changes "$LOGS/before" "$LOGS/after")
+  n=$(grep -c . <<<"$diff")
+  UPDATED=$((UPDATED + n))
+
+  if [ "$status" -eq 0 ]; then
+    if [ "$n" -gt 0 ]; then n="$n updated"; else n="${D}up to date${X}"; fi
+    printf '  %s✓%s %-9s %s\n' "$G" "$X" "$label" "$n"
+  else
+    FAILED=$((FAILED + 1))
+    printf '  %s✗%s %-9s %sfailed%s  %s%s%s\n' "$R" "$X" "$label" "$R" "$X" "$D" "$log" "$X"
+    tail -n 5 "$log" | while IFS= read -r line; do printf '      %s│ %s%s\n' "$D" "$line" "$X"; done
+  fi
+  [ -n "$diff" ] && show <<<"$diff"
+}
+
+main() {
+  LOGS=$(mktemp -d "${TMPDIR:-/tmp}/update-all.XXXXXX")
+  UPDATED=0 FAILED=0
+  printf '\n  %sUpdating everything%s\n\n' "$B" "$X"
+
+  # A sudo prompt behind the spinner would hang unseen, so ask up front.
+  # shortcut: reads brew's cached index, so a cask that only appears after `brew update` can still prompt unseen; run `brew update` first if that bites
+  if command -v pacman >/dev/null 2>&1; then
+    printf '  %spacman needs sudo%s\n' "$D" "$X"
+    sudo -v
+  elif command -v brew >/dev/null 2>&1 && [ -n "$(brew outdated --cask --quiet 2>/dev/null)" ]; then
+    printf '  %scask upgrades may need sudo%s\n' "$D" "$X"
+    sudo -v
+  fi
+
+  step System update:system snap_system
+  step Tools update:tools snap_tools
+  step Plugins update:plugins snap_plugins
+  step Dotfiles update:dotfiles snap_dotfiles
+
+  local took="$((SECONDS / 60))m$((SECONDS % 60))s"
+  echo
+  if [ "$FAILED" -gt 0 ]; then
+    printf '  %s%d failed%s · %d updated · %s\n' "$R" "$FAILED" "$X" "$UPDATED" "$took"
+  else
+    printf '  %s✓%s %d updated in %s\n' "$G" "$X" "$UPDATED" "$took"
+  fi
+  printf '  %slogs: %s%s\n\n' "$D" "$LOGS" "$X"
+  [ "$FAILED" -eq 0 ]
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then main "$@"; fi
