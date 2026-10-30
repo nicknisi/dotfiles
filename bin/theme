@@ -143,13 +143,17 @@ preview_bg() { # THEME N
   local img; img="$(backgrounds "$1" | sed -n "$2p")"
   [ -n "$img" ] || exit 0
   printf '\033[1m%s\033[0m\n' "$(basename "$img")"
-  local kitten cols="${FZF_PREVIEW_COLUMNS:-80}" rows=$(( ${FZF_PREVIEW_ROWS:-20} - 2 ))
+  # -2: the filename line, and icat can round the image up one row past --place
+  local kitten cols="${FZF_PREVIEW_COLUMNS:-80}" rows=$(( ${FZF_PREVIEW_LINES:-20} - 2 ))
   kitten="$(command -v kitten || true)"
   [ -x /Applications/kitty.app/Contents/MacOS/kitten ] && kitten=/Applications/kitty.app/Contents/MacOS/kitten
-  if [ -n "$kitten" ] && { [ "${TERM_PROGRAM:-}" = ghostty ] || [ "${TERM_PROGRAM:-}" = kitty ]; }; then
-    # kitty graphics protocol (ghostty speaks it); must bypass fzf's capture
-    "$kitten" icat --clear --transfer-mode=memory --stdin=no --scale-up \
-      --place "${cols}x${rows}@0x2" "$img" >/dev/tty 2>/dev/null || true
+  # env, not TERM_PROGRAM: inside tmux that reads "tmux", these survive
+  if [ -n "$kitten" ] && [ -n "${KITTY_WINDOW_ID:-}${GHOSTTY_RESOURCES_DIR:-}" ]; then
+    # kitty graphics with unicode placeholders, printed to stdout: fzf lays the
+    # placeholder cells out inside the preview window and clears them on exit,
+    # and icat wraps the escapes in tmux passthrough (needs allow-passthrough).
+    "$kitten" icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --scale-up \
+      --place "${cols}x${rows}@0x0" "$img" 2>/dev/null || true
   elif command -v chafa >/dev/null 2>&1; then
     chafa -s "${cols}x${rows}" "$img" 2>/dev/null || true
   elif command -v img2txt >/dev/null 2>&1; then
@@ -169,7 +173,8 @@ pick_theme() {
   [ -n "$name" ] || exit 130
   n="$(backgrounds "$name" | wc -l | tr -d ' ')"
   if [ "$n" -gt 1 ]; then
-    bg="$(seq 1 "$n" | fzf --prompt='wallpaper ❯ ' --reverse --height=~40% \
+    # full screen: the image preview is only as big as the picker is tall
+    bg="$(seq 1 "$n" | fzf --prompt='wallpaper ❯ ' --reverse \
       --preview="'$DOTFILES'/bin/theme _preview-bg $name {}" \
       --preview-window='right,60%,border-left')" || exit 130
     [ -n "$bg" ] || exit 130
@@ -304,7 +309,7 @@ PYEOF
 
 image_slug() { # IMG -> lowercase safe filename
   local slug
-  slug="$(basename "$1" | tr '[:upper:]' '[:lower:]' | sed 's/^[0-9][0-9]*-//; s/[^a-z0-9.]\+/-/g; s/^-//; s/-$//')"
+  slug="$(basename "$1" | tr '[:upper:]' '[:lower:]' | sed -E 's/^[0-9]+-//; s/[^a-z0-9.]+/-/g; s/^-//; s/-$//')"
   printf '%s' "${slug:-wallpaper}"
 }
 
@@ -608,7 +613,7 @@ reload_apps() { # NAME MODE WALL
   if $IS_MAC; then
     mac_appearance "$mode"
     pgrep -x sketchybar >/dev/null 2>&1 && sketchybar --reload || true
-    brew services restart borders >/dev/null 2>&1 || true
+    command -v borders >/dev/null 2>&1 && brew services restart borders >/dev/null 2>&1 || true
     [ -n "$wall" ] && mac_wallpaper "$wall"
     if [ -f "$T/slack.txt" ]; then
       pbcopy <"$T/slack.txt"
@@ -628,7 +633,9 @@ reload_apps() { # NAME MODE WALL
 }
 
 nvim_reload() { # every running nvim re-applies aether from the rendered palette
-  local dirs=("${TMPDIR:-/tmp}") d
+  # nvim.$USER only: macOS's $TMPDIR holds tens of thousands of entries and a
+  # full walk of it took ~9s per switch
+  local dirs=("${TMPDIR:-/tmp}"/nvim.*) d
   [ -n "${XDG_RUNTIME_DIR:-}" ] && dirs=("$XDG_RUNTIME_DIR" "${dirs[@]}")
   for d in "${dirs[@]}"; do find "$d" -maxdepth 4 -type s -name 'nvim.*.0' 2>/dev/null; done |
     while read -r sock; do
