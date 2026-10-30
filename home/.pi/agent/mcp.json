@@ -1,8 +1,14 @@
 {
   "mcpServers": {
+    "riker": {
+      "url": "https://glootie.tail0df1.ts.net/mcp",
+      "headers": { "Authorization": "Bearer vqkyLkEHL2pPdwgupAbfWvECZ3XFO3zk5o9LjXaquZA" }
+    },
     "sessions": {
       "command": "sessions",
-      "args": ["--mcp"],
+      "args": [
+        "--mcp"
+      ],
       "cwd": "~/Developer/sessions",
       "type": "stdio"
     },
@@ -10,7 +16,8 @@
       "url": "https://api.anthropic.com/v1/design/mcp",
       "headers": {
         "Authorization": "!node ~/Developer/pi-extensions/packages/claude-design/bin/claude-design-auth.mjs token"
-      }
+      },
+      "enabled": false
     },
     "todoist": {
       "url": "https://ai.todoist.net/mcp"
@@ -29,7 +36,12 @@
     },
     "xapi": {
       "command": "xurl",
-      "args": ["--app", "nicknisi-x-mcp", "mcp", "https://api.x.com/mcp"],
+      "args": [
+        "--app",
+        "nicknisi-x-mcp",
+        "mcp",
+        "https://api.x.com/mcp"
+      ],
       "description": "X (Twitter) API acting as Nick: search posts, users, timelines, bookmarks, trends, news, Articles"
     },
     "linear": {
