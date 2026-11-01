@@ -8,7 +8,8 @@
   "skills": [
     "~/Developer/skills"
   ],
-  "defaultThinkingLevel": "xhigh",
+  "defaultModel": "claude-opus-5-5",
+  "defaultThinkingLevel": "high",
   "defaultTools": [
     "+codemode"
   ],
@@ -61,7 +62,6 @@
     "npm:pi-web-access"
   ],
   "tuiMode": "fullscreen",
-  "defaultModel": "claude-opus-5-5",
   "warnings": {
     "anthropicExtraUsage": false
   }
