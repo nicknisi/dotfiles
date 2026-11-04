@@ -156,6 +156,7 @@ enabled = true
 "~/Developer/pi-extensions" = { url = "git@github.com:nicknisi/pi-extensions.git" }
 "~/Developer/ideation" = { url = "git@github.com:nicknisi/ideation.git" }
 "~/Developer/claude-plugins" = { url = "git@github.com:nicknisi/claude-plugins.git" }
+"~/Developer/riker" = { url = "git@github.com:workos/riker.git" }
 
 # Login shell. /bin/zsh works on both platforms: macOS ships zsh there, and
 # on Arch /bin is a symlink to /usr/bin. Mise appends it to /etc/shells if
@@ -294,6 +295,24 @@ EOF
     src="${XDG_CONFIG_HOME:-$HOME/.config}/mise/files/etc/NetworkManager/dispatcher.d/10-timezone"
     dst=/etc/NetworkManager/dispatcher.d/10-timezone
     cmp -s "$src" "$dst" || sudo install -Dm0755 -o root -g root "$src" "$dst"
+  fi
+"""
+
+# Pi loads @riker from ~/Developer/riker-live (see settings.json): a detached
+# checkout of main, set up the way riker's docs/guide/internals.md describes,
+# so switching branches in ~/Developer/riker doesn't change the running Riker.
+# This runs after tools so pnpm exists on a fresh machine. Once riker-live is
+# there it's left alone; `riker update` moves it forward.
+[bootstrap.hooks.post-tools]
+run = """
+  dev="$HOME/Developer/riker"
+  live="$HOME/Developer/riker-live"
+  if [ -d "$dev/.git" ] && [ ! -e "$live" ]; then
+    git -C "$dev" fetch --quiet origin
+    git -C "$dev" worktree add --quiet --detach "$live" origin/main
+    (cd "$live" && pnpm install --filter riker)
+    mkdir -p "$HOME/.local/bin"
+    ln -sfn "$live/packages/riker/bin/riker.ts" "$HOME/.local/bin/riker"
   fi
 """
 
