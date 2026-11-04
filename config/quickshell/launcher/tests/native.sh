@@ -9,7 +9,7 @@ home=$(mktemp -d)
 trap 'rm -rf -- "$home"' EXIT
 export HOME=$home XDG_CONFIG_HOME=$home/config XDG_CACHE_HOME=$home/cache
 export XDG_DATA_HOME=$home/data XDG_DATA_DIRS=$home/system XDG_STATE_HOME=$home/state
-export XDG_RUNTIME_DIR=$home/runtime QT_QPA_PLATFORM=offscreen
+export XDG_RUNTIME_DIR=$home/runtime QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=generic
 export DBUS_SESSION_BUS_ADDRESS=unix:path=$home/no-session-bus
 export DBUS_SYSTEM_BUS_ADDRESS=unix:path=$home/no-system-bus
 export PYTHONDONTWRITEBYTECODE=1

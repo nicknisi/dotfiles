@@ -7,7 +7,7 @@ tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 export HOME="$tmp" XDG_CONFIG_HOME="$tmp/config" XDG_STATE_HOME="$tmp/state"
 export XDG_DATA_HOME="$tmp/data" XDG_CACHE_HOME="$tmp/cache" XDG_RUNTIME_DIR="$tmp/runtime"
-export QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software
+export QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software QT_QPA_PLATFORMTHEME=generic
 unset DISPLAY WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE
 mkdir -p "$tmp/bin" "$tmp/qml" "$tmp/runtime/voxtype"
 chmod 700 "$tmp/runtime"
