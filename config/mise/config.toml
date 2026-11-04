@@ -96,12 +96,14 @@ just = "latest"
 "pacman:networkmanager" = { version = "latest", os = "linux" }
 "pacman:noto-fonts-emoji" = { version = "latest", os = "linux" }
 "pacman:otf-monaspace" = { version = "latest", os = "linux" }
+"pacman:pacman-contrib" = { version = "latest", os = "linux" } # paccache
 "pacman:pipewire" = { version = "latest", os = "linux" }
 "pacman:pipewire-pulse" = { version = "latest", os = "linux" }
 "pacman:playerctl" = { version = "latest", os = "linux" }
 "pacman:plymouth" = { version = "latest", os = "linux" }
 "pacman:power-profiles-daemon" = { version = "latest", os = "linux" }
 "pacman:quickshell" = { version = "latest", os = "linux" }
+"pacman:rtkit" = { version = "latest", os = "linux" } # realtime scheduling for pipewire
 "pacman:slurp" = { version = "latest", os = "linux" }
 "pacman:swappy" = { version = "latest", os = "linux" }
 "pacman:tailscale" = { version = "latest", os = "linux" }
@@ -141,6 +143,12 @@ state = "running"
 enabled = true
 
 [bootstrap.services.tailscaled]
+state = "running"
+enabled = true
+
+# Weekly trim of /var/cache/pacman/pkg to the last 3 versions of each package,
+# which keeps enough old kernels around to downgrade from.
+[bootstrap.services."paccache.timer"]
 state = "running"
 enabled = true
 
