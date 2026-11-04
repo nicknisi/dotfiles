@@ -23,7 +23,7 @@ Scope {
     Item {
         id: surface
         width: 640; height: 540
-        BorderSurface { id: border; borderSpec: Border.controlSpec("focus", Color.menu.text, Color.accent) }
+        BorderSurface { id: border; borderSpec: Border.controlSpec("focus", ShellColor.menu.text, ShellColor.accent) }
         Button { id: button; text: "<b>plain</b>"; focusable: true }
         TextField { id: field; text: "<b>typed</b>" }
         ConfirmDialog {

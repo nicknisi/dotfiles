@@ -6,8 +6,8 @@ Item {
   id: root
   property var row: ({})
   property bool compact: true
-  property color accent: Color.accent
-  property color foreground: Color.menu.text
+  property color accent: ShellColor.accent
+  property color foreground: ShellColor.menu.text
   readonly property bool clipboard: (row.previewLabel || "") === "CLIPBOARD" || (row.previewLabel || "") === "DICTATION"
   readonly property bool emoji: row.emoji === true
   readonly property string imagePath: String(row.previewImage || "")

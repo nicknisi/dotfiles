@@ -744,10 +744,10 @@ Item {
 
   // Theme surfaces, same tokens as the stock menu.
   readonly property color background: Theme.surface
-  readonly property color foreground: Color.menu.text
-  readonly property color scrim: Color.menu.scrim
+  readonly property color foreground: ShellColor.menu.text
+  readonly property color scrim: ShellColor.menu.scrim
   readonly property color selectedBackground: Theme.glowFill
-  readonly property color selectedText: Color.menu.text
+  readonly property color selectedText: ShellColor.menu.text
   readonly property var borderSpec: Border.surfaceSpec("menu", "border", Theme.borderIdle, Math.max(1, Style.space(1)))
   readonly property var selectedBorderSpec: Border.none()
   readonly property color hairline: Util.alpha(foreground, 0.12)
@@ -1775,7 +1775,7 @@ Item {
                 : voice.phase === "transcribing" ? "Finishing transcript…" : voice.phase === "starting" ? "Starting voxtype…"
                 : root.pending && root.showLoading ? "Searching…" : root.errorMessage ? "Needs attention: " + root.errorMessage : root.statusMessage || (root.current.providerName ? root.current.providerName : "Launcher")
             textFormat: Text.PlainText; elide: Text.ElideRight; width: Math.min(implicitWidth, card.width * 0.5)
-            color: root.errorMessage ? Color.urgent : root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall
+            color: root.errorMessage ? ShellColor.urgent : root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall
             anchors.verticalCenter: parent.verticalCenter
           }
         }
@@ -1837,7 +1837,7 @@ Item {
             text: root.captureChord ? root.captureCheck.message
                 : root.captureCurrent ? "Press a new combination, or ⌫ to remove it" : "Hold a modifier, then press a key"
             textFormat: Text.PlainText; elide: Text.ElideRight
-            color: !root.captureChord ? root.muted : root.captureReady ? (root.captureCheck.state === "available" ? root.muted : root.accent) : Color.urgent
+            color: !root.captureChord ? root.muted : root.captureReady ? (root.captureCheck.state === "available" ? root.muted : root.accent) : ShellColor.urgent
             font.family: root.fontFamily; font.pixelSize: Style.font.body
           }
           Row {

@@ -29,10 +29,10 @@ BorderSurface {
   property int flashRise: 0
   property int flashFall: 0
   property bool compact: true
-  property color accent: Color.accent
-  property color foreground: Color.menu.text
-  property color selectedBackground: Color.menu.selectedBackground
-  property color selectedText: Color.menu.selectedText
+  property color accent: ShellColor.accent
+  property color foreground: ShellColor.menu.text
+  property color selectedBackground: ShellColor.menu.selectedBackground
+  property color selectedText: ShellColor.menu.selectedText
   property var selectedBorderSpec: Border.none()
   signal activated()
   signal hovered(var item, var mouse)

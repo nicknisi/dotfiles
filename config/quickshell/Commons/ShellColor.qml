@@ -1,4 +1,5 @@
 pragma Singleton
+// Not "Color": Qt 6.12 exports a QtQuick.Color singleton that shadows it.
 import QtQuick
 import qs
 

@@ -32,8 +32,8 @@ PanelWindow {
         anchors.margins: Theme.shadowPadding
         radius: Theme.panelRadius
         SurfaceShadow { surface: frame }
-        color: Color.menu.background
-        borderSpec: Border.controlSpec("focus", Color.menu.text, Color.accent)
+        color: ShellColor.menu.background
+        borderSpec: Border.controlSpec("focus", ShellColor.menu.text, ShellColor.accent)
         Accessible.role: Accessible.StaticText
         Accessible.name: "Voxtype: " + root.label
 
@@ -43,7 +43,7 @@ PanelWindow {
             Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 width: 8; height: width; radius: width / 2
-                color: Color.accent
+                color: ShellColor.accent
                 opacity: root.phase === "listening" ? 1 : 0.55
                 scale: root.phase === "listening" ? 1 + 0.6 * root.voice.level : 1
                 Behavior on scale { NumberAnimation { duration: 60 } }
@@ -51,7 +51,7 @@ PanelWindow {
             Text {
                 text: root.label
                 textFormat: Text.PlainText
-                color: Color.menu.text
+                color: ShellColor.menu.text
                 font.family: Style.font.menuFamily
                 font.pixelSize: Style.font.body
             }

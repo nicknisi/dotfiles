@@ -10,8 +10,8 @@ Item {
   property string mode: "listening"      // starting | listening | transcribing
   property real level: 0
   property var history: []
-  property color accent: Color.accent
-  property color foreground: Color.menu.text
+  property color accent: ShellColor.accent
+  property color foreground: ShellColor.menu.text
   property real phase: 0
   property real smoothed: 0
 

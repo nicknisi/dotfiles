@@ -5,7 +5,7 @@ Rectangle {
   id: root
   property string label: ""
   property bool bright: false
-  property color foreground: Color.menu.text
+  property color foreground: ShellColor.menu.text
   implicitWidth: key.implicitWidth + Style.space(12)
   implicitHeight: Style.space(22)
   radius: Math.min(Style.cornerRadius, Style.space(5))

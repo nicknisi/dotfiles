@@ -7,11 +7,11 @@ FocusScope {
     property string message: ""
     property string confirmText: "Confirm"
     property string cancelText: "Cancel"
-    property color background: Color.menu.background
-    property color foreground: Color.menu.text
-    property color scrim: Color.menu.scrim
-    property color selectedBackground: Color.menu.selectedBackground
-    property color selectedText: Color.menu.selectedText
+    property color background: ShellColor.menu.background
+    property color foreground: ShellColor.menu.text
+    property color scrim: ShellColor.menu.scrim
+    property color selectedBackground: ShellColor.menu.selectedBackground
+    property color selectedText: ShellColor.menu.selectedText
     property string fontFamily: Style.font.menuFamily
     property int cornerRadius: Style.cornerRadius
     property bool confirmSelected: false
@@ -49,7 +49,7 @@ FocusScope {
         height: Math.min(parent.height, content.height + Style.space(40))
         color: root.background
         radius: root.cornerRadius
-        borderSpec: Border.controlSpec("normal", root.foreground, Color.accent)
+        borderSpec: Border.controlSpec("normal", root.foreground, ShellColor.accent)
         MouseArea { anchors.fill: parent }
         Column {
             id: content

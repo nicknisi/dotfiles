@@ -4,8 +4,8 @@ import qs.Commons
 
 Controls.Button {
     id: root
-    property color foreground: Color.menu.text
-    property color accent: Color.accent
+    property color foreground: ShellColor.menu.text
+    property color accent: ShellColor.accent
     property string fontFamily: Style.font.menuFamily
     property int fontSize: Style.font.bodySmall
     property bool focusable: false

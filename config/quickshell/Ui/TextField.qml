@@ -4,8 +4,8 @@ import qs.Commons
 
 Controls.TextField {
     id: root
-    property color foreground: Color.menu.text
-    property color accent: Color.accent
+    property color foreground: ShellColor.menu.text
+    property color accent: ShellColor.accent
     color: foreground
     font.family: Style.font.menuFamily
     font.pixelSize: Style.font.body
