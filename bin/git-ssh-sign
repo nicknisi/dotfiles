@@ -1,0 +1,12 @@
+#!/bin/sh
+# git gpg.ssh.program: sign through a live agent bridge (bin/agent-bridge)
+# when one exists, else through this machine's 1Password. op-ssh-sign itself
+# follows a forwarded agent inside a real SSH session.
+fwd="$HOME/.ssh/forwarded-agent.sock"
+if SSH_AUTH_SOCK="$fwd" ssh-add -l >/dev/null 2>&1; then
+	SSH_AUTH_SOCK="$fwd" exec ssh-keygen "$@"
+fi
+for op in /Applications/1Password.app/Contents/MacOS/op-ssh-sign /opt/1Password/op-ssh-sign; do
+	[ -x "$op" ] && exec "$op" "$@"
+done
+exec ssh-keygen "$@"

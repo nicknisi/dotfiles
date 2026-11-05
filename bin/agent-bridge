@@ -1,0 +1,18 @@
+#!/bin/sh
+# agent-bridge HOST — lend this machine's 1Password SSH agent to HOST, so
+# anything there (Rex tabs, agents) authenticates and signs through here,
+# with approval prompts here. Ctrl-C ends it; HOST falls back to its own agent.
+# HOST picks the bridge up via config/ssh/config and bin/git-ssh-sign.
+set -eu
+host=${1:?usage: agent-bridge HOST}
+# Force this machine's own 1Password agent, even if a bridge from HOST is
+# live here (macOS socket, then Linux).
+agent="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+[ -S "$agent" ] || agent="$HOME/.1password/agent.sock"
+[ -S "$agent" ] || { echo "agent-bridge: no local 1Password SSH agent" >&2; exit 1; }
+exec ssh -T -A -o "IdentityAgent=\"$agent\"" \
+	-o ServerAliveInterval=30 -o ServerAliveCountMax=3 "$host" \
+	'[ -n "${SSH_AUTH_SOCK:-}" ] || { echo "agent-bridge: no forwarded agent on $(hostname -s)" >&2; exit 1; }
+	ln -sfn "$SSH_AUTH_SOCK" ~/.ssh/forwarded-agent.sock
+	echo "agent bridge up on $(hostname -s); Ctrl-C to stop"
+	exec sleep 2147483647'

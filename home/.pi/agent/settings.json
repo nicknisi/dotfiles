@@ -51,7 +51,6 @@
     "../../Developer/pi-extensions/packages/workflows",
     "../../Developer/riker-live/packages/riker",
     "git:github.com/DietrichGebert/ponytail",
-    "https://github.com/zerray/pi-remote-control",
     "npm:@ff-labs/pi-fff",
     "npm:@injaneity/pi-computer-use",
     "npm:@juicesharp/rpiv-ask-user-question",
