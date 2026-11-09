@@ -49,6 +49,11 @@ for mode in dark light; do
   [[ $(plain <<<"$second") == ' ➁ editor ' && $second == *"#[fg=$cyan]"* ]]
   [[ $(tmux show-option -gqv window-status-separator) == '  ' ]]
 
+  # status-left is native: the stamped crest, no #() job.
+  crest=$("$ROOT/bin/tmux-session-mood" crest projects)
+  [[ $(tmux display-message -p -t projects:1 '#{E:status-left}') == "  #[default]${crest}#[bold]projects#[default]   " ]]
+  [[ $(tmux show-option -gqv status-left) != *'#('* ]]
+
   # Exercise the prefix branch without needing an attached keyboard client.
   left=$(tmux show-option -gqv status-left)
   tmux set-option -g @test_prefix 1
@@ -60,6 +65,7 @@ for mode in dark light; do
     read -r state glyph <<<"$state_glyph"
     tmux set-option -w -t projects:1 @fleet_state "$state"
     [[ $("$ROOT/bin/tmux-session-mood" current projects | plain) == "$glyph projects" ]]
+    [[ $(tmux display-message -p -t projects:1 '#{E:status-left}' | plain) == "  $glyph projects   " ]]
     [[ $(tmux display-message -p -t projects:1 '#{E:window-status-current-format}') == *"#[fg=$state]"* ]]
   done
   tmux set-option -w -t review:1 @fleet_state magenta
@@ -85,4 +91,10 @@ done
 # Indices beyond the original ten-glyph lookup table still fall back to digits.
 tmux new-window -d -t projects:12 -n terminal 'sleep 300'
 [[ $(tmux display-message -p -t projects:12 '#{E:window-status-current-format}' | plain) == ' 12 terminal ' ]]
+# Window colours follow the window id, so renumbering doesn't recolour.
+tmux set-option -g renumber-windows on
+editor=$(tmux display-message -p -t projects:2 '#{E:window-status-format}')
+tmux kill-window -t projects:1
+[[ $(tmux display-message -p -t projects:1 '#{window_name}') == editor ]]
+[[ $(tmux display-message -p -t projects:1 '#{E:window-status-format}') == "${editor/➁/➀}" ]]
 printf 'Statusline checks passed. Temporary test server cleaned up on exit.\n'

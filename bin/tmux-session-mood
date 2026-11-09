@@ -4,6 +4,8 @@
 #   tmux-session-mood current <session> [shared]  status-left  →  ✦ alto ⧉
 #   tmux-session-mood others  <client_session>    status-right →  ❖ alto   ✹ coherence (clickable)
 #   tmux-session-mood crest   <session>           scripts      →  "#[fg=…]✦ "
+#   tmux-session-mood stamp                       every session's @crest_fg/@crest_sigil,
+#                                                 which theme.tmux's status-left reads
 #
 # Each session keeps its original hashed colour and sigil, without a pill.
 # Fleet attention overrides the crest with ⚠ waiting, ? asking or ● ready.
@@ -84,6 +86,15 @@ identity() { # SESSION [current] → "COLOUR<TAB>GLYPH<TAB>attn|crest"
 }
 
 case $cmd in
+  stamp)
+    # Session ids, not names: names may now contain : and . which -t would parse.
+    args=()
+    while IFS=$'\t' read -r id name; do
+      IFS=$'\t' read -r colour glyph <<<"$(crest_parts "$name")"
+      args+=(set-option -t "$id" @crest_fg "$colour" \; set-option -t "$id" @crest_sigil "$glyph" \;)
+    done < <(tmux list-sessions -F $'#{session_id}\t#{session_name}' 2>/dev/null)
+    ((${#args[@]})) && tmux "${args[@]:0:${#args[@]}-1}"
+    ;;
   crest)
     IFS=$'\t' read -r colour glyph _ <<<"$(identity "$target" current)"
     printf '#[fg=%s]%s ' "$colour" "$glyph"
