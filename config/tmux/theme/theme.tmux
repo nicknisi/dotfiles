@@ -97,6 +97,14 @@ tmux set-window-option -g pane-active-border-style "fg=${thm_fg_gutter},bg=${thm
 tmux set-window-option -g pane-border-style "fg=${thm_fg_gutter},bg=${thm_fg_gutter}"
 tmux set-window-option -g pane-border-lines simple
 
+# tmux 3.8 themes its own UI (menus, selections, tree mode) with a built-in
+# palette; use the pack's instead so prefix-g menus and prefix-w match.
+tmux setw -g mode-style "fg=${c_ink},bg=${c_yellow}"
+tmux set -g menu-style "fg=${c_fg},bg=${c_surface}"
+tmux set -g menu-selected-style "fg=${c_ink},bg=${c_accent}"
+tmux set -g menu-border-style "fg=${c_muted},bg=${c_surface}"
+tmux set -g menu-border-lines rounded
+
 # Auto-hide scrollbars and copy mode's line numbers and cursor line.
 tmux setw -g pane-scrollbars-style "bg=default,fg=${c_muted},width=1,pad=0"
 tmux setw -g copy-mode-line-number-style "fg=${c_muted}"
@@ -204,7 +212,7 @@ tmux set -g status-left "  #{?client_prefix,${prefix_label},${crest}}   "
 # sheet (with the theme tagline and moon) is @hints, shown by prefix-? in
 # tmux.conf, so the right side holds still while prefix is pressed.
 hint() { printf '#[fg=%s]#[bold]%s#[nobold]#[fg=%s] %s' "$c_yellow" "$1" "$c_dim" "$2"; }
-hints="$(hint s sessions)   $(hint G lazygit)   $(hint y fleet)   $(hint n next)   $(hint f sidebar)   $(hint = tile)   $(hint Esc copy)   $(hint T bar)   $(hint r reload)"
+hints="$(hint s sessions)   $(hint w tree)   $(hint Tab switch)   $(hint G lazygit)   $(hint y fleet)   $(hint n next)   $(hint f sidebar)   $(hint '*' float)   $(hint g move)   $(hint = tile)   $(hint Esc copy)   $(hint T bar)   $(hint r reload)"
 theme_note=""
 if [[ -f "$HOME/.local/state/theme/current/theme/theme.conf" ]]; then
   theme_note=$(sed -n 's/^TAGLINE="\(.*\)"/\1/p' "$HOME/.local/state/theme/current/theme/theme.conf")
