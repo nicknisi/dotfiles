@@ -178,6 +178,9 @@ badges="#{?window_zoomed_flag, #[fg=${c_orange}]⊕,}#{?pane_synchronized, #[fg=
 tmux setw -g window-status-separator "  "
 tmux setw -g window-status-bell-style default # the formats own the bell look
 tmux setw -g window-status-activity-style default
+# tmux 3.8 underlines the current window by default; keep it, but as a quiet
+# dotted line in the accent (needs the Smulx/Setulc overrides in tmux.conf).
+tmux setw -g window-status-current-style "dotted-underscore,us=${c_accent}"
 tmux setw -g window-status-format " ${digit_style}${digit_oth} ${name_oth}${badges} "
 tmux setw -g window-status-current-format " ${digit_style}#[bold]${digit_cur}#[nobold] ${name_cur}${badges} "
 
