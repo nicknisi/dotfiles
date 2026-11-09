@@ -172,7 +172,10 @@ digit_style="#{?#{@fleet_state},#[fg=#{@fleet_state}],${slot_fg}}"
 name='#{?#{window_name},#{=/32/…:window_name},#{b:pane_current_path}}'
 name_cur="#{?window_bell_flag,#[fg=${c_red}],#{?#{@fleet_state},#[fg=#{@fleet_state}],#[fg=${c_fg}]}}#[bold]${name}#[nobold]"
 name_oth="#{?window_bell_flag,#[fg=${c_red}]#[bold],#{?#{@fleet_state},#[fg=#{@fleet_state}]#[bold],#[fg=${c_dim}]}}${name}#[nobold]"
-badges="#{?window_zoomed_flag, #[fg=${c_orange}]⊕,}#{?pane_synchronized, #[fg=${c_red}]⇄,}#{?window_marked_flag, #[fg=${c_accent}]⚑,}"
+# Fleet sets @fleet_busy while an agent in the window is working. #{A:} makes
+# tmux redraw the status line every 100ms, but only while a spinner is shown.
+spinner="#{?#{@fleet_busy}, #[fg=${c_dim}]#{A:⠋,⠙,⠹,⠸,⠼,⠴,⠦,⠧,⠇,⠏},}"
+badges="${spinner}#{?window_zoomed_flag, #[fg=${c_orange}]⊕,}#{?pane_synchronized, #[fg=${c_red}]⇄,}#{?window_marked_flag, #[fg=${c_accent}]⚑,}"
 
 # Windows keep their original filled/outline digits, with no underlines.
 tmux setw -g window-status-separator "  "
