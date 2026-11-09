@@ -6,7 +6,7 @@
 
 # Open the sibling directly so symlink/../ paths retain filesystem semantics.
 source "${BASH_SOURCE[0]%/*}/nerdwin"
-SMART_NAME_FORMAT=$'#{window_id}\037#{pane_active}\037#{pane_current_command}\037#{pane_current_path}\037#{pane_tty}\037#{automatic-rename}\037#{window_name}'
+SMART_NAME_FORMAT=$'#{window_id}\037#{pane_active}\037#{pane_current_command}\037#{pane_current_path}\037#{pane_tty}\037#{automatic-rename}\037#{window_name}\037#{pane_floating_flag}'
 
 smart_name() {
   local path=$1 root dir_name parent_dir parent_name grandparent_dir branch project
@@ -45,7 +45,7 @@ smart_name() {
 smart_name_pi_ttys() {
   local window active cmd path tty auto name ttys="" comm
   pi_ttys=" "
-  while IFS=$'\037' read -r window active cmd path tty auto name; do
+  while IFS=$'\037' read -r window active cmd path tty auto name _; do
     [[ $auto == 1 && $cmd == node && -n $tty ]] || continue
     ttys+="${ttys:+,}${tty#/dev/}"
   done <<<"$1"
@@ -91,7 +91,7 @@ smart_name_queue() {
 }
 
 smart_name_refresh() {
-  local now next panes id active cmd path tty auto name window="" old_name=""
+  local now next panes id active cmd path tty auto name floating window="" old_name=""
   local best_rank=-1 best_active=0 best_cmd="" best_path="" pi_ttys seen=" " skip=0
   local changes=()
   IFS='|' read -r now next <<<"$(tmux display-message -p '%s|#{@smart_name_next}' 2>/dev/null)"
@@ -102,7 +102,7 @@ smart_name_refresh() {
   panes=$(tmux set-option -gq @smart_name_next "$((now + 5))" \; \
     list-panes -a -F "$SMART_NAME_FORMAT" 2>/dev/null) || return 0
   smart_name_pi_ttys "$panes"
-  while IFS=$'\037' read -r id active cmd path tty auto name; do
+  while IFS=$'\037' read -r id active cmd path tty auto name floating; do
     [[ -n $id ]] || continue
     if [[ $id != "$window" ]]; then
       smart_name_queue
@@ -111,7 +111,8 @@ smart_name_refresh() {
       [[ $seen == *" $id "* ]] && skip=1
       seen+="$id "
     fi
-    [[ $auto == 1 && $skip == 0 ]] && smart_name_consider "$cmd" "$path" "$tty" "$active"
+    # Floating panes (tm, lazygit, fleet) are transient; they never name a window.
+    [[ $auto == 1 && $skip == 0 && $floating != 1 ]] && smart_name_consider "$cmd" "$path" "$tty" "$active"
   done <<<"$panes"
   smart_name_queue
   ((${#changes[@]})) && tmux "${changes[@]:0:${#changes[@]}-1}" 2>/dev/null

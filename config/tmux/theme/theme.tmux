@@ -97,12 +97,19 @@ tmux set-window-option -g pane-active-border-style "fg=${thm_fg_gutter},bg=${thm
 tmux set-window-option -g pane-border-style "fg=${thm_fg_gutter},bg=${thm_fg_gutter}"
 tmux set-window-option -g pane-border-lines simple
 
+# Auto-hide scrollbars and copy mode's line numbers and cursor line.
+tmux setw -g pane-scrollbars-style "bg=default,fg=${c_muted},width=1,pad=0"
+tmux setw -g copy-mode-line-number-style "fg=${c_muted}"
+tmux setw -g copy-mode-current-line-number-style "fg=${c_yellow}"
+tmux setw -g copy-mode-current-line-style "bg=${c_surface}"
+
 # ── Status line ──────────────────────────────────────────────────────────────
 # One transparent row with the original session crests and colourful digits.
 # Sessions keep their hashed colours and sigils, without pill backgrounds.
 # A filled digit and bold name mark the active window. Fleet and bells take
 # precedence over the resting colours.
-# Prefix shows the binding hints; copy mode shows a yellow text label.
+# Prefix only swaps the session crest for a bolt; prefix-? shows the binding
+# hints. Copy mode shows a yellow text label.
 # Badges: ⊕ zoomed, ⇄ synchronized, ⚑ marked, ⧉ shared session.
 #
 # NB: inside #{?...} branches never put a comma inside a #[style] or #(...):
@@ -123,31 +130,34 @@ OUTLINE=(➀ ➁ ➂ ➃ ➄ ➅ ➆ ➇ ➈ ➉)
 BOLT=$'\xf3\xb1\x90\x8b'  # U+F140B nf-md-lightning_bolt
 SSH=$'\xf3\xb0\xa3\x80'   # U+F08C0 nf-md-ssh
 
-# One colour per window slot, cycling the palette — a small rainbow your eye
-# learns ("the green one"). Only the digit is painted; names stay quiet.
+# One colour per window, cycling the palette — a small rainbow your eye learns
+# ("the green one"). Keyed on the window id, not its index, so renumbering
+# after a close doesn't recolour the rest. Only the digit is painted.
 slot_styles=()
 for c in "$c_blue" "$c_cyan" "$c_green" "$c_yellow" "$c_orange" "$c_red" "$c_magenta" "$c_pink" "$c_teal" "$c_lavender"; do
   slot_styles+=("#[fg=${c}]")
 done
 
-# by_index ELSE V1..V10 → nested #{?#{==:#{window_index},i},Vi,…ELSE}: a lookup
-# table in tmux's own format language, evaluated per window with no shell.
-by_index() {
-  local else=$1 out="" close="" i=1 v
-  shift
+# lookup KEY ELSE V1..Vn → nested #{?#{==:KEY,i},Vi,…ELSE}: a lookup table in
+# tmux's own format language, evaluated per window with no shell.
+lookup() {
+  local key=$1 else=$2 out="" close="" i=1 v
+  shift 2
   for v in "$@"; do
-    out+="#{?#{==:#{window_index},${i}},${v},"
+    out+="#{?#{==:${key},${i}},${v},"
     close+="}"
     i=$((i + 1))
   done
   printf '%s%s%s' "$out" "$else" "$close"
 }
-digit_cur=$(by_index '#I' "${FILLED[@]}")
-digit_oth=$(by_index '#I' "${OUTLINE[@]}")
-slot_fg=$(by_index "#[fg=${c_accent}]" "${slot_styles[@]}")
+digit_cur=$(lookup '#{window_index}' '#I' "${FILLED[@]}")
+digit_oth=$(lookup '#{window_index}' '#I' "${OUTLINE[@]}")
+# Key: id mod 10, plus 1. The last digit comes from a regex because % in a
+# status format is strftime.
+slot_fg=$(lookup '#{e|+:#{s/.*(.)$/\1/:window_id},1}' "#[fg=${c_accent}]" "${slot_styles[@]}")
 
-# Digit colour: prefix hint beats fleet attention beats the slot colour.
-digit_style="#{?client_prefix,#[fg=${c_yellow}],#{?#{@fleet_state},#[fg=#{@fleet_state}],${slot_fg}}}"
+# Digit colour: fleet attention beats the slot colour.
+digit_style="#{?#{@fleet_state},#[fg=#{@fleet_state}],${slot_fg}}"
 
 # Name colour: bell beats fleet attention beats the resting colour. Names are
 # capped at 32 cells so app-set titles can't flood the bar.
@@ -171,14 +181,30 @@ tmux setw -g window-status-current-format " ${digit_style}#[bold]${digit_cur}#[n
 tmux set -g @fleet_rollup 1
 
 # Left: the session crest, or the original yellow bolt while prefix is held.
-# Click the label for the session tree.
+# Click the label for the session tree. Rendered natively, not by a #() job:
+# a job keyed on the session name starts cold on each switch and the label
+# pops in late, shoving the window list. tmux-session-mood stamps each
+# session's hashed colour and sigil as @crest_fg/@crest_sigil once (here, and
+# on session create/rename); fleet attention comes from the windows' rollup.
+"$CURRENT_DIR/../../../bin/tmux-session-mood" stamp
+tmux set-hook -g 'session-created[80]' "run-shell '${BIN}/tmux-session-mood stamp'"
+tmux set-hook -g 'session-renamed[80]' "run-shell '${BIN}/tmux-session-mood stamp'"
+states='#{W:#{@fleet_state} }'
+attn() { # attn YELLOW MAGENTA GREEN ELSE → most urgent window state wins
+  printf '#{?#{m:*yellow*,%s},%s,#{?#{m:*magenta*,%s},%s,#{?#{m:*green*,%s},%s,%s}}}' \
+    "$states" "$1" "$states" "$2" "$states" "$3" "$4"
+}
+crest_fg=$(attn yellow magenta green "#{?#{@crest_fg},#{@crest_fg},${c_dim}}")
+crest_glyph=$(attn '⚠' '?' '●' '#{@crest_sigil}')
+crest="#[default]#[fg=${crest_fg}]${crest_glyph} #[bold]#S#{?session_many_attached, ⧉,}#[default]"
 prefix_label="#[fg=${c_yellow}]#[bold]${BOLT} #S#[default]"
-tmux set -g status-left "  #{?client_prefix,${prefix_label},#(${BIN}/tmux-session-mood current '#{session_name}' '#{session_many_attached}')}   "
+tmux set -g status-left "  #{?client_prefix,${prefix_label},${crest}}   "
 
-# Right: ssh host, fleet, copy mode and clickable session labels.
-# Prefix swaps these for the cheat sheet, theme tagline and moon.
+# Right: ssh host, fleet, copy mode and clickable session labels. The cheat
+# sheet (with the theme tagline and moon) is @hints, shown by prefix-? in
+# tmux.conf, so the right side holds still while prefix is pressed.
 hint() { printf '#[fg=%s]#[bold]%s#[nobold]#[fg=%s] %s' "$c_yellow" "$1" "$c_dim" "$2"; }
-hints="$(hint s sessions)   $(hint g lazygit)   $(hint y fleet)   $(hint n next)   $(hint f sidebar)   $(hint = tile)   $(hint Esc copy)   $(hint T bar)   $(hint r reload)"
+hints="$(hint s sessions)   $(hint G lazygit)   $(hint y fleet)   $(hint n next)   $(hint f sidebar)   $(hint = tile)   $(hint Esc copy)   $(hint T bar)   $(hint r reload)"
 theme_note=""
 if [[ -f "$HOME/.local/state/theme/current/theme/theme.conf" ]]; then
   theme_note=$(sed -n 's/^TAGLINE="\(.*\)"/\1/p' "$HOME/.local/state/theme/current/theme/theme.conf")
@@ -191,7 +217,8 @@ others="#(${BIN}/tmux-session-mood others '#{client_session}')"
 chips="#(${BIN}/tmux-fleet-chips)  "
 ssh=""
 [[ -n "${SSH_CONNECTION:-}${SSH_TTY:-}" ]] && ssh="#[fg=${c_dim}]${SSH} #h   "
-tmux set -g status-right "#{?client_prefix,${hints},${ssh}${chips}${mode_label}${others}}"
+tmux set -g @hints "$hints"
+tmux set -g status-right "${ssh}${chips}${mode_label}${others}"
 tmux set -gu @sl_git 2>/dev/null || true
 tmux set -gu @sl_row1 2>/dev/null || true
 

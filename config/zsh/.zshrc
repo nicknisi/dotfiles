@@ -211,3 +211,18 @@ if command -v starship &>/dev/null; then
 
   eval "$(starship init zsh)"
 fi
+
+# OSC 133 prompt and command marks inside tmux. Ghostty's shell integration only
+# covers shells Ghostty starts, so tmux panes need their own. tmux 3.8 turns
+# them into pane-command-* hooks (see tmux.conf) and copy-mode prompt jumps.
+if [[ -n $TMUX ]]; then
+  _osc133_precmd() {
+    local ret=$?
+    (( ${+_osc133_ran} )) && print -n "\e]133;D;$ret\a"
+    unset _osc133_ran
+    print -n '\e]133;A\a'
+  }
+  _osc133_preexec() { _osc133_ran=1; print -n '\e]133;C\a'; }
+  add-zsh-hook precmd _osc133_precmd
+  add-zsh-hook preexec _osc133_preexec
+fi
