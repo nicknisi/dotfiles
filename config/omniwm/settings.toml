@@ -1,7 +1,4 @@
-monitorBarOverrides = []
-monitorNiriOverrides = []
-monitorOrientationOverrides = []
-schemaVersion = 4
+schemaVersion = 5
 
 [appearance]
 mode = "dark"
@@ -55,7 +52,9 @@ useGlobalGaps = true
 
 [focus]
 crossesMonitorAtEdge = true
+edgeNavigationInterval = 1.5
 followsMouse = true
+followsMouseOnlyFullyVisible = false
 followsWindowToMonitor = true
 lockModifier = "off"
 moveCrossesMonitorAtEdge = true
@@ -68,9 +67,9 @@ size = 8.0
 
 [gaps.outer]
 bottom = 4.0
-left = 4.0
-right = 4.0
-top = 89.0
+left = 12.0
+right = 12.0
+top = 64.0
 
 [general]
 animationSpeed = 3.0
@@ -82,14 +81,20 @@ ipcEnabled = true
 preventSleepEnabled = false
 systemHyperTrigger = "None"
 updateChecksEnabled = true
+workspaceAutoBackAndForth = false
 
 [gestures]
+adoptNativeMoveAcrossDisplays = false
+adoptNativeResize = false
+dwindleGroupDragAcrossDisplays = "group"
 fingerCount = 4
 invertDirection = true
 mouseMoveModifierKey = "option"
 mouseResizeModifierKey = "option"
+mouseWheelSensitivity = 1.0
 overviewGestureEnabled = false
 overviewGestureFingerCount = 4
+resizePreviewStyle = "live"
 scrollEnabled = true
 scrollModifierKey = "optionShift"
 scrollSensitivity = 5.0
@@ -100,6 +105,7 @@ windowMoveFingerCount = 4
 windowResizeEnabled = false
 windowResizeFingerCount = 3
 workspaceSwipeAxis = "horizontal"
+workspaceSwipeEdgeBehavior = "cycle"
 workspaceSwipeEnabled = true
 workspaceSwipeFingerCount = 3
 
@@ -108,18 +114,34 @@ enabled = true
 hiddenBundleIDs = []
 rehideIntervalSeconds = 5.0
 
+[island]
+enabled = false
+
+[keyboardModes]
+
+[launcher]
+appFolders = []
+cliFolders = []
+entries = []
+shell = "system"
+shellExecutable = ""
+terminal = "terminal"
+
 [mouseWarp]
 constrainToArrangement = false
 enabled = true
 margin = 1
 
 [niri]
+allowOverscroll = false
 alwaysCenterSingleColumn = true
 centerFocusedColumn = "never"
 containerPrimarySpanPresets = [0.3333333333333333, 0.5, 0.6666666666666666]
 defaultContainerPrimarySpan = 0.5
 edgeGaps = true
 infiniteLoop = false
+moveWindowStacksIntoColumn = true
+overscrollVisibleStripPercent = 5
 resizeStepPercent = 5
 singleWindowFit = "fill"
 visibleContainerCount = 2
@@ -167,6 +189,7 @@ heightPercent = 65.0
 monitorMode = "focusedWindow"
 opacity = 0.85
 position = "bottom"
+provider = "ghostty"
 widthPercent = 80.0
 
 [routing]
@@ -178,11 +201,34 @@ mode = "macOS"
 [scratchpads.labels]
 1 = "Comms"
 
+[shellPermissions]
+programs = []
+widgets = []
+
+[shellPermissions.services]
+lyrics = true
+weather = true
+
 [statusBar]
 showAppNames = false
 showIcon = true
 showWorkspaceName = true
 useWorkspaceId = false
+
+[statusMenu]
+hiddenControls = []
+hiddenMenuItems = []
+showControlHelp = true
+showControls = true
+showMenuItems = true
+
+[windowSwitcher]
+commandTab = "activeWorkspace"
+enabled = false
+optionTab = "allWorkspaces"
+order = "omniLayout"
+scope = "allWorkspaces"
+showFooter = true
 
 [workspaceBar]
 autoHide = true
@@ -190,8 +236,10 @@ autoHideHideDelayMilliseconds = 0.0
 autoHideRevealDelayMilliseconds = 0.0
 backgroundOpacity = 0.1
 deduplicateAppIcons = false
-enabled = true
+enabled = false
 excludedBundleIDs = []
+fullWidth = false
+fullWidthNotchMode = "rightOfNotch"
 height = 28.0
 hideEmptyWorkspaces = true
 hideInNativeFullscreen = false
@@ -1134,27 +1182,27 @@ id = "resetWindowSecondarySpan"
 
 [[hotkeys]]
 binding = "Option+Minus"
-id = "setContainerPrimarySpan.decrease10Percent"
+id = "resizeContainerPrimarySpan.shrink"
 
 [[hotkeys]]
 binding = "Option+Equal"
-id = "setContainerPrimarySpan.increase10Percent"
+id = "resizeContainerPrimarySpan.grow"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "setWindowPrimarySpan.decrease10Percent"
+id = "resizeWindowPrimarySpan.shrink"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "setWindowPrimarySpan.increase10Percent"
+id = "resizeWindowPrimarySpan.grow"
 
 [[hotkeys]]
 binding = "Control+Option+Shift+Minus"
-id = "setWindowSecondarySpan.decrease10Percent"
+id = "resizeWindowSecondarySpan.shrink"
 
 [[hotkeys]]
 binding = "Control+Option+Shift+Equal"
-id = "setWindowSecondarySpan.increase10Percent"
+id = "resizeWindowSecondarySpan.grow"
 
 [[hotkeys]]
 binding = "Option+Shift+B"
@@ -1218,7 +1266,79 @@ id = "preselectClear"
 
 [[hotkeys]]
 binding = "Unassigned"
+id = "volumeUp"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "volumeDown"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "volumeMute"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "mediaPlayPause"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "mediaNext"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "mediaPrevious"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShortcutPause"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "beginPrefix"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleWindowMode"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "exitKeyboardMode"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "openShellApp.example"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "newShellAppWindow.example"
+
+[[hotkeys]]
+binding = "Unassigned"
 id = "openCommandPalette"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "openCommandPalette.windows"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "openCommandPalette.menu"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "openCommandPalette.clipboard"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "openCommandPalette.commands"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "openCommandPalette.applications"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "openCommandPalette.files"
 
 [[hotkeys]]
 binding = "Option+Shift+R"
@@ -1354,6 +1474,12 @@ monitorDisplayUUID = "0DD09A94-5349-4E00-B7EF-30447A0A10F2"
 monitorName = "Sidecar Display (AirPlay)"
 singleWindowFit = "1130x750"
 
+[[monitorDwindleOverrides]]
+id = "FEEF9536-B161-49AA-B543-3426F92BD772"
+monitorDisplayUUID = "886DE5B7-5CD6-41BC-80CF-5BAA92BA0E0F"
+monitorName = "Studio Display"
+singleWindowFit = "2130x1150"
+
 [[monitorGapOverrides]]
 id = "9C1E6F52-3B7A-4D8E-A1F0-5B2C7D9E4A11"
 monitorDisplayUUID = "2EBFAA40-3303-44D9-8466-01AAB4B286A5"
@@ -1431,6 +1557,12 @@ id = "2A10A239-343D-4C31-9AE2-91F5B517D80E"
 monitorDisplayUUID = "0DD09A94-5349-4E00-B7EF-30447A0A10F2"
 monitorName = "Sidecar Display (AirPlay)"
 outerGapTop = 80.0
+
+[[monitorGapOverrides]]
+id = "D0E6A6C9-9B34-43D7-B666-0EB9A3DB4B4C"
+monitorDisplayUUID = "886DE5B7-5CD6-41BC-80CF-5BAA92BA0E0F"
+monitorName = "Studio Display"
+outerGapTop = 50.0
 
 [[workspaces]]
 id = "E5D6C2B4-F906-456D-87E0-44C3E59D39F0"
