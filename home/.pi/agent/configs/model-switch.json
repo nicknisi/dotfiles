@@ -8,6 +8,7 @@
       "cloudflare-ai-gateway/gpt-6-sol",
       "cloudflare-ai-gateway/gpt-6-terra",
       "cloudflare-ai-gateway/claude-fable-5",
+      "cloudflare-ai-gateway/claude-fable-5-2",
       "cloudflare-ai-gateway/claude-opus-5",
       "anthropic/claude-opus-5",
       "cloudflare-ai-gateway/claude-sonnet-5",
