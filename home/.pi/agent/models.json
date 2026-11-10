@@ -41,6 +41,34 @@
           "compat": {
             "supportsLongCacheRetention": false
           }
+        },
+        {
+          "id": "claude-fable-5-2",
+          "name": "Claude Fable 5.2",
+          "api": "anthropic-messages",
+          "baseUrl": "https://gateway.ai.cloudflare.com/v1/{CLOUDFLARE_ACCOUNT_ID}/{CLOUDFLARE_GATEWAY_ID}/anthropic",
+          "reasoning": true,
+          "input": [
+            "text",
+            "image"
+          ],
+          "contextWindow": 1000000,
+          "maxTokens": 128000,
+          "cost": {
+            "input": 8,
+            "output": 40,
+            "cacheRead": 0.2,
+            "cacheWrite": 10
+          },
+          "compat": {
+            "sendSessionAffinityHeaders": true,
+            "forceAdaptiveThinking": true
+          },
+          "thinkingLevelMap": {
+            "off": null,
+            "xhigh": "xhigh",
+            "max": "max"
+          }
         }
       ]
     },
