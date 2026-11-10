@@ -191,7 +191,7 @@
     path = ~/.gitconfig-local
 [credential "https://github.com"]
 	helper = 
-	helper = !/Users/nicknisi/.local/share/mise/installs/github-cli/latest/gh_2.101.0_macOS_arm64/bin/gh auth git-credential
+	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
 	helper = 
-	helper = !/Users/nicknisi/.local/share/mise/installs/github-cli/latest/gh_2.101.0_macOS_arm64/bin/gh auth git-credential
+	helper = !gh auth git-credential
