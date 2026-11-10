@@ -62,7 +62,8 @@
           },
           "compat": {
             "sendSessionAffinityHeaders": true,
-            "forceAdaptiveThinking": true
+            "forceAdaptiveThinking": true,
+            "supportsMidConvoEffort": true
           },
           "thinkingLevelMap": {
             "off": null,
