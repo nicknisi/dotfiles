@@ -1,8 +1,8 @@
 -- A Dynamic Island around the MacBook notch.
 -- Collapsed it hugs the notch and grows "wings" only when there's something to show (a meeting about
--- to start, music playing, a keep-awake timer; agents stay in the bar). Hover or click to expand into now
--- playing (spinning cover, live bars, synced lyrics, controls) plus meeting/agents/awake chips. It also
--- pops open for a few seconds on a song change, a new agent needing you, or a meeting about to start.
+-- to start, music playing, a keep-awake timer; agents stay in the bar). Click to expand into now playing
+-- (spinning cover, live bars, synced lyrics, controls) plus meeting/agents/awake chips. On its own it only
+-- pops open for a few seconds when a meeting is about to start or you switch theme packs.
 interval = 1
 
 local shapes = require("../lib/shapes")
@@ -77,14 +77,10 @@ local function lyric(ctx, media): string?
 end
 
 -- Live moments: open the island for a few seconds when something new happens.
-local function liveMoments(ctx, media, d, next)
+-- Live moments: open the island for a few seconds on its own. Only a meeting about to start and a theme
+-- switch qualify; songs and agents update quietly (the wings and the bar's crew show them).
+local function liveMoments(ctx, next)
     local state, now = ctx.state, ctx.data.seconds
-    local song = media and (media.title .. "\0" .. media.artist)
-    if song and state.song ~= nil and song ~= state.song and media.playing then state.peekUntil = now + PEEK end
-    state.song = song or state.song
-    local attention = d and d.attention or 0
-    if attention > (state.attention or 0) then state.peekUntil = now + PEEK end
-    state.attention = attention
     local pack = theme(ctx)
     local packName = pack and pack.name
     if packName and state.pack ~= nil and packName ~= state.pack then state.peekUntil = now + PEEK end
@@ -226,14 +222,14 @@ function render(ctx)
     local media = ctx.data.media
     if media and media.title == "" then media = nil end
     local d, next = agents(ctx), meeting(ctx)
-    local peeking = liveMoments(ctx, media, d, next)
-    local open = ctx.state.open or ctx.state.hover or peeking
+    local peeking = liveMoments(ctx, next)
+    local open = ctx.state.open or peeking
     local left, right = wings(ctx, media, next)
 
     local capsule = { key = "capsule", align = "top", radius = notch.h / 2, fill = "#000000", animate = SPRING,
         onClick = function(c) c.state.open = not c.state.open end,
         onOutsidePress = function(c) c.state.open = false end,
-        onHover = function(c, event) c.state.hover = event.phase == "began" end, hoverDelay = 0.25, hoverGrace = 0.35 }
+    }
     if open then
         local content = expanded(ctx, media, d, next, OPEN_W - 36)
         capsule.w, capsule.radius, capsule.pad = OPEN_W, 30, 18
