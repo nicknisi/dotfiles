@@ -40,28 +40,45 @@ end
 
 -- Local patch: OmniWM's own Clear All walks every retained notification, hidden ones included, and
 -- gives up ("Notification Center closed") before reaching real ones. Dismiss the visible ones one by
--- one instead, sending the next once the previous action has settled.
+-- one instead. Commands only run from handlers, timers and triggers (not from render/popout), and
+-- the popout closes once a dismiss runs, so a timer re-enters trigger() to send each next one.
+-- Polling every 0.5s closed Notification Center mid-dismiss ("historyClosed"); 1s works.
+local STEP = "shell trigger notifications clear-step"
+
+local function later(seconds: number)
+    omniwm.after(seconds, function() omniwm.run(STEP) end)
+end
+
+local function stepClear(ctx)
+    local queue = ctx.state.clearQueue
+    if not queue then return end
+    local sent, action = ctx.state.clearSent, ctx.data.notifications and ctx.data.notifications.action
+    local settled = not sent or (action and action.id == sent and action.state ~= "pending")
+    if not settled and os.time() - (ctx.state.clearAt or 0) < 15 then
+        later(1)
+        return
+    end
+    local item = table.remove(queue, 1)
+    if not item then
+        ctx.state.clearQueue, ctx.state.clearSent = nil, nil
+        return
+    end
+    ctx.state.clearSent, ctx.state.clearAt = item.id, os.time()
+    omniwm.run("notifications dismiss " .. item.bundle .. " " .. item.id)
+    later(1)
+end
+
 local function startClear(ctx)
     local queue = {}
     for _, item in visibleItems(ctx.data.notifications) do
         if item.actionsSupported then queue[#queue + 1] = { bundle = item.bundle, id = string.lower(item.id) } end
     end
     ctx.state.clearQueue, ctx.state.clearSent = queue, nil
+    stepClear(ctx)
 end
 
-local function pumpClear(ctx, value)
-    local queue = ctx.state.clearQueue
-    if not queue then return end
-    local sent, action = ctx.state.clearSent, value and value.action
-    local stuck = sent and ctx.data.seconds - (ctx.state.clearAt or 0) > 15
-    if sent and not stuck and not (action and action.id == sent and action.state ~= "pending") then return end
-    local item = table.remove(queue, 1)
-    if not item or stuck then
-        ctx.state.clearQueue, ctx.state.clearSent = nil, nil
-        return
-    end
-    ctx.state.clearSent, ctx.state.clearAt = item.id, ctx.data.seconds
-    omniwm.run("notifications dismiss " .. item.bundle .. " " .. item.id)
+function trigger(ctx, event)
+    if event.name == "clear-step" then stepClear(ctx) end
 end
 
 local function canDismiss(value)
@@ -431,7 +448,6 @@ end
 function popout(ctx)
     local value = ctx.data.notifications
     syncReplies(ctx, value)
-    pumpClear(ctx, value)
     local items = visibleItems(value)
     local busy = value and ((value.action and value.action.state == "pending") or (value.dismissAll and value.dismissAll.active))
     local pages = math.max(1, math.ceil(#items / PAGE))

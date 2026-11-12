@@ -1402,6 +1402,10 @@ id = "toggleShellWidget.agents"
 
 [[hotkeys]]
 binding = "Unassigned"
+id = "toggleShellWidget.awake"
+
+[[hotkeys]]
+binding = "Unassigned"
 id = "toggleShellWidget.battery-details"
 
 [[hotkeys]]

@@ -24,10 +24,14 @@ hoverPreviewsEnabled = true
 showFloatingWindows = true
 
 [profiles.wayline]
-center = ["media", "active-window"]
+center = ["active-window"]
 leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads"]
 theme = "wallpaper"
-trailing = ["agents", "wifi", "battery-details", "system-stats", "notifications", "fantastical", "control-center"]
+trailing = ["media", "agents", "awake", "wifi", "battery-details", "system-stats", "notifications", "fantastical", "control-center"]
+
+# The center sits between the workspaces and the notch (~320pt); media lives on the right instead.
+[profiles.wayline.widgets.active-window]
+maxWidth = 200
 
 [profiles.wayline.workspaceBar]
 autoHide = false

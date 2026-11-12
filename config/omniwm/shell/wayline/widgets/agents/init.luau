@@ -3,6 +3,7 @@
 interval = 30
 
 local look = require("../lib/look")
+local chip = require("../lib/chip")
 
 local STALE = 120 -- seconds without a push before the count shows "?"
 -- Material Design "robot" (the old sketchybar nf-md-robot glyph) as a vector path:
@@ -38,15 +39,16 @@ end
 function render(ctx)
     local d = data(ctx)
     local fresh = d and ctx.data.seconds - d.t < STALE
-    local scale = look.scale(ctx)
-    local props = { onClick = ui.popout, gap = 5 * scale,
-        help = if fresh then nil else "omniwm-agents isn't pushing (see its LaunchAgent log)",
-        robot(15 * scale),
-        look.text{ text = if fresh then tostring(d.total) else "?", size = 13 * scale, weight = "semibold" } }
-    if fresh and d.attention > 0 then
-        props[#props + 1] = ui.box{ w = 6 * scale, h = 6 * scale, radius = 3 * scale, fill = "warning" }
-    end
-    return look.bar(ctx, props)
+    local size = 32 * ctx.data.bar.style.height / 40
+    local hue = if not fresh then "elevatedSurface" elseif d.attention > 0 then "warning" else "accent"
+    local glyph = ui.path{ w = size * 0.56, h = size * 0.56, viewBox = { 0, 0, 24, 24 }, evenOdd = true, d = ROBOT,
+        fill = if fresh then "accentForeground" else "secondaryForeground" }
+    local button = chip(ctx, glyph, hue, if fresh then tostring(d.total) else "?",
+        if fresh then hue else "secondaryForeground")
+    button.onClick = ui.popout
+    button.help = if not fresh then "omniwm-agents isn't pushing (see its LaunchAgent log)"
+        elseif d.attention > 0 then d.attention .. " need you" else nil
+    return button
 end
 
 local function line(left: string, right: string, color: string?)
