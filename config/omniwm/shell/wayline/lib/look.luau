@@ -1142,11 +1142,14 @@ return require("./skin")({
             or (style.accents and "accent/0.24" or "foreground/0.07")) or nil
         local block = { w = m.vertical and m.item or (utf8.len(workspace.name) <= 2 and 28 * m.scale or nil),
             h = m.item, radius = radius, fill = fill }
-        -- Local patch: the focused workspace gets a Material shape (from Celestial), a new one each visit.
-        if fill == "accent" and utf8.len(workspace.name) <= 2 then
-            block.fill = nil
-            table.insert(block, 1, ui.path{ d = shapes.path(focusedShape(ctx, workspace)), viewBox = shapes.viewBox,
-                w = m.item, h = m.item, fill = "accent" })
+        -- Local patch: the focused workspace tile is a Celestial shape, a new random one each visit, that
+        -- pops in with a little spin. (OmniWM 0.8 doesn't animate path changes, so no true melt-morph.)
+        if fill == "accent" and not m.vertical and utf8.len(workspace.name) <= 2 then
+            local shape = focusedShape(ctx, workspace)
+            block.fill, block.w = nil, m.item
+            table.insert(block, 1, ui.path{ viewBox = shapes.viewBox, d = shapes.path(shape), w = m.item, h = m.item,
+                fill = "accent", pulse = { key = workspace.id .. shape, duration = 0.55,
+                    scale = { -0.5, -0.1, 0.12, 0.04, -0.02, 0 }, rotate = { -120, -30, 12, -4, 1, 0 } } })
             occupied = false -- the square connector into the window icons doesn't suit a shape
         end
         if occupied and not m.compact then

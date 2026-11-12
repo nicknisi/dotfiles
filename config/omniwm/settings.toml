@@ -115,7 +115,7 @@ hiddenBundleIDs = []
 rehideIntervalSeconds = 5.0
 
 [island]
-enabled = false
+enabled = true
 
 [keyboardModes]
 
@@ -1411,10 +1411,6 @@ id = "toggleShellWidget.fantastical"
 [[hotkeys]]
 binding = "Unassigned"
 id = "toggleShellWidget.hidden-bar"
-
-[[hotkeys]]
-binding = "Unassigned"
-id = "toggleShellWidget.media"
 
 [[hotkeys]]
 binding = "Unassigned"

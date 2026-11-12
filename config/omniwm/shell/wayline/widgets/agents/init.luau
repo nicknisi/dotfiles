@@ -1,6 +1,6 @@
 -- Running coding agents (tmux, Riker, Rex, quake, terminals) with today's spend.
 -- Data is pushed by bin/omniwm-agents via `omniwmctl shell set agents <json>`.
-interval = 30
+interval = 5 -- short, so the "vibes" flash clears after a few seconds
 
 local look = require("../lib/look")
 local chip = require("../lib/chip")
@@ -47,26 +47,47 @@ for i = 0, 240 do
 end
 BOB[#BOB], WIGGLE[#WIGGLE] = 0, 0 -- pulses must end exactly at zero
 
-local function alive(ctx, d)
-    local busy = false
+local function busy(d): boolean
     for _, a in d.agents do
-        if a.state == "busy" or a.state == "running" then busy = true end
+        if a.state == "busy" or a.state == "running" then return true end
     end
+    return false
+end
+
+local function alive(ctx, d)
     local key = math.floor(ctx.data.seconds / 30)
     if d.attention > 0 then return { key = "wiggle" .. key, duration = 30, rotate = WIGGLE } end
-    if busy then return { key = "bob" .. key, duration = 30, dy = BOB } end
+    if busy(d) then return { key = "bob" .. key, duration = 30, dy = BOB } end
     return nil
+end
+
+-- Easter egg from the old sketchybar pill: when the last agent waiting on you is handled, flash
+-- "vibes: immaculate" for a few seconds.
+local function vibes(ctx, d): boolean
+    local state, now = ctx.state, ctx.data.seconds
+    if (state.lastAttention or 0) > 0 and d.attention == 0 then
+        state.vibesUntil = now + 4
+    end
+    state.lastAttention = d.attention
+    return state.vibesUntil ~= nil and now < state.vibesUntil
 end
 
 function render(ctx)
     local d = data(ctx)
     local fresh = d and ctx.data.seconds - d.t < STALE
     local size = 32 * ctx.data.bar.style.height / 40
-    local hue = if not fresh then "elevatedSurface" elseif d.attention > 0 then "warning" else "accent"
-    local glyph = ui.path{ w = size * 0.56, h = size * 0.56, viewBox = { 0, 0, 24, 24 }, evenOdd = true, d = ROBOT,
-        fill = if fresh then "accentForeground" else "secondaryForeground", pulse = fresh and alive(ctx, d) or nil }
-    local button = chip(ctx, glyph, hue, if fresh then tostring(d.total) else "?",
-        if fresh then hue else "secondaryForeground")
+    local button
+    if fresh and vibes(ctx, d) then
+        button = chip(ctx, ui.symbol{ name = "checkmark", size = size * 0.5, weight = "bold", color = "accentForeground",
+            pulse = { key = "vibes" .. ctx.state.vibesUntil, duration = 0.5, scale = { 0.6, -0.15, 0.08, 0 } } },
+            "success", "vibes: immaculate")
+    else
+        local hue = if not fresh then "elevatedSurface" elseif d.attention > 0 then "warning" else "accent"
+        local glyph = ui.path{ w = size * 0.56, h = size * 0.56, viewBox = { 0, 0, 24, 24 }, evenOdd = true, d = ROBOT,
+            fill = if fresh then "accentForeground" else "secondaryForeground", pulse = fresh and alive(ctx, d) or nil }
+        button = chip(ctx, glyph, hue, if fresh then tostring(d.total) else "?",
+            if fresh then hue else "secondaryForeground")
+    end
     button.onClick = ui.popout
     button.help = if not fresh then "omniwm-agents isn't pushing (see its LaunchAgent log)"
         elseif d.attention > 0 then d.attention .. " need you" else nil
