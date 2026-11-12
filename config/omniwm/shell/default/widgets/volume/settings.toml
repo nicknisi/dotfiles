@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
+
+[options.step]
+type = "number"
+title = "Volume change per scroll"
+default = 6.25
+min = 0.25
+max = 25
+step = 0.25

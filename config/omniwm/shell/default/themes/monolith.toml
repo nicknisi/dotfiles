@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
+
+[light]
+background = "#EEEEE5"
+surface = "#F2F2E8"
+elevatedSurface = "#E1E4D7"
+foreground = "#24251F"
+secondaryForeground = "#69705F"
+mutedForeground = "#858B7C"
+border = "#C9CCBF"
+accent = "#A54720"
+accentForeground = "#FFFFFF"
+success = "#52633A"
+warning = "#916B29"
+error = "#AD4438"
+
+[dark]
+background = "#161715"
+surface = "#20211E"
+elevatedSurface = "#2A2C27"
+foreground = "#F0EBDD"
+secondaryForeground = "#A4A79A"
+mutedForeground = "#7D8274"
+border = "#373A32"
+accent = "#EF8755"
+accentForeground = "#211B17"
+success = "#AFBD88"
+warning = "#DDB878"
+error = "#E17C6B"

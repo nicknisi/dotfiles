@@ -1,0 +1,45 @@
+profile = "wayline"
+
+[profiles]
+
+[profiles.celestial]
+center = ["active-window", "media"]
+leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads"]
+trailing = ["notifications", "volume", "wifi", "battery-details", "control-center", "system-stats", "clock", "power"]
+
+[profiles.default]
+center = ["active-window"]
+leading = ["apple-menu", "omniwm", "app-menu", "workspaces", "scratchpads"]
+theme = "monolith"
+trailing = ["media", "notifications", "volume", "wifi", "battery-details", "control-center", "system-stats", "clock"]
+
+[profiles.default.hiddenBar]
+enabled = true
+
+[profiles.default.workspaceBar]
+autoHide = false
+fullWidthNotchMode = "splitAroundNotch"
+height = 40.0
+hoverPreviewsEnabled = true
+showFloatingWindows = true
+
+[profiles.wayline]
+center = ["media", "active-window"]
+leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads"]
+theme = "everforest"
+trailing = ["agents", "wifi", "battery-details", "system-stats", "notifications", "fantastical", "control-center"]
+
+[profiles.wayline.workspaceBar]
+autoHide = false
+backgroundOpacity = 0.4
+fullWidth = true
+fullWidthNotchMode = "splitAroundNotch"
+inactiveIconOpacity = 0.15000000000000002
+notificationBadges = "dot"
+position = "overlappingMenuBar"
+reserveLayoutSpace = true
+showItemBackgrounds = true
+solidBlackBackground = false
+systemStatsButton = false
+transparentBackground = false
+windowLevel = "normal"

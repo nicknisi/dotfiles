@@ -89,10 +89,13 @@ if macOS intercepts them. This config does not change system preferences.
   size and an edge-measured top gap, so `bin/omniwm-monitors` appends a
   `monitorDwindleOverrides` entry (about 83% × 80% of the screen) and, if the
   menu bar differs, a `monitorGapOverrides` entry (menu bar + 50) for any
-  connected display that lacks one. It never changes existing entries; edit
-  them by hand to tune a display. On macOS, `mise bootstrap` installs the
+  connected display that lacks one. While OmniWM's own workspace bar is on for
+  a display, it sets that display's `outerGapTop` to menu bar + 12 instead (no
+  SketchyBar clearance), and back to + 50 when the bar is off, so hand-tuned
+  top gaps on connected displays get overwritten. It never changes existing
+  `singleWindowFit` entries. On macOS, `mise bootstrap` installs the
   `com.nicknisi.omniwm-monitors` LaunchAgent, which runs the script on every
-  display change (log: `/tmp/com.nicknisi.omniwm-monitors.log`). Run
+  display or workspace-bar change (log: `/tmp/com.nicknisi.omniwm-monitors.log`). Run
   `omniwm-monitors --dry-run` to preview.
 - Don't run AeroSpace alongside OmniWM. SketchyBar supports both WMs; with IPC
   enabled, start `sketchybar` to use its workspace pills and custom widgets (see

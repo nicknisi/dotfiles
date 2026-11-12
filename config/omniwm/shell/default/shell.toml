@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
+
+theme = "native"
+leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads"]
+center = ["active-window"]
+trailing = ["media", "notifications", "volume", "wifi", "battery-details", "control-center", "system-stats", "clock"]
+hiddenBarWidget = "hidden-bar"
+systemStatsWidget = "system-stats"
+
+[island]
+root = "focus-ribbon"
+displays = "all"
+width = 620
+height = 200
+fullscreen = "hide"
+
+[workspaceBar]
+position = "overlappingMenuBar"
+height = 32
+fullWidth = true
+reserveLayoutSpace = true
+transparentBackground = false
+backgroundOpacity = 0
+showItemBackgrounds = false
+showAccentHighlights = true
+solidBlackBackground = false
+showLabels = true
+xOffset = 0
+yOffset = 0
+systemStatsButton = true

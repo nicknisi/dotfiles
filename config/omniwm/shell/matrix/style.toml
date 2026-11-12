@@ -1,0 +1,18 @@
+format = 1
+name = "matrix"
+version = "1.0.0"
+api = 1
+author = "OmniNull"
+license = "GPL-2.0-only"
+title = "Matrix"
+summary = "A terminal-inspired bar with green accents and a rain shader."
+previews = ["bar.jpg", "desktop.jpg"]
+
+[barEffect]
+title = "Matrix Rain"
+values = [
+    { type = "number", title = "Intensity", min = 0, max = 1, step = 0.05 },
+    { type = "number", title = "Motion Speed", min = 0, max = 4, step = 0.1 },
+    { type = "number", title = "Character Size", min = 6, max = 40, step = 1 },
+    { type = "number", title = "Sweep Glow", min = 0, max = 1, step = 0.05 },
+]

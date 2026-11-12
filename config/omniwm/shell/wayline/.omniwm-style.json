@@ -1,0 +1,13 @@
+{
+  "files" : {
+    "README.md" : "07b047f7fb92841b6bbe65d926e0cf9d1c18a6e1549823f14dc3c6fb2fab3f9d",
+    "Wayle-LICENSE.txt" : "792d2febd1f5ec2002fae8e2fdc35aade5165a50053864757ac7d4a759611f42",
+    "lib\/look.luau" : "50eb79b4d7b235cc3bd8714cecbf5ee8286111d6c972adb42880bc6c8481207b",
+    "lib\/notification-style.luau" : "bbccd82d23401e911c522feefdad59571b4a6fa0d4798e9f5227d8b41dbe0a4e",
+    "shell.toml" : "032ddcfb4a5aace7f8fd78bdd4325e15a3cb463d6a5eb69243eeaa1fbeb38baa",
+    "style.toml" : "9d9cd72ffc59107b0a0526ef112b1e36785045fd2d01ab2cb3409705012639a7",
+    "themes\/wayline.toml" : "561dd2f6d1f2d6aa89815836f805c41f03b37c3956cc3b7f7c5cbc59ebe7c955"
+  },
+  "source" : "github:OmniNull\/OmniWM@v0.8.0",
+  "version" : "1.0.0"
+}

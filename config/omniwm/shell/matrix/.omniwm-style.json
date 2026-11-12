@@ -1,0 +1,14 @@
+{
+  "files" : {
+    "README.md" : "97387a24c032971e32b25060677a953db5083895a98788bca1beffe88c3e6bdf",
+    "lib\/look.luau" : "2e60b9b4001820b0b7b915589cf16c4294968e8268ebb6f774bd84d42e5e8f3d",
+    "lib\/notification-style.luau" : "e037de55eeb2bc94b9019341b63ff94cb43156a4b970b520b2dfa4cd0d0e1e4b",
+    "lib\/style.luau" : "ba419fec4608b4c98d2c6a3b6b17ae6f85eef40fcb02977fefa0833247073009",
+    "shaders\/matrix-rain.metal" : "885ad602ba522e351a042561837b1956aef575a13f0d1858ac6762e17d0a0278",
+    "shell.toml" : "824dc5f84f6e7ea279ba5e551135d4ca82b43737037c801f09850a3245ee5a0d",
+    "style.toml" : "a3d336d8dba593ae9286be6faf32742d8cdbf3de150641069ed28fdc6d2e3929",
+    "themes\/matrix.toml" : "023e28b0719862388c203d3703f2be2892c30cbb7bef20ca333cf72f4db7c050"
+  },
+  "source" : "github:OmniNull\/OmniWM@v0.8.0",
+  "version" : "1.0.0"
+}

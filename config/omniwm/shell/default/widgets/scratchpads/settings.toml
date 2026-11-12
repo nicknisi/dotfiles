@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
+
+[options.shownWindows]
+type = "number"
+title = "Window icons per scratchpad"
+default = 3
+min = 0
+max = 6
+step = 1

@@ -1,0 +1,18 @@
+format = 1
+name = "sakura"
+version = "1.0.0"
+api = 1
+author = "OmniNull"
+license = "GPL-2.0-only"
+title = "Sakura"
+summary = "A light bar with soft pink accents and a drifting-petal shader."
+previews = ["bar.jpg", "desktop.jpg"]
+
+[barEffect]
+title = "Sakura Petals"
+values = [
+    { type = "number", title = "Intensity", min = 0, max = 1, step = 0.05 },
+    { type = "number", title = "Motion Speed", min = 0, max = 4, step = 0.1 },
+    { type = "number", title = "Petal Size", min = 4, max = 24, step = 1 },
+    { type = "number", title = "Animation Phase", min = 0, max = 60, step = 1 },
+]

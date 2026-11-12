@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+"""Push running-agent stats to OmniWM's `agents` bar widget.
+
+Finds every coding agent process (pi, claude, codex, opencode) no matter where
+it runs: tmux, Riker workers, Rex, the OmniWM quake terminal, or a plain
+terminal. Agents started by another agent (subagents) count separately.
+Enriches tmux agents with fleet state, Riker workers with their job, and adds
+today's spend (`sessions report`, refreshed in the background every 10 min)
+and Claude's 5h usage. The JSON goes to the widget via
+`omniwmctl shell set agents` (in memory, read as ctx.data.vars.agents).
+
+  omniwm-agents            collect and push once
+  omniwm-agents --print    print the JSON instead of pushing
+  omniwm-agents --watch    push every 15s (the LaunchAgent from
+                           config/mise/config.toml runs this)
+Stays Python 3.9 compatible for launchd's /usr/bin/python3.
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+CTL = "/Applications/OmniWM.app/Contents/MacOS/omniwmctl"
+HOME = Path.home()
+CACHE = HOME / ".cache/omniwm-agents"
+SPEND = CACHE / "spend.json"
+CLAUDE_USAGE = HOME / ".cache/claude-usage.json"
+AGENTS = {"pi", "claude", "codex", "opencode"}
+VERSION = re.compile(r"^\d+\.\d+\.\d+$")  # claude retitles itself to its version
+TERMINALS = {"ghostty": "ghostty", "wezterm-gui": "wezterm", "Terminal": "terminal", "iTerm2": "iterm",
+             "Code": "vscode", "Cursor": "cursor", "zed": "zed", "Zed": "zed"}
+INTERVAL, SPEND_TTL, RIKER_TTL = 15, 600, 120
+os.environ["PATH"] = ":".join([str(HOME / ".local/bin"), str(HOME / ".local/share/mise/shims"),
+                               "/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin", os.environ.get("PATH", "")])
+
+
+def run(*cmd, timeout=10):
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout).stdout
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def processes():
+    """pid -> (ppid, etime, comm basename, full command)."""
+    # Two calls: ps truncates comm to 16 chars unless it's the last column.
+    commands = {}
+    for line in run("ps", "-axww", "-o", "pid=,command=").splitlines():
+        pid, _, command = line.strip().partition(" ")
+        commands[pid] = command
+    procs = {}
+    for line in run("ps", "-axww", "-o", "pid=,ppid=,etime=,comm=").splitlines():
+        parts = line.split(None, 3)
+        if len(parts) == 4:
+            pid, ppid, etime, comm = parts
+            procs[int(pid)] = (int(ppid), etime, os.path.basename(comm), commands.get(pid, ""))
+    return procs
+
+
+def kind_of(comm):
+    if comm in AGENTS:
+        return comm
+    return "claude" if VERSION.match(comm) else None
+
+
+def ancestors(pid, procs):
+    seen = set()
+    pid = procs[pid][0]
+    while pid > 1 and pid in procs and pid not in seen:
+        seen.add(pid)
+        yield pid
+        pid = procs[pid][0]
+
+
+def host_of(pid, procs):
+    for anc in ancestors(pid, procs):
+        _, _, comm, command = procs[anc]
+        if comm == "tmux":
+            return "tmux"
+        if comm == "rex" or "Rex Server" in command:
+            return "rex"
+        if "riker-terminal" in command or "/riker.ts" in command:
+            return "riker"
+        if comm == "OmniWM":
+            return "quake"
+        if comm in TERMINALS:
+            return TERMINALS[comm]
+    return "other"
+
+
+def age(etime):
+    """ps etime ([[dd-]hh:]mm:ss) -> 3d / 2h / 14m."""
+    days, _, rest = etime.rpartition("-")
+    nums = [int(n) for n in rest.split(":")]
+    secs = int(days or 0) * 86400 + sum(n * 60 ** i for i, n in enumerate(reversed(nums)))
+    for unit, size in (("d", 86400), ("h", 3600), ("m", 60)):
+        if secs >= size:
+            return "%d%s" % (secs // size, unit)
+    return "%ds" % secs
+
+
+def cwd(pid):
+    out = run("lsof", "-a", "-p", str(pid), "-d", "cwd", "-Fn")
+    paths = [line[1:] for line in out.splitlines() if line.startswith("n")]
+    return paths[0] if paths else ""
+
+
+def short(path):
+    return path.replace(str(HOME), "~", 1) if path else ""
+
+
+def tmux_panes():
+    panes = {}
+    for line in run("tmux", "list-panes", "-a", "-F", "#{pane_pid} #{pane_id}").splitlines():
+        pid, _, pane = line.partition(" ")
+        if pid.isdigit():
+            panes[int(pid)] = pane
+    return panes
+
+
+def fleet_agents():
+    try:
+        return {a["pane"]: a for a in json.loads(run("fleet", "list", "--json")).get("agents", [])}
+    except (ValueError, AttributeError):
+        return {}
+
+
+_riker = {"at": 0.0, "jobs": {}}
+
+
+def riker_jobs():
+    if time.time() - _riker["at"] > RIKER_TTL:
+        try:
+            _riker["jobs"] = {str(j["id"]): j.get("goal") or "" for j in json.loads(run("riker", "jobs", timeout=20))}
+        except (ValueError, TypeError, KeyError):
+            pass
+        _riker["at"] = time.time()
+    return _riker["jobs"]
+
+
+def spend():
+    """Today's spend from the cache; kicks off a background refresh when stale."""
+    CACHE.mkdir(parents=True, exist_ok=True)
+    stale = not SPEND.exists() or time.time() - SPEND.stat().st_mtime > SPEND_TTL
+    lock = CACHE / "spend.lock"
+    if stale and (not lock.exists() or time.time() - lock.stat().st_mtime > 120):
+        lock.touch()
+        subprocess.Popen(["sh", "-c", 'sessions report --today --stdout > "$1.tmp" && mv "$1.tmp" "$1"; rm -f "$2"',
+                          "sh", str(SPEND), str(lock)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        report = json.loads(SPEND.read_text())
+    except (OSError, ValueError):
+        return None
+    def money(rows):  # merge same-named rows (one model via several providers), biggest first
+        totals = {}
+        for r in rows:
+            label = r["label"].split("/")[-1]
+            totals[label] = totals.get(label, 0) + (r.get("costUSD") or 0)
+        return sorted(([k, round(v, 2)] for k, v in totals.items() if v >= 0.01), key=lambda kv: -kv[1])
+    summary = report.get("summary", {})
+    return {"today": round(summary.get("totalCostUSD", 0), 2), "sessions": summary.get("sessions", 0),
+            "tools": money(report.get("byTool", []))[:4], "models": money(report.get("byModel", []))[:4]}
+
+
+def claude_usage():
+    try:
+        if time.time() - CLAUDE_USAGE.stat().st_mtime > 1800:
+            return None
+        five = json.loads(CLAUDE_USAGE.read_text()).get("five_hour") or {}
+    except (OSError, ValueError):
+        return None
+    if five.get("used_percentage") is None:
+        return None
+    usage = {"used": round(five["used_percentage"])}
+    if five.get("resets_at"):
+        usage["resets"] = five["resets_at"]
+    return usage
+
+
+def collect():
+    procs = processes()
+    found = {pid: kind_of(p[2]) for pid, p in procs.items() if kind_of(p[2])}
+    top = [pid for pid in found if not any(a in found for a in ancestors(pid, procs))]
+    panes, fleet, agents = tmux_panes(), None, []
+    for pid in top:
+        host = host_of(pid, procs)
+        agent = {"kind": found[pid], "host": host, "age": age(procs[pid][1]), "state": "running", "label": "",
+                 "where": ""}
+        if host == "tmux":
+            pane = next((panes[p] for p in [pid, *ancestors(pid, procs)] if p in panes), None)
+            fleet = fleet if fleet is not None else fleet_agents()
+            info = fleet.get(pane, {})
+            agent.update(label=info.get("label") or info.get("window") or "", where=info.get("project") or "",
+                         state=(info.get("status") or "running").lower(), attention=bool(info.get("needsAttention")))
+        else:
+            path = cwd(pid)
+            job = re.search(r"/\.riker/worktrees/(\d+)", path)
+            if job:
+                agent.update(label="#%s %s" % (job.group(1), riker_jobs().get(job.group(1), "")), where=short(path))
+            else:
+                agent.update(label=os.path.basename(path), where=short(path))
+        agent["label"] = agent["label"][:70]
+        agents.append(agent)
+    agents.sort(key=lambda a: (not a.get("attention"), a["state"] != "busy", a["host"], a["label"]))
+    hosts = {}
+    for a in agents:
+        hosts[a["host"]] = hosts.get(a["host"], 0) + 1
+    return {"t": int(time.time()), "total": len(agents), "subagents": len(found) - len(top),
+            "attention": sum(1 for a in agents if a.get("attention")), "hosts": hosts, "agents": agents[:15],
+            "spend": spend(), "claude5h": claude_usage()}
+
+
+def self_check():
+    assert age("05:03") == "5m" and age("02:00:00") == "2h" and age("3-01:00:00") == "3d" and age("09") == "9s"
+    assert kind_of("2.1.220") == "claude" and kind_of("pi") == "pi" and kind_of("node") is None
+
+
+def main():
+    self_check()
+    if "--print" in sys.argv:
+        print(json.dumps(collect(), indent=2))
+        return
+    last, pushed = None, 0
+    while True:
+        payload = collect()
+        stamp = dict(payload, t=0)  # skip pushes where only the timestamp moved, but refresh it each minute
+        if stamp != last or payload["t"] - pushed > 60:
+            # Luau's json.decode turns null into userdata, so leave missing values out entirely.
+            payload = {k: v for k, v in payload.items() if v is not None}
+            subprocess.run([CTL, "shell", "set", "agents", json.dumps(payload, separators=(",", ":"))],
+                           capture_output=True, timeout=10)
+            last, pushed = stamp, payload["t"]
+        if "--watch" not in sys.argv:
+            return
+        time.sleep(INTERVAL)
+
+
+if __name__ == "__main__":
+    main()

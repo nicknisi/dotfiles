@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
+
+theme = "sakura"
+leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads", "active-window"]
+center = ["clock"]
+trailing = ["media", "notifications", "volume", "wifi", "battery-details", "control-center", "system-stats"]
+hiddenBarWidget = "hidden-bar"
+systemStatsWidget = "system-stats"
+
+[barShader]
+source = "sakura-petals.metal"
+fps = 30
+values = [0.55, 1, 10, 0]
+
+[widgets.workspaces]
+indicator = "numbers"
+
+[widgets.active-window]
+display = "text_only"
+maxWidth = 160
+
+[workspaceBar]
+position = "overlappingMenuBar"
+height = 40
+fullWidth = true
+reserveLayoutSpace = true
+transparentBackground = false
+backgroundOpacity = 1
+showItemBackgrounds = false
+showAccentHighlights = true
+solidBlackBackground = false
+showLabels = true
+xOffset = 0
+yOffset = 0
+barFill = "background"

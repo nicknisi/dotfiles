@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
+
+[options.bar]
+type = "number"
+title = "Clocks shown in bar"
+default = 1
+min = 1
+max = 64
+step = 1

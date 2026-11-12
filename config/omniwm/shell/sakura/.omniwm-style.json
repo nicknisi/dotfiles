@@ -1,0 +1,14 @@
+{
+  "files" : {
+    "README.md" : "bd8e11883e1e84d269e1d330f20e6e498f019ac09d951fcf4464993938358963",
+    "lib\/look.luau" : "0b4c59cc009de1cba007966d7e563839464051eda5eb83187aa02e4cf20d345f",
+    "lib\/notification-style.luau" : "70f3516b6976aa481b7e60faee5b4d02782f15651d693f837e7ae8dd214591ca",
+    "lib\/style.luau" : "102bf29179944b9d2de5c7a4004e0406dac7c8cdb1285c1dadd14b924f0d9741",
+    "shaders\/sakura-petals.metal" : "170d201c1b018c58cd81c79b3316701fe5ce944472f1a77411c962598020fb21",
+    "shell.toml" : "8fcb19a4f20de0e70c09d9c62ea63c8eabaf529df1f70948d547c76b87a98b5d",
+    "style.toml" : "d77d0188a317a1ba552cd15b0dbb62be2d4741fa5dac67f0520fb0073207eb2a",
+    "themes\/sakura.toml" : "ec7992197c14b64b118dcca5aaeaf1a6a9fb07e82a03dc39af7e7c73406c9723"
+  },
+  "source" : "github:OmniNull\/OmniWM@v0.8.0",
+  "version" : "1.0.0"
+}

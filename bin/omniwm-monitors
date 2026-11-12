@@ -6,10 +6,13 @@ is measured from the physical edge (menu bar included), so both differ per
 display. For each connected display without an entry this appends:
 
   monitorDwindleOverrides  singleWindowFit = ~83% x 80% of the screen
-  monitorGapOverrides      outerGapTop = menu bar + 50 (SketchyBar clearance)
+  monitorGapOverrides      outerGapTop = menu bar + 50 (SketchyBar clearance),
+                           or menu bar + 12 while OmniWM's workspace bar is on
 
-Existing entries are never changed. `--watch` runs it on every display change
-(the LaunchAgent from config/mise/config.toml does this); `--dry-run` prints.
+Existing singleWindowFit entries are never changed; outerGapTop of connected
+displays is kept in sync with the bar. `--watch` runs it on every display or
+workspace-bar change (the LaunchAgent from config/mise/config.toml does this);
+`--dry-run` prints.
 Stays Python 3.9 compatible for launchd's /usr/bin/python3.
 """
 
@@ -24,7 +27,7 @@ from pathlib import Path
 
 CTL = "/Applications/OmniWM.app/Contents/MacOS/omniwmctl"
 SETTINGS = Path.home() / ".config/omniwm/settings.toml"
-WIDTH, HEIGHT, TOP_CLEARANCE = 5 / 6, 0.8, 50
+WIDTH, HEIGHT, TOP_CLEARANCE, BAR_CLEARANCE = 5 / 6, 0.8, 50, 12
 
 
 class CGRect(ctypes.Structure):
@@ -66,6 +69,22 @@ def omniwm_displays():
     return json.loads(out.stdout)["result"]["payload"]["displays"]
 
 
+def bar_enabled():
+    """OmniWM display id -> whether its native workspace bar is on."""
+    out = subprocess.run([CTL, "query", "workspace-bar", "--format", "json"], capture_output=True, text=True, check=True)
+    return {m["id"]: m["enabled"] for m in json.loads(out.stdout)["result"]["payload"]["monitors"]}
+
+
+def set_tops(text, tops):
+    """Rewrite outerGapTop in existing [[monitorGapOverrides]] for the given UUIDs."""
+    blocks = re.split(r"(?m)^(?=\[)", text)
+    for i, block in enumerate(blocks):
+        m = re.search(r'(?m)^monitorDisplayUUID = "([^"]+)"', block)
+        if block.startswith("[[monitorGapOverrides]]") and m and m.group(1) in tops:
+            blocks[i] = re.sub(r"(?m)^outerGapTop = .*$", f"outerGapTop = {tops[m.group(1)]}", block)
+    return "".join(blocks)
+
+
 def covered(text, table):
     """UUIDs that already have a [[table]] entry."""
     uuids = set()
@@ -88,8 +107,9 @@ def main(dry_run):
     have_fit = covered(text, "monitorDwindleOverrides")
     have_gap = covered(text, "monitorGapOverrides")
     uuids = display_uuids()
+    bar_on = bar_enabled()
 
-    additions = []
+    additions, tops = [], {}
     for d in omniwm_displays():
         f, v = d["frame"], d["visibleFrame"]
         display_uuid = uuids.get((f["x"], f["y"], f["width"], f["height"]))
@@ -101,26 +121,31 @@ def main(dry_run):
             h = round(f["height"] * HEIGHT / 10) * 10
             additions.append(entry("monitorDwindleOverrides", display_uuid, d["name"], "singleWindowFit", f'"{w}x{h}"'))
         menu_bar = (f["y"] + f["height"]) - (v["y"] + v["height"])
-        top = float(round(menu_bar + TOP_CLEARANCE))
-        if display_uuid not in have_gap and top != global_top:
+        clearance = BAR_CLEARANCE if bar_on.get(d["id"]) else TOP_CLEARANCE
+        top = float(round(menu_bar + clearance))
+        if display_uuid in have_gap:
+            tops[display_uuid] = top
+        elif top != global_top:
             additions.append(entry("monitorGapOverrides", display_uuid, d["name"], "outerGapTop", top))
 
-    if not additions:
+    updated = set_tops(text, tops)
+    if updated == text and not additions:
         return
     if dry_run:
-        print("".join(additions))
+        print(f"outerGapTop: {tops}" + "".join(additions))
         return
+    text = updated
     # An empty `table = []` inline array can't coexist with [[table]] entries.
     for table in ("monitorDwindleOverrides", "monitorGapOverrides"):
         text = re.sub(rf"(?m)^{table} = \[\]\n", "", text)
     # Write in place so the dotfiles symlink survives; OmniWM live-reloads.
     SETTINGS.write_text(text.rstrip("\n") + "\n" + "".join(additions))
-    print(f"added {len(additions)} override(s) to {SETTINGS}")
+    print(f"updated top gaps / added {len(additions)} override(s) in {SETTINGS}")
 
 
 if __name__ == "__main__":
     if not os.access(CTL, os.X_OK):
         sys.exit(0)
     if "--watch" in sys.argv:
-        os.execv(CTL, [CTL, "watch", "display-changed", "--reconnect", "--exec", os.path.abspath(__file__)])
+        os.execv(CTL, [CTL, "watch", "display-changed,workspace-bar", "--reconnect", "--exec", os.path.abspath(__file__)])
     main("--dry-run" in sys.argv)

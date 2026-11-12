@@ -10,14 +10,14 @@ width = 2.0
 
 [borders.color]
 alpha = 1.0
-blue = 1.0
-green = 0.3237426280975342
-red = 0.5351385474205017
+blue = 0.8862422704696655
+green = 0.8470613360404968
+red = 0.3137369751930237
 
 [borders.glow]
 enabled = true
-opacity = 0.25
-radius = 3.0
+opacity = 0.30000000000000004
+radius = 5.0
 
 [borders.gradient]
 direction = "topLeftToBottomRight"
@@ -69,7 +69,7 @@ size = 8.0
 bottom = 4.0
 left = 12.0
 right = 12.0
-top = 64.0
+top = 12.0
 
 [general]
 animationSpeed = 3.0
@@ -236,7 +236,7 @@ autoHideHideDelayMilliseconds = 0.0
 autoHideRevealDelayMilliseconds = 0.0
 backgroundOpacity = 0.1
 deduplicateAppIcons = false
-enabled = false
+enabled = true
 excludedBundleIDs = []
 fullWidth = false
 fullWidthNotchMode = "rightOfNotch"
@@ -1396,6 +1396,46 @@ id = "toggleOverview"
 binding = "Unassigned"
 id = "toggleSystemStats"
 
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.agents"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.battery-details"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.control-center"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.fantastical"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.hidden-bar"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.media"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.notifications"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.system-stats"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.wifi"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleShellWidget.workspaces"
+
 [[monitorDwindleOverrides]]
 id = "666D0DA0-BDF2-4301-B892-8B47BE8E5F66"
 monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
@@ -1532,7 +1572,7 @@ outerGapTop = 80.0
 id = "AC024972-7473-4A7C-BE72-BAE79126E0DC"
 monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
 monitorName = "Built-in Retina Display"
-outerGapTop = 83.0
+outerGapTop = 50.0
 
 [[monitorGapOverrides]]
 id = "F7B01C71-DF14-48E6-A3D5-393CB2E1437C"

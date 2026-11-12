@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
+
+[options.forecastHours]
+type = "number"
+title = "Hours in the forecast"
+default = 12
+min = 4
+max = 12
+step = 1
