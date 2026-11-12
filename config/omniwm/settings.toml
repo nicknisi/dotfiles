@@ -1602,7 +1602,7 @@ outerGapTop = 80.0
 id = "D0E6A6C9-9B34-43D7-B666-0EB9A3DB4B4C"
 monitorDisplayUUID = "886DE5B7-5CD6-41BC-80CF-5BAA92BA0E0F"
 monitorName = "Studio Display"
-outerGapTop = 50.0
+outerGapTop = 12.0
 
 [[workspaces]]
 id = "E5D6C2B4-F906-456D-87E0-44C3E59D39F0"

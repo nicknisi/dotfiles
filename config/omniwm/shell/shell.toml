@@ -26,12 +26,12 @@ showFloatingWindows = true
 [profiles.wayline]
 center = ["media", "active-window"]
 leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads"]
-theme = "everforest"
+theme = "wallpaper"
 trailing = ["agents", "wifi", "battery-details", "system-stats", "notifications", "fantastical", "control-center"]
 
 [profiles.wayline.workspaceBar]
 autoHide = false
-backgroundOpacity = 0.4
+backgroundOpacity = 1.0
 fullWidth = true
 fullWidthNotchMode = "splitAroundNotch"
 inactiveIconOpacity = 0.15000000000000002
