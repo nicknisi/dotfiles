@@ -45,9 +45,8 @@ SHOW_USAGE="${CLAUDE_STATUSLINE_USAGE:-1}"
 # Read JSON input from stdin
 input=$(cat)
 
-# Tee rate_limits to a cache for sketchybar's usage pill (push, no polling
-# on the bar side). Writes atomically and only fires the trigger when the
-# payload actually changed, so most statusline refreshes cost one jq.
+# Tee rate_limits to a cache for bin/omniwm-agents. Writes atomically and
+# only when the payload changed, so most statusline refreshes cost one jq.
 # Enterprise billing omits rate_limits entirely, so this is a no-op there.
 tee_usage_cache() {
   local cache="$HOME/.cache/claude-usage.json" limits
@@ -55,7 +54,6 @@ tee_usage_cache() {
   [ -n "$limits" ] || return 0
   [ "$limits" = "$(cat "$cache" 2>/dev/null)" ] && return 0
   printf '%s' "$limits" >"${cache}.tmp" && mv "${cache}.tmp" "$cache"
-  command -v sketchybar >/dev/null 2>&1 && sketchybar --trigger claude_usage_update &
 }
 tee_usage_cache
 

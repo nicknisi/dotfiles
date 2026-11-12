@@ -24,7 +24,7 @@ One command themes everything: `bin/theme <name>` renders the pack into
   applied on Linux only if that icon set is installed.
 
 Every app file (ghostty, kitty, wezterm, tmux, nvim, btop, starship, pi,
-claude, hyprland borders, hyprlock, wofi, sketchybar, borders, slack) is
+claude, hyprland borders, hyprlock, wofi, slack) is
 rendered from `themes/templates/*.tpl`. A pack may ship a file under the
 same name to hand-tune one app (`hyprland.lua` for a gradient border,
 `btop.theme`, ...); it wins over the template. Do NOT hand-author the rest.
@@ -72,8 +72,8 @@ does not produce; fix the template, not the pack.
 `theme <name> [N]`, then: `tmux show-option -gqv @thm_pink` == accent;
 `cat ~/.local/state/theme/current/mode`; `jq -r .theme ~/.claude/settings.json`
 == `custom:<name>`. Linux: `hyprctl getoption general:col.active_border`,
-`gsettings get org.gnome.desktop.interface color-scheme`. macOS: sketchybar
-border colour, wallpaper after a few seconds. Pi applies on next launch.
+`gsettings get org.gnome.desktop.interface color-scheme`. macOS:
+wallpaper after a few seconds. Pi applies on next launch.
 
 ## Commit on the active theme branch and push.
 

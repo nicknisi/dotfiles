@@ -63,7 +63,7 @@ just = "latest"
 "brew:btop" = { version = "latest", os = "macos" }       # a top alternative (aqua:btop is linux-only)
 "brew:cloc" = { version = "latest", os = "macos" }       # lines of code counter
 "brew:entr" = { version = "latest", os = "macos" }       # file watcher / command runner
-"brew:fswatch" = { version = "latest", os = "macos" }    # fs event watcher (pushes fleet state to sketchybar)
+"brew:fswatch" = { version = "latest", os = "macos" }    # fs event watcher
 "brew:gnupg" = { version = "latest", os = "macos" }      # GPG
 "brew:highlight" = { version = "latest", os = "macos" }  # code syntax highlighting
 "brew:tree" = { version = "latest", os = "macos" }       # pretty-print directory contents
@@ -191,11 +191,11 @@ run = """
   fi
 """
 
-# These taps do not publish the API metadata required by mise's brew manager.
+# mise's brew: packages need Homebrew present first.
 [bootstrap.hooks.pre-packages]
 run = """
   if [ "$(uname)" = "Darwin" ]; then
-    mise run install-tap-packages
+    mise run install-homebrew
   fi
 """
 
@@ -326,20 +326,6 @@ run = """
     exit 0
   fi
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-"""
-
-[tasks.install-tap-packages]
-description = "Install macOS packages that mise cannot resolve."
-depends = ["install-homebrew"]
-run = """
-  export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-
-  brew trust 'FelixKratz/formulae'
-  brew trust 'nikitabobko/tap'
-  brew tap 'FelixKratz/formulae'
-  brew tap 'nikitabobko/tap'
-
-  brew install borders sketchybar
 """
 
 # `mise bootstrap` runs this after [tools] are installed.

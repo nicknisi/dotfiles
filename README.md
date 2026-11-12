@@ -17,7 +17,7 @@ These are my actual dotfiles, not a starter kit. The host setup assumes Apple Si
 | Shell and prompt | Homebrew zsh and Starship |
 | Multiplexer | tmux |
 | Editor | Neovim with lazy.nvim |
-| Window management | AeroSpace, SketchyBar, Borders, and Karabiner-Elements |
+| Window management | Karabiner-Elements |
 | CLI agents | Pi and Claude Code |
 | Agent orchestration | Fleet |
 | Fonts and color | Monaspace, Symbols Nerd Font, Tokyo Night |
@@ -92,7 +92,6 @@ mise tasks
 | --- | --- |
 | `mise run bootstrap` | Register the `pi-settings` Git clean filter |
 | `mise run install-homebrew` | Install Homebrew with the official installer if needed |
-| `mise run install-tap-packages` | Install the macOS packages unavailable to mise |
 | `mise run setup-git` | Write the machine-local Git identity |
 | `mise run update-all` | Run every scoped update task in sequence |
 | `mise run update:system` | Update Homebrew packages |
@@ -119,7 +118,7 @@ mise tasks
 
 - newer Bash, Git, zsh, grep, and Vim builds
 - btop, cloc, entr, fswatch, GnuPG, highlight, tree, wdiff, and wget through Homebrew or apt
-- noti, trash, AeroSpace, Ghostty, WezTerm, Karabiner-Elements, SketchyBar, Borders, Monaspace, and Symbols Nerd Font on macOS
+- noti, trash, Ghostty, WezTerm, Karabiner-Elements, Monaspace, and Symbols Nerd Font on macOS
 
 ### Additional repositories
 
@@ -190,23 +189,11 @@ The configured plugins are zsh-async, zsh-syntax-highlighting, zsh-autosuggestio
 
 Starship renders a two-line prompt. The left side shows the full directory and a Node version when the directory contains `package.json` or `node_modules`. The right side shows Git state, the branch, and suspended jobs. The prompt symbol is cyan after success and red after failure.
 
-## Terminal and macOS desktop
+## Terminal
 
 Ghostty is the terminal this tmux config targets. Its config uses Tokyo Night light and dark themes, Monaspace, a translucent blurred background, CSI-u modified keys, and `cmd+s` as a prefix for native splits and tabs.
 
 The bootstrap installs WezTerm too, and a Kitty config remains in the tree.
-
-AeroSpace starts at login and launches SketchyBar. The basic movement scheme is:
-
-| Keys | Action |
-| --- | --- |
-| `alt+h/j/k/l` | Focus a window |
-| `alt+shift+h/j/k/l` | Move a window |
-| `alt+1..9` or `alt+letter` | Switch workspace |
-| `alt+shift+1..9` or `alt+shift+letter` | Move a window to a workspace |
-| `alt+shift+;` | Enter the AeroSpace service mode |
-
-The AeroSpace rules route terminals, browsers, chat apps, mail, and other applications to named workspaces. SketchyBar shows those workspaces with app icons, the focused window title, the current layout, Fleet state, GitHub review requests, agent spend, Claude usage, and now-playing information. Borders runs as a Homebrew service.
 
 ## Themes
 
@@ -223,7 +210,7 @@ theme list            # every pack with its swatches and tagline
 
 The overlay is `config/quickshell/ThemePicker.qml`: the chosen wallpaper expanded in the middle, the rest as skewed slices, type to filter, Enter to apply. `bin/theme` feeds it rows over `qs ipc` and caches thumbnails under `~/.cache/theme/thumbs`.
 
-A pack is `themes/<name>/colors.toml` plus `backgrounds/`; a theme repo laid out that way drops in unchanged. On a switch, `bin/theme` renders `themes/templates/*.tpl` from the palette into `~/.local/state/theme/current/theme/` and every app reads from there: ghostty, kitty, wezterm, tmux, nvim (aether), btop, LazyGit, Delta, fzf, Starship, Pi, and Claude Code on both platforms; Hyprland borders, hyprlock, wofi, the Quickshell bar, and GTK dark/light on Linux; the system appearance, SketchyBar, Borders, and Slack on macOS. A pack may ship a file under a template's name to hand-tune that one app. `bin/theme-color` resolves a `colors.toml` into the full palette (`--all`, `--json`) and is the renderer. Run `theme <name>` once on a fresh machine: hyprlock and hyprpaper read the state dir and have nothing until then.
+A pack is `themes/<name>/colors.toml` plus `backgrounds/`; a theme repo laid out that way drops in unchanged. On a switch, `bin/theme` renders `themes/templates/*.tpl` from the palette into `~/.local/state/theme/current/theme/` and every app reads from there: ghostty, kitty, wezterm, tmux, nvim (aether), btop, LazyGit, Delta, fzf, Starship, Pi, and Claude Code on both platforms; Hyprland borders, hyprlock, wofi, the Quickshell bar, and GTK dark/light on Linux; the system appearance and Slack on macOS. A pack may ship a file under a template's name to hand-tune that one app. `bin/theme-color` resolves a `colors.toml` into the full palette (`--all`, `--json`) and is the renderer. Run `theme <name>` once on a fresh machine: hyprlock and hyprpaper read the state dir and have nothing until then.
 
 ## tmux
 
@@ -301,7 +288,7 @@ Because `~/.pi` is a directory symlink into this repository, `.gitignore` exclud
 
 Three small scripts connect the agent tools to the terminal environment:
 
-- `claude-statusline` renders the Claude status and pushes usage updates to SketchyBar
+- `claude-statusline` renders the Claude status and caches usage for `omniwm-agents`
 - `claude-tmux-cleanup` resets pane state when a Claude session ends
 - `claude-notify` sends attention notifications through tmux
 
@@ -309,11 +296,11 @@ MCP servers are user-scoped in `~/.claude.json` and are not part of bootstrap. `
 
 ### Fleet
 
-[Fleet](https://github.com/nicknisi/fleet) is installed by Mise and lives in its own repository. tmux uses it for agent status, the next-waiting-agent jump, the popup, the sidebar, and window titles. SketchyBar consumes the same state through `sketchybar-fleet-watch`.
+[Fleet](https://github.com/nicknisi/fleet) is installed by Mise and lives in its own repository. tmux uses it for agent status, the next-waiting-agent jump, the popup, the sidebar, and window titles.
 
 ## Commands in `bin/`
 
-`bin/` is on `PATH`. The table calls out the larger standalone commands; many of the remaining files support tmux, SketchyBar, Git aliases, or agent status.
+`bin/` is on `PATH`. The table calls out the larger standalone commands; many of the remaining files support tmux, Git aliases, or agent status.
 
 | Command | What it does |
 | --- | --- |

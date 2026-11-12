@@ -54,3 +54,7 @@ home/.pi/web-search-cache/
 
 # rendered by bin/theme from themes/templates/omniwm.toml.tpl
 config/omniwm/shell/themes/dotfiles.toml
+
+# local caches and state, not config
+bin/__pycache__/
+home/.pi/agent/pi-web-access/
