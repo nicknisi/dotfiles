@@ -26,20 +26,20 @@ showFloatingWindows = true
 [profiles.wayline]
 center = []
 leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads", "active-window"]
-theme = "wallpaper"
+theme = "dotfiles"
 trailing = ["agents", "status", "system-stats", "notifications", "fantastical", "control-center"]
 
-# The window title follows the workspaces (the space by the notch belongs to the island's wings).
+[profiles.wayline.island]
+displays = "notch"
+fullscreen = "hide"
+height = 260
+root = "notch-island"
+width = 560
+
+[profiles.wayline.widgets]
+
 [profiles.wayline.widgets.active-window]
 maxWidth = 150
-
-# Dynamic Island around the notch; now playing lives here instead of in the bar.
-[profiles.wayline.island]
-root = "notch-island"
-displays = "notch"
-width = 560
-height = 260
-fullscreen = "hide"
 
 [profiles.wayline.workspaceBar]
 autoHide = false

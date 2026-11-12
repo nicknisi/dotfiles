@@ -51,3 +51,6 @@ home/.pi/agent/themes/system.json
 home/.pi/agent/helpers/pi-computer-use/linux-bridge
 config/wezterm/theme-current.lua
 home/.pi/web-search-cache/
+
+# rendered by bin/theme from themes/templates/omniwm.toml.tpl
+config/omniwm/shell/themes/dotfiles.toml

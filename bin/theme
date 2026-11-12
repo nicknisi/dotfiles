@@ -66,7 +66,7 @@ switches: ghostty, kitty, wezterm, tmux, nvim, btop, lazygit, delta, fzf,
           wallpaper, and Chromium/Helium after `theme browser install`; Linux adds
           hyprland borders, hyprlock, wofi, quickshell, GTK dark/light + colours,
           icons (icons.theme) and the cursor (cursor.theme, default by mode);
-          macOS adds appearance, sketchybar, borders, slack.
+          macOS adds appearance, slack.
           The boot splash is rendered too but only installed by `theme plymouth`,
           because that means rebuilding the initramfs.
 USAGE
@@ -612,9 +612,8 @@ reload_apps() { # NAME MODE WALL
 
   if $IS_MAC; then
     mac_appearance "$mode"
-    pgrep -x sketchybar >/dev/null 2>&1 && sketchybar --reload || true
-    command -v borders >/dev/null 2>&1 && brew services restart borders >/dev/null 2>&1 || true
     [ -n "$wall" ] && mac_wallpaper "$wall"
+    omniwm_palette "$T"
     if [ -f "$T/slack.txt" ]; then
       pbcopy <"$T/slack.txt"
       echo "slack theme on clipboard — Slack > Settings > Appearance > Custom theme > Import, then paste" >&2
@@ -630,6 +629,15 @@ reload_apps() { # NAME MODE WALL
   fi
   refresh_browsers
   thumbs_background
+}
+
+omniwm_palette() { # rendered theme dir: OmniWM's bar and island take the pack's palette
+  # OmniWM reads themes from its own shell folder, so the rendered file is copied there (gitignored)
+  # and selected; re-selecting is a no_change and OmniWM reloads the edited file itself.
+  local ctl=/Applications/OmniWM.app/Contents/MacOS/omniwmctl dir="$HOME/.config/omniwm/shell/themes"
+  [ -x "$ctl" ] && [ -f "$1/omniwm.toml" ] && [ -d "$dir" ] || return 0
+  cp "$1/omniwm.toml" "$dir/dotfiles.toml"
+  "$ctl" shell theme dotfiles >/dev/null 2>&1 || true
 }
 
 nvim_reload() { # every running nvim re-applies aether from the rendered palette
