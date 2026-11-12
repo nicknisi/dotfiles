@@ -1,6 +1,6 @@
 -- A Dynamic Island around the MacBook notch.
--- Collapsed it hugs the notch and grows "wings" only when there's something to show (agents waiting,
--- a meeting about to start, music playing, a keep-awake timer). Hover or click to expand into now
+-- Collapsed it hugs the notch and grows "wings" only when there's something to show (a meeting about
+-- to start, music playing, a keep-awake timer; agents stay in the bar). Hover or click to expand into now
 -- playing (spinning cover, live bars, synced lyrics, controls) plus meeting/agents/awake chips. It also
 -- pops open for a few seconds on a song change, a new agent needing you, or a meeting about to start.
 interval = 1
@@ -79,7 +79,7 @@ end
 -- Pieces --------------------------------------------------------------------------------------------
 
 local function cover(media, size: number)
-    local art = { w = size, h = size, opacity = if media.playing then 1 else 0.55,
+    local art = { key = "cover" .. size, w = size, h = size, opacity = if media.playing then 1 else 0.55,
         loop = { rotate = { 0, 360, 12 }, paused = not media.playing },
         ui.path{ d = shapes.path("Cookie12Sided"), viewBox = shapes.viewBox, w = size, h = size, mask = true },
         ui.box{ w = size, h = size, fill = "#3f3f46" } }
@@ -88,8 +88,19 @@ local function cover(media, size: number)
     return ui.stack(art)
 end
 
+-- Live music bars as native spectrum shapes: OmniWM drives their heights from the shared 30 Hz audio
+-- bands with springs, so nothing re-renders in Luau. Bars grow up from the bottom; band 0 is bass.
 local function bars(w: number, h: number, count: number)
-    return ui.shader{ source = "island-bars.metal", audio = true, fps = 30, w = w, h = h, values = { count, 0.35, 0, 0 } }
+    local slot = w / count
+    -- blend 0 keeps the bars separate (glass melts shapes together by default); flat gradient, no blur/rim.
+    local glass = { w = w, h = h, blend = 0, backdrop = false, rim = 0, shadow = "#00000000",
+        gradient = { from = "accent", to = "purple", angle = 90 } }
+    for i = 0, count - 1 do
+        glass[#glass + 1] = ui.shape{ key = "bar" .. i, align = "topLeading", hit = false,
+            w = slot * 0.6, h = h, dx = i * slot + slot * 0.2, radius = slot * 0.3,
+            spectrum = { band = (i + 0.5) / count * 0.85, gain = 2.6, inset = 2, response = 0.18, bounce = 0.3 } }
+    end
+    return ui.glass(glass)
 end
 
 local function robot(size: number, color: string)
@@ -107,16 +118,13 @@ local function infoChip(symbol, text: string, color: string?)
 end
 
 -- Wings: what the collapsed island shows beside the notch, by priority.
-local function wings(ctx, media, d, next)
-    if d and d.attention > 0 then
-        return robot(18, "#f5a524"), ui.text{ text = tostring(d.attention), size = 13, weight = "bold", color = "#f5a524" }
-    end
-    if next and next.mins <= 5 then
+local function wings(ctx, media, next)
+    if next and next.mins <= 5 and next.mins > -5 then -- around the start only, not the whole meeting
         return ui.box{ w = 10, h = 10, radius = 5, fill = next.color },
             ui.text{ text = next.when, size = 12, weight = "bold", color = WHITE }
     end
     if media and media.playing then
-        return cover(media, 22), bars(24, 16, 5)
+        return cover(media, 22), bars(24, 18, 5)
     end
     local left = awake.remaining(ctx)
     if left then
@@ -135,7 +143,7 @@ local function expanded(ctx, media, d, next, width: number)
             ui.column{ gap = 3, center = false, grow = 1,
                 ui.text{ text = media.title, size = 15, weight = "bold", color = WHITE, maxWidth = inner },
                 ui.text{ text = media.artist, size = 13, color = DIM, maxWidth = inner },
-                bars(math.min(inner, 140), 18, 14) },
+                bars(math.min(inner, 140), 20, 14) },
             ui.row{ gap = 0,
                 control("backward.fill", "media previous", 14),
                 control(if media.playing then "pause.fill" else "play.fill", "media toggle", 18),
@@ -173,7 +181,7 @@ function render(ctx)
     local d, next = agents(ctx), meeting(ctx)
     local peeking = liveMoments(ctx, media, d, next)
     local open = ctx.state.open or ctx.state.hover or peeking
-    local left, right = wings(ctx, media, d, next)
+    local left, right = wings(ctx, media, next)
 
     local capsule = { key = "capsule", align = "top", radius = notch.h / 2, fill = "#000000", animate = SPRING,
         onClick = function(c) c.state.open = not c.state.open end,
