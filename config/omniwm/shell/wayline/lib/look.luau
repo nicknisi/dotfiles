@@ -859,7 +859,7 @@ return require("./skin")({
         props.h = size
         props[#props + 1] = ui.box{ w = 8, h = 1 }
         props[#props + 1] = ui.text{ text = m.title, size = 14 * scale, weight = "semibold",
-            color = style.textColor ~= nil and "foreground" or "blue", maxWidth = 150 }
+            color = style.textColor ~= nil and "foreground" or "blue", maxWidth = 120 } -- 120 (was 150): keeps media clear of the notch
         props[#props + 1] = ui.box{ w = 9, h = 1 }
         return ui.row(props)
     end,
