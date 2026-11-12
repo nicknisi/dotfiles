@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# bar — switch the OmniWM bar's look. Colours always follow `theme`; this only changes the style.
+#
+#   bar                 show the current look and the choices
+#   bar <look>          switch: crew, phosphor, liner, sky
+#   bar next | prev     cycle
+#
+# Each look is an OmniWM profile under config/omniwm/shell/<profile>/ sharing the widgets in
+# config/omniwm/shell/widgets/; crew is the Wayline profile.
+
+set -euo pipefail
+
+CTL=/Applications/OmniWM.app/Contents/MacOS/omniwmctl
+SHELL_TOML="$HOME/.config/omniwm/shell/shell.toml"
+LOOKS=(crew phosphor liner sky)
+TAGS=("pixel agents on Wayline chips" "green screen, no mercy" "ink on good paper" "big sky over the prairie")
+
+profile_of() { [ "$1" = crew ] && echo wayline || echo "$1"; }
+look_of() { [ "$1" = wayline ] && echo crew || echo "$1"; }
+current() { look_of "$(sed -n 's/^profile = "\(.*\)"/\1/p' "$SHELL_TOML" | head -1)"; }
+index_of() { local i; for i in "${!LOOKS[@]}"; do [ "${LOOKS[$i]}" = "$1" ] && echo "$i" && return; done; echo 0; }
+
+[ -x "$CTL" ] || { echo "bar: OmniWM isn't installed" >&2; exit 1; }
+
+case "${1:-}" in
+  "")
+    now="$(current)"
+    for i in "${!LOOKS[@]}"; do
+      mark=" "; [ "${LOOKS[$i]}" = "$now" ] && mark="*"
+      printf '%s %-9s %s\n' "$mark" "${LOOKS[$i]}" "${TAGS[$i]}"
+    done
+    exit 0 ;;
+  next | prev)
+    i="$(index_of "$(current)")"
+    step=1; [ "$1" = prev ] && step=$((${#LOOKS[@]} - 1))
+    look="${LOOKS[$(((i + step) % ${#LOOKS[@]}))]}" ;;
+  -h | --help) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+  *) look="$1" ;;
+esac
+
+case " ${LOOKS[*]} " in *" $look "*) ;; *) echo "bar: unknown look '$look' (try: ${LOOKS[*]})" >&2; exit 1 ;; esac
+"$CTL" shell profile "$(profile_of "$look")" >/dev/null
+echo "bar: $look"

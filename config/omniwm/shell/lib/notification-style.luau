@@ -2,6 +2,7 @@
 -- Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
 
 local presentation = require("./notification-presentation")
+local look = require("./look")
 
 return presentation({
     scale = function(ctx) return ctx.data.bar.style.height / 40 end,
@@ -13,6 +14,12 @@ return presentation({
     end,
     bar = function(ctx, props)
         local style = ctx.data.bar.style
+        if look.pill then -- local patch: a bar look with its own pill style (Phosphor) restyles the bell too
+            props[1].color = "accent"
+            props.gap = 6
+            look.pill(props, ctx)
+            return if style.vertical then ui.column(props) else ui.row(props)
+        end
         local size = style.height * 0.8
         local radius = math.floor(size * 0.24)
         local tile = { w = size, h = size,

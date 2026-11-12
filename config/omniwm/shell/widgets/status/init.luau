@@ -59,6 +59,7 @@ function render(ctx)
 
     local pill = { gap = 4 * scale, pad = 7 * scale, h = size, radius = math.floor(size * 0.24),
         fill = "elevatedSurface" }
+    if look.pill then look.pill(pill, ctx) end -- a bar look can restyle the pill (Phosphor outlines it)
     for _, item in items do pill[#pill + 1] = item end
     return ui.row(pill)
 end

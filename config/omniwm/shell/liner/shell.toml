@@ -1,0 +1,42 @@
+# Liner Notes bar look (`bar liner`): Wayline's layout as a handwritten zine. Colours still
+# come from the theme pack (theme = "dotfiles"); see lib/look.luau and shaders/.
+theme = "dotfiles"
+leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads", "active-window"]
+center = []
+trailing = ["agents", "status", "notifications", "fantastical", "control-center"]
+
+[workspaceBar]
+autoHide = false
+windowLevel = "normal"
+position = "overlappingMenuBar"
+height = 40
+fullWidth = true
+fullWidthNotchMode = "splitAroundNotch"
+reserveLayoutSpace = true
+transparentBackground = false
+backgroundOpacity = 1
+barFill = "background"
+showItemBackgrounds = true
+showAccentHighlights = false
+showLabels = true
+notificationBadges = "dot"
+systemStatsButton = false
+
+# Handwritten letters only (no app icons), so the title has room before the notch.
+[widgets.workspaces]
+compact = true
+
+[widgets.active-window]
+maxWidth = 150
+
+[island]
+root = "notch-island"
+displays = "notch"
+width = 560
+height = 260
+fullscreen = "hide"
+
+[barShader]
+source = "paper.metal"
+fps = 0
+values = [0.05, 0.45, 0, 0]

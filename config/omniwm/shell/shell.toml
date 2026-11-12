@@ -55,3 +55,7 @@ solidBlackBackground = false
 systemStatsButton = false
 transparentBackground = false
 windowLevel = "normal"
+
+[weather]
+city = "Omaha"
+units = "fahrenheit"

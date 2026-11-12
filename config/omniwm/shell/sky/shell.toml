@@ -1,0 +1,42 @@
+# Prairie Sky bar look (`bar sky`): Wayline's layout under a big prairie sky. Colours still
+# come from the theme pack (theme = "dotfiles"); see lib/look.luau and shaders/.
+theme = "dotfiles"
+leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads", "active-window"]
+center = []
+trailing = ["prairie", "agents", "status", "notifications", "fantastical", "control-center"]
+
+[workspaceBar]
+autoHide = false
+windowLevel = "normal"
+position = "overlappingMenuBar"
+height = 40
+fullWidth = true
+fullWidthNotchMode = "splitAroundNotch"
+reserveLayoutSpace = true
+transparentBackground = false
+backgroundOpacity = 1
+barFill = "background"
+showItemBackgrounds = true
+showAccentHighlights = true
+showLabels = true
+notificationBadges = "dot"
+systemStatsButton = false
+
+# Round workspace pebbles, letters only, so the title has room before the notch.
+[widgets.workspaces]
+compact = true
+
+[widgets.active-window]
+maxWidth = 150
+
+[island]
+root = "notch-island"
+displays = "notch"
+width = 560
+height = 260
+fullscreen = "hide"
+
+[barShader]
+source = "sky.metal"
+fps = 12
+values = [0.22, 1, 0.9, 0.08]

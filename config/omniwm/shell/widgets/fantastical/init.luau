@@ -1,6 +1,6 @@
 -- Clock plus next meeting (macOS calendars via EventKit). Click opens Fantastical's mini calendar;
 -- right-click shows OmniWM's built-in calendar popout.
-interval = 60
+interval = 30 -- the Phosphor clock's blinking cursor needs a redraw at least every 30s
 
 local look = require("../lib/look")
 local calendar = require("../lib/calendar")

@@ -63,8 +63,16 @@ end
 
 local MOOD_COLOR = { waving = "warning", busy = "accent", asleep = "mutedForeground" }
 
+local FACES = { waving = "[O_O]", busy = "[o_o]", asleep = "[-_-]" }
+
 local function bot(a, size: number, index: number, key: number)
     local m = mood(a)
+    if look.personality == "phosphor" then -- the green-screen look draws its crew as ASCII faces
+        local pulse = if m == "waving" then { key = "wave" .. key, duration = 30, rotate = WIGGLE }
+            elseif m == "busy" then { key = "bob" .. index .. "-" .. key, duration = 30, dy = BOBS[(index - 1) % 4 + 1] }
+            else nil
+        return ui.text{ text = FACES[m], font = MONO, size = size * 0.8, weight = "bold", color = MOOD_COLOR[m], pulse = pulse }
+    end
     local d = BODY .. " " .. (if a.host == "riker" then HAT else ANTENNA) .. " " .. (if m == "asleep" then SHUT else OPEN)
     local pulse = if m == "waving" then { key = "wave" .. key, duration = 30, rotate = WIGGLE }
         elseif m == "busy" then { key = "bob" .. index .. "-" .. key, duration = 30, dy = BOBS[(index - 1) % 4 + 1] }
@@ -103,10 +111,26 @@ function render(ctx)
         local pill = { gap = 5 * scale, pad = 8 * scale, h = size, radius = math.floor(size * 0.24),
             fill = "elevatedSurface", hoverOpacity = 0.9,
             border = if fresh and d.attention > 0 then "warning" else nil, borderWidth = 1.5 }
+        if look.pill then look.pill(pill, ctx) end -- a bar look can restyle the pill (Phosphor outlines it)
         local b = 15 * scale
         if not fresh then
             pill[#pill + 1] = bot({ state = "idle" }, b, 1, 0)
             pill[#pill + 1] = ui.text{ text = "?", font = MONO, size = 13 * scale, color = "mutedForeground" }
+        elseif look.personality == "liner" then
+            -- an ink stamp, slapped on slightly crooked
+            local ink = if d.attention > 0 then "red" else "foreground"
+            pill[#pill + 1] = ui.row{ rotate = 3, pad = 5 * scale, h = 20 * scale, radius = 3, border = ink, borderWidth = 1.5,
+                ui.text{ text = if d.attention > 0 then d.attention .. " NEED YOU" else d.total .. " BOTS", font = MONO,
+                    size = 11 * scale, weight = "bold", color = ink } }
+        elseif look.personality == "phosphor" then
+            -- one face for the crew's overall mood, plus the count
+            local overall = { attention = d.attention > 0, state = "idle" }
+            for _, a in d.agents do
+                if a.state == "busy" or a.state == "running" then overall.state = "busy" end
+            end
+            pill[#pill + 1] = bot(overall, b, 1, math.floor(ctx.data.seconds / 30))
+            pill[#pill + 1] = ui.text{ text = tostring(d.total), font = MONO, size = 13 * scale, weight = "bold",
+                color = MOOD_COLOR[mood(overall)] }
         else
             local key = math.floor(ctx.data.seconds / 30)
             for i, a in d.agents do

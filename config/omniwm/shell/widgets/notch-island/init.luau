@@ -12,7 +12,14 @@ local WING = 34
 local OPEN_W = 470
 local PEEK = 5 -- seconds a live moment keeps the island open
 local SPRING = { response = 0.38, bounce = 0.22 }
-local WHITE, DIM = "#ffffff", "#a1a1aa"
+-- The bar look sets the island's voice: Phosphor speaks in accent-coloured Monaspace like a terminal.
+local look = require("../lib/look")
+local PHOSPHOR = look.personality == "phosphor"
+local LINER = look.personality == "liner"
+local WHITE = if PHOSPHOR then "accent" else "#ffffff"
+local DIM = if PHOSPHOR then "accent/0.6" else "#a1a1aa"
+local FONT = if PHOSPHOR then "Monaspace Neon" else nil
+local LYRIC_FONT = if PHOSPHOR then "Monaspace Neon" else "Monaspace Radon"
 local ROBOT = "M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18"
     .. "A1,1 0 0,1 22,19H21V20A2,2 0 0,1 19,22H5A2,2 0 0,1 3,20V19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3"
     .. "A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5"
@@ -90,7 +97,26 @@ end
 
 -- Pieces --------------------------------------------------------------------------------------------
 
+-- Liner Notes: a square sleeve with the vinyl sliding out from behind it, spinning while it plays.
+local function record(media, size: number)
+    local disc = size * 0.92
+    local vinyl = { w = disc, h = disc, align = "trailing", radius = disc / 2, fill = "#111111",
+        loop = { rotate = { 0, 360, 4 }, paused = not media.playing } }
+    for ring = 1, 3 do
+        local r = disc * (0.92 - ring * 0.16)
+        vinyl[#vinyl + 1] = ui.box{ w = r, h = r, radius = r / 2, border = "#2a2a2a", borderWidth = 1 }
+    end
+    vinyl[#vinyl + 1] = ui.box{ w = disc * 0.3, h = disc * 0.3, radius = disc * 0.15, fill = "red" }
+    local sleeve = { w = size, h = size, align = "leading", shadow = "#00000080", shadowRadius = 4,
+        ui.box{ w = size, h = size, fill = "#3f3f46" } }
+    sleeve[#sleeve + 1] = if media.artwork then ui.image{ image = media.artwork, w = size, h = size }
+        else ui.symbol{ name = "music.note", size = size * 0.45, color = WHITE }
+    return ui.stack{ key = "record" .. size, w = size + disc * 0.45, h = size,
+        ui.stack(vinyl), ui.stack(sleeve) }
+end
+
 local function cover(media, size: number)
+    if LINER and size > 30 then return record(media, size) end
     local art = { key = "cover" .. size, w = size, h = size, opacity = if media.playing then 1 else 0.55,
         loop = { rotate = { 0, 360, 12 }, paused = not media.playing },
         ui.path{ d = shapes.path("Cookie12Sided"), viewBox = shapes.viewBox, w = size, h = size, mask = true },
@@ -126,14 +152,14 @@ end
 
 local function infoChip(symbol, text: string, color: string?)
     return ui.row{ gap = 6, h = 28, pad = 10, radius = 14, fill = "#ffffff14",
-        symbol, ui.text{ text = text, size = 12, weight = "semibold", color = color or WHITE, maxWidth = 150 } }
+        symbol, ui.text{ text = text, font = FONT, size = 12, weight = "semibold", color = color or WHITE, maxWidth = 150 } }
 end
 
 -- Wings: what the collapsed island shows beside the notch, by priority.
 local function wings(ctx, media, next)
     if next and next.mins <= 5 and next.mins > -5 then -- around the start only, not the whole meeting
         return ui.box{ w = 10, h = 10, radius = 5, fill = next.color },
-            ui.text{ text = next.when, size = 12, weight = "bold", color = WHITE }
+            ui.text{ text = next.when, font = FONT, size = 12, weight = "bold", color = WHITE }
     end
     if media and media.playing then
         return cover(media, 22), bars(24, 18, 5)
@@ -141,7 +167,7 @@ local function wings(ctx, media, next)
     local left = awake.remaining(ctx)
     if left then
         return ui.symbol{ name = "cup.and.heat.waves.fill", size = 14, color = WHITE },
-            ui.text{ text = left, size = 11, weight = "semibold", color = WHITE, maxWidth = WING }
+            ui.text{ text = left, font = FONT, size = 11, weight = "semibold", color = WHITE, maxWidth = WING }
     end
     return nil, nil
 end
@@ -153,8 +179,8 @@ local function expanded(ctx, media, d, next, width: number)
         rows[#rows + 1] = ui.row{ w = width, gap = 12,
             cover(media, 64),
             ui.column{ gap = 3, center = false, grow = 1,
-                ui.text{ text = media.title, size = 15, weight = "bold", color = WHITE, maxWidth = inner },
-                ui.text{ text = media.artist, size = 13, color = DIM, maxWidth = inner },
+                ui.text{ text = (if PHOSPHOR then "$ nowplaying " else "") .. media.title, font = FONT, size = 15, weight = "bold", color = WHITE, maxWidth = inner },
+                ui.text{ text = media.artist, font = FONT, size = 13, color = DIM, maxWidth = inner },
                 bars(math.min(inner, 140), 20, 14) },
             ui.row{ gap = 0,
                 control("backward.fill", "media previous", 14),
@@ -163,7 +189,7 @@ local function expanded(ctx, media, d, next, width: number)
         -- Liner notes: the current lyric line, handwritten-italic and quoted; each new line drifts in.
         local line = lyric(ctx, media)
         if line then
-            rows[#rows + 1] = ui.text{ key = "lyric-" .. line, text = "“" .. line .. "”", font = "Monaspace Radon",
+            rows[#rows + 1] = ui.text{ key = "lyric-" .. line, text = if PHOSPHOR then "♪ " .. line else "“" .. line .. "”", font = LYRIC_FONT,
                 size = 15, color = WHITE, maxWidth = width, marquee = true,
                 appear = { opacity = 0, dy = 8, animate = SPRING } }
         end

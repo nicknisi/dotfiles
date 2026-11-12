@@ -1,6 +1,10 @@
 -- Wayline's bar chip (as lib/look.luau draws battery and clock): a 32pt square block holding the
 -- glyph, optionally attached to a mono label in the same hue. Used by the agents and awake widgets.
+-- A bar look can draw its own chips with look.chip (Phosphor outlines them).
+local look = require("./look")
+
 return function(ctx, glyph, fill: string, label: string?, labelColor: string?)
+    if look.chip then return look.chip(ctx, glyph, fill, label, labelColor) end
     local style = ctx.data.bar.style
     local size = 32 * style.height / 40
     local radius = math.floor(size * 0.24)
