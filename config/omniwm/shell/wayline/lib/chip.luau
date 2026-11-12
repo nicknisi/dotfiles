@@ -13,7 +13,7 @@ return function(ctx, glyph, fill: string, label: string?, labelColor: string?)
             ui.box{ align = "trailing", w = radius, h = size, fill = fill },
             glyph },
         ui.box{ w = 8, h = 1 },
-        ui.text{ text = label, style = "mono", size = 14 * style.height / 40, weight = "semibold",
+        ui.text{ text = label, font = "Monaspace Neon", size = 14 * style.height / 40, weight = "semibold",
             color = labelColor or fill },
         ui.box{ w = 9, h = 1 } }
 end

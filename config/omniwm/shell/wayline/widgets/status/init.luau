@@ -41,7 +41,7 @@ function render(ctx)
         local hue = if power.low then "red" elseif power.charging then "green" else "accent"
         local children = { ui.symbol{ name = power.symbol, size = glyph, weight = "semibold", color = hue } }
         if power.low or power.charging then
-            children[2] = ui.text{ text = power.text, style = "mono", size = 13 * scale, weight = "semibold", color = hue }
+            children[2] = ui.text{ text = power.text, font = "Monaspace Neon", size = 13 * scale, weight = "semibold", color = hue }
         end
         items[#items + 1] = entry(ctx, "battery", power.percent, children)
     end
@@ -52,7 +52,7 @@ function render(ctx)
         weight = "semibold", color = if on then "accent" else "secondaryForeground",
         pulse = if on then { key = math.floor(ctx.data.seconds / 30), duration = 30, dy = FLOAT } else nil } }
     if left then
-        cup[2] = ui.text{ text = left, style = "mono", size = 13 * scale, weight = "semibold", color = "accent" }
+        cup[2] = ui.text{ text = left, font = "Monaspace Neon", size = 13 * scale, weight = "semibold", color = "accent" }
     end
     items[#items + 1] = entry(ctx, "awake", if on then "Keeping awake (right-click to stop)"
         else "Keep awake (right-click for indefinitely)", cup, { onRightClick = awake.toggle })

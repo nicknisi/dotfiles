@@ -614,10 +614,10 @@ local function clockBar(ctx, m)
         if not m.showIcon then
             rows[#rows + 1] = ui.box{ w = 1, h = 3 }
         end
-        rows[#rows + 1] = ui.text{ text = m.hour, style = "mono", size = 14 * scale, weight = "bold", color = "accent" }
-        rows[#rows + 1] = ui.text{ text = m.minute, style = "mono", size = 14 * scale, weight = "semibold", color = "accent" }
+        rows[#rows + 1] = ui.text{ text = m.hour, font = "Monaspace Neon", size = 14 * scale, weight = "bold", color = "accent" }
+        rows[#rows + 1] = ui.text{ text = m.minute, font = "Monaspace Neon", size = 14 * scale, weight = "semibold", color = "accent" }
         if m.meridiem then
-            rows[#rows + 1] = ui.text{ text = m.meridiem, style = "mono", size = 9 * scale,
+            rows[#rows + 1] = ui.text{ text = m.meridiem, font = "Monaspace Neon", size = 9 * scale,
                 color = "secondaryForeground" }
         end
         rows[#rows + 1] = ui.box{ w = 1, h = 3 }
@@ -626,10 +626,10 @@ local function clockBar(ctx, m)
     rows.h = size
     rows[#rows + 1] = ui.box{ w = 8, h = 1 }
     if m.showDate then
-        rows[#rows + 1] = ui.text{ text = m.date, size = 12 * scale, weight = "medium", color = "accent" }
+        rows[#rows + 1] = ui.text{ text = m.date, font = "Monaspace Neon", size = 12 * scale, weight = "medium", color = "accent" }
         rows[#rows + 1] = ui.box{ w = 6, h = 1 }
     end
-    rows[#rows + 1] = ui.text{ text = m.time, style = "mono", size = 14 * scale, weight = "bold", color = "accent",
+    rows[#rows + 1] = ui.text{ text = m.time, font = "Monaspace Neon", size = 14 * scale, weight = "bold", color = "accent",
         reserve = "00:00 PM" }
     rows[#rows + 1] = ui.box{ w = 9, h = 1 }
     return ui.row(rows)
@@ -1160,7 +1160,7 @@ return require("./skin")({
         end
         block[#block + 1] = ui.row{
             ui.box{ w = 4 * m.scale, h = 1 },
-            ui.text{ text = workspace.name, size = 14 * m.scale, weight = "bold",
+            ui.text{ text = workspace.name, font = "Monaspace Neon", size = 14 * m.scale, weight = "bold",
                 color = labelColor(style, m, workspace), maxWidth = m.vertical and m.item - 8 * m.scale or nil },
             ui.box{ w = 4 * m.scale, h = 1 } }
         return ui.stack(block)

@@ -30,6 +30,14 @@ local function agents(ctx)
     return if d and ctx.data.seconds - d.t < 120 then d else nil
 end
 
+local function theme(ctx)
+    local raw = ctx.data.vars.theme
+    if raw and ctx.state.themeRaw ~= raw then
+        ctx.state.themeRaw, ctx.state.theme = raw, json.decode(raw)
+    end
+    return raw and ctx.state.theme
+end
+
 local function meeting(ctx)
     local cal = ctx.data.calendar
     if not cal or cal.access ~= "full" then return nil end
@@ -70,6 +78,10 @@ local function liveMoments(ctx, media, d, next)
     local attention = d and d.attention or 0
     if attention > (state.attention or 0) then state.peekUntil = now + PEEK end
     state.attention = attention
+    local pack = theme(ctx)
+    local packName = pack and pack.name
+    if packName and state.pack ~= nil and packName ~= state.pack then state.peekUntil = now + PEEK end
+    state.pack = packName or state.pack
     if next and next.mins <= 5 and next.mins > -5 and state.nudged ~= next.id then
         state.nudged, state.peekUntil = next.id, now + PEEK
     end
@@ -148,10 +160,12 @@ local function expanded(ctx, media, d, next, width: number)
                 control("backward.fill", "media previous", 14),
                 control(if media.playing then "pause.fill" else "play.fill", "media toggle", 18),
                 control("forward.fill", "media next", 14) } }
+        -- Liner notes: the current lyric line, handwritten-italic and quoted; each new line drifts in.
         local line = lyric(ctx, media)
         if line then
-            rows[#rows + 1] = ui.text{ key = "lyric", text = "♪ " .. line, size = 14, weight = "semibold", color = WHITE,
-                maxWidth = width, marquee = true, appear = { opacity = 0, dy = 6, animate = SPRING } }
+            rows[#rows + 1] = ui.text{ key = "lyric-" .. line, text = "“" .. line .. "”", font = "Monaspace Radon",
+                size = 15, color = WHITE, maxWidth = width, marquee = true,
+                appear = { opacity = 0, dy = 8, animate = SPRING } }
         end
     end
     local chips = { gap = 8 }
@@ -167,6 +181,13 @@ local function expanded(ctx, media, d, next, width: number)
             awake.remaining(ctx) or "awake")
     end
     if #chips > 0 then rows[#rows + 1] = ui.row(chips) end
+    -- The theme pack's tagline signs off the island ("green phosphor, no mercy").
+    local pack = theme(ctx)
+    if pack and pack.tagline ~= "" then
+        rows[#rows + 1] = ui.row{ w = width, gap = 8,
+            ui.text{ text = pack.tagline, font = "Monaspace Radon", size = 12, color = DIM, grow = 1, maxWidth = width - 120 },
+            ui.text{ text = pack.name, font = "Monaspace Neon", size = 10, color = "#71717a" } }
+    end
     return ui.column(rows)
 end
 

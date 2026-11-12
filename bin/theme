@@ -613,7 +613,7 @@ reload_apps() { # NAME MODE WALL
   if $IS_MAC; then
     mac_appearance "$mode"
     [ -n "$wall" ] && mac_wallpaper "$wall"
-    omniwm_palette "$T"
+    omniwm_palette "$T" "$name"
     if [ -f "$T/slack.txt" ]; then
       pbcopy <"$T/slack.txt"
       echo "slack theme on clipboard — Slack > Settings > Appearance > Custom theme > Import, then paste" >&2
@@ -631,13 +631,16 @@ reload_apps() { # NAME MODE WALL
   thumbs_background
 }
 
-omniwm_palette() { # rendered theme dir: OmniWM's bar and island take the pack's palette
+omniwm_palette() { # RENDERED_DIR NAME: OmniWM's bar and island take the pack's palette and tagline
   # OmniWM reads themes from its own shell folder, so the rendered file is copied there (gitignored)
-  # and selected; re-selecting is a no_change and OmniWM reloads the edited file itself.
+  # and selected; re-selecting is a no_change and OmniWM reloads the edited file itself. The tagline
+  # goes to the island as an in-memory shell value (bin/omniwm-agents re-sends it after restarts).
   local ctl=/Applications/OmniWM.app/Contents/MacOS/omniwmctl dir="$HOME/.config/omniwm/shell/themes"
   [ -x "$ctl" ] && [ -f "$1/omniwm.toml" ] && [ -d "$dir" ] || return 0
   cp "$1/omniwm.toml" "$dir/dotfiles.toml"
   "$ctl" shell theme dotfiles >/dev/null 2>&1 || true
+  command -v jq >/dev/null 2>&1 &&
+    "$ctl" shell set theme "$(jq -nc --arg n "$2" --arg t "$(tagline "$THEMES_DIR/$2")" '{name: $n, tagline: $t}')" >/dev/null 2>&1 || true
 }
 
 nvim_reload() { # every running nvim re-applies aether from the rendered palette

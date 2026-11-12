@@ -214,6 +214,18 @@ def collect():
             "spend": spend(), "claude5h": claude_usage()}
 
 
+def theme_info():
+    """The current theme pack and its tagline, for the island (bin/theme sends it on switch too)."""
+    state = HOME / ".local/state/theme/current"
+    try:
+        name = (state / "theme.name").read_text().strip()
+        conf = (HOME / "Developer/dotfiles/themes" / name / "theme.conf").read_text()
+    except OSError:
+        return None
+    m = re.search(r'TAGLINE="([^"]*)"', conf)
+    return {"name": name, "tagline": m.group(1) if m else ""}
+
+
 def self_check():
     assert age("05:03") == "5m" and age("02:00:00") == "2h" and age("3-01:00:00") == "3d" and age("09") == "9s"
     assert kind_of("2.1.220") == "claude" and kind_of("pi") == "pi" and kind_of("node") is None
@@ -224,8 +236,13 @@ def main():
     if "--print" in sys.argv:
         print(json.dumps(collect(), indent=2))
         return
-    last, pushed = None, 0
+    last, pushed, last_theme, theme_pushed = None, 0, None, 0
     while True:
+        info = theme_info()  # shell values live in memory, so resend each minute to survive OmniWM restarts
+        if info and (info != last_theme or time.time() - theme_pushed > 60):
+            subprocess.run([CTL, "shell", "set", "theme", json.dumps(info, separators=(",", ":"))],
+                           capture_output=True, timeout=10)
+            last_theme, theme_pushed = info, time.time()
         payload = collect()
         stamp = dict(payload, t=0)  # skip pushes where only the timestamp moved, but refresh it each minute
         if stamp != last or payload["t"] - pushed > 60:
