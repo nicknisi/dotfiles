@@ -1,6 +1,24 @@
 -- SPDX-License-Identifier: GPL-2.0-only
 -- Copyright (C) 2026 OmniNull — https://github.com/OmniNull/OmniWM
 
+local shapes = require("./shapes")
+
+-- Celestial's playful focus shapes; one is picked each time a workspace gains focus.
+local FOCUSED_SHAPES = {
+    "Slanted", "Oval", "Pill", "Triangle", "Arrow", "Diamond", "Pentagon", "Gem", "VerySunny", "Sunny", "Cookie4Sided",
+    "Cookie6Sided", "Cookie7Sided", "Cookie9Sided", "Cookie12Sided", "Clover4Leaf", "SoftBurst", "Ghostish",
+}
+
+local function focusedShape(ctx, workspace)
+    local state = ctx.state
+    state.shapes = state.shapes or {}
+    if state.focusedWorkspace ~= workspace.id then
+        state.focusedWorkspace = workspace.id
+        state.shapes[workspace.id] = FOCUSED_SHAPES[math.random(#FOCUSED_SHAPES)]
+    end
+    return state.shapes[workspace.id]
+end
+
 local function line(vertical, props)
     return vertical and ui.column(props) or ui.row(props)
 end
@@ -1107,7 +1125,7 @@ return require("./skin")({
     workspaceMetrics = function(_, style, m)
         return { item = 32 * m.scale, focusCue = supported(m) and not m.compact and style.backgrounds }
     end,
-    workspaceMarker = function(_, workspace, style, m, occupied)
+    workspaceMarker = function(ctx, workspace, style, m, occupied)
         if not supported(m) or (m.compact and not style.labels) then
             return nil
         end
@@ -1116,6 +1134,13 @@ return require("./skin")({
             or (style.accents and "accent/0.24" or "foreground/0.07")) or nil
         local block = { w = m.vertical and m.item or (utf8.len(workspace.name) <= 2 and 28 * m.scale or nil),
             h = m.item, radius = radius, fill = fill }
+        -- Local patch: the focused workspace gets a Material shape (from Celestial), a new one each visit.
+        if fill == "accent" and utf8.len(workspace.name) <= 2 then
+            block.fill = nil
+            table.insert(block, 1, ui.path{ d = shapes.path(focusedShape(ctx, workspace)), viewBox = shapes.viewBox,
+                w = m.item, h = m.item, fill = "accent" })
+            occupied = false -- the square connector into the window icons doesn't suit a shape
+        end
         if occupied and not m.compact then
             block[#block + 1] = ui.box{ align = m.vertical and "bottom" or "trailing",
                 w = m.vertical and m.item or radius, h = m.vertical and radius or m.item,

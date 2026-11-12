@@ -1402,14 +1402,6 @@ id = "toggleShellWidget.agents"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "toggleShellWidget.awake"
-
-[[hotkeys]]
-binding = "Unassigned"
-id = "toggleShellWidget.battery-details"
-
-[[hotkeys]]
-binding = "Unassigned"
 id = "toggleShellWidget.control-center"
 
 [[hotkeys]]
@@ -1430,11 +1422,11 @@ id = "toggleShellWidget.notifications"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "toggleShellWidget.system-stats"
+id = "toggleShellWidget.status"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "toggleShellWidget.wifi"
+id = "toggleShellWidget.system-stats"
 
 [[hotkeys]]
 binding = "Unassigned"

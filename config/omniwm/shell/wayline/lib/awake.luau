@@ -1,40 +1,27 @@
--- Keep the Mac awake, Amphetamine-style: click for timed sessions, right-click to toggle.
--- Uses OmniWM's own Prevent Sleep (`session awake on|off|<minutes>`, at most 1440 minutes).
-interval = 30
+-- Keep the Mac awake, Amphetamine-style, via OmniWM's own Prevent Sleep
+-- (`session awake on|off|<minutes>`, at most 1440 minutes). Used by the status widget.
+local look = require("./look")
 
-local look = require("../lib/look")
-local chip = require("../lib/chip")
+local awake = {}
 
 local PANEL = 300
 local INNER = PANEL - 24 -- wayline's titled panel pads its body by 12
 local DURATIONS = { { "15m", 15 }, { "30m", 30 }, { "1h", 60 }, { "2h", 120 }, { "4h", 240 }, { "8h", 480 } }
 
-local function remaining(ctx): string?
-    local awake = ctx.data.awake
-    local ends = awake and awake["until"]
+function awake.on(ctx): boolean
+    return ctx.data.awake ~= nil and ctx.data.awake.on == true
+end
+
+-- Time left on a timed run ("1h 05m", "12m"); nil when off or indefinite.
+function awake.remaining(ctx): string?
+    local ends = ctx.data.awake and ctx.data.awake["until"]
     if not ends then return nil end
     local mins = math.max(1, math.floor((ends - ctx.data.seconds) / 60))
     return if mins >= 60 then string.format("%dh %02dm", mins // 60, mins % 60) else mins .. "m"
 end
 
-local function toggle(ctx)
-    omniwm.run(if ctx.data.awake and ctx.data.awake.on then "session awake off" else "session awake on")
-end
-
-local function bar(ctx, on: boolean, label: string?)
-    local size = 32 * ctx.data.bar.style.height / 40
-    return chip(ctx, ui.symbol{ name = if on then "cup.and.saucer.fill" else "cup.and.saucer",
-        size = math.floor(size * 0.5), weight = "semibold",
-        color = if on then "accentForeground" else "secondaryForeground" },
-        if on then "accent" else "elevatedSurface", label, "accent")
-end
-
-function render(ctx)
-    local on = ctx.data.awake and ctx.data.awake.on or false
-    local button = bar(ctx, on, remaining(ctx))
-    button.onClick, button.onRightClick = ui.popout, toggle
-    button.help = if on then "Keeping awake (right-click to stop)" else "Keep awake (right-click for indefinitely)"
-    return button
+function awake.toggle(ctx)
+    omniwm.run(if awake.on(ctx) then "session awake off" else "session awake on")
 end
 
 local function option(label: string, command: string, width: number)
@@ -42,9 +29,9 @@ local function option(label: string, command: string, width: number)
         look.text{ text = label, size = 13, weight = "medium" } }
 end
 
-function popout(ctx)
-    local on = ctx.data.awake and ctx.data.awake.on
-    local left = remaining(ctx)
+function awake.popout(ctx)
+    local on = awake.on(ctx)
+    local left = awake.remaining(ctx)
     local status = if left then "Awake for " .. left .. " more" elseif on then "Awake until turned off" else "Sleep allowed"
     local width = (INNER - 24 - 2 * 8) / 3
     local grid = { w = INNER, gap = 8, fill = "elevatedSurface" }
@@ -67,3 +54,5 @@ function popout(ctx)
             look.text{ text = status, size = 12, color = "secondaryForeground" } },
         look.group(grid) })
 end
+
+return table.freeze(awake)

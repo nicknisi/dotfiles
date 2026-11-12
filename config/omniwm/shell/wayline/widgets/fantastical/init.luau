@@ -23,17 +23,31 @@ end
 
 local MAX_TITLE = 18
 
--- One pill: the next meeting (if within 12h) takes the date's slot, so the widget stays clock-sized.
+-- The next timed meeting, only once it's within the hour (keeps the bar narrow the rest of the time).
+local function nextMeeting(ctx)
+    local cal = ctx.data.calendar
+    if not cal or cal.access ~= "full" then return nil end
+    local now = ctx.data.seconds
+    for _, event in cal.events do
+        if not event.allDay and event["end"] > now then
+            if event.start - now > 3600 then return nil end
+            local mins = math.ceil((event.start - now) / 60)
+            return event, if mins <= 0 then "now" else mins .. "m"
+        end
+    end
+    return nil
+end
+
+-- One pill: a meeting within the hour takes the date's slot, so the widget stays clock-sized.
 function render(ctx)
     local m = clock(ctx)
-    local state = calendar.state(ctx)
-    local event = state and state.event
+    local event, countdown = nextMeeting(ctx)
     if event then
         local title = event.title
         if utf8.len(title) and utf8.len(title) > MAX_TITLE then
             title = string.sub(title, 1, utf8.offset(title, MAX_TITLE) - 1) .. "…"
         end
-        m.date = title .. " · " .. event.countdown
+        m.date = title .. " · " .. countdown
     end
     local button = look.clockBar(ctx, m)
     button.onClick, button.onRightClick, button.help = fantastical, ui.popout, event and event.title or "Fantastical"
