@@ -1,0 +1,8 @@
+format = 1
+name = "arcade"
+version = "1.0.0"
+api = 1
+author = "Nick Nisi (from OmniNull's Wayline)"
+license = "GPL-2.0-only"
+title = "Arcade"
+summary = "Wayline's layout as an 8-bit cabinet HUD, coloured by the dotfiles theme pack."

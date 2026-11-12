@@ -56,9 +56,7 @@ end
 
 look.workspacePill = function(pill, workspace, style, m, occupied)
     pill.gap, pill.radius = 4 * m.scale, 3
-    pill.fill = nil
-    pill.border = if workspace.focused then "accent/0.45" else "accent/0.15"
-    pill.borderWidth = 1
+    pill.fill, pill.border = nil, nil -- the tab is the outline; no box around the box
     pill.hover = "accent/0.12"
 end
 
@@ -97,6 +95,12 @@ end
 look.controlCenterBar = function(ctx, m)
     return look.chip(ctx, ui.symbol{ name = m.symbol, size = 15 * scale(ctx), weight = "semibold", color = "accent" },
         "accent")
+end
+
+-- Letters only, so the groups sit closer together than Wayline's icon groups.
+look.workspaceGroup = function(_, pills, _, _, m)
+    pills.gap = 1 * m.scale
+    return if m.vertical then ui.column(pills) else ui.row(pills)
 end
 
 return require("./skin")(look)

@@ -3,7 +3,7 @@
 theme = "dotfiles"
 leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads", "active-window"]
 center = []
-trailing = ["agents", "status", "notifications", "fantastical", "control-center"]
+trailing = ["prairie", "agents", "status", "notifications", "fantastical", "control-center"]
 
 [workspaceBar]
 autoHide = false
@@ -17,7 +17,7 @@ transparentBackground = false
 backgroundOpacity = 1
 barFill = "background"
 showItemBackgrounds = true
-showAccentHighlights = true
+showAccentHighlights = false
 showLabels = true
 notificationBadges = "dot"
 systemStatsButton = false
@@ -25,6 +25,7 @@ systemStatsButton = false
 # Terminal tabs: letters only, no app icons, which leaves room for the title before the notch.
 [widgets.workspaces]
 compact = true
+indicator = "minimal" # 3pt group edges instead of 6pt; the look draws its own markers
 
 [widgets.active-window]
 maxWidth = 150

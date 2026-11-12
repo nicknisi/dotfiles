@@ -65,6 +65,18 @@ local MOOD_COLOR = { waving = "warning", busy = "accent", asleep = "mutedForegro
 
 local FACES = { waving = "[O_O]", busy = "[o_o]", asleep = "[-_-]" }
 
+-- Arcade: a classic space invader (11x8 pixels) and its march: a 2pt step every 0.6s (0.25s when it
+-- needs you), as a 30s pulse keyed to the render window.
+local INVADER = "M2 0h1v1H2zM8 0h1v1H8zM3 1h5v1H3zM2 2h7v1H2zM1 3h2v1H1zM4 3h3v1H4zM8 3h2v1H8zM0 4h11v1H0z"
+    .. "M0 5h1v1H0zM2 5h7v1H2zM10 5h1v1h-1zM0 6h1v1H0zM2 6h1v1H2zM8 6h1v1H8zM10 6h1v1h-1zM3 7h2v1H3zM6 7h2v1H6z"
+local MARCH, SHUFFLE = {}, {}
+for i = 0, 240 do
+    local t = i / 240 * 30
+    MARCH[i + 1] = if math.floor(t / 0.6) % 2 == 0 then 0 else 2
+    SHUFFLE[i + 1] = if math.floor(t / 0.25) % 2 == 0 then -1.5 else 1.5
+end
+MARCH[#MARCH], SHUFFLE[#SHUFFLE] = 0, 0
+
 local function bot(a, size: number, index: number, key: number)
     local m = mood(a)
     if look.personality == "phosphor" then -- the green-screen look draws its crew as ASCII faces
@@ -106,7 +118,8 @@ function render(ctx)
     if fresh and vibes(ctx, d) then
         button = chip(ctx, ui.symbol{ name = "checkmark", size = size * 0.5, weight = "bold", color = "accentForeground",
             pulse = { key = "vibes" .. ctx.state.vibesUntil, duration = 0.5, scale = { 0.6, -0.15, 0.08, 0 } } },
-            "success", "vibes: immaculate")
+            "success", if look.personality == "bridge" then "engage" elseif look.personality == "arcade" then "STAGE CLEAR"
+                else "vibes: immaculate")
     else
         local pill = { gap = 5 * scale, pad = 8 * scale, h = size, radius = math.floor(size * 0.24),
             fill = "elevatedSurface", hoverOpacity = 0.9,
@@ -116,6 +129,24 @@ function render(ctx)
         if not fresh then
             pill[#pill + 1] = bot({ state = "idle" }, b, 1, 0)
             pill[#pill + 1] = ui.text{ text = "?", font = MONO, size = 13 * scale, color = "mutedForeground" }
+        elseif look.personality == "arcade" then
+            -- space invaders marching in place, and today's spend as the high score
+            local key = math.floor(ctx.data.seconds / 30)
+            for i, a in d.agents do
+                if i > MAX_CREW then break end
+                local m = mood(a)
+                pill[#pill + 1] = ui.path{ w = 15 * scale, h = 11 * scale, viewBox = { 0, 0, 11, 8 }, d = INVADER,
+                    fill = MOOD_COLOR[m], pulse = if m == "asleep" then nil
+                        else { key = "march" .. i .. "-" .. key, duration = 30, dx = if m == "waving" then SHUFFLE else MARCH } }
+            end
+            if d.spend then
+                pill[#pill + 1] = ui.text{ text = string.format("HI %d", math.floor(d.spend.today)), font = "Press Start 2P",
+                    size = 9 * scale, color = "yellow" }
+            end
+        elseif look.personality == "bridge" then
+            -- the away team, and who's hailing
+            pill[#pill + 1] = ui.text{ text = "AWAY TEAM " .. d.total .. (if d.attention > 0 then " · " .. d.attention .. " HAILING" else ""),
+                font = "Antonio", size = 14 * scale, weight = "bold", color = "#000000" }
         elseif look.personality == "liner" then
             -- an ink stamp, slapped on slightly crooked
             local ink = if d.attention > 0 then "red" else "foreground"

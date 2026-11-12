@@ -85,4 +85,10 @@ look.controlCenterBar = function(ctx, m)
     return look.chip(ctx, ui.symbol{ name = m.symbol, size = 14 * scale(ctx), color = "foreground" }, "accent")
 end
 
+-- Letters only, so the groups sit closer together than Wayline's icon groups.
+look.workspaceGroup = function(_, pills, _, _, m)
+    pills.gap = 1 * m.scale
+    return if m.vertical then ui.column(pills) else ui.row(pills)
+end
+
 return require("./skin")(look)

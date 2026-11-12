@@ -2,7 +2,7 @@
 # bar — switch the OmniWM bar's look. Colours always follow `theme`; this only changes the style.
 #
 #   bar                 show the current look and the choices
-#   bar <look>          switch: crew, phosphor, liner, sky
+#   bar <look>          switch: crew, phosphor, liner, sky, outrun, bridge, arcade, blueprint
 #   bar next | prev     cycle
 #
 # Each look is an OmniWM profile under config/omniwm/shell/<profile>/ sharing the widgets in
@@ -12,8 +12,9 @@ set -euo pipefail
 
 CTL=/Applications/OmniWM.app/Contents/MacOS/omniwmctl
 SHELL_TOML="$HOME/.config/omniwm/shell/shell.toml"
-LOOKS=(crew phosphor liner sky)
-TAGS=("pixel agents on Wayline chips" "green screen, no mercy" "ink on good paper" "big sky over the prairie")
+LOOKS=(crew phosphor liner sky outrun bridge arcade blueprint)
+TAGS=("pixel agents on Wayline chips" "green screen, no mercy" "ink on good paper" "big sky over the prairie"
+  "tape hiss and neon grids" "Riker's on the bridge" "insert coin" "drafted in Omaha")
 
 profile_of() { [ "$1" = crew ] && echo wayline || echo "$1"; }
 look_of() { [ "$1" = wayline ] && echo crew || echo "$1"; }

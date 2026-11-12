@@ -10,10 +10,12 @@ local MONO = "Monaspace Neon"
 -- Three blades around a hub (viewBox 12x12), and the turbine's mast.
 local BLADES = "M6 6 L5.4 0.6 L6.6 0.6 Z M6 6 L11.1 8.9 L10.5 9.9 Z M6 6 L0.9 8.9 L1.5 9.9 Z M6 4.9 A1.1 1.1 0 1 1 5.99 4.9 Z"
 
+local INK = look.ink -- a look that prints everything in one ink (Bridge's black on console segments)
+
 local function turbine(size: number, period: number, paused: boolean)
     return ui.stack{ w = size, h = size * 1.6,
-        ui.box{ align = "bottom", w = math.max(1, size * 0.1), h = size * 0.95, fill = "foreground/0.7" },
-        ui.path{ align = "top", w = size, h = size, viewBox = { 0, 0, 12, 12 }, d = BLADES, fill = "foreground",
+        ui.box{ align = "bottom", w = math.max(1, size * 0.1), h = size * 0.95, fill = INK or "foreground/0.7" },
+        ui.path{ align = "top", w = size, h = size, viewBox = { 0, 0, 12, 12 }, d = BLADES, fill = INK or "foreground",
             loop = { rotate = { 0, 360, period }, paused = paused } } }
 end
 
@@ -26,11 +28,11 @@ function render(ctx)
     local period = math.clamp(36 / math.max(wind, 1), 0.6, 12)
     local row = { onClick = ui.popout, gap = 5 * s, pad = 9 * s, h = 28 * s, radius = 14 * s,
         help = (state.condition or "") .. (if wind > 0 then string.format(" · wind %.0f", wind) else ""),
-        ui.symbol{ name = state.symbol, size = 14 * s, color = if state.isDay then "yellow" else "foreground" },
-        ui.text{ text = state.temp, font = MONO, size = 13 * s, weight = "semibold", color = "foreground" },
+        ui.symbol{ name = state.symbol, size = 14 * s, color = INK or (if state.isDay then "yellow" else "foreground") },
+        ui.text{ text = state.temp, font = MONO, size = 13 * s, weight = "semibold", color = INK or "foreground" },
         ui.box{ w = 2 * s, h = 1 },
         turbine(9 * s, period, wind < 1), turbine(7 * s, period * 1.3, wind < 1), turbine(8 * s, period * 0.85, wind < 1) }
-    if look.pill then look.pill(row, ctx) end
+    if look.pill then look.pill(row, ctx) else row.fill, row.radius, row.h = "elevatedSurface", math.floor(32 * s * 0.24), 32 * s end
     return ui.row(row)
 end
 

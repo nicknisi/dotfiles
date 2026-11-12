@@ -1,0 +1,8 @@
+format = 1
+name = "outrun"
+version = "1.0.0"
+api = 1
+author = "Nick Nisi (from OmniNull's Wayline)"
+license = "GPL-2.0-only"
+title = "Outrun"
+summary = "Wayline's layout as a neon grid racing toward a synthwave sun, coloured by the dotfiles theme pack."

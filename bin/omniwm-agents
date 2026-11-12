@@ -226,6 +226,26 @@ def theme_info():
     return {"name": name, "tagline": m.group(1) if m else ""}
 
 
+SHELL_TOML = HOME / ".config/omniwm/shell/shell.toml"
+
+
+def omniwm_pid():
+    out = run("pgrep", "-x", "OmniWM").split()
+    return out[0] if out else None
+
+
+def heal_bar_shader():
+    """OmniWM 0.8 never draws a profile's [barShader] if it starts with that profile active; a hop
+    through the shader-less crew look (Wayline) and back brings the backdrop up. Run once per OmniWM start.
+    shortcut: drop this once OmniWM fixes it (check: restart with `bar outrun` active)."""
+    m = re.search(r'^profile = "([^"]+)"', SHELL_TOML.read_text(), re.M) if SHELL_TOML.exists() else None
+    if not m or m.group(1) == "wayline":
+        return
+    for profile in ("wayline", m.group(1)):
+        subprocess.run([CTL, "shell", "profile", profile], capture_output=True, timeout=10)
+        time.sleep(1)
+
+
 def self_check():
     assert age("05:03") == "5m" and age("02:00:00") == "2h" and age("3-01:00:00") == "3d" and age("09") == "9s"
     assert kind_of("2.1.220") == "claude" and kind_of("pi") == "pi" and kind_of("node") is None
@@ -236,8 +256,13 @@ def main():
     if "--print" in sys.argv:
         print(json.dumps(collect(), indent=2))
         return
-    last, pushed, last_theme, theme_pushed = None, 0, None, 0
+    last, pushed, last_theme, theme_pushed, healed_pid = None, 0, None, 0, None
     while True:
+        pid = omniwm_pid()
+        if pid and pid != healed_pid and "--watch" in sys.argv:
+            time.sleep(4)  # let OmniWM finish starting before hopping profiles
+            heal_bar_shader()
+            healed_pid = pid
         info = theme_info()  # shell values live in memory, so resend each minute to survive OmniWM restarts
         if info and (info != last_theme or time.time() - theme_pushed > 60):
             subprocess.run([CTL, "shell", "set", "theme", json.dumps(info, separators=(",", ":"))],

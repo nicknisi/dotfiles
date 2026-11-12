@@ -15,8 +15,9 @@ return presentation({
     bar = function(ctx, props)
         local style = ctx.data.bar.style
         if look.pill then -- local patch: a bar look with its own pill style (Phosphor) restyles the bell too
-            props[1].color = "accent"
-            props.gap = 6
+            props[1].color = look.ink or "accent"
+            if props[2] and look.ink then props[2].color = look.ink end
+            props.gap, props.pad = 6, 9 * style.height / 40
             look.pill(props, ctx)
             return if style.vertical then ui.column(props) else ui.row(props)
         end

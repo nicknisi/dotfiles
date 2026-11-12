@@ -8,6 +8,8 @@ local wifi = require("../lib/wifi")
 local battery = require("../lib/battery")
 local awake = require("../lib/awake")
 
+local INK = look.ink -- a look that prints everything in one ink (Bridge's black on console segments)
+
 local FLOAT = {}
 for i = 0, 200 do
     FLOAT[i + 1] = -math.abs(math.sin(i / 200 * 30 / 3 * math.pi)) * 1.2 -- drift up and settle every 3s
@@ -32,13 +34,19 @@ function render(ctx)
     local net = wifi.state(ctx)
     if net then
         items[#items + 1] = entry(ctx, "wifi", net.help, {
-            if net.power then wifi.fan(net.level, glyph, "accent", "accent/0.3")
+            if net.power then wifi.fan(net.level, glyph, INK or "accent", if INK then INK .. "55" else "accent/0.3")
                 else ui.symbol{ name = "wifi.slash", size = glyph, color = "secondaryForeground" } })
     end
 
     local power = battery.state(ctx)
-    if power then
-        local hue = if power.low then "red" elseif power.charging then "green" else "accent"
+    if power and look.personality == "arcade" then
+        -- hearts for the battery: one per quarter, the last one flashing red when low
+        local full = math.max(0, math.min(4, math.ceil(power.level / 25)))
+        items[#items + 1] = entry(ctx, "battery", power.percent, {
+            ui.text{ text = string.rep("♥", full) .. string.rep("♡", 4 - full), size = 11 * scale,
+                color = if power.low then "red" elseif power.charging then "green" else "red" } })
+    elseif power then
+        local hue = INK or (if power.low then "red" elseif power.charging then "green" else "accent")
         local children = { ui.symbol{ name = power.symbol, size = glyph, weight = "semibold", color = hue } }
         if power.low or power.charging then
             children[2] = ui.text{ text = power.text, font = "Monaspace Neon", size = 13 * scale, weight = "semibold", color = hue }
@@ -49,10 +57,10 @@ function render(ctx)
     local on, left = awake.on(ctx), awake.remaining(ctx)
     -- While awake the cup steams and gently floats (a 30s pulse re-keyed each render keeps it going).
     local cup = { ui.symbol{ name = if on then "cup.and.heat.waves.fill" else "cup.and.saucer", size = glyph * 0.9,
-        weight = "semibold", color = if on then "accent" else "secondaryForeground",
+        weight = "semibold", color = INK or (if on then "accent" else "secondaryForeground"),
         pulse = if on then { key = math.floor(ctx.data.seconds / 30), duration = 30, dy = FLOAT } else nil } }
     if left then
-        cup[2] = ui.text{ text = left, font = "Monaspace Neon", size = 13 * scale, weight = "semibold", color = "accent" }
+        cup[2] = ui.text{ text = left, font = "Monaspace Neon", size = 13 * scale, weight = "semibold", color = INK or "accent" }
     end
     items[#items + 1] = entry(ctx, "awake", if on then "Keeping awake (right-click to stop)"
         else "Keep awake (right-click for indefinitely)", cup, { onRightClick = awake.toggle })

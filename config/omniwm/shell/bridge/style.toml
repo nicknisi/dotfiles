@@ -1,0 +1,8 @@
+format = 1
+name = "bridge"
+version = "1.0.0"
+api = 1
+author = "Nick Nisi (from OmniNull's Wayline)"
+license = "GPL-2.0-only"
+title = "Bridge"
+summary = "Wayline's layout as an LCARS console for a bar run by Riker, coloured by the dotfiles theme pack."

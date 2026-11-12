@@ -17,7 +17,7 @@ transparentBackground = false
 backgroundOpacity = 1
 barFill = "background"
 showItemBackgrounds = true
-showAccentHighlights = true
+showAccentHighlights = false
 showLabels = true
 notificationBadges = "dot"
 systemStatsButton = false
@@ -25,6 +25,7 @@ systemStatsButton = false
 # Round workspace pebbles, letters only, so the title has room before the notch.
 [widgets.workspaces]
 compact = true
+indicator = "minimal" # 3pt group edges instead of 6pt; the look draws its own markers
 
 [widgets.active-window]
 maxWidth = 150

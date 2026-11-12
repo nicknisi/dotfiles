@@ -1,4 +1,4 @@
-profile = "liner"
+profile = "wayline"
 
 [profiles]
 
@@ -27,7 +27,7 @@ showFloatingWindows = true
 center = []
 leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads", "active-window"]
 theme = "dotfiles"
-trailing = ["agents", "status", "system-stats", "notifications", "fantastical", "control-center"]
+trailing = ["prairie", "agents", "status", "notifications", "fantastical", "control-center"]
 
 [profiles.wayline.island]
 displays = "notch"
@@ -39,7 +39,7 @@ width = 560
 [profiles.wayline.widgets]
 
 [profiles.wayline.widgets.active-window]
-maxWidth = 150
+maxWidth = 110
 
 [profiles.wayline.workspaceBar]
 autoHide = false
