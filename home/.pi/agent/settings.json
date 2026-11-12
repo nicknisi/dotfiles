@@ -6,7 +6,8 @@
   "quietStartup": true,
   "hideThinkingBlock": false,
   "skills": [
-    "~/Developer/skills"
+    "~/Developer/skills",
+    "~/Developer/personal-workos-skills"
   ],
   "defaultModel": "claude-opus-5-5",
   "defaultThinkingLevel": "high",
@@ -39,6 +40,7 @@
     "../../Developer/pi-extensions/packages/model-switch",
     "../../Developer/pi-extensions/packages/orchestrate",
     "../../Developer/pi-extensions/packages/pin-last-prompt",
+    "../../Developer/pi-extensions/packages/pipes",
     "../../Developer/pi-extensions/packages/recap",
     "../../Developer/pi-extensions/packages/relay",
     "../../Developer/pi-extensions/packages/save-md",
@@ -77,7 +79,7 @@
     "{\"source\":\"../../Developer/pi-extensions/packages/compact-tools\",\"scope\":\"user\"}": "0.2.4",
     "{\"source\":\"../../Developer/pi-extensions/packages/composer\",\"scope\":\"user\"}": "0.4.1",
     "{\"source\":\"../../Developer/pi-extensions/packages/fast\",\"scope\":\"user\"}": "0.3.3",
-    "{\"source\":\"../../Developer/pi-extensions/packages/handoff\",\"scope\":\"user\"}": "0.1.11",
+    "{\"source\":\"../../Developer/pi-extensions/packages/handoff\",\"scope\":\"user\"}": "0.1.12",
     "{\"source\":\"../../Developer/pi-extensions/packages/header\",\"scope\":\"user\"}": "0.1.13",
     "{\"source\":\"../../Developer/pi-extensions/packages/heads-up\",\"scope\":\"user\"}": "0.2.2",
     "{\"source\":\"../../Developer/pi-extensions/packages/llm-council\",\"scope\":\"user\"}": "0.4.4",
@@ -87,15 +89,16 @@
     "{\"source\":\"../../Developer/pi-extensions/packages/recap\",\"scope\":\"user\"}": "0.1.8",
     "{\"source\":\"../../Developer/pi-extensions/packages/relay\",\"scope\":\"user\"}": "0.6.0",
     "{\"source\":\"../../Developer/pi-extensions/packages/save-md\",\"scope\":\"user\"}": "0.1.2",
-    "{\"source\":\"../../Developer/pi-extensions/packages/session-name\",\"scope\":\"user\"}": "0.1.12",
+    "{\"source\":\"../../Developer/pi-extensions/packages/session-name\",\"scope\":\"user\"}": "0.2.0",
     "{\"source\":\"../../Developer/pi-extensions/packages/spinner\",\"scope\":\"user\"}": "0.2.0",
     "{\"source\":\"../../Developer/pi-extensions/packages/stash\",\"scope\":\"user\"}": "0.1.5",
     "{\"source\":\"../../Developer/pi-extensions/packages/statusline\",\"scope\":\"user\"}": "0.3.4",
     "{\"source\":\"../../Developer/pi-extensions/packages/subagents\",\"scope\":\"user\"}": "0.6.0",
     "{\"source\":\"../../Developer/pi-extensions/packages/turn-timer\",\"scope\":\"user\"}": "0.2.0",
     "{\"source\":\"../../Developer/pi-extensions/packages/workflows\",\"scope\":\"user\"}": "0.6.0",
-    "{\"source\":\"../../Developer/riker-live/packages/riker\",\"scope\":\"user\"}": "0.57.0",
+    "{\"source\":\"../../Developer/riker-live/packages/riker\",\"scope\":\"user\"}": "0.75.0",
     "{\"source\":\"npm:pi-prompt-template-model\",\"scope\":\"user\"}": "0.12.3",
-    "{\"source\":\"npm:pi-web-access\",\"scope\":\"user\"}": "0.46.0"
+    "{\"source\":\"npm:pi-web-access\",\"scope\":\"user\"}": "0.47.0",
+    "{\"source\":\"npm:pi-context-view\",\"scope\":\"user\"}": "0.8.4"
   }
 }

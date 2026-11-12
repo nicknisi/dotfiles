@@ -112,6 +112,17 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'rex __internal session-start --agent claude --feature-session-naming=false 2>/dev/null || true'",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -120,7 +131,6 @@
   },
   "enabledPlugins": {
     "obsidian@obsidian-skills": true,
-    "ralph-wiggum@claude-code-plugins": true,
     "skill-creator@claude-plugins-official": true,
     "content@nicknisi": true,
     "essentials@nicknisi": true,
@@ -132,7 +142,8 @@
     "explanatory-output-style@claude-plugins-official": true,
     "ideation@ideation": true,
     "sessions@sessions": true,
-    "sources@nicknisi": true
+    "sources@nicknisi": true,
+    "ralph-loop@claude-code-plugins": true
   },
   "extraKnownMarketplaces": {
     "obsidian-skills": {
@@ -1309,6 +1320,7 @@
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
+  "fastMode": true,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "custom:system",

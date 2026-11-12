@@ -1,8 +1,14 @@
 {
   "mcpServers": {
     "riker": {
-      "url": "https://glootie.tail0df1.ts.net/mcp",
-      "headers": { "Authorization": "Bearer vqkyLkEHL2pPdwgupAbfWvECZ3XFO3zk5o9LjXaquZA" }
+      "url": "http://127.0.0.1:4319/mcp",
+      "headers": {
+        "Authorization": "Bearer vqkyLkEHL2pPdwgupAbfWvECZ3XFO3zk5o9LjXaquZA"
+      }
+    },
+    "doop": {
+      "type": "http",
+      "url": "https://doop.design/mcp"
     },
     "sessions": {
       "command": "sessions",
