@@ -870,6 +870,14 @@ return require("./skin")({
             fill = style.backgrounds and "elevatedSurface" or nil, hoverOpacity = 0.9,
             chip(size, style.vertical, "blue", { name = m.symbol, size = math.floor(size * 0.46),
                 weight = "bold", color = "accentForeground" }) }
+        -- Local patch: album art in Celestial's cookie shape, turning like a record while it plays.
+        local artwork = ctx.select("media", "artwork")
+        if artwork then
+            props[1] = ui.stack{ w = size, h = size, opacity = if m.playing then 1 else 0.55,
+                loop = { rotate = { 0, 360, 12 }, paused = not m.playing },
+                ui.path{ d = shapes.path("Cookie12Sided"), viewBox = shapes.viewBox, w = size, h = size, mask = true },
+                ui.image{ image = artwork, w = size, h = size } }
+        end
         if style.vertical then
             props.w = size
             return ui.column(props)

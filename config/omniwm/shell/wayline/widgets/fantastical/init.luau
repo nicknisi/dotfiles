@@ -4,6 +4,7 @@ interval = 60
 
 local look = require("../lib/look")
 local calendar = require("../lib/calendar")
+local effects = require("../lib/effects")
 
 local function fantastical()
     -- Delay so the popover isn't dismissed by the click that opened it.
@@ -51,6 +52,12 @@ function render(ctx)
     end
     local button = look.clockBar(ctx, m)
     button.onClick, button.onRightClick, button.help = fantastical, ui.popout, event and event.title or "Fantastical"
+    -- From 5 minutes before a meeting until 5 minutes in, a rotating accent border nudges you to go.
+    if event and math.abs(event.start - ctx.data.seconds) <= 300 then
+        local size = 32 * ctx.data.bar.style.height / 40
+        return ui.stack{ onClick = fantastical, onRightClick = ui.popout, help = event.title, button,
+            effects.shader("rotating-border", { values = { math.floor(size * 0.24), 2, 90, 1 } }) }
+    end
     return button
 end
 

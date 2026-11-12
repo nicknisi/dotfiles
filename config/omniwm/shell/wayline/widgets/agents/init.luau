@@ -36,13 +36,35 @@ local function money(value: number): string
     return if value >= 10 then string.format("$%.0f", value) else string.format("$%.2f", value)
 end
 
+-- The robot is alive: it bobs while agents work and wiggles when one needs you. A pulse plays once per
+-- key, so keying it to the 30s render interval chains them into continuous motion.
+local BOB, WIGGLE = {}, {}
+for i = 0, 240 do
+    local t = i / 240 * 30 -- seconds into the 30s pulse
+    BOB[i + 1] = math.sin(t * math.pi) * 1.5 -- 2s period, 15 full bobs, ends at zero
+    local phase = t % 5 -- wiggle for the first 0.8s of every 5s
+    WIGGLE[i + 1] = if phase < 0.8 then math.sin(phase / 0.8 * 4 * math.pi) * 14 else 0
+end
+BOB[#BOB], WIGGLE[#WIGGLE] = 0, 0 -- pulses must end exactly at zero
+
+local function alive(ctx, d)
+    local busy = false
+    for _, a in d.agents do
+        if a.state == "busy" or a.state == "running" then busy = true end
+    end
+    local key = math.floor(ctx.data.seconds / 30)
+    if d.attention > 0 then return { key = "wiggle" .. key, duration = 30, rotate = WIGGLE } end
+    if busy then return { key = "bob" .. key, duration = 30, dy = BOB } end
+    return nil
+end
+
 function render(ctx)
     local d = data(ctx)
     local fresh = d and ctx.data.seconds - d.t < STALE
     local size = 32 * ctx.data.bar.style.height / 40
     local hue = if not fresh then "elevatedSurface" elseif d.attention > 0 then "warning" else "accent"
     local glyph = ui.path{ w = size * 0.56, h = size * 0.56, viewBox = { 0, 0, 24, 24 }, evenOdd = true, d = ROBOT,
-        fill = if fresh then "accentForeground" else "secondaryForeground" }
+        fill = if fresh then "accentForeground" else "secondaryForeground", pulse = fresh and alive(ctx, d) or nil }
     local button = chip(ctx, glyph, hue, if fresh then tostring(d.total) else "?",
         if fresh then hue else "secondaryForeground")
     button.onClick = ui.popout
