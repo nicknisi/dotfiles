@@ -23,6 +23,10 @@
   posting to Slack, Linear, GitHub, or email, material scope expansion, or
   paid operations. Relay messages to local pi sessions and artifacts need no
   approval. Do not commit or push unless explicitly requested.
+- "PR this" or "PR it" means: move the work off the default branch if needed,
+  commit, push, and open a ready-for-review PR (not a draft, since Greptile
+  skips drafts) with a short description. Then fix what CI and Greptile
+  report and push again until CI passes and Greptile scores 5/5.
 - Don't end a turn while you still owe requested work. Diagnose ordinary
   obstacles (errors, timeouts, empty results, failing tools) and work through
   them. Stop only when the next step needs my input or the blocker is
