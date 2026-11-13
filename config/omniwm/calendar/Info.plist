@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Embedded into omniwm-calendar's binary (__TEXT,__info_plist) so macOS can ask for Calendar access. -->
+<plist version="1.0">
+<dict>
+  <key>CFBundleIdentifier</key><string>com.nicknisi.omniwm-calendar</string>
+  <key>CFBundleName</key><string>omniwm-calendar</string>
+  <key>NSCalendarsFullAccessUsageDescription</key><string>Shows upcoming meetings and their join links in the OmniWM bar.</string>
+</dict>
+</plist>

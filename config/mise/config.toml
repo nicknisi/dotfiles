@@ -206,14 +206,22 @@ run = """
 # The time-zone dispatcher script is installed here rather than through
 # [bootstrap.files], which has no OS filter and would create /etc/NetworkManager
 # on macOS too. On macOS LaunchAgents run bin/omniwm-monitors on every display
-# change so new monitors get OmniWM sizing/gap overrides automatically, and
-# bin/omniwm-agents to feed the OmniWM bar's agents widget.
+# change so new monitors get OmniWM sizing/gap overrides automatically,
+# bin/omniwm-agents to feed the OmniWM bar's agents widget, and omniwm-calendar
+# (Swift, built from config/omniwm/calendar) to feed its calendar widget.
 [bootstrap.hooks.post-packages]
 run = """
   if [ "$(uname)" = "Darwin" ]; then
     repo="${DOTFILES_DIR:-${DOTFILES:-$HOME/Developer/dotfiles}}"
-    mkdir -p "$HOME/Library/LaunchAgents"
-    for name in omniwm-monitors omniwm-agents; do
+    mkdir -p "$HOME/Library/LaunchAgents" "$HOME/.local/bin"
+    cal="$repo/config/omniwm/calendar" calbin="$HOME/.local/bin/omniwm-calendar"
+    if [ ! -x "$calbin" ] || [ "$cal/main.swift" -nt "$calbin" ] || [ "$cal/Info.plist" -nt "$calbin" ]; then
+      swiftc -O "$cal/main.swift" -o "$calbin" -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist -Xlinker "$cal/Info.plist"
+      launchctl kickstart -k "gui/$(id -u)/com.nicknisi.omniwm-calendar" 2>/dev/null || true
+    fi
+    for name in omniwm-monitors omniwm-agents omniwm-calendar; do
+    program="$repo/bin/$name"
+    [ "$name" = omniwm-calendar ] && program="$calbin"
     label=com.nicknisi.$name
     plist="$HOME/Library/LaunchAgents/$label.plist"
     cat >"$plist.new" <<EOF
@@ -223,7 +231,7 @@ run = """
 <dict>
   <key>Label</key><string>$label</string>
   <key>ProgramArguments</key>
-  <array><string>$repo/bin/$name</string><string>--watch</string></array>
+  <array><string>$program</string><string>--watch</string></array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>
   <key>ThrottleInterval</key><integer>30</integer>

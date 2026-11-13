@@ -685,10 +685,15 @@ local function calendarGrid(month, scroll)
     for _ = 1, month.offset do
         week[#week + 1] = ui.box{ w = CALENDAR_CELL, h = CALENDAR_CELL }
     end
+    -- Optional (fantastical widget): `select(day)` returns a click handler, `selected` rings that day.
     for day = 1, month.days do
         local today = day == month.today
+        local selected = day == month.selected and not today
         week[#week + 1] = ui.stack{ w = CALENDAR_CELL, h = CALENDAR_CELL,
+            onClick = if month.select then month.select(day) else nil,
             ui.stack{ w = 28, h = 28, radius = 7, fill = if today then "accent" else nil,
+                hover = if month.select and not today then HOVER else nil,
+                border = if selected then "accent" else nil, borderWidth = if selected then 1.5 else nil,
                 ui.text{ text = tostring(day), style = "mono", size = 14, weight = if today then "bold" else "semibold",
                     color = if today then "accentForeground" else "secondaryForeground" } },
             if month.marked[day] then ui.box{ align = "bottom", dy = -3, w = 4, h = 4, radius = 2,
@@ -704,16 +709,39 @@ local function calendarGrid(month, scroll)
     return ui.column(rows)
 end
 
+-- Optional extras (from the fantastical widget's day view): `heading` rows label the day, `subtle` rows
+-- (all-day events) are one quiet line, `past` mutes the title, `day` may be nil, `detail` is a third
+-- line, and `join` is a handler drawn as a "Join <joinLabel>" button in place of the countdown.
 local function calendarAgenda(event)
-    local width = if event.countdown then CALENDAR_CARD - 104 else CALENDAR_CARD - 24
+    if event.heading then
+        return ui.row{ w = CALENDAR_CARD, h = 30,
+            ui.text{ text = event.heading, size = 13, weight = "bold", color = "foreground", maxWidth = CALENDAR_CARD } }
+    end
+    if event.subtle then
+        return ui.row{ w = CALENDAR_CARD, h = 26, gap = 8,
+            ui.box{ w = 1, h = 1 },
+            ui.box{ w = 6, h = 6, radius = 3, fill = event.color },
+            ui.text{ text = event.title, size = 12, weight = "medium", color = "mutedForeground", maxWidth = CALENDAR_CARD - 24 } }
+    end
+    local width = if event.join then CALENDAR_CARD - 120 elseif event.countdown then CALENDAR_CARD - 104 else CALENDAR_CARD - 24
+    local text = { gap = 2, center = false,
+        ui.text{ text = event.title, size = 14, weight = "semibold",
+            color = if event.past then "mutedForeground" else "foreground", maxWidth = width },
+        ui.text{ text = (if event.day then event.day .. " · " else "") .. event.when, size = 12, weight = "medium",
+            color = "mutedForeground", maxWidth = width } }
+    if event.detail then
+        text[#text + 1] = ui.text{ text = event.detail, size = 12, color = "mutedForeground", maxWidth = width, lines = 2 }
+    end
     local row = { w = CALENDAR_CARD, gap = 10, pad = 0, radius = 7, hover = HOVER, onClick = event.open,
         ui.box{ w = 1, h = 44 },
         ui.box{ w = 3, h = 28, radius = 1.5, fill = event.color },
-        ui.column{ gap = 2, center = false,
-            ui.text{ text = event.title, size = 14, weight = "semibold", color = "foreground", maxWidth = width },
-            ui.text{ text = event.day .. " · " .. event.when, size = 12, weight = "medium", color = "mutedForeground",
-                maxWidth = width } } }
-    if event.countdown then
+        ui.column(text) }
+    if event.join then
+        row[#row + 1] = ui.box{ grow = 1, h = 1 }
+        row[#row + 1] = ui.row{ h = 28, pad = 10, radius = 14, fill = "accent", hover = HOVER, onClick = event.join,
+            ui.text{ text = "Join " .. (event.joinLabel or ""), size = 12, weight = "semibold", color = "accentForeground" } }
+        row[#row + 1] = ui.box{ w = 8, h = 1 }
+    elseif event.countdown then
         row[#row + 1] = ui.box{ grow = 1, h = 1 }
         row[#row + 1] = ui.text{ text = event.countdown, size = 12, weight = "semibold", color = "accent", maxWidth = 70 }
     end
