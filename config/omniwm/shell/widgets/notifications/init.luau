@@ -27,58 +27,29 @@ local function phantom(value, item)
     return false
 end
 
-local function visibleItems(value)
+-- hidden: ids Clear All has queued, so the widget empties at once while the queue works through them.
+local function visibleItems(value, hidden)
     if not value then return {} end
     local dispatched = {}
     for _, id in value.dispatched or {} do dispatched[string.lower(id)] = true end
     local items = {}
     for _, item in value.items or {} do
-        if not dispatched[string.lower(item.id)] and not phantom(value, item) then items[#items + 1] = item end
+        local id = string.lower(item.id)
+        if not dispatched[id] and not (hidden and hidden[id]) and not phantom(value, item) then items[#items + 1] = item end
     end
     return items
 end
 
--- Local patch: OmniWM's own Clear All walks every retained notification, hidden ones included, and
--- gives up ("Notification Center closed") before reaching real ones. Dismiss the visible ones one by
--- one instead. Commands only run from handlers, timers and triggers (not from render/popout), and
--- the popout closes once a dismiss runs, so a timer re-enters trigger() to send each next one.
--- Polling every 0.5s closed Notification Center mid-dismiss ("historyClosed"); 1s works.
-local STEP = "shell trigger notifications clear-step"
-
-local function later(seconds: number)
-    omniwm.after(seconds, function() omniwm.run(STEP) end)
-end
-
-local function stepClear(ctx)
-    local queue = ctx.state.clearQueue
-    if not queue then return end
-    local sent, action = ctx.state.clearSent, ctx.data.notifications and ctx.data.notifications.action
-    local settled = not sent or (action and action.id == sent and action.state ~= "pending")
-    if not settled and os.time() - (ctx.state.clearAt or 0) < 15 then
-        later(1)
-        return
-    end
-    local item = table.remove(queue, 1)
-    if not item then
-        ctx.state.clearQueue, ctx.state.clearSent = nil, nil
-        return
-    end
-    ctx.state.clearSent, ctx.state.clearAt = item.id, os.time()
-    omniwm.run("notifications dismiss " .. item.bundle .. " " .. item.id)
-    later(1)
-end
-
+-- Local patch: OmniWM's own Clear All (and its per-item dismiss) flashes Notification Center open
+-- and shut once per notification, and gives up on the hidden ones above. Instead, hide everything
+-- here at once and run bin/clear-notifications through Raycast, which empties macOS's notification
+-- database in one go.
 local function startClear(ctx)
-    local queue = {}
-    for _, item in visibleItems(ctx.data.notifications) do
-        if item.actionsSupported then queue[#queue + 1] = { bundle = item.bundle, id = string.lower(item.id) } end
+    ctx.state.hidden = ctx.state.hidden or {}
+    for _, item in visibleItems(ctx.data.notifications, ctx.state.hidden) do
+        ctx.state.hidden[string.lower(item.id)] = true
     end
-    ctx.state.clearQueue, ctx.state.clearSent = queue, nil
-    stepClear(ctx)
-end
-
-function trigger(ctx, event)
-    if event.name == "clear-step" then stepClear(ctx) end
+    omniwm.open("raycast://script-commands/clear-notifications")
 end
 
 local function canDismiss(value)
@@ -431,7 +402,7 @@ end
 
 function render(ctx)
     local value = ctx.data.notifications
-    local count = #visibleItems(value)
+    local count = #visibleItems(value, ctx.state.hidden)
     local issue = status(value)
     local scale = presentation.scale(ctx)
     local rows = { gap = 4 * scale, onClick = ui.popout,
@@ -448,16 +419,14 @@ end
 function popout(ctx)
     local value = ctx.data.notifications
     syncReplies(ctx, value)
-    local items = visibleItems(value)
+    local items = visibleItems(value, ctx.state.hidden)
     local busy = value and ((value.action and value.action.state == "pending") or (value.dismissAll and value.dismissAll.active))
     local pages = math.max(1, math.ceil(#items / PAGE))
     local page = math.clamp(ctx.state.page or 1, 1, pages)
     local rows = { w = WIDTH, h = 520, pad = 12, gap = 10, center = false, scroll = true,
         ui.row{ w = WIDTH - 24, gap = 5,
             presentation.text{ text = omniwm.l10n("Notifications"), style = "bold", grow = 1 },
-            button(if ctx.state.clearQueue then omniwm.l10n("Clearing…") else omniwm.l10n("Clear All"),
-                if canDismiss(value) and allSourcesSupported(value) and #items > 0 and not busy
-                    and not ctx.state.clearQueue then startClear else nil),
+            button(omniwm.l10n("Clear All"), if #items > 0 then startClear else nil),
             button(omniwm.l10n("Settings"), "notifications settings") } }
     local issue = status(value)
     if issue then

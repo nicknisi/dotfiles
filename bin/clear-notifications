@@ -1,0 +1,20 @@
+#!/bin/bash
+# Clear every notification macOS keeps, at once and without opening Notification
+# Center: delete them from usernoted's database, then restart usernoted so it
+# reloads. Also a Raycast script command (the OmniWM notifications widget's
+# Clear All opens raycast://script-commands/clear-notifications).
+# shortcut: relies on usernoted's private db2 schema (record/delivered/displayed),
+# re-check after major macOS updates.
+#
+# @raycast.schemaVersion 1
+# @raycast.title Clear Notifications
+# @raycast.mode silent
+# @raycast.icon 🔕
+set -euo pipefail
+
+db="$HOME/Library/Group Containers/group.com.apple.usernoted/db2/db"
+count=$(sqlite3 -readonly "$db" "select count(*) from record")
+# Scheduled requests and snoozes stay; only delivered notifications go.
+sqlite3 -cmd ".timeout 3000" "$db" "begin immediate; delete from record; update delivered set list = null; update displayed set list = null; commit;"
+killall usernoted NotificationCenter 2>/dev/null || true
+echo "Cleared $count notifications"
