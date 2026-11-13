@@ -96,7 +96,7 @@
     "{\"source\":\"../../Developer/pi-extensions/packages/subagents\",\"scope\":\"user\"}": "0.6.0",
     "{\"source\":\"../../Developer/pi-extensions/packages/turn-timer\",\"scope\":\"user\"}": "0.2.0",
     "{\"source\":\"../../Developer/pi-extensions/packages/workflows\",\"scope\":\"user\"}": "0.6.0",
-    "{\"source\":\"../../Developer/riker-live/packages/riker\",\"scope\":\"user\"}": "0.75.0",
+    "{\"source\":\"../../Developer/riker-live/packages/riker\",\"scope\":\"user\"}": "0.76.0",
     "{\"source\":\"npm:pi-prompt-template-model\",\"scope\":\"user\"}": "0.12.3",
     "{\"source\":\"npm:pi-web-access\",\"scope\":\"user\"}": "0.47.0",
     "{\"source\":\"npm:pi-context-view\",\"scope\":\"user\"}": "0.8.4"
