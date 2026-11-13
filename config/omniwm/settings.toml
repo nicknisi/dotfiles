@@ -1544,7 +1544,7 @@ outerGapTop = 80.0
 id = "958302A6-63C0-4B41-8341-A936E8F0BAC7"
 monitorDisplayUUID = "5346D07A-0CF1-46F2-92D9-DF5E34A0C0E8"
 monitorName = "Sidecar Display (AirPlay)"
-outerGapTop = 80.0
+outerGapTop = 12.0
 
 [[monitorGapOverrides]]
 id = "F4D4764B-B148-4E84-8CE3-A253C01BFDC8"
