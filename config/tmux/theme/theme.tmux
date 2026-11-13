@@ -129,8 +129,12 @@ tmux set -g status-style "bg=default,fg=${c_fg}"
 
 # The canvas is the canvas — panes never paint over the terminal's own
 # background (ghostty runs at 0.85 opacity; an opaque pane bg kills it).
-tmux set -g window-style "fg=default,bg=default"
-tmux set -g window-active-style "fg=default,bg=default"
+# Inactive panes mute default-coloured text; apps with their own colours
+# (nvim) are unaffected.
+tmux set -g window-style "fg=${c_muted},bg=default"
+# fg must be explicit: tmux treats an active fg=default as unset and falls
+# back to window-style's muted fg, dimming every pane.
+tmux set -g window-active-style "fg=${c_fg},bg=default"
 
 # Glyphs. Nerd-font marks are spelled as UTF-8 bytes so they survive editors.
 FILLED=(➊ ➋ ➌ ➍ ➎ ➏ ➐ ➑ ➒ ➓)
