@@ -43,6 +43,10 @@ PanelWindow {
     // to this property rather than shell.qml's Launcher (the delegate's scope
     // object comes before the file's ids), breaking `voice:` there too.
     property var paletteHost: null
+    // A polkit request (M8, ShellServices.polkitFlow) and whether this screen
+    // shows it (IslandView.polkitFlow, polkitHere).
+    property var polkitFlow: null
+    property bool polkitHere: true
 
     screen: modelData
     anchors {
@@ -54,10 +58,10 @@ PanelWindow {
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "quickshell-island"
-    // Overlay while the power menu shows, so the island is above its scrim
-    // (Scrim.qml, on Top), and on through a panel opened over it (the palette,
-    // cc) until the island is back to rest (IslandView.raised); Top
-    // otherwise, under fullscreen windows' overlays.
+    // Overlay while the power menu or a polkit request shows, so the island
+    // is above its scrim (Scrim.qml, on Top), and on through a panel opened
+    // over it (the palette, cc) until the island is back to rest
+    // (IslandView.raised); Top otherwise, under fullscreen windows' overlays.
     WlrLayershell.layer: view.raised ? WlrLayer.Overlay : WlrLayer.Top
     // OnDemand in every state. The launcher state (M5) gets the keyboard from
     // the focus grab below, which hands it to the grabbing window: changing
@@ -98,6 +102,8 @@ PanelWindow {
         notifications: island.notifications
         voice: island.voice
         paletteHost: island.paletteHost
+        polkitFlow: island.polkitFlow
+        polkitHere: island.polkitHere
         dpr: island.devicePixelRatio > 0 ? island.devicePixelRatio : 1
         // A fixture's `still` holds the loops too, so a sandbox shot of a
         // breathing dot or sparkle is one colour.
@@ -110,7 +116,7 @@ PanelWindow {
         timeout: 60
     }
 
-    // The dim behind the power menu (M6).
+    // The dim behind the power menu (M6) and a polkit request (M8).
     Scrim {
         screen: island.screen
         shown: view.scrimShown
@@ -122,7 +128,29 @@ PanelWindow {
     HyprlandFocusGrab {
         id: grab
         windows: view.hudNeedsGrab ? [island, view.hud] : [island]
-        active: view.panelOpen || view.hudNeedsGrab
-        onCleared: view.dismiss()
+        active: (view.panelOpen || view.hudNeedsGrab) && !island.regrabbing
+        onCleared: if (!island.regrabbing) view.dismiss()
+    }
+
+    // A polkit request (M8) gets the keyboard from the grab above. A grab
+    // made while the session is locked never does (M8 review): the lock has
+    // the keyboard, and the unlock hands it back to the window focused before
+    // the lock, so a password typed into the prompt went to that window. So
+    // while a request waits here and this window does not have the keyboard,
+    // the grab is made again every 400 ms until it does (once unlocked, the
+    // first new grab takes it). The field draws no focus ring or caret
+    // meanwhile (Kit/SecretField keyboardHere).
+    property bool regrabbing: false
+    property int regrabs: 0
+    Timer {
+        id: regrab
+        interval: 400
+        repeat: true
+        running: view.polkitPending && view.islandState === "polkit" && !view.windowActive
+        onTriggered: {
+            island.regrabs++;
+            island.regrabbing = true;
+            Qt.callLater(() => island.regrabbing = false);
+        }
     }
 }

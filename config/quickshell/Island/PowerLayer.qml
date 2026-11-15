@@ -14,8 +14,8 @@ import qs.Kit
 // 156). Items: radius 14, a column centred 8 apart: icon 22, label 13, key
 // badge (Monaspace 10, padding 1 5, radius 4, `fillHigh`, `inkDim`). The
 // selected one is `accentTint` with a 1 px `accent` ring and its icon in
-// `accent`; the others `raised`, `hairline`, `fg`. Lock is selected when it
-// opens.
+// `accent`; the others `raised`, `hairline`, `fg`. The first item (Lock in
+// the island) is selected when it opens.
 //
 // Keys (today's behaviour wins over the board's go-on-press): a letter
 // selects its item, the arrows move (wrapping), Enter or Space runs the
@@ -24,17 +24,28 @@ import qs.Kit
 // fixture or in the sandbox.
 //
 // objectNames: powerItem-lock|suspend|logout|reboot|shutdown.
+//
+// QtQuick only: Lock/LockSurface.qml hosts it too, and qmltestrunner loads it.
 Layer {
     id: power
 
-    // Items, in order (commands from launcher/providers/System.qml).
-    readonly property var items: [
+    // Every item, in order (commands from launcher/providers/System.qml).
+    readonly property var allItems: [
         { id: "lock", label: "Lock", key: "L", icon: "lock" },
         { id: "suspend", label: "Suspend", key: "S", icon: "moon" },
         { id: "logout", label: "Log out", key: "E", icon: "logout" },
         { id: "reboot", label: "Reboot", key: "R", icon: "restart" },
         { id: "shutdown", label: "Shut down", key: "P", icon: "power" }
     ]
+    // The items shown: all five in the island; the lock screen keeps Suspend,
+    // Reboot and Shut down (control-lock 5: Lock means nothing there, and Log
+    // out would end the session without a password). Set once, never bound to
+    // a freshly built array (the Repeater would rebuild on every change).
+    property var items: allItems
+    // An item's width: the island's five fill its 600, (600 - 32 - 4 * 8) / 5.
+    // A host with fewer items sets its own, so the menu lands on whole device
+    // pixels (Lock/LockSurface.qml: 108, a 372 wide menu).
+    property real itemWidth: 107.2
     property int selected: 0
     readonly property string selectedId: items[selected]?.id ?? ""
     readonly property alias grid: grid
@@ -44,7 +55,7 @@ Layer {
     signal run(string id)
     signal cancel
 
-    width: 600
+    width: 32 + items.length * itemWidth + Math.max(0, items.length - 1) * 8
     height: 156
     focus: current
 
@@ -109,7 +120,7 @@ Layer {
                 required property int index
                 readonly property bool isSelected: power.selected === index
                 objectName: "powerItem-" + modelData.id
-                width: (grid.width - 4 * grid.spacing) / 5
+                width: power.itemWidth
                 height: 98
                 radius: 14
                 color: isSelected ? Tokens.accentTint : Tokens.raised

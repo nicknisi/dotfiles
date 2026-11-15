@@ -55,6 +55,10 @@ ShellRoot {
                     // The palette and the control center hand the island to
                     // each other in place (IslandView, Launcher.qml).
                     paletteHost: launcher
+                    // A polkit request (M8) shows on the screen that was
+                    // focused when it started.
+                    polkitFlow: services.polkitFlow
+                    polkitHere: services.polkitScreen === "" || services.polkitScreen === screenScope.modelData.name
                 }
             }
             Reserve {
@@ -69,7 +73,20 @@ ShellRoot {
     // refresh-rate policy, plus the guards that keep a SHELL_SANDBOX=1 run from
     // touching the real machine. See ShellServices.qml.
     ShellServices {
+        id: services
         reserves: screens.instances.map(s => s.reserve)
+    }
+    // A polkit request in the classic bar modes (M8): the island draws it in
+    // island mode. Built only while a flow exists (the agent, Prefs.polkitAgent,
+    // off until the switch-over; a fixture in the sandbox), and kept while it
+    // fades out.
+    LazyLoader {
+        id: polkitWindowLoader
+        active: Prefs.barMode !== "island" && (services.polkitFlow !== null || (polkitWindowLoader.item?.showing ?? false))
+        PolkitWindow {
+            flow: services.polkitFlow
+            screenName: services.polkitScreen
+        }
     }
 
     // `qs ipc call island ...`: open, close, toggle, mode, inspect. Present in

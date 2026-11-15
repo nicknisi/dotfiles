@@ -3,9 +3,10 @@ pragma Singleton
 //
 // Which bar mode it uses (pill, full, rail or the island), which edge it lives
 // on and whether it is see-through, plus the island shell's own choices: the
-// island's form, the look, the motion profile, reduced motion and
-// do-not-disturb. They are changed in the shell rather than by editing a file,
-// so they have to be written back somewhere or every reload would undo them.
+// island's form, the look, the motion profile, reduced motion,
+// do-not-disturb and whether the shell's polkit agent runs. They are changed
+// in the shell rather than by editing a file, so they have to be written back
+// somewhere or every reload would undo them.
 //
 // JsonAdapter does the serialising: each property below is a key in the file,
 // the file's contents land in the properties on load, and any change writes
@@ -51,6 +52,10 @@ Singleton {
     // Do not disturb, kept across reloads. NotificationState.dnd is the flag
     // everything reads and toggles; it mirrors this both ways (M6).
     readonly property bool dnd: store.dnd
+    // The shell's own polkit agent (PLAN M8, ShellServices). Off until the
+    // switch-over disables hyprpolkitagent: only one agent can own the
+    // session, and both would fight for it.
+    readonly property bool polkitAgent: store.polkitAgent
 
     function setEdge(edge: string): void {
         if (["top", "bottom", "left", "right"].indexOf(edge) < 0) return;
@@ -88,6 +93,7 @@ Singleton {
 
     function setReducedMotion(on: bool): void { store.reducedMotion = on }
     function setDnd(on: bool): void { store.dnd = on }
+    function setPolkitAgent(on: bool): void { store.polkitAgent = on }
 
     // Writes wait for the end of the current event. Writing from inside
     // adapterUpdated lost every change after the first in the same call:
@@ -122,6 +128,7 @@ Singleton {
             property string motion: "spring"
             property bool reducedMotion: false
             property bool dnd: false
+            property bool polkitAgent: false
         }
     }
 }

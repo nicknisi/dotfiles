@@ -17,13 +17,36 @@
 //     island mode, so building it elsewhere costs nothing.
 //   - The refresh-rate policy (PowerMode).
 //   - Sandbox guards. Under SHELL_SANDBOX=1 (the screenshot sandbox) anything
-//     that would change the real machine is left unbuilt. M8 adds the
-//     PolkitAgent here behind the same guard: in a sandbox with the system bus
-//     it would register for the real login session.
+//     that would change the real machine is left unbuilt.
+//   - The polkit agent (PLAN M8): Quickshell's PolkitAgent, built only when
+//     Prefs.polkitAgent is on and never in the sandbox (with the system bus
+//     it would register for the real login session). The pref stays off
+//     until the switch-over disables hyprpolkitagent: one agent owns a
+//     session, and two would fight over registration. `polkitFlow` is the
+//     request the island (or PolkitWindow in the classic modes) draws, and
+//     `polkitScreen` the screen that was focused when it started. In the
+//     sandbox a fixture's `polkit` object stands in for the flow
+//     (Island/FixtureAuthFlow.qml), so shots never need the agent. The
+//     `polkit` IPC target: inspect, and agent on|off (the pref).
+//     Switch-over (not applied; after the merge, with a TTY logged in):
+//       1. config/mise/config.toml: drop hyprpolkitagent.service from the
+//          `systemctl --user enable` list (and the pacman package if wanted).
+//       2. config/hypr/hyprland.lua:9: drop hyprpolkitagent from the enable
+//          comment and name this file as the agent; it can leave the
+//          windowrule's class list (line 272).
+//       3. systemctl --user disable --now hyprpolkitagent;
+//          qs ipc call polkit agent on; qs ipc call polkit inspect shows
+//          registered: true; `pkexec true` shows the prompt.
+//       Back out: qs ipc call polkit agent off; systemctl --user enable --now
+//       hyprpolkitagent.
 import Quickshell
+import Quickshell.Hyprland
+import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Services.Polkit
 import Quickshell.Services.SystemTray
 import QtQuick
+import qs.Island
 
 Scope {
     id: root
@@ -71,5 +94,66 @@ Scope {
     LazyLoader {
         active: !root.sandbox
         PowerMode {}
+    }
+
+    // ---- polkit (M8) -----------------------------------------------------------
+
+    readonly property bool polkitEnabled: Prefs.polkitAgent && !root.sandbox
+    readonly property var polkitAgent: polkitLoader.item
+    readonly property var polkitFlow: root.fixtureFlow ?? root.polkitAgent?.flow ?? null
+    property string polkitScreen: ""
+
+    LazyLoader {
+        id: polkitLoader
+        active: root.polkitEnabled
+        PolkitAgent {
+            onAuthenticationRequestStarted: root.polkitScreen = String(Hyprland.focusedMonitor?.name ?? "")
+        }
+    }
+
+    // A sandbox fixture's `polkit`: { message, actionId, inputPrompt, accept }.
+    readonly property var fixturePolkit: root.sandbox ? (Fixture.data.polkit ?? null) : null
+    property var fixtureFlow: null
+    onFixturePolkitChanged: {
+        const old = root.fixtureFlow;
+        root.fixtureFlow = null;
+        if (old) old.destroy();
+        const f = root.fixturePolkit;
+        if (!f) return;
+        const props = {};
+        for (const k of ["message", "actionId", "inputPrompt", "accept", "supplementaryMessage"]) {
+            if (typeof f[k] === "string") props[k] = f[k];
+        }
+        if (f.supplementaryIsError === true) props.supplementaryIsError = true;
+        if (f.failed === true) props.failed = true;
+        root.polkitScreen = String(Hyprland.focusedMonitor?.name ?? "");
+        root.fixtureFlow = fixtureFlowComponent.createObject(root, props);
+    }
+    Component {
+        id: fixtureFlowComponent
+        FixtureAuthFlow {}
+    }
+
+    IpcHandler {
+        target: "polkit"
+        function inspect(): string {
+            return JSON.stringify({
+                pref: Prefs.polkitAgent,
+                sandbox: root.sandbox,
+                built: root.polkitAgent !== null,
+                registered: root.polkitAgent?.isRegistered ?? false,
+                active: root.polkitAgent?.isActive ?? false,
+                fixture: root.fixtureFlow !== null,
+                screen: root.polkitScreen,
+                actionId: String(root.polkitFlow?.actionId ?? "")
+            });
+        }
+        // on | off: Prefs.polkitAgent. Turn it on only once hyprpolkitagent
+        // is disabled (PLAN 3.5).
+        function agent(state: string): string {
+            if (state !== "on" && state !== "off") return "error: agent on|off";
+            Prefs.setPolkitAgent(state === "on");
+            return "ok";
+        }
     }
 }
