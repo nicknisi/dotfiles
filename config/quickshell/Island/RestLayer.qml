@@ -8,11 +8,13 @@ import "../lib/IslandMachine.js" as IslandMachine
 //   ←16→[ W C (D) S ]          10:45          [ dotfiles  bot bot bot ]←16→
 //
 // Left: the workspace letters. Centre: the clock, on the screen's centre line.
-// Right: the Context text (fixtures only until M3, see IslandView), then the
-// Crew's bots (Kit/CrewStrip, 10 after the text, hidden with no agents).
-// While the screen is recorded or an app holds the microphone, a `bad` dot
-// leads the right zone: the Bar's privacy glyphs, kept as a stopgap until
-// M3's live segment replaces it.
+// Right: the Context lane (island-modes 5.4: an icon 14 in the kind's colour,
+// the text 12 `fg` elided at 180, the extra in Monaspace 11 `inkDim`; the
+// sparkle breathes in `accent` while an agent works), then the Crew's bots
+// (Kit/CrewStrip, 10 after the lane, hidden with no agents).
+// While something is live (a recording, the microphone, keep awake, DND), the
+// live segment (Island/LiveSegment) sits 12 right of the clock and the pill
+// grows around it (M3; it replaces M2's privacy dot).
 // The pill hugs its content with a 360 minimum: hugWidth is the rest width rule
 // in lib/IslandMachine.js, which widens both sides together so the clock never
 // leaves the centre.
@@ -31,25 +33,53 @@ Layer {
 
     property var workspaces: []
     property string clock: ""
-    property string context: ""
-    property bool privacy: false
+    // Context.lane: { kind, icon, text, extra, working }.
+    property var lane: ({})
+    // { recording, elapsed, mic: [names], awake, awakeLeft, dnd }
+    property var live: ({})
     // Crew.agents and Crew.stale, and the window's devicePixelRatio for the bots.
     property var crew: []
     property bool crewStale: false
     property real dpr: 1
-    // The bots' loops run only while this holds (the session not idle).
+    // The bots' loops, and the working sparkle's, run only while this holds
+    // (the session not idle). The recording dot ignores it: it is a privacy
+    // signal, and a recording with no input for a minute (presenting,
+    // watching) must still show it breathing.
     property bool crewAnimated: true
+    // The recording dot breathes only while this holds: a fixture's `still`
+    // (a sandbox shot), never idle.
+    property bool dotAnimated: true
 
     signal workspaceActivated(string name)
     signal pin
     signal pinCrew
+    signal stopRecording
 
-    readonly property real hugWidth: IslandMachine.restWidth(clockText.implicitWidth, strip.implicitWidth, right.implicitWidth)
+    readonly property real hugWidth: IslandMachine.restWidth(clockText.implicitWidth, strip.implicitWidth, right.implicitWidth, segment.implicitWidth)
     readonly property alias strip: strip
     readonly property alias crewStrip: crewStrip
-    readonly property alias privacyDot: privacyDot
+    readonly property alias segment: segment
+    readonly property alias clockText: clockText
+    readonly property alias laneRow: laneRow
+    readonly property alias laneIcon: laneIcon
     readonly property alias contextText: contextText
+    readonly property alias laneExtra: laneExtra
     readonly property bool crewHovered: crewStrip.visible && crewStrip.hovered
+
+    // The breathing marks (M3 review): the working sparkle (1.6 s) and the
+    // recording dot (1.4 s) take their opacity from Motion.breath on a
+    // stepped clock, never a smooth loop. While the bots move they read the
+    // strip's own clock, so the pill draws nothing the bots do not already
+    // draw; otherwise breathClock steps at 250 ms (4 frames a second).
+    readonly property bool sparkleBreathes: rest.lane?.working === true && rest.current && rest.crewAnimated && Motion.loops
+    readonly property bool dotBreathes: segment.recording && rest.current && rest.dotAnimated && Motion.loops
+    readonly property real breathElapsed: crewStrip.clock.ticking ? crewStrip.clock.elapsed : breathClock.elapsed
+    readonly property alias breathClock: breathClock
+    CrewClock {
+        id: breathClock
+        step: 250
+        running: (rest.sparkleBreathes || rest.dotBreathes) && !crewStrip.clock.ticking
+    }
 
     // As wide as the island it sits in (hugWidth rounded the way the body
     // rounds it), so the centred layer starts on the body's own pixel: a 390
@@ -87,6 +117,21 @@ Layer {
         Accessible.name: rest.clock
     }
 
+    // Right of the clock, above the opener so Stop takes its own click.
+    LiveSegment {
+        id: segment
+        x: Math.round(clockText.x + clockText.implicitWidth + IslandMachine.SEGMENT_GAP)
+        anchors.verticalCenter: parent.verticalCenter
+        recording: rest.live?.recording === true
+        elapsed: rest.live?.elapsed ?? ""
+        mic: rest.live?.mic ?? []
+        awake: rest.live?.awake === true
+        awakeLeft: rest.live?.awakeLeft ?? ""
+        dnd: rest.live?.dnd === true
+        dotOpacity: rest.dotBreathes ? Motion.breath(rest.breathElapsed, 1400, 0.45) : 1
+        onStop: rest.stopRecording()
+    }
+
     Row {
         id: right
         anchors.right: parent.right
@@ -94,29 +139,46 @@ Layer {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 10
 
-        Rectangle {
-            id: privacyDot
+        // The Context lane. Hidden, so no width, while nothing is focused.
+        Row {
+            id: laneRow
             anchors.verticalCenter: parent.verticalCenter
-            visible: rest.privacy
-            width: 8
-            height: 8
-            radius: 4
-            color: Tokens.bad
-            Accessible.role: Accessible.Indicator
-            Accessible.name: "Recording or microphone in use"
-        }
-        Text {
-            id: contextText
-            anchors.verticalCenter: parent.verticalCenter
-            visible: text !== ""
-            width: Math.min(implicitWidth, 180)
-            text: rest.context
-            color: Tokens.fg
-            elide: Text.ElideRight
-            font.family: "Adwaita Sans"
-            font.pixelSize: 12
+            visible: contextText.text !== ""
+            spacing: 6
             Accessible.role: Accessible.StaticText
-            Accessible.name: rest.context
+            Accessible.name: [rest.lane?.text ?? "", rest.lane?.extra ?? ""].filter(s => s !== "").join(" ")
+
+            Icon {
+                id: laneIcon
+                anchors.verticalCenter: parent.verticalCenter
+                visible: name !== ""
+                name: rest.lane?.icon ?? ""
+                size: 14
+                // "The accent appears only when an agent is working."
+                color: rest.lane?.working === true ? Tokens.accent : Tokens.inkDim
+                opacity: rest.sparkleBreathes ? Motion.breath(rest.breathElapsed, 1600, 0.45) : 1
+            }
+            Text {
+                id: contextText
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.min(implicitWidth, 180)
+                text: rest.lane?.text ?? ""
+                color: Tokens.fg
+                elide: Text.ElideRight
+                textFormat: Text.PlainText
+                font.family: "Adwaita Sans"
+                font.pixelSize: 12
+            }
+            Text {
+                id: laneExtra
+                anchors.verticalCenter: parent.verticalCenter
+                visible: text !== ""
+                text: rest.lane?.extra ?? ""
+                color: Tokens.inkDim
+                textFormat: Text.PlainText
+                font.family: "Monaspace Argon"
+                font.pixelSize: 11
+            }
         }
         // The Crew. Hidden, so no width and no spacing, while nobody is aboard.
         CrewStrip {

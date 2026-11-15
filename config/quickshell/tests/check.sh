@@ -5,6 +5,8 @@ tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 
 luajit "$root/../hypr/tests/style.lua" "$root/../hypr/hyprland.lua" "$root/../../themes/"*/hyprland.lua
+# The Copilot key's latch resets when the island's Stop ends dictation (M3 review).
+(cd "$root/../.." && luajit config/hypr/tests/copilot.lua)
 bash "$root/tests/menu-keys.sh"
 bash "$root/tests/bar-drag.sh"
 bash "$root/launcher/tests/check.sh"
@@ -34,6 +36,11 @@ python3 -B "$root/tools/gen-celestial.py" --check
 node "$root/tests/crew-model.cjs"
 python3 -B "$root/../../bin/tests/omniwm-agents.py"
 python3 -B "$root/../../bin/tests/crew-jump.py"
+# The island's own states (PLAN M3): the calendar grid. The machine's
+# priority, queue and return run in island-machine.cjs above, dictation's
+# routing in voxtype-osd.sh, and the states themselves, the Context lane and
+# the notification timeouts in check.qml below.
+node "$root/tests/calendar.cjs"
 
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
 for file in "$root"/*.qml "$root"/Kit/*.qml "$root"/Island/*.qml; do
@@ -48,7 +55,7 @@ cp "$root"/*.js "$tmp/" 2>/dev/null || true
 cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$root/lib" "$root/Kit" "$root/Island" "$tmp/"
 cp "$root/tests/check.qml" "$tmp/shell.qml"
 # SHELL_CREW=off: the Crew singleton polls no fleet or /proc and runs no jump.
-# About 7.5 s: the crew check's eleven beats hold the final check one round.
+# About 10 s: the M3 check's fifteen beats (600 ms each) hold the final check.
 env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen SHELL_CREW=off timeout 15 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
 grep -q CAPSULE_TEST_PASS "$tmp/result"
 # Prefs writes capsule.json on first load, after FileView reports that it is absent.

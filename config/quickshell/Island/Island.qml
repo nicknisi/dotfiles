@@ -30,6 +30,10 @@ PanelWindow {
 
     required property var modelData
     readonly property alias view: view
+    // The session's NotificationServer.qml and the launcher's VoiceSession
+    // (shell.qml), for the island's own notif and dict states (M3).
+    property var notifications: null
+    property var voice: null
 
     screen: modelData
     anchors {
@@ -72,8 +76,12 @@ PanelWindow {
         anchors.fill: parent
         monitor: island.screen
         workspaces: island.workspaceItems
+        notifications: island.notifications
+        voice: island.voice
         dpr: island.devicePixelRatio > 0 ? island.devicePixelRatio : 1
-        ambient: !idle.isIdle
+        // A fixture's `still` holds the loops too, so a sandbox shot of a
+        // breathing dot or sparkle is one colour.
+        ambient: !idle.isIdle && Fixture.data.still !== true
         onWorkspaceActivated: name => island.activateWorkspace(name)
     }
 

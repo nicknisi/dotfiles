@@ -1,0 +1,52 @@
+{
+  "about": "M3: Context variant, a browser (Island board draws the page domain; the window title has none, so the lane shows the app's name, never the page title).",
+  "workspaces": [
+    {
+      "name": "S",
+      "windows": 1
+    },
+    {
+      "name": "D",
+      "windows": 2
+    },
+    {
+      "name": "special:scratch",
+      "windows": 1
+    },
+    {
+      "name": "W",
+      "windows": 3
+    },
+    {
+      "name": "N",
+      "windows": 0
+    },
+    {
+      "name": "C",
+      "windows": 1
+    }
+  ],
+  "focused": "D",
+  "clock": "10:45",
+  "date": "Saturday, November 14",
+  "today": "2026-11-14",
+  "media": {
+    "title": "Neon Grid",
+    "artist": "Night Rider",
+    "playing": false
+  },
+  "status": {
+    "wifi": true,
+    "bt": true,
+    "tailscale": true,
+    "muted": false,
+    "battery": 25
+  },
+  "context": {
+    "kind": "browser",
+    "icon": "globe",
+    "working": false,
+    "text": "Brave Origin",
+    "who": "Brave Origin"
+  }
+}

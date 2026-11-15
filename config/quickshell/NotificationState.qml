@@ -139,7 +139,8 @@ Singleton {
         win.activate();
         return true;
     }
-    // The popup server, set by Notifications.qml, for the toasts still up.
+    // The notification server, set by NotificationServer.qml, for the
+    // notifications still up.
     property var server: null
 
     // What a click on a toast does: the window first, so it is on screen,

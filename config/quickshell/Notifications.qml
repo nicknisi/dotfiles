@@ -1,55 +1,26 @@
-// Notifications.qml - the piece that was missing entirely.
+// Notifications.qml - the toasts, in the classic bar modes (pill, full, rail).
 //
-// Nothing owned org.freedesktop.Notifications on this machine, so every notification
-// was being dropped on the floor, including batsignal's low-battery warnings.
-// Declaring a NotificationServer claims that bus name.
+// The D-Bus server itself lives in NotificationServer.qml (PLAN M3), so the
+// island can show the same notifications as banners. In island mode these
+// toasts stay hidden and the island's notif state takes their place.
 //
-// A notification is discarded the moment the callback returns unless something
-// marks it `tracked`, which is what onNotification does below.
+// Critical notifications stay until acted on; everything else goes after the
+// sender's timeout, or 4200 ms when it asks for the default
+// (IslandMachine.notifTimeout, the rule the island banner uses too).
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Notifications
 import QtQuick
 import QtQuick.Layouts
+import "lib/IslandMachine.js" as IslandMachine
 
 Scope {
     id: root
 
-    NotificationServer {
-        id: server
-        Component.onCompleted: NotificationState.server = server
-
-        // Advertised capabilities. Senders check these, so only claim what the
-        // delegate below actually renders.
-        keepOnReload: false
-        bodySupported: true
-        bodyMarkupSupported: true
-        imageSupported: true
-        actionsSupported: true
-        actionIconsSupported: false
-        inlineReplySupported: false
-
-        onNotification: notification => {
-            notification.tracked = true;
-            NotificationState.remember({
-                appName: notification.appName,
-                desktopEntry: notification.desktopEntry,
-                summary: notification.summary,
-                body: notification.body,
-                image: notification.image,
-                appIcon: notification.appIcon,
-                critical: notification.urgency === NotificationUrgency.Critical
-            });
-        }
-    }
-
-    Connections {
-        target: NotificationState
-        function onClearRequested() {
-            for (const notification of server.trackedNotifications.values)
-                notification.dismiss();
-        }
-    }
+    // The NotificationServer.qml instance (shell.qml).
+    property var source: null
+    readonly property var server: root.source?.server ?? NotificationState.server
+    readonly property var tracked: root.server?.trackedNotifications ?? null
 
     PanelWindow {
         id: popups
@@ -68,7 +39,7 @@ Scope {
         mask: Region { item: layout }
 
         color: "transparent"
-        visible: server.trackedNotifications.values.some(notification =>
+        visible: Prefs.barMode !== "island" && (root.tracked?.values ?? []).some(notification =>
             !NotificationState.dnd || notification.urgency === NotificationUrgency.Critical)
 
         // Float over everything, and never reserve screen space.
@@ -83,7 +54,7 @@ Scope {
             spacing: Theme.shadowPadding
 
             Repeater {
-                model: server.trackedNotifications
+                model: root.tracked
 
                 Rectangle {
                     id: toast
@@ -104,10 +75,12 @@ Scope {
 
                     // Critical notifications stay until acted on; that is the whole
                     // point of the urgency. Everything else uses the sender's
-                    // timeout, falling back to 5s when it asks for the default (-1).
+                    // timeout, falling back to 4200 ms when it asks for the
+                    // default (-1). In island mode the island's banner owns the
+                    // timeout instead.
                     Timer {
-                        running: !parent.critical
-                        interval: modelData.expireTimeout > 0 ? modelData.expireTimeout : 5000
+                        running: !parent.critical && Prefs.barMode !== "island"
+                        interval: Math.max(1, IslandMachine.notifTimeout(modelData.expireTimeout, parent.critical))
                         onTriggered: modelData.expire()
                     }
 

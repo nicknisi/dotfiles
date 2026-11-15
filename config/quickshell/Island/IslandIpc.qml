@@ -11,16 +11,22 @@ import qs
 // first one when Hyprland cannot say) and answer "error: ..." outside island
 // mode.
 //
-//   open STATE    rest | hover | crew | hail | vibes | cc | cal | launcher; cc and cal open the old
-//                 Hud pages under the rest pill and launcher opens Keystroke's
-//                 own window until their island states land (PLAN 1.7). IPC
-//                 has no input serial for a popup grab, so the Hud opens
-//                 without one and the island's focus grab closes it on an
-//                 outside click (IslandView.hudNeedsGrab). M2 adds crew
+//   open STATE    rest | hover | crew | hail | vibes | cal | notif | osd | dict | flash | cc | launcher;
+//                 cc opens the old Hud home under the rest pill and launcher
+//                 opens Keystroke's own window until their island states land
+//                 (PLAN 1.7). IPC has no input serial for a popup grab, so the
+//                 Hud opens without one and the island's focus grab closes it
+//                 on an outside click (IslandView.hudNeedsGrab). M2 adds crew
 //                 (the Crew panel, pinned), hail (the first agent that needs
-//                 you; an error when none does) and vibes
+//                 you; an error when none does) and vibes. M3 adds cal (the
+//                 calendar, a panel), notif (the newest waiting notification,
+//                 or a fixture's `notif`; an error when there is none), osd
+//                 and flash (each with its own 1400 ms), and dict (an error
+//                 unless dictation is running)
 //   close         back to rest, closing any hand-off
 //   toggle STATE  open, or close when that state is already showing
+//   hold          stop the state's timer, so an OSD, flash or notification
+//                 stays up (sandbox shots); the next change starts afresh
 //   mode MODE     pill | full | rail | island (Prefs.setBarMode)
 //   inspect       JSON: mode, edges, the reserve and every island's state,
 //                 target and current geometry
@@ -75,6 +81,12 @@ Scope {
                 return "ok";
             }
             return root.target().view.toggle(state);
+        }
+
+        function hold(): string {
+            const why = root.unavailable();
+            if (why !== "") return why;
+            return root.target().view.hold();
         }
 
         function mode(barMode: string): string {

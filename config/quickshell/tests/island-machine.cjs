@@ -1,8 +1,11 @@
-// lib/IslandMachine.js: the island's states (PLAN M1, M2).
+// lib/IslandMachine.js: the island's states (PLAN M1, M2, M3).
 // enter/leave/pin, the panelOpen set, timers restarting on go(), and the
 // sizes, radius and rest-width rules the island morphs by; M2 adds the Crew's
 // crew panel (hover-like, never narrower than the rest pill), the hail that
-// peeks, holds under the pointer and pins on a click, vibes, and offer().
+// peeks, holds under the pointer and pins on a click, vibes, and offer(); M3
+// adds the arbitration between the island's own transients (polkit > open
+// panel > dict > osd > notif > flash > live > rest), the notification queue,
+// the return to the interrupted state, and the notification timeout rule.
 const assert = require('node:assert/strict')
 const M = require('../lib/IslandMachine.js')
 
@@ -84,13 +87,19 @@ assert.equal(M.WINDOW_HEIGHT, 608, 'window: 8 + 560 + 40')
 assert.deepEqual(M.size(rest, 0), [360, 38])
 assert.deepEqual(M.size(rest, 420), [420, 38], 'rest hugs its content')
 assert.deepEqual(M.size(rest, 300), [360, 38], 'with a 360 minimum')
-assert.deepEqual(M.size(pinned, 420), [720, 136], 'hover does not hug')
+assert.deepEqual(M.size(pinned, 420), [720, 136], 'hover keeps 720 for any pill up to 720')
+assert.deepEqual(M.size(pinned, 801), [804, 136], 'a rest pill wider than 720 widens hover with it (M3)')
 // The hug rule: four 22 px letters (94) and a 5-glyph clock fit in 360.
 assert.equal(M.restWidth(40.3, 4 * 22 + 3 * 2, 0), 360)
 assert.equal(M.restWidth(40.3, 94, 180), 482, 'a wide right zone widens both sides, clock stays centred')
 assert.equal(M.restWidth(41, 160, 20) % 2, 0, 'even, so the pill sits on whole pixels')
 assert.equal(M.restWidth(41, 160, 20), 2 * Math.ceil((41 + 2 * (16 + 24 + 160)) / 2))
 assert.equal(M.restWidth(undefined, undefined, undefined), 360)
+// The live segment sits 12 right of the clock, the right zone 12 past it.
+assert.equal(M.restWidth(40.3, 94, 0, 0), M.restWidth(40.3, 94, 0), 'no segment: the M1 rule')
+assert.equal(M.restWidth(40.3, 94, 0, 150), 2 * Math.ceil((40.3 + 2 * (16 + 12 + 150)) / 2), 'a segment alone')
+assert.equal(M.restWidth(40.3, 94, 64, 150), 2 * Math.ceil((40.3 + 2 * (16 + 12 + 150 + 12 + 64)) / 2), 'segment, then Context and bots')
+assert.equal(M.restWidth(40.3, 300, 0, 20), 2 * Math.ceil((40.3 + 2 * (16 + 24 + 300)) / 2), 'a wider left zone still sets the width')
 
 // ---- the Crew (M2) ------------------------------------------------------------------
 // The crew panel behaves like hover: the dwell opens it unpinned from the bots,
@@ -173,4 +182,153 @@ for (const w of [361, 390, 401, 213.4, 455].map(v => M.size(hail, v)[0]).concat(
     assert.equal(((1920 - w) / 2 * 1.5) % 1, 0, w + ' wide lands on a whole device pixel at 1.5')
 assert.equal(M.radiusFor(52), 26, 'the hail card is fully round at 26')
 assert.equal(M.radiusFor(44), 22)
+assert.deepEqual(M.size(M.go(rest, 'flash'), 201), [204, 52], 'flash hugs its words with no minimum')
+
+// ---- M3: notification timeouts (DECISION 2, island-modes 9.1) --------------------
+assert.equal(M.notifTimeout(3000, false), 3000, 'the sender timeout when it sets one')
+assert.equal(M.notifTimeout(-1, false), 4200, 'else the board\'s 4200')
+assert.equal(M.notifTimeout(0, false), 4200, 'a 0 ("never") reads as the default, as the toasts always did')
+assert.equal(M.notifTimeout(undefined, false), 4200)
+assert.equal(M.notifTimeout(3000, true), 0, 'critical never expires')
+assert.equal(M.notifTimeout(-1, true), 0)
+
+// ---- M3: priority among the island's own transients ------------------------------
+// polkit > open panel > dict > osd > notif > flash > live > rest
+const chain = ['polkit', 'cc', 'dict', 'osd', 'notif', 'flash', 'rest']
+for (let i = 0; i < chain.length - 1; i++) assert.ok(rank(chain[i]) < rank(chain[i + 1]), chain[i] + ' outranks ' + chain[i + 1])
+assert.ok(M.PRIORITY.indexOf('flash') < M.PRIORITY.indexOf('live') && M.PRIORITY.indexOf('live') < M.PRIORITY.indexOf('rest'), 'flash > live > rest')
+const item = (id, timeout) => ({ id: id, timeout: timeout === undefined ? 4200 : timeout })
+const n1 = M.notify(rest, item(1))
+assert.deepEqual(n1, { state: 'notif', pinned: false, timer: 4200, seq: 1, item: item(1) }, 'a notification takes rest')
+assert.equal(M.notify(rest, item(7, 2500)).timer, 2500, 'with its own timeout')
+assert.equal(M.notify(rest, item(8, 0)).timer, 0, 'a critical one (timeout 0) has no timer')
+// What outranks a notif keeps the island; the notif waits.
+for (const from of [pinned, crewPinned, M.go(rest, 'cc'), M.go(rest, 'cal'), M.go(rest, 'dict'), M.go(rest, 'osd')]) {
+    const q = M.notify(from, item(2))
+    assert.equal(q.state, from.state, 'a notif waits behind ' + from.state)
+    assert.equal(q.seq, from.seq, 'queueing does not restart the ' + from.state + ' timer')
+    assert.deepEqual(q.queue, [item(2)])
+}
+// A notif takes over unpinned hover, a hail and flash, and returns to the first two.
+for (const from of [hover, crewHover, hail, hailHeld]) {
+    const n = M.notify(from, item(3))
+    assert.equal(n.state, 'notif', 'a notif takes ' + from.state)
+    assert.equal(n.back.state, from.state, 'and remembers it')
+    const after = M.expire(n, n.seq)
+    assert.equal(after.state, from.state, 'a notif ending returns to the interrupted ' + from.state)
+    assert.equal(after.pinned, from.pinned)
+    assert.ok(after.seq > n.seq, 'with its timer restarted')
+    assert.equal(after.timer, from.timer)
+}
+assert.equal(M.notify(M.go(rest, 'flash'), item(3)).back, undefined, 'a flash is not returned to')
+assert.equal(M.notify(M.go(rest, 'vibes'), item(3)).back, undefined, 'nor vibes')
+// The queue: one at a time, newest first, each with its own timer.
+let q = M.notify(n1, item(2))
+q = M.notify(q, item(3, 6000))
+assert.equal(q.state, 'notif')
+assert.equal(q.item.id, 1, 'the one showing keeps the island')
+assert.equal(q.seq, n1.seq, 'new arrivals do not restart its timer')
+assert.deepEqual(M.notifIds(q), [1, 2, 3])
+q = M.expire(q, q.seq)
+assert.deepEqual([q.state, q.item.id, q.timer], ['notif', 3, 6000], 'the newest waiting shows next, with its timeout')
+assert.deepEqual(q.queue, [item(2)])
+q = M.finish(q)
+assert.deepEqual([q.state, q.item.id], ['notif', 2], 'Dismiss or Open shows the next one')
+assert.equal(q.queue, undefined, 'the queue empties')
+q = M.finish(q)
+assert.equal(q.state, 'rest', 'the last one returns to rest')
+assert.deepEqual(M.notifIds(q), [])
+// A queued notification shows once the panel in front of it closes (settle).
+let p = M.notify(pinned, item(4))
+assert.equal(M.settle(p, {}), p, 'settle leaves a panel alone')
+p = M.dismiss(p)
+assert.deepEqual([p.state, p.queue.length], ['rest', 1], 'closing the panel keeps the queue')
+p = M.settle(p, {})
+assert.deepEqual([p.state, p.item.id, p.queue], ['notif', 4, undefined], 'settle shows it')
+assert.equal(M.settle(M.notify(M.go(rest, 'osd'), item(5)), {}).state, 'osd', 'settle waits out the OSD')
+assert.equal(M.settle(M.dismiss(M.notify(pinned, item(5))), { blocked: true }).state, 'rest', 'and holds while a hand-off covers the island')
+// The OSD interrupts a notif and returns to it; a new OSD restarts its timer
+// and keeps what it returns to.
+let o = M.offer(n1, 'osd')
+assert.deepEqual([o.state, o.timer, o.back.state, o.back.item.id], ['osd', 1400, 'notif', 1], 'the OSD takes a notif and keeps it')
+const o2 = M.offer(o, 'osd')
+assert.ok(o2.seq > o.seq && o2.back === o.back, 'a repeated OSD restarts its timer, same return')
+o = M.expire(o2, o2.seq)
+assert.deepEqual([o.state, o.item.id, o.timer], ['notif', 1, 4200], 'back to the notif, its timer restarted')
+assert.equal(M.offer(M.go(rest, 'dict'), 'osd').state, 'dict', 'dictation outranks the OSD: it is dropped')
+assert.equal(M.offer(pinned, 'osd'), pinned, 'an open panel drops the OSD')
+assert.equal(M.offer(M.go(rest, 'osd'), 'flash').state, 'osd', 'the OSD drops a flash')
+assert.equal(M.offer(n1, 'flash'), n1, 'a notif drops a flash')
+assert.equal(M.offer(rest, 'flash').state, 'flash', 'a flash takes rest')
+assert.equal(M.expire(M.offer(rest, 'flash'), M.offer(rest, 'flash').seq).state, 'rest', 'and returns to it after 1400 ms')
+// Dictation: a condition, not a timer. settle opens it over a notif or hover
+// and finishes it when the condition ends, back to what it interrupted.
+let d = M.settle(n1, { dict: true })
+assert.deepEqual([d.state, d.timer, d.back.state], ['dict', 0, 'notif'], 'dictation takes a notif and keeps it')
+assert.equal(M.settle(d, { dict: true }), d, 'settle is idempotent')
+d = M.notify(d, item(9))
+assert.deepEqual([d.state, d.queue.length], ['dict', 1], 'a notif arriving during dictation waits')
+d = M.settle(d, { dict: false })
+assert.deepEqual([d.state, d.item.id], ['notif', 1], 'dictation ending returns to the notif it covered')
+assert.deepEqual(d.queue, [item(9)], 'and the waiting one stays queued')
+assert.equal(M.settle(pinned, { dict: true }), pinned, 'dictation waits behind an open panel')
+assert.equal(M.settle(M.dismiss(pinned), { dict: true }).state, 'dict', 'and shows once it closes')
+assert.equal(M.settle(M.go(rest, 'dict'), { dict: false }).state, 'rest')
+// Polkit outranks everything and returns to the panel it covered.
+const pk = M.offer(M.go(rest, 'cc'), 'polkit')
+assert.deepEqual([pk.state, pk.back.state], ['polkit', 'cc'])
+// A paused notif (M3 review): the pointer coming to it pauses its timer with
+// what it has left; leaving runs it on for that, never under RESUME_MIN.
+const nh = M.enter(n1, undefined, 3100)
+assert.deepEqual([nh.state, nh.held, nh.timer, nh.left, nh.item.id], ['notif', true, 0, 3100, 1], 'the pointer on a notif pauses it with 3100 ms left')
+assert.ok(nh.seq > n1.seq, 'pausing starts a new seq, so the running timer cannot fire')
+assert.ok(!M.closesOnLeave(nh) && M.resumesOnLeave(nh) && M.watchesLeave(nh) && !M.watchesLeave(n1), 'leaving resumes a paused notif; it never closes it')
+const nr = M.leave(nh)
+assert.deepEqual([nr.state, nr.held, nr.left, nr.timer, nr.item.id], ['notif', undefined, undefined, 3100, 1], 'leaving runs it on for what it had left')
+assert.ok(nr.seq > nh.seq, 'a new seq: the host starts the timer again')
+assert.equal(M.leave(M.enter(n1, undefined, 40)).timer, M.RESUME_MIN, 'a glance at its last moments leaves it RESUME_MIN')
+assert.equal(M.enter(n1).left, n1.timer, 'without a count from the host it keeps its whole timer')
+assert.equal(M.enter(nh, undefined, 10), nh, 'entering a paused notif again changes nothing')
+assert.equal(M.leave(n1), n1, 'a running notif ignores the pointer leaving')
+assert.equal(M.enter(M.notify(rest, item(8, 0))).held, undefined, 'a critical notif has no timer to pause')
+// Interrupted while paused, it comes back paused, still with what it had left.
+const nho = M.offer(nh, 'osd')
+const nhb = M.expire(nho, nho.seq)
+assert.deepEqual([nhb.state, nhb.held, nhb.left, nhb.timer], ['notif', true, 3100, 0], 'the OSD ending returns to the paused notif')
+assert.equal(M.leave(nhb).timer, 3100)
+assert.equal(M.freeze(nh).left, 3100, 'freeze keeps it')
+assert.equal(M.enqueue(nh, item(2)).left, 3100, 'and so does a notification queueing behind it')
+// The sender closing a notification takes it out wherever it is.
+let g = M.notify(M.notify(n1, item(2)), item(3))
+assert.deepEqual(M.notifIds(M.drop(g, 2)), [1, 3], 'out of the queue')
+g = M.drop(g, 1)
+assert.deepEqual([g.state, g.item.id], ['notif', 3], 'off the island: the next one shows')
+assert.equal(M.drop(g, 42), g, 'an unknown id changes nothing')
+const covered = M.offer(n1, 'osd')
+const uncovered = M.drop(covered, 1)
+assert.deepEqual([uncovered.state, uncovered.back], ['osd', undefined], 'out of the interrupted chain')
+assert.equal(M.expire(uncovered, uncovered.seq).state, 'rest', 'so the OSD returns to rest')
+// go() keeps the queue and drops what was showing and its return.
+const gone = M.go(M.notify(M.offer(n1, 'osd'), item(2)), 'hover')
+assert.deepEqual([gone.item, gone.back, gone.queue.length], [undefined, undefined, 1])
+// freeze() stops a timer and changes nothing else (`island hold`).
+const fz = M.freeze(o2)
+assert.deepEqual([fz.state, fz.timer, fz.back], ['osd', 0, o2.back])
+assert.equal(M.expire(fz, fz.seq), fz, 'a frozen state never expires')
+for (const r of [rest, n1, q, d, g, fz, nh, nr, nhb]) for (const k of ['held', 'left', 'item', 'back', 'queue']) assert.ok(!(k in r) || r[k] !== undefined, 'no undefined ' + k)
+// Two screens' islands hold the same notification (M3 review): it is
+// released, so expired, only when the last of them lets go.
+const A = {}, B = {}
+let h = M.holdIds([], A, [1, 2])
+h = M.holdIds(h.holders, B, [1, 2])
+assert.deepEqual(h.released, [], 'holding releases nothing')
+h = M.holdIds(h.holders, A, [2])
+assert.deepEqual(h.released, [], 'one island letting go of 1 while the other holds it (paused) releases nothing')
+h = M.holdIds(h.holders, B, [2])
+assert.deepEqual(h.released, [1], 'the last one letting go releases it')
+h = M.holdIds(h.holders, A, [])
+assert.deepEqual([h.released, h.holders.length], [[], 1], 'B still holds 2')
+h = M.holdIds(h.holders, B, [])
+assert.deepEqual([h.released, h.holders], [[2], []], 'and its release empties the list')
+assert.deepEqual(M.holdIds(undefined, A, [3]).holders, [{ owner: A, ids: [3] }])
 console.log('ISLAND_MACHINE_PASS')

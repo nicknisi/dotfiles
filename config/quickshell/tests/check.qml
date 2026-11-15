@@ -7,6 +7,8 @@ import "MenuAnchor.js" as MenuAnchor
 import "BarGeometry.js" as BarGeometry
 import "lib/WorkspaceOrder.js" as WorkspaceOrder
 import "lib/CrewModel.js" as CrewModel
+import "lib/IslandMachine.js" as IslandMachine
+import "lib/Calendar.js" as Calendar
 
 ShellRoot {
     id: test
@@ -76,6 +78,8 @@ ShellRoot {
         IslandView {
             id: islandView
             anchors.fill: parent
+            interrupt: quietInterrupt
+            liveData: ({})
             monitor: ({ name: "check-island", width: 1000, height: 700 })
             workspaces: WorkspaceOrder.shown([
                 { name: "S", windows: 1 }, { name: "D", windows: 2 }, { name: "special:scratch", windows: 1 },
@@ -140,9 +144,350 @@ ShellRoot {
             id: crewView
             anchors.fill: parent
             crew: fakeCrew
+            interrupt: quietInterrupt
+            liveData: ({})
             dpr: 1.5
             monitor: ({ name: "check-crew", width: 1000, height: 700 })
             workspaces: WorkspaceOrder.shown([{ name: "W", windows: 1 }, { name: "D", windows: 1 }], "D")
+        }
+    }
+
+    // The island's own states (PLAN M3) on a third island, with stand-ins for
+    // what feeds them. Interrupt fires as PipeWire binds, so the islands get a
+    // quiet one; check.sh's qs runs on the real session bus, where a real
+    // NotificationServer would fight the desktop's for the bus name, so the
+    // notifications come from a fake with NotificationServer.qml's shape; the
+    // voice has VoiceSession's daemon fields.
+    QtObject {
+        id: quietInterrupt
+        property string kind: ""
+        property real fraction: 0
+        signal shown(string which)
+    }
+    QtObject {
+        id: fakeNotifier
+        property var tracked: []
+        property var expired: []
+        property var dismissed: []
+        // NotificationServer.shows reads NotificationState.dnd; the fake keeps
+        // its own, so the other islands see no flash.
+        property bool dnd: false
+        signal arrived(var notification)
+        function find(id) {
+            return tracked.find(n => n.id === id) ?? null;
+        }
+        function timeoutFor(n) {
+            return IslandMachine.notifTimeout(n.expireTimeout, n.critical === true);
+        }
+        function shows(n) {
+            return !dnd || n.critical === true;
+        }
+        // NotificationServer's holds, on the same IslandMachine.holdIds.
+        property var holders: []
+        function hold(owner, ids) {
+            const r = IslandMachine.holdIds(holders, owner, ids);
+            holders = r.holders;
+            for (const id of r.released)
+                find(id)?.expire();
+        }
+        function forget(owner) {
+            holders = holders.filter(h => h.owner !== owner);
+        }
+        property var deadlines: ({})
+        function remainingFor(n) {
+            const at = deadlines[n.id] ?? 0;
+            return at > 0 ? Math.max(0, at - Date.now()) : 0;
+        }
+        function push(fields) {
+            const n = Object.assign({ appName: "notify-send", summary: "", body: "", appIcon: "", image: "", expireTimeout: -1, critical: false }, fields);
+            n.expire = () => fakeNotifier.close(n.id, "expired");
+            n.dismiss = () => fakeNotifier.close(n.id, "dismissed");
+            const d = Object.assign({}, deadlines);
+            const t = timeoutFor(n);
+            d[n.id] = t > 0 ? Date.now() + t : 0;
+            deadlines = d;
+            tracked = tracked.concat([n]);
+            arrived(n);
+            return n;
+        }
+        // One that came in before the island was there (a classic mode): no arrived.
+        function pushQuietly(fields) {
+            const n = Object.assign({ appName: "notify-send", summary: "", body: "", appIcon: "", image: "", expireTimeout: -1, critical: false }, fields);
+            n.expire = () => fakeNotifier.close(n.id, "expired");
+            n.dismiss = () => fakeNotifier.close(n.id, "dismissed");
+            const d = Object.assign({}, deadlines);
+            const t = timeoutFor(n);
+            d[n.id] = t > 0 ? Date.now() + t : 0;
+            deadlines = d;
+            tracked = tracked.concat([n]);
+            return n;
+        }
+        // how: "expired", "dismissed", or anything else for the sender closing it.
+        function close(id, how) {
+            if (how === "expired") expired = expired.concat([id]);
+            else if (how === "dismissed") dismissed = dismissed.concat([id]);
+            tracked = tracked.filter(n => n.id !== id);
+        }
+    }
+    QtObject {
+        id: fakeVoice
+        property string daemonState: "idle"
+        readonly property bool daemonListening: daemonState === "recording" || daemonState === "streaming"
+        property bool active: false
+        property bool osdSuppressed: false
+        property var history: []
+        property string command: "/bin/false"
+    }
+    QtObject {
+        id: fakeInterrupt
+        property string kind: ""
+        property real fraction: 0
+        signal shown(string which)
+    }
+
+    // 1600 wide: with everything live the pill passes 1000, and a window as
+    // narrow as that put the body under the offscreen platform's pointer
+    // (hover opened by itself).
+    FloatingWindow {
+        visible: true
+        implicitWidth: 1600
+        implicitHeight: 608
+        IslandView {
+            id: m3View
+            anchors.fill: parent
+            interrupt: fakeInterrupt
+            notifications: fakeNotifier
+            voice: fakeVoice
+            liveData: ({})
+            monitor: ({ name: "check-m3", width: 1000, height: 700 })
+            workspaces: WorkspaceOrder.shown([{ name: "W", windows: 1 }, { name: "D", windows: 1 }], "D")
+        }
+    }
+
+    // How often the breathing marks change (step 6 to 8).
+    QtObject {
+        id: breathCount
+        property int sparkle: 0
+        property int dot: 0
+    }
+    Connections {
+        target: m3View.rest.laneIcon
+        function onOpacityChanged() {
+            breathCount.sparkle++;
+        }
+    }
+    Connections {
+        target: m3View.rest.segment.dot
+        function onOpacityChanged() {
+            breathCount.dot++;
+        }
+    }
+    // A second screen's island on the same server (step 10), built late so
+    // the beats before it see one island.
+    QtObject {
+        id: second
+        property var island: null
+    }
+    Component {
+        id: secondIsland
+        IslandView {
+            interrupt: fakeInterrupt
+            notifications: fakeNotifier
+            voice: fakeVoice
+            liveData: ({})
+            monitor: ({ name: "check-m3b", width: 1000, height: 700 })
+            workspaces: WorkspaceOrder.shown([{ name: "W", windows: 1 }], "W")
+        }
+    }
+
+    // M3 in fifteen beats, 600 ms apart (each lets the morph settle): a
+    // notification, a second one queueing, the OSD over it and back, Dismiss
+    // showing the next, dictation over that and back, a closed island
+    // expiring what it let go of, the sender closing one, Do not disturb, the
+    // calendar and its way back, a flash, the live segment fading in and
+    // widening the pill with the Context lane, the breathing marks on their
+    // stepped clock (and the dot through idle), hover keeping the width of a
+    // pill past 720, a banner paused under the pointer and resumed, and a
+    // second island adopting, holding and letting go (M3 review).
+    Timer {
+        id: m3Check
+        interval: 600
+        repeat: true
+        property int step: 0
+        property bool finished: false
+        onTriggered: {
+            try {
+                const v = m3View;
+                const box = item => item.mapToItem(v, 0, 0);
+                if (step === 0) {
+                    test.check(v.islandState === "rest" && !v.rest.segment.visible && v.rest.hugWidth === 360, "M3 island starts at rest with nothing live: " + JSON.stringify(v.machine));
+                    fakeNotifier.push({ id: 1, summary: "hi", body: "a <b>bold</b> &amp; plain body" });
+                    test.check(v.islandState === "notif" && v.machine.item.id === 1 && v.machine.timer === 4200, "a notification takes the island for 4200 ms: " + JSON.stringify(v.machine));
+                    test.check(v.targetSize[0] === 520 && v.targetSize[1] === 92, "notif targets 520 x 92");
+                    test.check(v.notification?.summary === "hi" && v.notifCard.body === "a bold & plain body", "the banner shows the summary and a plain body: " + v.notifCard.body);
+                    fakeNotifier.push({ id: 2, summary: "build failed", critical: true });
+                    test.check(v.machine.item.id === 1 && JSON.stringify(v.machine.queue.map(i => i.id)) === "[2]", "a second one queues behind it");
+                    fakeInterrupt.kind = "volume";
+                    fakeInterrupt.fraction = 0.45;
+                    fakeInterrupt.shown("volume");
+                    test.check(v.islandState === "osd" && v.machine.back?.state === "notif" && v.machine.timer === 1400, "the OSD interrupts the notification for 1400 ms");
+                    test.check(v.targetSize[0] === 340 && v.targetSize[1] === 44, "osd targets 340 x 44");
+                } else if (step === 1) {
+                    test.check(v.body.width === 340 && v.body.height === 44 && v.body.radius === 22, "osd settles at 340 x 44, radius 22: " + v.body.width + " x " + v.body.height + " r " + v.body.radius);
+                    test.check(v.osdCard.fill.width === Math.round(v.osdCard.track.width * 0.45) && v.osdCard.icon === "vol1" && v.osdCard.valueText === "45", "the fill is 45% of the track");
+                    v.apply(IslandMachine.expire(v.machine, v.machine.seq));
+                    test.check(v.islandState === "notif" && v.machine.item.id === 1 && v.machine.timer === 4200, "the OSD ending returns to the notification, its timer restarted");
+                    v.dismissNotification();
+                    test.check(JSON.stringify(fakeNotifier.dismissed) === "[1]" && fakeNotifier.expired.length === 0, "Dismiss dismisses it on the server");
+                    test.check(v.islandState === "notif" && v.machine.item.id === 2 && v.machine.timer === 0, "the critical one shows next, with no timer: " + JSON.stringify(v.machine));
+                    test.check(!v.notifCard.progress.parent.visible, "a critical notification has no countdown");
+                    fakeVoice.daemonState = "recording";
+                    test.check(v.dictPhase === "listening", "the daemon recording is dictation");
+                } else if (step === 2) {
+                    test.check(v.islandState === "dict" && v.machine.back?.state === "notif", "dictation takes the island over the notification: " + JSON.stringify(v.machine));
+                    test.check(v.body.width === 360 && v.body.height === 48 && v.body.radius === 24, "dict settles at 360 x 48, radius 24: " + v.body.width + " x " + v.body.height + " r " + v.body.radius);
+                    fakeNotifier.push({ id: 3, summary: "third" });
+                    test.check(v.islandState === "dict" && v.machine.queue?.length === 1, "a notification during dictation waits");
+                    fakeVoice.daemonState = "transcribing";
+                    test.check(v.islandState === "dict" && v.dictCard.label === "Finishing", "transcribing keeps the dict state");
+                    fakeVoice.daemonState = "idle";
+                    test.check(v.islandState === "notif" && v.machine.item.id === 2, "dictation ending returns to the notification it covered: " + JSON.stringify(v.machine));
+                    v.close();
+                    test.check(fakeNotifier.expired.indexOf(2) >= 0, "closing the island expires the one it showed (it stays in the history)");
+                } else if (step === 3) {
+                    test.check(v.islandState === "notif" && v.machine.item.id === 3, "the waiting one shows once the island is free: " + JSON.stringify(v.machine));
+                    v.apply(IslandMachine.expire(v.machine, v.machine.seq));
+                    test.check(v.islandState === "rest" && fakeNotifier.expired.indexOf(3) >= 0, "its timeout expires it");
+                    fakeNotifier.push({ id: 4, summary: "gone soon" });
+                    fakeNotifier.close(4, "sender");
+                    test.check(v.islandState === "rest", "the sender closing it takes it off the island");
+                    fakeNotifier.dnd = true;
+                    fakeNotifier.push({ id: 5, summary: "quiet" });
+                    test.check(v.islandState === "rest", "Do not disturb keeps a notification off the island");
+                    fakeNotifier.push({ id: 6, summary: "battery low", critical: true });
+                    test.check(v.islandState === "notif" && v.machine.item.id === 6, "but not a critical one");
+                    fakeNotifier.dnd = false;
+                    v.dismissNotification();
+                    fakeNotifier.close(5, "expired");
+                    test.check(v.islandState === "rest", "dismissed");
+                    test.check(v.open("cal") === "ok" && v.islandState === "cal" && v.panelOpen && v.hudPage === "", "cal is the island's own panel");
+                    test.check(v.targetSize[0] === 400 && v.targetSize[1] === 368, "cal targets 400 x 368");
+                } else if (step === 4) {
+                    test.check(v.body.width === 400 && v.body.height === 368, "cal settles at 400 x 368");
+                    const today = new Date();
+                    test.check(v.calendar.cells.length === 42 && v.calendar.title === Calendar.title(today.getFullYear(), today.getMonth()), "this month, six rows of seven");
+                    const t = v.calendar.cells.filter(c => c.today);
+                    test.check(t.length === 1 && t[0].day === today.getDate(), "today is marked once");
+                    test.check(v.inspect().parts.today !== null, "inspect finds today's cell");
+                    v.stepBack();
+                    test.check(v.islandState === "hover" && v.pinned, "Esc in the calendar goes back to hover, pinned");
+                    v.dismiss();
+                    test.check(v.islandState === "rest", "an outside click closes it");
+                    v.flashMode("awake", true, "On for 1 hour");
+                    test.check(v.islandState === "flash" && v.machine.timer === 1400 && v.targetSize[1] === 52, "a mode change flashes for 1400 ms");
+                    test.check(v.targetSize[0] === v.flashCard.width && v.flashCard.width < 360, "the flash hugs its words: " + v.flashCard.width);
+                    test.check(String(v.flashCard.ring.border.color) === String(Tokens.accent) && !v.flashCard.slash.visible, "on: an accent ring, no slash");
+                } else if (step === 5) {
+                    test.check(v.body.height === 52 && v.body.radius === 26, "flash settles 52 high, radius 26");
+                    v.apply(IslandMachine.expire(v.machine, v.machine.seq));
+                    test.check(v.islandState === "rest", "and settles back");
+                    v.liveData = { recording: true, elapsed: "0:42" };
+                    v.laneData = { kind: "terminal", icon: "terminal", text: "dotfiles", extra: "main +2" };
+                    test.check(v.rest.segment.visible && String(v.rest.segment.dot.color) === String(Tokens.bad) && v.rest.segment.stopButton.visible, "a recording: the bad dot and Stop");
+                    // island-modes 6: the pill widens while the segment fades in, after the stagger.
+                    test.check(v.rest.segment.opacity === 0 && v.rest.segment.fading, "the segment starts transparent and fades in: " + v.rest.segment.opacity);
+                    test.check(v.rest.laneRow.visible && v.rest.laneIcon.name === "terminal" && v.rest.laneExtra.text === "main +2", "the Context lane: terminal, dotfiles, main +2");
+                } else if (step === 6) {
+                    test.check(v.rest.segment.opacity === 1 && !v.rest.segment.fading, "and is opaque once the fade is done");
+                    // Rows lay out at polish time, so the widths are read a beat later.
+                    test.check(v.rest.hugWidth > 360 && v.targetSize[0] === v.rest.width, "the pill widens around them: " + v.rest.hugWidth);
+                    test.check(v.body.width === v.rest.width, "the body follows the pill");
+                    const clock = v.rest.width / 2;
+                    test.check(Math.abs(box(v.rest.segment).x - box(v.rest).x - (clock + v.rest.clockText.implicitWidth / 2 + IslandMachine.SEGMENT_GAP)) <= 1, "the segment sits 12 right of the centred clock");
+                    const laneRight = box(v.rest.laneRow).x - box(v.rest).x + v.rest.laneRow.width;
+                    test.check(Math.abs(laneRight - (v.rest.width - 16)) <= 1, "the lane keeps 16 from the edge");
+                    v.liveData = { recording: true, elapsed: "12:34", mic: ["Zoom", "Firefox", "OBS"], awake: true, awakeLeft: "52m", dnd: true };
+                    v.laneData = { kind: "agent", icon: "sparkle", working: true, text: "a-repository-with-a-long-name", who: "Claude Code", where: "a-repository-with-a-long-name", detail: "main +2" };
+                    test.check(String(v.rest.laneIcon.color) === String(Tokens.accent), "an agent working: the sparkle in accent");
+                    test.check(v.rest.segment.micText === "Zoom +2", "several apps on the mic: the first, +2");
+                    breathCount.sparkle = 0;
+                    breathCount.dot = 0;
+                } else if (step === 7) {
+                    // M3 review: the sparkle and the dot breathe on a 250 ms
+                    // step, so 600 ms is two or three frames, not one per
+                    // vsync (a NumberAnimation gave about 36 here).
+                    test.check(v.rest.breathClock.step === 250 && v.rest.breathClock.ticking && !v.rest.crewStrip.clock.ticking, "no bots move: the breathing runs on the pill's own 250 ms clock: " + JSON.stringify({ step: v.rest.breathClock.step, ticking: v.rest.breathClock.ticking, running: v.rest.breathClock.running, strip: v.rest.crewStrip.clock.ticking, sparkle: v.rest.sparkleBreathes, dot: v.rest.dotBreathes, current: v.rest.current, loops: Motion.loops, state: v.islandState }));
+                    test.check(breathCount.sparkle >= 1 && breathCount.sparkle <= 4, "the working sparkle changes once a step, not once a frame: " + breathCount.sparkle + " in 600 ms");
+                    test.check(breathCount.dot >= 1 && breathCount.dot <= 4, "the recording dot too: " + breathCount.dot + " in 600 ms");
+                    test.check(Math.abs(Motion.breath(0, 1600, 0.45) - 1) < 1e-9 && Math.abs(Motion.breath(800, 1600, 0.45) - 0.45) < 1e-9 && Math.abs(Motion.breath(1600, 1600, 0.45) - 1) < 1e-9, "Motion.breath: 1, 0.45 half way, 1 again");
+                    // Idle (no input for a minute): the sparkle holds still,
+                    // the recording dot does not (a privacy signal).
+                    v.ambient = false;
+                    breathCount.sparkle = 0;
+                    breathCount.dot = 0;
+                } else if (step === 8) {
+                    test.check(v.rest.laneIcon.opacity === 1 && breathCount.sparkle === 0, "idle: the sparkle holds still at full opacity");
+                    test.check(breathCount.dot >= 1 && v.rest.breathClock.ticking, "idle: the recording dot keeps breathing: " + breathCount.dot);
+                    v.ambient = true;
+                    test.check(v.rest.hugWidth > 720, "everything live widens the pill past 720: " + v.rest.hugWidth);
+                    test.check(v.open("hover") === "ok" && v.targetSize[0] === v.rest.width && v.hover.width === v.rest.width, "hover keeps the pill's width past 720, so it never opens from under the pointer");
+                    test.check(v.hover.contextLine.visible, "hover's Context line shows who and where");
+                    test.check(v.hover.sparkleClock.step === 250 && v.hover.sparkleClock.running && !v.rest.breathClock.ticking, "hover's sparkle steps at 250 ms too, and the pill's clock stops under it");
+                    v.close();
+                    v.liveData = {};
+                    v.laneData = null;
+                    test.check(v.rest.segment.visible && v.rest.segment.fading && v.rest.segment.width > 0, "nothing live: the segment fades out at its width");
+                } else if (step === 9) {
+                    test.check(v.rest.hugWidth === 360 && !v.rest.segment.visible, "back to 360 with nothing live: " + v.rest.hugWidth);
+                    // The pointer coming to a banner pauses it with what it has
+                    // left; leaving runs it on from there (M3 review [GUESS]).
+                    fakeNotifier.push({ id: 7, summary: "pause me" });
+                    test.check(v.islandState === "notif" && v.machine.item.id === 7 && v.machine.timer === 4200 && !v.machine.held, "a banner runs its timer: " + JSON.stringify(v.machine));
+                    // A hover that comes while the body is still growing is the
+                    // banner opening under a parked pointer: it runs its course.
+                    v.pointerEntered();
+                    test.check(v.body.morphing && !v.machine.held && v.machine.timer === 4200, "opening under a parked pointer does not pause it: " + JSON.stringify(v.machine));
+                    v.pointerLeft();
+                } else if (step === 10) {
+                    v.pointerEntered();
+                    test.check(v.machine.held && v.machine.timer === 0 && v.machine.left > 3000 && v.machine.left <= 4200 && !v.notifCard.running, "the pointer coming to it pauses it: " + JSON.stringify(v.machine));
+                    v.pointerLeft();
+                    test.check(v.grace.running, "leaving starts the grace");
+                } else if (step === 11) {
+                    test.check(v.islandState === "notif" && v.machine.item.id === 7 && !v.machine.held && v.machine.timer >= IslandMachine.RESUME_MIN && v.machine.timer <= 4200 && v.notifCard.running,
+                        "after the grace it runs on for what it had left: " + JSON.stringify(v.machine));
+                    test.check(fakeNotifier.expired.indexOf(7) < 0, "and is not expired by leaving");
+                    // A second screen's island: it adopts what is up and was
+                    // never offered to it (8 came in "before the switch").
+                    fakeNotifier.pushQuietly({ id: 8, summary: "from the pill" });
+                    second.island = secondIsland.createObject(m3View.parent, { width: 1600, height: 608 });
+                } else if (step === 12) {
+                    const w = second.island;
+                    test.check(w.islandState === "notif" && w.machine.item.id === 8 && JSON.stringify(w.machine.queue.map(i => i.id)) === "[7]", "a new island adopts what is still up, newest first: " + JSON.stringify(w.machine));
+                    test.check(w.machine.item.timeout > IslandMachine.RESUME_MIN && w.machine.item.timeout <= 4200, "for the rest of its time: " + w.machine.item.timeout);
+                    // One island's timer running out while the other holds 7: not expired.
+                    v.apply(IslandMachine.expire(v.machine, v.machine.seq));
+                    test.check(v.islandState === "rest" && fakeNotifier.expired.indexOf(7) < 0, "7 ends on the first island, but the second still holds it, so it is not expired");
+                    w.close();
+                    test.check(fakeNotifier.expired.indexOf(8) >= 0 && fakeNotifier.expired.indexOf(7) < 0, "8, held by the second alone, expires when it lets go: " + JSON.stringify(fakeNotifier.expired));
+                } else if (step === 13) {
+                    const w = second.island;
+                    test.check(w.islandState === "notif" && w.machine.item.id === 7, "the second island shows the one it queued");
+                    test.check(fakeNotifier.holders.length === 1 && fakeNotifier.holders[0].owner === w, "only the second island holds anything");
+                    // destroy() is deferred: the check waits a beat.
+                    w.destroy();
+                    second.island = null;
+                } else {
+                    test.check(fakeNotifier.expired.indexOf(7) < 0 && fakeNotifier.holders.length === 0, "an island going away lets go without expiring: " + JSON.stringify(fakeNotifier.expired));
+                    fakeNotifier.close(7, "sender");
+                    finished = true;
+                    stop();
+                }
+                step++;
+            } catch (error) {
+                console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
+            }
         }
     }
 
@@ -295,7 +640,7 @@ ShellRoot {
                     test.check(v.inspect().crew.bots.length === 0, "inspect reports the bots");
                     // A wide pill: twelve agents and a Context label (DECISION 1).
                     fakeCrew.set(fakeCrew.many(), true);
-                    v.rest.context = "dotfiles";
+                    v.laneData = { kind: "other", text: "dotfiles" };
                 } else if (step === 9) {
                     test.check(v.rest.width >= 600 && v.body.width === v.rest.width, "eight bots, +4 and Context widen the pill past 600: " + v.rest.width);
                     // Resting on the bots at the pill's right end opens the Crew panel at
@@ -310,7 +655,7 @@ ShellRoot {
                     test.check(p.x >= 0 && p.x + strip.width <= v.body.width && p.y >= 0 && p.y + strip.height <= v.body.height,
                         "every bot lies inside the open Crew panel: strip " + p.x + ".." + (p.x + strip.width) + " in 0.." + v.body.width);
                     v.close();
-                    v.rest.context = "";
+                    v.laneData = null;
                     fakeCrew.set({ fleet: { agents: [] }, scan: null }, true);
                     finished = true;
                     stop();
@@ -350,7 +695,7 @@ ShellRoot {
                     test.check(runner.visible && runner.running && !greeting.visible, "drag overrides menu costumes");
                 } else {
                     // The crew check's eleven beats outlast this timer's two: wait a round.
-                    if (crewCheck.running) return;
+                    if (crewCheck.running || m3Check.running) return;
                     test.check(avatarFrames.changes > 0, "running frames actually advance");
                     avatar.visible = false;
                     test.check(!runner.running, "hidden runner stops animating");
@@ -361,6 +706,7 @@ ShellRoot {
                     test.check(styleCheck.finished, "all sixteen layout and edge combinations settled");
                     test.check(islandCheck.finished, "the island check ran to the end");
                     test.check(crewCheck.finished, "the crew check ran to the end");
+                    test.check(m3Check.finished, "the M3 check ran to the end");
                     test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
                     console.log("CAPSULE_TEST_PASS");
                     Qt.quit();
@@ -425,7 +771,7 @@ ShellRoot {
             try {
                 const v = islandView;
                 if (step === 0) {
-                    test.check(v.islandState === "rest" && !v.pinned && !v.panelOpen, "the island starts at rest");
+                    test.check(v.islandState === "rest" && !v.pinned && !v.panelOpen, "the island starts at rest: " + JSON.stringify(v.machine));
                     test.check(v.body.width === 360 && v.body.height === 38 && v.body.radius === 19, "rest is 360 x 38, radius 19: "
                         + v.body.width + " x " + v.body.height + " r " + v.body.radius);
                     test.check(v.body.x === 320 && v.body.y === 8, "rest sits top centre, 8 down");
@@ -447,8 +793,8 @@ ShellRoot {
                     v.rest.strip.activated("W");
                     test.check(!v.dwell.running && v.islandState === "rest", "a letter click or wheel inside the dwell cancels it");
                     v.pointerLeft();
-                    // Live Context stays out of the rest pill until M3 (PLAN M2).
-                    test.check(v.context === "" && !v.rest.privacyDot.visible, "no Context text and no privacy dot without a fixture or a recorder");
+                    // No focused toplevel offscreen: the Context lane is empty, and nothing is live.
+                    test.check(v.context === "" && !v.rest.laneRow.visible && !v.rest.segment.visible, "no Context lane and no live segment without a window or a recorder");
                     // A click on the pill pins hover at once.
                     v.clickPill();
                     test.check(v.islandState === "hover" && v.pinned && v.panelOpen, "a click pins hover");
@@ -475,7 +821,7 @@ ShellRoot {
                     v.pointerEntered();
                     test.check(!v.dwell.running, "the dwell waits for the hand-off to close");
                     test.check(v.toggle("cc") === "ok" && v.hudPage === "", "toggle closes the hand-off");
-                    test.check(v.open("cal") === "ok" && v.hudPage === "clock", "cal hands off to the old clock page");
+                    test.check(v.open("cal") === "ok" && v.hudPage === "" && v.islandState === "cal", "cal is the island's own state (M3)");
                     test.check(v.close() === "ok" && v.hudPage === "" && v.islandState === "rest", "close clears everything");
                     test.check(!v.hudNeedsGrab, "no focus grab once the hand-off closes");
                     // A click hand-off (the hover layer's calendar) keeps the popup grab.
@@ -487,7 +833,8 @@ ShellRoot {
                     v.open("cc");
                     v.dismiss();
                     test.check(v.hudPage === "" && !v.hudNeedsGrab, "an outside click closes an IPC-opened Hud");
-                    test.check(v.open("notif").startsWith("error") && v.open("notif").includes("M3"), "unbuilt states say when they land");
+                    test.check(v.open("power").startsWith("error") && v.open("power").includes("M6"), "unbuilt states say when they land");
+                    test.check(v.open("notif").startsWith("error: no notification") && v.open("dict").startsWith("error: no dictation"), "notif and dict need something to show");
                     test.check(v.open("bogus").startsWith("error: unknown"), "unknown states are refused");
                     const info = v.inspect();
                     test.check(info.state === "rest" && info.target.width === 360 && info.workspaces.join("") === "WCDS" && info.focused === "D", "inspect reports state and geometry");
@@ -711,6 +1058,40 @@ ShellRoot {
                 test.check(Context.describe("terminal", "nvim", "") === "nvim", "a shell running something shows that");
                 test.check(Context.describe("music", "Spotify", "Band – Song") === "Band – Song", "a player shows the track");
                 test.check(Context.describe("music", "Spotify", "") === "Spotify", "a silent player shows its title");
+                // The lane (PLAN M3): repo basenames, agent titles, a terminal
+                // outside a repo, never a page title.
+                test.check(Context.baseName(homeDir + "/Developer/dotfiles") === "dotfiles" && Context.baseName(homeDir + "/Developer/dotfiles/") === "dotfiles", "a repo shows its basename");
+                test.check(Context.baseName(homeDir) === "~" && Context.expand("~/x") === homeDir + "/x", "home is ~");
+                test.check(Context.stableTitle("◑ Bar ricing - 󱙺 dotfiles") === Context.stableTitle("✳ Bar ricing - 󱙺 dotfiles"), "a spinner turning is not a new window");
+                test.check(Context.appName("com.mitchellh.ghostty", "") === "Ghostty" && Context.appName("brave-origin", "") === "Brave Origin" && Context.appName("x", "Firefox") === "Firefox", "app names");
+                test.check(Context.branchText("main", 0) === "main" && Context.branchText("main", 2) === "main +2" && Context.branchText("", 4) === "", "+N is the dirty file count");
+                const crewRows = [
+                    { id: "%0", pane: "%0", host: "tmux", kind: "claude", label: "Hypr launcher text color", window: "󱙺 dotfiles", project: "~/Developer/dotfiles", mood: "working" },
+                    { id: "%2", pane: "%2", host: "tmux", kind: "pi", label: "Make a detailed artifact with charts, graphs, animations, e…", window: "π Developer", project: "~/Developer", mood: "needs" }
+                ];
+                const agentTitle = "✳ Hypr launcher text color - 󱙺 dotfiles";
+                const client = Context.clientFor(agentTitle, ["%9\t/tmp\tzsh - other", "%0\t" + homeDir + "/Developer/dotfiles\t✻ Hypr launcher text color - 󱙺 dotfiles"]);
+                test.check(client?.pane === "%0" && client.path === homeDir + "/Developer/dotfiles", "tmux names the client whose title the window shows");
+                test.check(Context.agentFor(agentTitle, "%0", crewRows)?.kind === "claude", "the agent in that pane");
+                test.check(Context.agentFor("π - Make a detailed artifact with charts, graphs, animations, e… - Developer - π Developer", "", crewRows)?.kind === "pi", "a label fleet cut short still matches its window");
+                test.check(Context.agentFor("zsh - 󱙺 dotfiles", "", crewRows) === null, "a shell beside an agent is not that agent");
+                const agentLane = Context.laneFor({ kind: "agent", title: agentTitle, appName: "Ghostty", agent: crewRows[0], cwd: homeDir + "/Developer/dotfiles", top: homeDir + "/Developer/dotfiles", branch: "main", dirty: 2 });
+                test.check(agentLane.icon === "sparkle" && agentLane.text === "dotfiles" && agentLane.extra === "" && agentLane.working
+                    && agentLane.who === "Claude Code" && agentLane.where === "dotfiles" && agentLane.detail === "main +2", "an agent title: sparkle, the repo, Claude Code, main +2: " + JSON.stringify(agentLane));
+                const waitingLane = Context.laneFor({ kind: "agent", title: "✳ Waiting", appName: "Ghostty", agent: null, cwd: "", top: "" });
+                test.check(!waitingLane.working && waitingLane.text === "Agent", "an unknown agent at the still glyph waits");
+                test.check(Context.laneFor({ kind: "agent", title: "◐ Thinking", agent: null }).working, "a turning glyph works");
+                test.check(!Context.laneFor({ kind: "agent", title: "◐ Thinking", agent: crewRows[1] }).working && Context.laneFor({ kind: "agent", title: "◐ x", agent: crewRows[1] }).who === "Pi", "the feed's mood wins over the glyph");
+                const termLane = Context.laneFor({ kind: "terminal", title: "zsh - 󱙺 dotfiles", appName: "Ghostty", cwd: homeDir + "/Developer/dotfiles/config", top: homeDir + "/Developer/dotfiles", branch: "main", dirty: 2 });
+                test.check(termLane.icon === "terminal" && termLane.text === "dotfiles" && termLane.extra === "main +2", "a terminal in a dirty repo: dotfiles, main +2");
+                const outsideLane = Context.laneFor({ kind: "terminal", title: "zsh", appName: "Ghostty", cwd: homeDir + "/Downloads", top: "", branch: "", dirty: 0 });
+                test.check(outsideLane.text === "Downloads" && outsideLane.extra === "" && outsideLane.detail === "", "a terminal outside a repo: its directory, no branch");
+                test.check(Context.laneFor({ kind: "terminal", title: "zsh", cwd: homeDir, top: "" }).text === "~", "at home: ~");
+                test.check(Context.laneFor({ kind: "terminal", title: "nvim notes.md", appName: "Ghostty", cwd: "", top: "" }).text === "nvim", "no directory known: the program");
+                const webLane = Context.laneFor({ kind: "browser", title: "Kapwork | Is this worth doing? - Brave Origin", appName: "Brave Origin" });
+                test.check(webLane.icon === "globe" && webLane.text === "Brave Origin", "a browser shows its name, never the page");
+                test.check(Context.laneFor({ kind: "music", title: "Spotify", appName: "Spotify", track: "Neon Grid" }).text === "Neon Grid", "a player shows the track title");
+                test.check(Context.laneFor({ kind: "" }).text === "", "nothing focused, no lane");
                 test.check(card.implicitHeight < 200, "media card stays compact");
                 test.check(home.implicitHeight < 420, "HUD overview stays compact");
                 player.canSeek = true;
@@ -759,6 +1140,7 @@ ShellRoot {
                 styleCheck.start();
                 islandCheck.start();
                 crewCheck.start();
+                m3Check.start();
                 avatarCheck.start();
             } catch (error) {
                 console.error("CAPSULE_TEST_FAIL: " + error.message);

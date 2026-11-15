@@ -27,7 +27,8 @@ Item {
     implicitHeight: size
     Accessible.ignored: true
 
-    onNameChanged: if (name !== "" && path === "") console.warn("Icon: no icon named", name)
+    // IconPaths itself, not `path`: that binding may not have caught up yet.
+    onNameChanged: if (name !== "" && IconPaths.path(name) === "") console.warn("Icon: no icon named", name)
 
     Shape {
         anchors.fill: parent

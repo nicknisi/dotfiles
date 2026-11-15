@@ -1,0 +1,55 @@
+{
+  "about": "M3: Context variant, a terminal parked in a dirty repo (Island board): terminal icon, dotfiles, main +2.",
+  "workspaces": [
+    {
+      "name": "S",
+      "windows": 1
+    },
+    {
+      "name": "D",
+      "windows": 2
+    },
+    {
+      "name": "special:scratch",
+      "windows": 1
+    },
+    {
+      "name": "W",
+      "windows": 3
+    },
+    {
+      "name": "N",
+      "windows": 0
+    },
+    {
+      "name": "C",
+      "windows": 1
+    }
+  ],
+  "focused": "D",
+  "clock": "10:45",
+  "date": "Saturday, November 14",
+  "today": "2026-11-14",
+  "media": {
+    "title": "Neon Grid",
+    "artist": "Night Rider",
+    "playing": false
+  },
+  "status": {
+    "wifi": true,
+    "bt": true,
+    "tailscale": true,
+    "muted": false,
+    "battery": 25
+  },
+  "context": {
+    "kind": "terminal",
+    "icon": "terminal",
+    "working": false,
+    "text": "dotfiles",
+    "extra": "main +2",
+    "who": "Ghostty",
+    "where": "dotfiles",
+    "detail": "main +2"
+  }
+}

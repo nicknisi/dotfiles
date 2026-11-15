@@ -70,4 +70,17 @@ QtObject {
     // Infinity when the duration is 0: step() snaps.
     readonly property real spatialOmega: Spring.omegaFor(spatial)
     readonly property real effectsOmega: Spring.omegaFor(effects)
+
+    // A breathe loop's opacity `elapsed` ms in: 1 at 0, `low` half a period
+    // later, back to 1 at `period`, on a cosine (the shape of the boards' two
+    // InOutSine halves). The island's breathing marks (the working sparkle,
+    // the recording dot) read it off a stepped Kit/CrewClock instead of
+    // running a NumberAnimation, so they draw one frame per tick, on the same
+    // frames as the bots (M3 review: a smooth loop redrew the island at the
+    // display's refresh rate for as long as an agent worked).
+    function breath(elapsed: real, period: real, low: real): real {
+        if (!(period > 0)) return 1;
+        const t = (((elapsed % period) + period) % period) / period;
+        return low + (1 - low) * (1 + Math.cos(2 * Math.PI * t)) / 2;
+    }
 }

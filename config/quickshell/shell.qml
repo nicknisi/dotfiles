@@ -48,6 +48,10 @@ ShellRoot {
                 active: Prefs.barMode === "island"
                 Island {
                     modelData: screenScope.modelData
+                    // The island's own states (M3): banners from the one
+                    // notification server, dictation from the launcher's voice.
+                    notifications: notificationServer
+                    voice: launcher.launcherHost.voice
                 }
             }
             Reserve {
@@ -73,12 +77,21 @@ ShellRoot {
     }
 
     // Global rather than per-monitor: one D-Bus notification server for the
-    // session. The OSD that used to live beside it is gone; volume, brightness
-    // and the mic are messages the capsule delivers itself, through Interrupt.
-    Notifications {}
+    // session (NotificationServer.qml), whatever the bar mode. The classic
+    // modes draw its toasts (Notifications.qml); the island draws banners.
+    // The OSD that used to live beside it is gone; volume, brightness and the
+    // mic are messages the bar or the island delivers itself, through Interrupt.
+    NotificationServer {
+        id: notificationServer
+    }
+    Notifications {
+        source: notificationServer
+    }
     NotificationCenter {}
     ThemePicker {}
     Launcher { id: launcher }
+    // Dictation from the daemon (the Copilot key): this bottom popup in the
+    // classic modes, the island's dict state in island mode.
     VoxtypeOsd {
         voice: launcher.launcherHost.voice
         onVisibleChanged: if (visible) screen = launcher.targetScreen()

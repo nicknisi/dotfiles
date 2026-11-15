@@ -12,7 +12,8 @@
 //
 //   { total, attention, spendToday, agents: [record] }
 //   record = { id, kind, host, name, where, mood, state, age, pane, session,
-//              windowId, pid, riker, job, repo, reason, jumpable, attention }
+//              windowId, window, project, pid, riker, job, repo, reason,
+//              jumpable, attention }
 //
 // While fleet answers, it owns the tmux agents (fresher, and it sees status)
 // and the scan adds their pid and age by pane; every agent outside tmux comes
@@ -125,6 +126,7 @@ function fromFleet(a) {
         kind: str(a.agentType).toLowerCase(),
         host: "tmux",
         label: str(a.label || a.windowLabel || a.window),
+        window: str(a.window || a.windowLabel),
         project: project,
         repo: basename(root),
         status: str(a.status).toUpperCase(),
@@ -150,6 +152,7 @@ function fromScan(a, index) {
         kind: str(a.kind).toLowerCase(),
         host: str(a.host) || "other",
         label: label,
+        window: "",
         project: where,
         repo: riker ? riker.repo : basename(where),
         job: riker ? riker.job : "",
@@ -254,6 +257,10 @@ function record(row, now) {
         pane: row.pane,
         session: row.session,
         windowId: row.windowId,
+        // The tmux window's name and the agent's directory ("~/..."), for
+        // Context's lane (M3): which window shows it, and where it works.
+        window: row.window || "",
+        project: row.project || "",
         pid: row.pid,
         jumpable: jumpable(row)
     };

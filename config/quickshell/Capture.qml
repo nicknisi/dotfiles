@@ -16,6 +16,10 @@ Singleton {
 
     property int pid: 0
     readonly property bool recording: pid > 0
+    // When the recording started, epoch ms: the pid file's mtime, so the
+    // elapsed time survives a shell reload (PLAN M3, the island's live
+    // segment). 0 when not recording or not known yet.
+    property double startedAt: 0
     readonly property string pidPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/capture-wf-recorder.pid"
 
     function refresh(): void { pidFile.reload() }
@@ -34,6 +38,21 @@ Singleton {
         onFileChanged: reload()
         onLoaded: root.pid = parseInt(text().trim()) || 0
         onLoadFailed: root.pid = 0
+    }
+
+    onPidChanged: {
+        root.startedAt = 0;
+        if (root.pid > 0 && !since.running) since.running = true;
+    }
+    Process {
+        id: since
+        command: ["stat", "-c", "%Y", root.pidPath]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const s = parseInt(text.trim());
+                root.startedAt = root.pid > 0 && s > 0 ? s * 1000 : 0;
+            }
+        }
     }
 
     Process {
