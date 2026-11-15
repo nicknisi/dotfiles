@@ -284,13 +284,7 @@ Item {
     readonly property var arrives: ({ polkit: "M8" })
     // The power menu's commands (launcher/providers/System.qml's), and the
     // last one asked for (tests, the sandbox: under Fixture.dryRun nothing runs).
-    readonly property var powerCommands: ({
-            lock: ["loginctl", "lock-session"],
-            suspend: ["systemctl", "suspend"],
-            logout: ["uwsm", "stop"],
-            reboot: ["systemctl", "reboot"],
-            shutdown: ["systemctl", "poweroff"]
-        })
+    readonly property var powerCommands: CcData.POWER_COMMANDS
     property string powerRan: ""
     // The power menu shows over the scrim (Island.qml).
     readonly property bool scrimShown: machine.state === "power"

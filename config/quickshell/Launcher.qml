@@ -8,6 +8,7 @@ import Quickshell.Widgets
 import qs
 import "launcher"
 import "launcher/ui" as LauncherUi
+import "lib/Anchored.js" as Anchored
 
 // Launcher.qml - the palette's host (PLAN M5).
 //
@@ -22,12 +23,13 @@ import "launcher/ui" as LauncherUi
 //                 palette.
 //   pill, full,   the free panel below: a full-screen transparent overlay
 //   rail          (an outside click closes) with the content top centre, 8
-//                 under the bar's reserved zone (PLAN 1.6), on the island
-//                 material, opaque, radius 28, the one shadow. It grows from
-//                 its top edge on the spatial spring and fades in over
-//                 effects; a close fades it out over exitFade once the
-//                 activated row's flash has peaked. M4 restyles the classic
-//                 modes and moves this into its host.
+//                 under the bar's reserved zone when the bar is on the top
+//                 (PLAN 1.6; lib/Anchored.js free(): y 64 under the pill, 48
+//                 under the full strip), else 8 under the screen's top; on
+//                 the island material, opaque, radius 28, the one shadow. It grows from its top edge on the
+//                 spatial spring and fades in over effects; a close fades it
+//                 out over exitFade once the activated row's flash has
+//                 peaked.
 //   fullscreen    in island mode, over a fullscreen window: the free panel,
 //                 where the island would put it (see islandFor).
 //
@@ -35,7 +37,8 @@ import "launcher/ui" as LauncherUi
 // place, with no stop at rest between: the control center's Clipboard opens
 // the clipboard scope here (openScope, from IslandView), and an `island`
 // effect (the System provider's Open Control center) moves the palette's
-// island to that state before the palette closes (onIslandRequested).
+// island to that state before the palette closes (onIslandRequested). In the
+// classic modes the same effect opens the bar's anchored panel (M4).
 //
 // Every IPC entry point is unchanged.
 Scope {
@@ -44,6 +47,8 @@ Scope {
     readonly property alias launcherHost: host
     // Island.qml instances (shell.qml), one per screen; empty outside island mode.
     property var islands: []
+    // Bar.qml instances (shell.qml), one per screen; empty in island mode.
+    property var classicBars: []
     // The island showing the palette, or null while the free panel does.
     // Chosen on every open, kept through the close.
     property var shownIsland: null
@@ -123,13 +128,23 @@ Scope {
     Connections {
         target: host
         function onIslandRequested(state) {
+            const screen = host.opened && host.targetScreen ? host.targetScreen : root.targetScreen()
             const island = root.shownIsland && root.shownIsland.view.launcherShown ? root.shownIsland
-                : root.islandFor(host.opened && host.targetScreen ? host.targetScreen : root.targetScreen())
-            if (!island) {
-                console.warn("launcher: no island for `" + state + "` (not island mode, or a fullscreen window)")
+                : root.islandFor(screen)
+            if (island) {
+                island.view.open(state)
                 return
             }
-            island.view.open(state)
+            // The classic modes: the bar's anchored host on that screen.
+            const bars = (root.classicBars || []).filter(b => b)
+            const bar = bars.find(b => screen && b.screen && b.screen.name === screen.name) ?? bars[0] ?? null
+            if (bar) {
+                // After the palette's close, so the host's focus grab is the
+                // one left standing.
+                Qt.callLater(() => bar.host.open(state))
+                return
+            }
+            console.warn("launcher: no island or bar for `" + state + "` (a fullscreen window?)")
         }
     }
     // A mode change took the island away: the free panel carries on.
@@ -228,9 +243,18 @@ Scope {
             // the 1 px ring across two device rows).
             readonly property real dpr: panel.devicePixelRatio > 0 ? panel.devicePixelRatio : 1
             // Top centre, 8 under the bar's reserved zone when the bar is on
-            // the top edge, else 8 under the screen's top; in island mode
-            // (a fullscreen window) where the island would be, y 8.
-            readonly property real topY: Prefs.barMode !== "island" && Prefs.edge === "top" ? Theme.barExtent + 8 : 8
+            // the top edge (PLAN 1.6: y 64 under the pill, 48 under the full
+            // strip), else 8 under the screen's top; in island mode (a
+            // fullscreen window) where the island would be, y 8
+            // (lib/Anchored.js free()).
+            readonly property real topY: Anchored.free({
+                mode: Prefs.barMode,
+                edge: Prefs.edge,
+                screen: { width: panel.width, height: panel.height },
+                reserve: Theme.barExtent,
+                size: { width: content.implicitWidth, height: content.implicitHeight },
+                dpr: card.dpr
+            }).y
             readonly property real fullHeight: Math.min(content.implicitHeight, panel.height - topY - gaps)
             // 0 -> 1 as it opens: from the 56 px header down to its height.
             property real grow: 1

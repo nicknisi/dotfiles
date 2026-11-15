@@ -624,10 +624,20 @@ function sheetName(name) {
     return SHEETS.indexOf(n) >= 0 ? n : "";
 }
 
+// The power menu's commands (launcher/providers/System.qml's), for every host
+// that shows it: the island (IslandView) and the classic bars' anchored host.
+var POWER_COMMANDS = {
+    lock: ["loginctl", "lock-session"],
+    suspend: ["systemctl", "suspend"],
+    logout: ["uwsm", "stop"],
+    reboot: ["systemctl", "reboot"],
+    shutdown: ["systemctl", "poweroff"]
+};
+
 if (typeof module !== "undefined")
     module.exports = {
         home: home, tiles: tiles, levels: levels, minis: minis, notes: notes, footer: footer, mediaCard: mediaCard,
         wifi: wifi, sound: sound, tailscale: tailscale, bluetooth: bluetooth, notifications: notifications, display: display, awake: awake,
         batteryIcon: batteryIcon, outputKind: outputKind, outputName: outputName, ago: ago, plain: plain, clock: clock, scaleText: scaleText, transport: transport, appIcon: appIcon, osIcon: osIcon, btIcon: btIcon,
-        lastSeen: lastSeen, wifiIcon: wifiIcon, sheetName: sheetName, SHEETS: SHEETS, ALIASES: ALIASES, BAR_MODES: BAR_MODES
+        lastSeen: lastSeen, wifiIcon: wifiIcon, sheetName: sheetName, SHEETS: SHEETS, ALIASES: ALIASES, BAR_MODES: BAR_MODES, POWER_COMMANDS: POWER_COMMANDS
     };

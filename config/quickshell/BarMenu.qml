@@ -11,6 +11,9 @@ Item {
     property string subtitle: ""
     property Component accessory: null
     property bool shown: false
+    // On the classic bars' panel frame (Hosts/AnchoredView): the frame's
+    // header carries the title and the subtitle, so this one hides.
+    property bool framed: false
     default property alias menuContent: content.data
     signal dismissed()
 
@@ -25,7 +28,7 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             spacing: 10
-            visible: menu.title !== ""
+            visible: menu.title !== "" && !menu.framed
 
             ColumnLayout {
                 Layout.fillWidth: true

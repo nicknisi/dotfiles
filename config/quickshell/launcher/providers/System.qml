@@ -38,10 +38,11 @@ Item {
     { id: "bar", title: "Bar Preferences", keywords: "capsule panel edge position minimal transparency", subtitle: "Position, size and transparency" }
   ]
   readonly property var commands: [
-    // The island's control center (launcher-pickers 5.4: "Open Control center",
-    // sub "Island"). Island mode only: the classic bars keep the old Hud until
-    // M4 hosts the control center there.
-    { id: "control-center", parent: "root", title: "Open Control center", subtitle: "Island", keywords: "control center quick settings toggles wifi bluetooth sound volume brightness do not disturb", island: "cc" },
+    // The control center (launcher-pickers 5.4: "Open Control center", sub
+    // "Island"). Every mode: the island shows it in island mode, the classic
+    // bar's anchored panel (Hosts/AnchoredHost.qml, M4) in pill, full and
+    // rail, where the row's subtitle reads "Bar" (commandRow).
+    { id: "control-center", parent: "root", title: "Open Control center", subtitle: "Island", keywords: "control center quick settings toggles wifi bluetooth sound volume brightness do not disturb", island: "cc", everyMode: true },
     { id: "action-lock", parent: "session", title: "Lock", subtitle: "Lock the current session", keywords: "screen secure", argv: ["loginctl", "lock-session"] },
     { id: "action-suspend", parent: "session", title: "Suspend", subtitle: "Suspend the computer", keywords: "sleep", argv: ["systemctl", "suspend"] },
     { id: "action-logout", parent: "session", title: "Log out", subtitle: "End the current session", keywords: "exit session uwsm", argv: ["uwsm", "stop"], dangerous: true },
@@ -78,10 +79,13 @@ Item {
                : command.island ? { type: "system-island", state: command.island }
                : { type: "exec", argv: command.argv }
     var opens = !!(command.page || command.island)
-    return { id: command.id, parent: command.parent, title: command.title, subtitle: command.subtitle || "",
+    // An island command names its host the way runsLabel does: "Island" in
+    // island mode, "Bar" where the classic bar's panel shows it.
+    var subtitle = command.island ? (Desktop.Prefs.barMode === "island" ? "Island" : "Bar") : (command.subtitle || "")
+    return { id: command.id, parent: command.parent, title: command.title, subtitle: subtitle,
       keywords: command.keywords || "", icon: "󰒓", section: "Desktop", verb: opens ? "Open" : "Run",
       tier: "item", order: order, score: 1, remember: true, action: effect,
-      runsLabel: command.island ? "Shows the island's " + (command.island === "cc" ? "control center" : command.island) : "",
+      runsLabel: command.island ? (Desktop.Prefs.barMode === "island" ? "Shows the island's " : "Shows the bar's ") + (command.island === "cc" ? "control center" : command.island) : "",
       intentFamily: command.intentFamily || (opens ? "navigate" : "action"),
       confirm: command.dangerous && settings.confirmDestructive !== false ? command.title + "? Unsaved work may be lost." : "" }
   }
@@ -89,7 +93,7 @@ Item {
     var rows = [], i
     for (i = 0; i < root.menus.length; i++) rows.push(root.navRow(root.menus[i], i))
     for (i = 0; i < root.commands.length; i++) {
-      if (root.commands[i].island && Desktop.Prefs.barMode !== "island") continue
+      if (root.commands[i].island && !root.commands[i].everyMode && Desktop.Prefs.barMode !== "island") continue
       rows.push(root.commandRow(root.commands[i], settings || {}, rows.length))
     }
     for (var kind = 0; kind < 2; kind++) {

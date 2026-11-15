@@ -1,10 +1,11 @@
 // Reserve the bar thickness and inset along its active screen edge.
 //
 // The one owner of the exclusive zone in every bar mode: the bar, the island
-// and their popups all ignore exclusion. Theme.barExtent is 56 for pill and
-// rail, 40 for full and 46 for the island. Prefs.edge reads "top" in island
-// mode, so switching to the island moves this window to the top edge, and
-// leaving it returns the window to the remembered edge.
+// and their popups all ignore exclusion. Theme.barExtent is 56 for the pill,
+// 40 for the flush full strip and rail (M4) and 46 for the island. Prefs.edge
+// is the edge the mode draws on (the island and the full strip read "top", the
+// rail "left" unless it is on the right), so a mode switch moves this window
+// with the bar, and leaving the island returns it to the remembered edge.
 import Quickshell
 import Quickshell.Wayland
 import QtQuick

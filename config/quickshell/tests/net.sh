@@ -4,6 +4,8 @@ root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 cp "$root"/{Net,NetMenu,BarMenu,BarModule,MenuAction,MenuHint,Theme,Prefs,TailscaleIcon}.qml "$tmp/"
+# Prefs and Theme read the bar's edge and inset rules from BarGeometry.js.
+cp "$root/BarGeometry.js" "$tmp/"
 cp "$root/tests/net.qml" "$tmp/shell.qml"
 # No live Wi-Fi changes, Tailscale processes, or browser launches in this test.
 cat >"$tmp/Tailscale.qml" <<'QML'

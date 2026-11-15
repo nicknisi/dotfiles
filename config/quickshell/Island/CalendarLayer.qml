@@ -19,21 +19,39 @@ import "../lib/Calendar.js" as Calendar
 // of the next and last month `inkMid`.
 //
 // `today` is a Date from the view (the fixture's `today` in the sandbox);
-// `offset` is months from today's, reset whenever the layer opens.
+// `offset` is months from today's, reset whenever the layer opens. The hosts
+// feed their clock, which ticks every second, so only the date's parts are
+// read (whole numbers, which notify only when they change): the grid's cells
+// are built again at midnight or on a month step, never on a tick, and the
+// grid's Repeater counts the cells rather than taking the array, so even then
+// its 42 delegates stay.
+//
+// `closable` (the classic bars' anchored host, M4): there is no level to go
+// back to, so the month is a plain title with no chevron and a trailing
+// close button ends the row, as on the host's other pages; `back` then means
+// close.
 Layer {
     id: cal
 
     property date today: new Date()
     property int offset: 0
+    property bool closable: false
+    // The back button's name: back to the island's hover.
+    property string backLabel: "Back to the island"
 
     signal back
 
-    readonly property var shown: Calendar.shift(today.getFullYear(), today.getMonth(), offset)
-    readonly property var cells: Calendar.cells(shown.year, shown.month, today)
+    readonly property int todayYear: today.getFullYear()
+    readonly property int todayMonth: today.getMonth()
+    readonly property int todayDate: today.getDate()
+    readonly property var shown: Calendar.shift(todayYear, todayMonth, offset)
+    readonly property var cells: Calendar.cells(shown.year, shown.month, new Date(todayYear, todayMonth, todayDate))
     readonly property string title: Calendar.title(shown.year, shown.month)
     readonly property real cellWidth: (width - 36) / 7
     readonly property alias grid: grid
     readonly property alias backButton: backButton
+    readonly property alias closeButton: closeButton
+    readonly property alias backChevron: backChevron
 
     width: 400
     height: 368
@@ -58,15 +76,18 @@ Layer {
             height: backRow.implicitHeight + 8
             radius: 8
             color: backArea.containsMouse ? Tokens.fillLow : "transparent"
-            Accessible.role: Accessible.Button
-            Accessible.name: "Back to the island"
-            Accessible.onPressAction: cal.back()
+            Accessible.role: cal.closable ? Accessible.Heading : Accessible.Button
+            Accessible.name: cal.closable ? cal.title : cal.backLabel
+            Accessible.onPressAction: if (!cal.closable)
+                cal.back()
             Row {
                 id: backRow
                 anchors.centerIn: parent
                 spacing: 6
                 Icon {
+                    id: backChevron
                     anchors.verticalCenter: parent.verticalCenter
+                    visible: !cal.closable
                     name: "chevL"
                     size: 14
                     color: Tokens.inkDim
@@ -83,6 +104,36 @@ Layer {
             MouseArea {
                 id: backArea
                 anchors.fill: parent
+                enabled: !cal.closable
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: cal.back()
+            }
+        }
+
+        // Closes the calendar (closable): the anchored pages' trailing x.
+        Rectangle {
+            id: closeButton
+            objectName: "calClose"
+            visible: cal.closable
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            width: visible ? 28 : 0
+            height: 28
+            radius: 8
+            color: closeArea.containsMouse ? Tokens.fillLow : "transparent"
+            Accessible.role: Accessible.Button
+            Accessible.name: "Close the calendar"
+            Accessible.onPressAction: cal.back()
+            Icon {
+                anchors.centerIn: parent
+                name: "x"
+                size: 14
+                color: Tokens.inkDim
+            }
+            MouseArea {
+                id: closeArea
+                anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: cal.back()
@@ -90,7 +141,8 @@ Layer {
         }
 
         Row {
-            anchors.right: parent.right
+            anchors.right: closeButton.left
+            anchors.rightMargin: cal.closable ? 8 : 0
             anchors.verticalCenter: parent.verticalCenter
             spacing: 4
             Repeater {
@@ -145,27 +197,31 @@ Layer {
         y: weekdays.y + weekdays.implicitHeight + 8
         columns: 7
         rowSpacing: 2
+        // A count, not the array: a month step hands the delegates new
+        // entries instead of building 42 new ones.
         Repeater {
-            model: cal.cells
+            model: cal.cells.length
             Item {
-                required property var modelData
+                id: cell
+                required property int index
+                readonly property var entry: cal.cells[index] ?? ({ day: "", today: false, inMonth: false })
                 width: cal.cellWidth
                 height: 38
                 Accessible.role: Accessible.StaticText
-                Accessible.name: modelData.day + (modelData.today ? ", today" : "")
+                Accessible.name: entry.day + (entry.today ? ", today" : "")
                 Rectangle {
                     anchors.centerIn: parent
                     width: 34
                     height: 34
                     radius: 17
-                    color: parent.modelData.today ? Tokens.accent : "transparent"
+                    color: cell.entry.today ? Tokens.accent : "transparent"
                     Text {
                         anchors.centerIn: parent
-                        text: parent.parent.modelData.day
-                        color: parent.parent.modelData.today ? Tokens.onAccent : parent.parent.modelData.inMonth ? Tokens.fg : Tokens.inkMid
+                        text: cell.entry.day
+                        color: cell.entry.today ? Tokens.onAccent : cell.entry.inMonth ? Tokens.fg : Tokens.inkMid
                         font.family: "Monaspace Argon"
                         font.pixelSize: 13
-                        font.weight: parent.parent.modelData.today ? Font.Medium : Font.Normal
+                        font.weight: cell.entry.today ? Font.Medium : Font.Normal
                     }
                 }
             }

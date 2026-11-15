@@ -3,7 +3,7 @@ set -euo pipefail
 root=$(cd -- "$(dirname -- "$0")/../.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
-cp "$root"/{Theme,Prefs}.qml "$tmp/"
+cp "$root"/{Theme,Prefs}.qml "$root/BarGeometry.js" "$tmp/"
 cp -R "$root/Commons" "$tmp/"
 cp "$root/launcher/ui/PreviewPane.qml" "$tmp/"
 cp "$root/launcher/tests/preview.qml" "$tmp/shell.qml"

@@ -8,10 +8,17 @@
 // Hovering a row previews it: the wallpaper crossfades into the header and the
 // row tints toward that pack's accent. Nothing is applied until a click, so the
 // whole list can be browsed without touching the machine.
+//
+// In the island's material (PLAN M4, the classic bars' anchored host shows it
+// on its frame): Tokens colours, pack names in Adwaita 13 (the applied one at
+// 500 with an `accent` mark), the pack's label over its wallpaper in Monaspace
+// 11, and the wallpaper row with Kit's Lucide image icon.
 import Quickshell
 import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
+import qs
+import qs.Kit
 
 BarMenu {
     id: menu
@@ -62,7 +69,7 @@ BarMenu {
         Layout.preferredHeight: 84
         clip: true
 
-        Rectangle { anchors.fill: parent; color: Theme.sunken }
+        Rectangle { anchors.fill: parent; radius: 10; color: Tokens.raised }
 
         Image {
             id: shot
@@ -72,7 +79,7 @@ BarMenu {
             cache: true
             source: menu.preview?.image ? "file://" + menu.preview.image : ""
             opacity: status === Image.Ready ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: Theme.base } }
+            Behavior on opacity { NumberAnimation { duration: Motion.effects } }
         }
 
         // The pack's own palette laid over its wallpaper, which is the fastest
@@ -102,9 +109,9 @@ BarMenu {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             anchors.margins: 6
-            font.family: Theme.font
-            font.pixelSize: Theme.fontSize - 2
-            font.bold: true
+            font.family: "Monaspace Argon"
+            font.pixelSize: 11
+            font.weight: Font.Medium
             color: "#ffffff"
             style: Text.Outline
             styleColor: Qt.rgba(0, 0, 0, 0.6)
@@ -150,20 +157,20 @@ BarMenu {
                         // current theme's, so the hover is itself a preview.
                         Rectangle {
                             anchors.fill: parent
-                            radius: Theme.controlRadius
-                            color: row.modelData.swatches[0] ?? Theme.accent
+                            radius: 8
+                            color: row.modelData.swatches[0] ?? Tokens.accent
                             opacity: row.containsMouse ? 0.22 : 0
-                            Behavior on opacity { NumberAnimation { duration: Theme.quick } }
+                            Behavior on opacity { NumberAnimation { duration: Motion.effects } }
                         }
 
-                        // The applied pack keeps a rail, the same one the bar
-                        // slides between workspaces.
+                        // The applied pack keeps an `accent` mark.
                         Rectangle {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            width: Theme.borderWidth
-                            height: parent.height - 8
-                            color: Theme.borderActive
+                            width: 2
+                            height: parent.height - 10
+                            radius: 1
+                            color: Tokens.accent
                             visible: row.modelData.current
                         }
 
@@ -177,11 +184,10 @@ BarMenu {
                                 Layout.fillWidth: true
                                 Layout.alignment: Qt.AlignVCenter
                                 elide: Text.ElideRight
-                                font.family: Theme.font
-                                font.pixelSize: Theme.fontSize - 1
-                                font.bold: row.modelData.current
-                                color: row.modelData.current ? Theme.fg
-                                     : (row.containsMouse ? Theme.fg : Theme.muted)
+                                font.family: "Adwaita Sans"
+                                font.pixelSize: 13
+                                font.weight: row.modelData.current ? Font.Medium : Font.Normal
+                                color: row.modelData.current || row.containsMouse ? Tokens.fg : Tokens.inkDim
                                 text: row.modelData.label
                             }
 
@@ -199,7 +205,7 @@ BarMenu {
                                         radius: 4
                                         color: modelData
                                         opacity: row.containsMouse || row.modelData.current ? 1 : 0.55
-                                        Behavior on opacity { NumberAnimation { duration: Theme.quick } }
+                                        Behavior on opacity { NumberAnimation { duration: Motion.effects } }
                                     }
                                 }
                             }
@@ -213,51 +219,57 @@ BarMenu {
             readonly property real overflow: flick.contentHeight - flick.height
             anchors.right: parent.right
             width: 3
-            color: Theme.muted
+            radius: 1.5
+            color: Tokens.faint
             visible: overflow > 0
             height: Math.max(24, flick.height * flick.height / flick.contentHeight)
             y: visible ? (flick.contentY / overflow) * (flick.height - height) : 0
         }
     }
 
-    MenuRule {}
+    Rectangle {
+        Layout.fillWidth: true
+        implicitHeight: 1
+        color: Tokens.hairline
+    }
 
     // ---- wallpaper --------------------------------------------------------
     // Each pack ships several. This walks them without leaving the theme.
     MenuAction {
         Layout.fillWidth: true
-        implicitHeight: 24
+        implicitHeight: 32
         cursorShape: Qt.PointingHandCursor
         Accessible.name: "Next wallpaper"
         onClicked: menu.run("theme bg next")
 
         Rectangle {
             anchors.fill: parent
-            radius: Theme.controlRadius
-            color: Theme.raised
+            radius: 8
+            color: Tokens.fillLow
             opacity: parent.containsMouse ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: Theme.quick } }
+            Behavior on opacity { NumberAnimation { duration: Motion.effects } }
         }
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 6
-            spacing: 8
+            anchors.leftMargin: 8
+            spacing: 10
 
-            Text {
+            Icon {
                 Layout.alignment: Qt.AlignVCenter
-                font.family: Theme.icons
-                font.pixelSize: 14
-                color: Theme.muted
-                text: "\u{f02ea}" // md image-area: f0e08 is a muted speaker in this font
+                Layout.preferredWidth: 16
+                Layout.preferredHeight: 16
+                name: "image"
+                size: 16
+                color: Tokens.inkDim
             }
             Text {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
-                font.family: Theme.font
-                font.pixelSize: Theme.fontSize - 2
-                color: Theme.muted
-                text: "next wallpaper"
+                font.family: "Adwaita Sans"
+                font.pixelSize: 13
+                color: Tokens.fg
+                text: "Next wallpaper"
             }
         }
     }

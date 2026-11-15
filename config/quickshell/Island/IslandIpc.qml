@@ -51,7 +51,7 @@ Scope {
 
     function unavailable(): string {
         if (Prefs.barMode !== "island")
-            return "error: the bar is in " + Prefs.barMode + " mode; `qs ipc call island mode island` shows the island";
+            return "error: the bar is in " + Prefs.barMode + " mode; `qs ipc call island mode island` shows the island, and `qs ipc call bar open STATE` opens the bar's panels";
         return root.target() ? "" : "error: no island window yet";
     }
 

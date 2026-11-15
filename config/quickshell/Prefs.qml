@@ -15,6 +15,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "BarGeometry.js" as BarGeometry
 
 Singleton {
     id: root
@@ -29,12 +30,15 @@ Singleton {
 
     // "pill" | "full" | "rail" | "island"
     readonly property string barMode: root.barModes.includes(store.barMode) ? store.barMode : "pill"
-    // The edge the shell sits on: "top" | "bottom" | "left" | "right". The
-    // island lives at the top centre only, so island mode reads "top" here and
-    // leaves the remembered edge alone: leaving island puts the bar back where
-    // it was. storedEdge is that remembered edge, whatever the mode.
+    // The edge the shell sits on: "top" | "bottom" | "left" | "right". Each
+    // mode has its edges (BarGeometry.edgeFor, the Modes board): the pill any,
+    // the full strip the top or the bottom, the rail the left or the right,
+    // the island the top centre only. A mode that cannot use the remembered
+    // edge reads its own here (full: top, rail: left, island: top) and leaves
+    // the remembered one alone, so going back to the pill puts it where it
+    // was. storedEdge is that remembered edge, whatever the mode.
     readonly property string storedEdge: ["top", "bottom", "left", "right"].includes(store.edge) ? store.edge : "top"
-    readonly property string edge: root.barMode === "island" ? "top" : root.storedEdge
+    readonly property string edge: BarGeometry.edgeFor(root.barMode, root.storedEdge)
     readonly property bool translucent: store.translucent
 
     readonly property bool vertical: root.edge === "left" || root.edge === "right"
@@ -52,9 +56,15 @@ Singleton {
     // everything reads and toggles; it mirrors this both ways (M6).
     readonly property bool dnd: store.dnd
 
+    // Moves the bar to `edge`. The full strip on a side edge becomes the rail
+    // and the rail on the top or the bottom becomes the full strip
+    // (BarGeometry.moveTo), so a drop or a "Move Bar to Left" always lands on
+    // the edge asked for. The island keeps its place and remembers the edge.
     function setEdge(edge: string): void {
-        if (["top", "bottom", "left", "right"].indexOf(edge) < 0) return;
-        store.edge = edge;
+        const next = BarGeometry.moveTo(root.barMode, edge);
+        if (!next) return;
+        store.edge = next.edge;
+        if (next.mode !== root.barMode) store.barMode = next.mode;
     }
 
     function setBarMode(mode: string): void {
@@ -86,6 +96,21 @@ Singleton {
         store.motion = profile;
     }
 
+    // A capsule.json written before M4 holds the old modes (BarGeometry
+    // upgrade): Nick's "rail on the top" was the floating capsule along the
+    // top, and M4's rail is the strip down a side. Converted once, on the
+    // first load that finds no `layout` key, the way a move converts it, so
+    // the edge it was on stays (the full strip on the top). Later loads find
+    // the key and leave a rail chosen on the left, with the top remembered for
+    // the pill, as it is.
+    function upgradeLayout(): void {
+        if (store.layout >= BarGeometry.LAYOUT) return;
+        const next = BarGeometry.upgrade(store.barMode, store.edge);
+        if (next.edge !== store.edge) store.edge = next.edge;
+        if (next.mode !== store.barMode) store.barMode = next.mode;
+        store.layout = BarGeometry.LAYOUT;
+    }
+
     function setReducedMotion(on: bool): void { store.reducedMotion = on }
     function setDnd(on: bool): void { store.dnd = on }
 
@@ -107,10 +132,15 @@ Singleton {
         // would put the file's older value back over it.
         onFileChanged: if (!save.running) reload()
         onAdapterUpdated: save.restart()
+        onLoaded: root.upgradeLayout()
 
         // First run on a machine: nothing saved yet. Writing the defaults out
-        // is what makes every later load quiet.
-        onLoadFailed: writeAdapter()
+        // is what makes every later load quiet (at the current layout: there
+        // is nothing old to convert).
+        onLoadFailed: {
+            store.layout = BarGeometry.LAYOUT;
+            writeAdapter();
+        }
 
         adapter: JsonAdapter {
             id: store
@@ -122,6 +152,8 @@ Singleton {
             property string motion: "spring"
             property bool reducedMotion: false
             property bool dnd: false
+            // The bar rules the file follows (BarGeometry.LAYOUT); 0 before M4.
+            property int layout: 0
         }
     }
 }
