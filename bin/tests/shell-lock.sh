@@ -7,7 +7,7 @@
 # unlock, and gives up to hyprlock after 3 relaunches. No real Quickshell,
 # compositor or lock is involved.
 #
-# The "hyprlock already running" branch (pgrep -x hyprlock) is not exercised:
+# The "hyprlock already running" branch (pgrep -u <uid> -x hyprlock) is not exercised:
 # a process named hyprlock on the live machine would make hypridle skip a lock
 # while it runs. .shell-rebuild/specs/shots/M8/lock-test.sh covers the real
 # thing inside a sandbox Hyprland.
@@ -40,6 +40,7 @@ if [ "${1:-}" = ipc ]; then
   echo "$*" >>"$state/ipc"
   case "$*" in
     *"call lock inspect"*)
+      [ -f "$state/noipc" ] && exit 0
       if [ -f "$state/running" ]; then
         if [ -f "$state/unlocked" ]; then echo '{"locked":false}'; else echo '{"locked":true}'; fi
       fi
@@ -186,6 +187,41 @@ echo "-- leftover unlocked instance: exit $code"
 [ -f "$TMP/state/hyprlock" ] || fail "a leftover unlocked instance is not a lock: falls back ($(cat "$TMP/out"))"
 grep -q "exited before locking" "$TMP/out" || fail "says why: $(cat "$TMP/out")"
 stop_all
+
+# Another instance runs but never answers IPC and never commits: no exit 0
+# on its say-so. shell-lock waits out the polls, then runs hyprlock itself.
+rm -rf "$TMP/state"
+mkdir -p "$TMP/state"
+touch "$TMP/state/noipc"
+FAKE_QS_STATE="$TMP/state" setsid bash "$TMP/bin/qs" -n -p "$TMP/lock.qml" --no-color >/dev/null 2>&1 &
+sleep 0.3
+set +e
+env PATH="$TMP/bin:/usr/bin:/bin" HOME="$TMP" FAKE_QS_STATE="$TMP/state" XDG_RUNTIME_DIR="$TMP/rt" \
+  SHELL_LOCK_QML="$TMP/lock.qml" SHELL_LOCK_WAIT=6 SHELL_LOCK_WATCH=0.1 SHELL_LOCK_LOG="$TMP/watch.log" \
+  bash "$ROOT/bin/shell-lock" >"$TMP/out" 2>&1
+code=$?
+set -e
+echo "-- silent pending instance: exit $code"
+[ -f "$TMP/state/hyprlock" ] || fail "a lock that never commits is no lock: falls back ($(cat "$TMP/out"))"
+grep -q "other lock screen did not report a committed lock" "$TMP/out" || fail "says why: $(cat "$TMP/out")"
+stop_all
+
+# A planted unlock mark (a symlink, not lock.qml's file) is no unlock: the
+# watcher still relaunches a lock that died.
+run "planted mark" FAKE_QS_SECURE_AT=3
+[ "$code" = 0 ] || fail "locks first ($(cat "$TMP/out"))"
+planted=$(cat "$TMP/state/done-path")
+ln -s "$TMP/lock.qml" "$planted"
+pkill -TERM -f "$TMP/bin/qs -n" 2>/dev/null || true
+wait_for '[ "$(starts)" = 2 ] && [ -f "$TMP/state/running" ]' 4 || fail "a symlinked mark does not stop the relaunch (starts $(starts))"
+rm -f "$planted"
+stop_all
+
+# No usable XDG_RUNTIME_DIR: no mark in a shared dir, straight to hyprlock.
+run "no runtime dir" XDG_RUNTIME_DIR=
+[ -f "$TMP/state/hyprlock" ] || fail "falls back without XDG_RUNTIME_DIR"
+[ ! -f "$TMP/state/args" ] || fail "starts no lock without a private runtime dir"
+grep -q "XDG_RUNTIME_DIR is not a directory" "$TMP/out" || fail "says why: $(cat "$TMP/out")"
 
 # Never secure: the lock is stopped (TERM) and hyprlock takes over.
 run "never secure"

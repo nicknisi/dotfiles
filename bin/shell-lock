@@ -24,12 +24,13 @@
 #      over a lock the compositor had already granted. If the instance exits
 #      early because another shell-lock run's lock is still starting (two
 #      lock requests at once: SUPER+ESCAPE then a lid close), it keeps asking
-#      for the rest of the 2 s and leaves the fallback to that run. The
-#      fallback stays installed until the Quickshell lock has survived real
-#      use.
+#      for the rest of the 2 s; unless that lock has committed by then, it
+#      runs hyprlock itself. Only a committed lock counts as locked: a second
+#      locker is harmless, a skipped one is not. The fallback stays installed
+#      until the Quickshell lock has survived real use.
 #
 # Exit status: 0 locked by the Quickshell lock (or already locked, or another
-# run is locking); otherwise hyprlock's, which this process becomes.
+# run's lock committed); otherwise hyprlock's, which this process becomes.
 #
 # Environment, for tests (bin/tests/shell-lock.sh):
 #   SHELL_LOCK_QML       the lock config (default ~/.config/quickshell/lock.qml)
@@ -131,6 +132,7 @@ case "$wait_polls" in ''|*[!0-9]*) wait_polls=20 ;; esac
 case "$relaunches" in ''|*[!0-9]*) relaunches=0 ;; esac
 case "$watch_every" in ''|*[!0-9.]*) watch_every=1 ;; esac
 max_relaunches=3
+uid=$(id -u)
 
 fall_back() {
   echo "shell-lock: $1; falling back to $fallback" >&2
@@ -146,7 +148,7 @@ secure() {
 # has no IPC yet (still loading) or reports locked (asked the compositor). An
 # instance left over after an unlock reports locked false and does not count.
 lock_pending() {
-  pgrep -f "qs -n -p $qml" >/dev/null 2>&1 || return 1
+  pgrep -u "$uid" -f "qs -n -p $qml" >/dev/null 2>&1 || return 1
   local r
   r=$(qs ipc -p "$qml" call lock inspect 2>/dev/null || true)
   case "$r" in
@@ -169,7 +171,9 @@ if [ "${1:-}" = --watch ]; then
   done
   # lock.qml creates DONE about 200 ms before it ends; allow for a slow disk.
   sleep 0.5
-  if [ -e "$done_file" ]; then
+  # Trust only what lock.qml's touch makes: a regular file of this user, not
+  # a symlink. Anything else there counts as no unlock, so a new lock starts.
+  if [ -f "$done_file" ] && [ ! -L "$done_file" ] && [ -O "$done_file" ]; then
     rm -f "$done_file"
     exit 0
   fi
@@ -181,8 +185,11 @@ if [ "${1:-}" = --watch ]; then
   exec bash "$self"
 fi
 
-# 1. Already locked.
-if pgrep -x hyprlock >/dev/null 2>&1; then
+# 1. Already locked. Only this user's hyprlock counts; another user's process
+# proves nothing. A process of this user named hyprlock could fake it, but a
+# process of this user can already end any lock (kill the locker, then
+# hl.clear_crashed_lockscreen), so that is no new hole.
+if pgrep -u "$uid" -x hyprlock >/dev/null 2>&1; then
   exit 0
 fi
 command -v qs >/dev/null 2>&1 || fall_back "qs is not installed"
@@ -194,7 +201,12 @@ fi
 # 2. Start the lock in its own session, so it outlives this script and the
 # hypridle process that ran it. Its log goes to Quickshell's own log file.
 # DONE: lock.qml creates it right after a real unlock (the watcher's sign).
-rundir=${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}
+# The mark lives only in this user's runtime dir (logind makes it 0700), never
+# in a shared /tmp where another user could plant one.
+rundir=${XDG_RUNTIME_DIR:-}
+if [ -z "$rundir" ] || [ ! -d "$rundir" ] || [ -L "$rundir" ] || [ ! -O "$rundir" ]; then
+  fall_back "XDG_RUNTIME_DIR is not a directory owned by this user"
+fi
 done_file="$rundir/shell-lock.$$.$RANDOM.unlocked"
 rm -f "$done_file"
 if command -v setsid >/dev/null 2>&1; then
@@ -234,11 +246,10 @@ while [ "$i" -lt "$wait_polls" ]; do
 done
 
 if [ "$mine" = 0 ]; then
-  # Another run's lock: locked, being locked, or that run has fallen back.
-  if secure || pgrep -x hyprlock >/dev/null 2>&1 || lock_pending; then
-    exit 0
-  fi
-  fall_back "the other lock screen did not lock either"
+  # Another run's lock. Only a committed lock counts: one still pending after
+  # the whole wait (or silent on IPC), or a hyprlock process, proves nothing.
+  secure && exit 0
+  fall_back "the other lock screen did not report a committed lock in time"
 fi
 
 # 4. Not committed in time: stop it, then hyprlock. If the compositor had
