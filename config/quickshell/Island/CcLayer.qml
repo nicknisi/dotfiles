@@ -22,6 +22,10 @@ Layer {
 
     property var monitor: null
     property bool animated: true
+    // What the Clipboard mini calls instead of the `clipboard` IPC: the
+    // island's palette, opened in place (IslandView.openClipboard); null for
+    // none.
+    property var openClipboard: null
 
     signal close
     signal power
@@ -65,6 +69,7 @@ Layer {
         id: ccModel
         active: layer.current
         monitor: layer.monitor
+        openClipboard: layer.openClipboard
         onClose: layer.close()
         onPower: layer.power()
         onHandOff: page => layer.handOff(page)

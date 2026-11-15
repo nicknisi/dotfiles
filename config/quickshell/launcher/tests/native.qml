@@ -3,6 +3,7 @@ import QtQuick as Quick
 import Quickshell
 import "../core" as Core
 import "../providers" as Providers
+import "../.." as Desktop
 
 Scope {
     id: suite
@@ -70,6 +71,13 @@ Scope {
         equal(rows.find(function(row) { return row.title === "Wallpaper: Fixture wallpaper" }).action.argv, ["theme", "bg", "/tmp/fixture name.png"], "wallpaper argv is literal")
         equal(desktop.activate(desktop.navRow(desktop.menus[4], 4)), { type: "provider-view", provider: "system" }, "native provider view contract")
         equal(desktop.activePage, "audio", "audio menu selected")
+        // Open Control center (launcher-pickers 5.4): an island row, listed in island mode only.
+        var ccCommand = desktop.commands.find(function(c) { return c.id === "control-center" })
+        var ccRow = ccCommand ? desktop.commandRow(ccCommand, {}, 0) : null
+        equal(ccRow && ccRow.action, { type: "system-island", state: "cc" }, "Open Control center is an island row")
+        equal(ccRow && desktop.activate(ccRow), { type: "island", state: "cc" }, "it asks the host for the island's cc state")
+        check(ccRow && ccRow.parent === "root" && ccRow.verb === "Open" && ccRow.runsLabel === "Shows the island's control center", "it sits at the Desktop root and says what it opens")
+        check(desktop.catalog({ settings: {} }).some(function(row) { return row.id === "control-center" }) === (Desktop.Prefs.barMode === "island"), "listed only in island mode (" + Desktop.Prefs.barMode + ")")
         equal(desktop.query({ scope: "files", query: "", settings: {} }), [], "system scope isolation")
         check(desktop.query({ scope: "system/bar", sub: "bar", query: "", settings: {} }).length >= 6, "bar preferences searchable")
         check(desktop.query({ scope: "", query: "reboot", settings: {} }).some(function(row) { return row.id === "action-reboot" && row.confirm }), "root session search retains confirmation")

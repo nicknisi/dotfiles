@@ -11,13 +11,17 @@ import qs
 // first one when Hyprland cannot say) and answer "error: ..." outside island
 // mode.
 //
-//   open STATE    rest | hover | crew | hail | vibes | cal | notif | osd | dict | flash | cc | launcher;
-//                 cc opens the old Hud home under the rest pill until its
-//                 island state lands (PLAN 1.7). launcher opens the palette
-//                 (Launcher.qml), which in island mode is the island's own
-//                 launcher state (M5). IPC has no input serial for a popup grab, so the
-//                 Hud opens without one and the island's focus grab closes it
-//                 on an outside click (IslandView.hudNeedsGrab). M2 adds crew
+//   open STATE    rest | hover | crew | hail | vibes | cal | notif | osd | dict | flash | cc | cc/<sheet> | power | battery | launcher;
+//                 cc is the control center (M6), cc/<sheet> opens it on a
+//                 sheet (wifi, sound, tailscale, bt, notifications, display,
+//                 awake), power the power menu over its scrim, and battery the
+//                 old Hud's battery page under the rest pill (the one hand-off
+//                 left, PLAN 1.7). launcher opens the palette (Launcher.qml),
+//                 which in island mode is the island's own launcher state
+//                 (M5); from cc it morphs straight there. IPC has no input
+//                 serial for a popup grab, so the Hud opens without one and
+//                 the island's focus grab closes it on an outside click
+//                 (IslandView.hudNeedsGrab). M2 adds crew
 //                 (the Crew panel, pinned), hail (the first agent that needs
 //                 you; an error when none does) and vibes. M3 adds cal (the
 //                 calendar, a panel), notif (the newest waiting notification,

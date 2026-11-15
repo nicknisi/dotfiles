@@ -31,6 +31,12 @@ import "launcher/ui" as LauncherUi
 //   fullscreen    in island mode, over a fullscreen window: the free panel,
 //                 where the island would put it (see islandFor).
 //
+// The palette and the control center (M6) hand the island to each other in
+// place, with no stop at rest between: the control center's Clipboard opens
+// the clipboard scope here (openScope, from IslandView), and an `island`
+// effect (the System provider's Open Control center) moves the palette's
+// island to that state before the palette closes (onIslandRequested).
+//
 // Every IPC entry point is unchanged.
 Scope {
     id: root
@@ -61,6 +67,12 @@ Scope {
     function toggle() { host.opened ? host.close() : root.open() }
     function summon(payload) { host.targetScreen = targetScreen(); host.open(payload) }
     function route(route) { host.targetScreen = targetScreen(); host.openRoute(route, {}) }
+    // The palette on `screen` (a ShellScreen; the focused one when null), in
+    // `route` (clipboard, a provider scope) with openRoute's options.
+    function openScope(screen, route, options) {
+        host.targetScreen = screen || targetScreen()
+        host.openRoute(route, options || {})
+    }
     function query(query) { if (!host.opened) root.open(); return host.setQuery(query) }
     // A palette hotkey: run one provider row headlessly, `<provider>/<id>`.
     function run(route) { var result = host.run(route); return result ? String(result) : "unavailable" }
@@ -101,6 +113,24 @@ Scope {
         target: root.shownIsland ? root.shownIsland.view : null
         ignoreUnknownSignals: true
         function onLauncherLeft() { if (host.opened) host.cancel() }
+    }
+    // An `island` effect: the palette's island (or, from a headless hotkey,
+    // the focused screen's) shows that state, then the engine closes the
+    // palette. The state change leaves the launcher state, which closes the
+    // palette here first (onLauncherLeft), so the island morphs straight from
+    // the palette to it. Nothing over a fullscreen window or outside island
+    // mode (islandFor is null): the island would open under the window.
+    Connections {
+        target: host
+        function onIslandRequested(state) {
+            const island = root.shownIsland && root.shownIsland.view.launcherShown ? root.shownIsland
+                : root.islandFor(host.opened && host.targetScreen ? host.targetScreen : root.targetScreen())
+            if (!island) {
+                console.warn("launcher: no island for `" + state + "` (not island mode, or a fullscreen window)")
+                return
+            }
+            island.view.open(state)
+        }
     }
     // A mode change took the island away: the free panel carries on.
     onIslandsChanged: {

@@ -92,6 +92,17 @@ Scope {
         check(dismiss && dismiss.color === undefined, "outside-click area does not paint a dimming layer")
         dismiss.clicked(null)
         check(!host.opened, "outside click still dismisses the launcher")
+        // An `island` effect (the System provider's Open Control center): the
+        // host hears the state while the palette is still up, then the palette
+        // closes, so the island morphs from it straight to the state. Outside
+        // island mode Launcher.qml has no island for it and leaves it.
+        wrapper.open()
+        const asked = []
+        const heard = state => asked.push(state + (host.opened ? " open" : " closed"))
+        host.islandRequested.connect(heard)
+        host.perform({ type: "island", state: "cc" }, {})
+        host.islandRequested.disconnect(heard)
+        check(asked.join() === "cc open" && !host.opened, "an island effect reaches the host first, then the palette closes: " + asked.join())
         wrapper.open()
         check(host.registry.bundled[0].provider.id === "system", "system first")
         check(host.registry.bundled[1].provider.id === "applications", "applications second")

@@ -1299,6 +1299,15 @@ Item {
   }
 
   // --------------------------------------------------------------- actions
+  // True while a pointer (a row's click, the card's Run) runs the activation:
+  // a provider view it opens waits for a key before drawing its focus ring
+  // (the System view's control center sheets, main-tokens 2.6). Keys run
+  // activate() itself.
+  property bool pointerActivation: false
+  function activateFromPointer(alternate) {
+    root.pointerActivation = true
+    try { root.activate(alternate) } finally { root.pointerActivation = false }
+  }
   // Ctrl+↵ is the alternate activation: a row's altAction when it has one,
   // otherwise its action; the provider's activate() sees ctx.alternate.
   function activate(alternate) {
@@ -1364,6 +1373,8 @@ Item {
   // picker's wipe of the whole history, now behind a confirm. ClipboardStore
   // (the shell's) runs it on the signal; the scope then reloads empty.
   signal clipboardWipeConfirmed()
+  // An `island` effect (perform below): the host shows that island state.
+  signal islandRequested(string state)
   function requestClipboardWipe() {
     if (!root.opened || root.scope !== "clipboard" || root.dmenuActive || root.confirmPending || root.capturing) return false
     root.confirmPending = { message: "Clear the whole clipboard history? This can't be undone.", confirmText: "Clear history",
@@ -1408,6 +1419,10 @@ Item {
     if (type === "notify") { Quickshell.execDetached(["notify-send", "--", String(effect.headline || "Launcher"), String(effect.body || "")]); return }
     if (type === "voice-bindings") { root.installVoiceBindings(); return }
     if (type === "close") { root.cancel(); return }
+    // An island state (the System provider's Open Control center): the host
+    // (Launcher.qml) moves the island there first, so it morphs from the
+    // palette straight to that state, then the palette closes.
+    if (type === "island") { root.islandRequested(String(effect.state || "")); root.cancel(); return }
     // Everything below leaves the palette: drop the keyboard-grabbing layer first, like the stock menu.
     root.cancel()
     if (type === "shell") Util.execDetached(String(effect.command || ""))
@@ -1438,7 +1453,10 @@ Item {
   }
   function inspect() {
     var appEntries = root.appLibrary ? root.appLibrary.sortedEntries("") : []
+    var viewItem = providerView.item
     return JSON.stringify({ opened: root.opened, host: root.hostKind, attached: !!root.attachedView, mode: root.mode, view: root.activeProviderKey, scope: root.scope, query: search.text, count: root.rows.length,
+      // A provider view's own report (the System view's sheet: its name, row, keys), else null.
+      viewState: viewItem && viewItem.sheetState !== undefined ? viewItem.sheetState : null,
       titles: root.rows.map(function(r) { return r.title }), selected: root.selected, pending: root.pending, patterns: root.lastPatterns,
       current: { uid: root.current.uid || "", icon: root.current.icon || "", iconSource: root.current.iconSource || "", badge: root.current.badge || "", tier: root.current.tier || "" },
       modelCount: resultModel.count, providers: providerRegistry.entries.map(function(e) { return e.key }), problems: providerRegistry.problems,

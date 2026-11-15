@@ -52,6 +52,9 @@ ShellRoot {
                     // notification server, dictation from the launcher's voice.
                     notifications: notificationServer
                     voice: launcher.launcherHost.voice
+                    // The palette and the control center hand the island to
+                    // each other in place (IslandView, Launcher.qml).
+                    paletteHost: launcher
                 }
             }
             Reserve {

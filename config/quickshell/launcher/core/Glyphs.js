@@ -21,7 +21,9 @@ var SYSTEM = {
   "action-record-screen": "record", "action-record-stop": "record", "action-screenshot-annotate": "pen",
   // Main board: crop, window, monitor and pen for the four capture rows.
   "action-screenshot-region": "crop", "action-screenshot-window": "window", "action-screenshot-screen": "monitor",
-  "wallpaper-next": "image", "wallpaper-picker": "image"
+  "wallpaper-next": "image", "wallpaper-picker": "image",
+  // Open Control center (the voice board's row, `sliders`).
+  "control-center": "sliders"
 }
 
 function forRow(row) {

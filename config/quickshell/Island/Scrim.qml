@@ -12,11 +12,16 @@ import qs
 // it shows, Island.qml raises the island to Overlay so the island sits above
 // it (PLAN risk 11: `hyprctl layers` lists quickshell-island-scrim on Top and
 // quickshell-island on Overlay). The dim fades over Motion.effects; the
-// window unmaps once it has faded out.
+// window unmaps once it has faded out and nothing holds it (`held`).
 PanelWindow {
     id: scrim
 
     property bool shown: false
+    // Mapped but clear while a panel opened over the power menu (the palette,
+    // cc) holds the island's focus grab (IslandView.raised): unmapping a
+    // layer surface then has Hyprland refocus the window under it, and the
+    // keyboard left the island (sandbox, power -> launcher).
+    property bool held: false
 
     anchors {
         top: true
@@ -29,7 +34,7 @@ PanelWindow {
     WlrLayershell.namespace: "quickshell-island-scrim"
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
-    visible: scrim.shown || dim.opacity > 0
+    visible: scrim.shown || scrim.held || dim.opacity > 0
     mask: Region {}
 
     Rectangle {

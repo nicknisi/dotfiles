@@ -38,6 +38,10 @@ Item {
     { id: "bar", title: "Bar Preferences", keywords: "capsule panel edge position minimal transparency", subtitle: "Position, size and transparency" }
   ]
   readonly property var commands: [
+    // The island's control center (launcher-pickers 5.4: "Open Control center",
+    // sub "Island"). Island mode only: the classic bars keep the old Hud until
+    // M4 hosts the control center there.
+    { id: "control-center", parent: "root", title: "Open Control center", subtitle: "Island", keywords: "control center quick settings toggles wifi bluetooth sound volume brightness do not disturb", island: "cc" },
     { id: "action-lock", parent: "session", title: "Lock", subtitle: "Lock the current session", keywords: "screen secure", argv: ["loginctl", "lock-session"] },
     { id: "action-suspend", parent: "session", title: "Suspend", subtitle: "Suspend the computer", keywords: "sleep", argv: ["systemctl", "suspend"] },
     { id: "action-logout", parent: "session", title: "Log out", subtitle: "End the current session", keywords: "exit session uwsm", argv: ["uwsm", "stop"], dangerous: true },
@@ -71,17 +75,23 @@ Item {
   function commandRow(command, settings, order) {
     var effect = command.page ? { type: "system-view", page: command.page }
                : command.preference ? { type: "system-preference", value: command.preference }
+               : command.island ? { type: "system-island", state: command.island }
                : { type: "exec", argv: command.argv }
+    var opens = !!(command.page || command.island)
     return { id: command.id, parent: command.parent, title: command.title, subtitle: command.subtitle || "",
-      keywords: command.keywords || "", icon: "󰒓", section: "Desktop", verb: command.page ? "Open" : "Run",
+      keywords: command.keywords || "", icon: "󰒓", section: "Desktop", verb: opens ? "Open" : "Run",
       tier: "item", order: order, score: 1, remember: true, action: effect,
-      intentFamily: command.intentFamily || (command.page ? "navigate" : "action"),
+      runsLabel: command.island ? "Shows the island's " + (command.island === "cc" ? "control center" : command.island) : "",
+      intentFamily: command.intentFamily || (opens ? "navigate" : "action"),
       confirm: command.dangerous && settings.confirmDestructive !== false ? command.title + "? Unsaved work may be lost." : "" }
   }
   function allRows(settings) {
     var rows = [], i
     for (i = 0; i < root.menus.length; i++) rows.push(root.navRow(root.menus[i], i))
-    for (i = 0; i < root.commands.length; i++) rows.push(root.commandRow(root.commands[i], settings || {}, rows.length))
+    for (i = 0; i < root.commands.length; i++) {
+      if (root.commands[i].island && Desktop.Prefs.barMode !== "island") continue
+      rows.push(root.commandRow(root.commands[i], settings || {}, rows.length))
+    }
     for (var kind = 0; kind < 2; kind++) {
       var data = kind ? root.backgrounds : root.themes
       for (i = 0; i < data.length; i++) {
@@ -132,6 +142,8 @@ Item {
       root.activePage = action.page
       return { type: "provider-view", provider: "system" }
     }
+    // Launcher.qml shows the state on the palette's island (engine `island` effect).
+    if (action.type === "system-island") return { type: "island", state: action.state }
     if (action.type === "system-preference") {
       if (action.value === "cycle") Desktop.Prefs.cycleBarMode()
       else if (action.value === "translucent") Desktop.Prefs.toggleTranslucent()
@@ -204,11 +216,23 @@ Item {
       function focusInput() { if (desktopView.sheet) menuLoader.item.forceActiveFocus(); else desktopView.forceActiveFocus() }
       // A control center sheet is loaded (it has its own header).
       readonly property bool sheet: !!menuLoader.item && typeof menuLoader.item.backHandler !== "undefined"
+      // For the engine's inspect(): the sheet showing, its keyboard row and
+      // whether the keys are on it.
+      readonly property var sheetState: sheet ? { name: menuLoader.item.objectName, current: menuLoader.item.current,
+        keyboard: menuLoader.item.keyboard, focus: menuLoader.item.activeFocus } : null
       function dismiss() { if (menuLoader.item) menuLoader.item.shown = false }
+      // Opened by a key (Enter on the row), a sheet's row draws its focus
+      // ring at once; by a click it waits for a key (SheetFrame `keyboard`).
+      // The host is set once the view has loaded, inside the activation.
+      onHostChanged: if (desktopView.sheet && host) menuLoader.item.keyboard = host.pointerActivation !== true
       Keys.onEscapePressed: if (host) host.goBack()
+      // A sheet sits as it does in the control center: 16 in from the edges
+      // (728 wide in the 760 palette), as tall as the view, its groups
+      // scrolling between its header and footer (SheetFrame), so the
+      // keyboard's row stays in sight and the footer stays put.
       Column {
         anchors.fill: parent
-        anchors.margins: 20
+        anchors.margins: desktopView.sheet ? 16 : 20
         spacing: 16
         // The sheets (M6) draw their own back button; ThemeMenu still needs this one.
         Text {
@@ -221,14 +245,17 @@ Item {
           MouseArea { anchors.fill: parent; onClicked: if (desktopView.host) desktopView.host.goBack() }
         }
         Flickable {
+          id: menuFlick
           width: parent.width
           height: parent.height - (desktopView.sheet ? 0 : 42)
           clip: true
+          interactive: !desktopView.sheet
           contentWidth: width
-          contentHeight: menuLoader.item ? menuLoader.item.implicitHeight : 0
+          contentHeight: desktopView.sheet ? height : menuLoader.item ? menuLoader.item.implicitHeight : 0
           Loader {
             id: menuLoader
             width: parent.width
+            height: desktopView.sheet ? menuFlick.height : (item ? item.implicitHeight : 0)
             // M6: the control center's sheets (Panels/Sheets), with the old
             // menus' interface (shown, monitor, dismissed(), navigate()) plus
             // back(). The theme page keeps ThemeMenu until M7.

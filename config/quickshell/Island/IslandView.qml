@@ -57,6 +57,13 @@ import "../launcher/ui" as LauncherUi
 //     `island open cc/<sheet>` opens it on a sheet; the footer's Power opens
 //     the power menu (`power`, Island/PowerLayer.qml, 600 x 156), which
 //     Island.qml puts over a scrim;
+//   - moves between the palette and the control center in place (the M5 and
+//     M6 integration): the control center's Clipboard opens the palette's
+//     clipboard scope through `paletteHost` (shell.qml's Launcher.qml), so the
+//     island goes from cc straight to its launcher state, and the palette's
+//     Open Control center goes from launcher straight to cc (Launcher.qml's
+//     `island` effect). The launcher, cc and power cover a banner rather than
+//     drop it (IslandMachine.cover): it shows again once they close;
 //   - hands off to the old surfaces where the island has nothing yet (PLAN
 //     1.7): the control center's battery opens the old Hud's battery page
 //     (the charge-limit top-up), anchored under the rest pill, and the
@@ -89,6 +96,10 @@ Item {
     property var notifications: null
     // The launcher's VoiceSession, for the daemon's dictation; null for none.
     property var voice: null
+    // shell.qml's Launcher (Launcher.qml), for the control center's Clipboard;
+    // null for none, and then the Clipboard runs the `clipboard` IPC as
+    // Super+V does.
+    property var paletteHost: null
     // What raises the OSD: Interrupt, or a fake with its shown(kind) signal,
     // kind, fraction (tests/check.qml: the real one fires as PipeWire binds).
     property var interrupt: Interrupt
@@ -283,6 +294,15 @@ Item {
     property string powerRan: ""
     // The power menu shows over the scrim (Island.qml).
     readonly property bool scrimShown: machine.state === "power"
+    // From the power menu on until the island is back to something that is
+    // not an open panel: the island stays on Overlay (Island.qml) and the
+    // scrim stays mapped, clear (Scrim.held). A panel opened over the power
+    // menu (the palette, cc) then holds the focus grab with no surface
+    // unmapped or moved under it: unmapping the scrim there had Hyprland
+    // refocus the window below and the keyboard left the island (sandbox,
+    // power -> launcher). Top -> Overlay (rest or cc -> power) keeps the
+    // keys; Overlay -> Top is left until the grab has ended.
+    property bool raised: false
 
     signal workspaceActivated(string name)
 
@@ -348,6 +368,8 @@ Item {
             view.launcherLeft();
         }
         view.lastState = machine.state;
+        if (machine.state === "power") view.raised = true;
+        else if (!IslandMachine.panelOpen(machine)) view.raised = false;
         if (machine.state === "rest" && view.pendingHail !== "") Qt.callLater(view.retryHail);
         view.holdNotifications(IslandMachine.notifIds(machine));
         Qt.callLater(view.reconcile);
@@ -501,7 +523,7 @@ Item {
         graceTimer.stop();
         hudPage = "";
         NotificationState.closeCenter();
-        if (machine.state !== "cc") apply(IslandMachine.go(machine, "cc"));
+        if (machine.state !== "cc") apply(IslandMachine.cover(machine, "cc"));
         if (sheet === "") {
             if (ccLayer.content.sheet !== "") ccLayer.content.closeSheet(true);
             return true;
@@ -512,7 +534,15 @@ Item {
         dwellTimer.stop();
         graceTimer.stop();
         hudPage = "";
-        apply(IslandMachine.go(machine, "power"));
+        apply(IslandMachine.cover(machine, "power"));
+    }
+    // The control center's Clipboard: the palette's clipboard scope on this
+    // screen. Launcher.qml shows it here (showLauncher), from cc straight to
+    // the launcher state.
+    function openClipboard() {
+        if (!view.paletteHost) return false;
+        view.paletteHost.openScope(view.monitor, "clipboard", { title: "Clipboard History" });
+        return true;
     }
     // A power item: back to rest, then its command (never under a dry run).
     function runPower(id: string): string {
@@ -835,9 +865,12 @@ Item {
                 sheet: ccLayer.content.sheet,
                 sheetOffset: ccLayer.content.sheetOffset,
                 last: ccLayer.model.last,
-                dryRun: ccLayer.model.dryRun
+                dryRun: ccLayer.model.dryRun,
+                // The item holding the keys, by objectName ("" for none or
+                // an unnamed one): sandbox key runs walk to a mini by it.
+                focus: view.Window.activeFocusItem?.objectName ?? ""
             },
-            power: { selected: powerLayer.selectedId, ran: view.powerRan, scrim: view.scrimShown },
+            power: { selected: powerLayer.selectedId, ran: view.powerRan, scrim: view.scrimShown, raised: view.raised },
             lane: view.lane,
             live: view.live,
             // Where the measured parts sit, logical px in the view.
@@ -1162,6 +1195,7 @@ Item {
             onClose: view.dismiss()
             onPower: view.openPower()
             onHandOff: page => view.handOff(page, true)
+            openClipboard: view.paletteHost ? view.openClipboard : null
         }
 
         PowerLayer {

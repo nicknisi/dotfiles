@@ -22,7 +22,10 @@ import "../lib/CcData.js" as CcData
 //   mini awake     Caffeine.start(selected) / stop()
 //   mini theme     closes, then `theme picker themes`
 //   mini record    closes, then `capture record region` (Stop while recording)
-//   mini clipboard closes, then the clipboard IPC's open (as Super+V does)
+//   mini clipboard the host's openClipboard() when it has one (the island: the
+//                  palette's clipboard scope, from cc straight to the launcher
+//                  state); else closes, then the clipboard IPC's open (as
+//                  Super+V does)
 //   notes          NotificationState.clear(); a row focuses its sender and
 //                  closes when that worked
 //   battery        hands off to the old Hud's battery page (the charge-limit
@@ -55,6 +58,8 @@ Item {
     property bool dryRun: Fixture.dryRun || model.fixture !== undefined
     // The last press, as "name arg", for tests and the sandbox.
     property string last: ""
+    // The host's way to the launcher's clipboard scope, or null (CcLayer).
+    property var openClipboard: null
 
     signal close
     signal power
@@ -258,6 +263,8 @@ Item {
             if (Capture.recording) Capture.stop();
             else model.exec(["capture", "record", "region"]);
         } else if (key === "clipboard") {
+            // Only the island changes, so a dry run goes ahead too.
+            if (typeof model.openClipboard === "function" && model.openClipboard()) return "ok";
             model.close();
             // What Super+V runs (hyprland.lua), so whichever surface owns the
             // clipboard (the picker today, the launcher scope after M5) opens.

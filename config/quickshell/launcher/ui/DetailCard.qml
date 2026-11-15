@@ -414,7 +414,7 @@ Rectangle {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: card.engine.activate()
+                onClicked: typeof card.engine.activateFromPointer === "function" ? card.engine.activateFromPointer() : card.engine.activate()
             }
         }
         Rectangle {

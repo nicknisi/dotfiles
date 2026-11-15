@@ -566,7 +566,8 @@ Item {
                     onActivated: {
                         content.engine.selectionTouched = true;
                         content.engine.selected = delegateRoot.index;
-                        content.engine.activate();
+                        if (typeof content.engine.activateFromPointer === "function") content.engine.activateFromPointer();
+                        else content.engine.activate();
                     }
                 }
             }

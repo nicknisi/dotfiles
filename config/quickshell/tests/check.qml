@@ -699,7 +699,7 @@ ShellRoot {
                     test.check(runner.visible && runner.running && !greeting.visible, "drag overrides menu costumes");
                 } else {
                     // The crew check's eleven beats outlast this timer's two: wait a round.
-                    if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running) return;
+                    if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running || mergeCheck.running) return;
                     test.check(avatarFrames.changes > 0, "running frames actually advance");
                     avatar.visible = false;
                     test.check(!runner.running, "hidden runner stops animating");
@@ -713,6 +713,7 @@ ShellRoot {
                     test.check(m3Check.finished, "the M3 check ran to the end");
                     test.check(launcherCheck.finished, "the launcher check ran to the end");
                     test.check(m6Check.finished, "the M6 check ran to the end");
+                    test.check(mergeCheck.finished, "the launcher and control center check ran to the end");
                     test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
                     console.log("CAPSULE_TEST_PASS");
                     Qt.quit();
@@ -1274,6 +1275,122 @@ ShellRoot {
                     test.check(levels[0].slider === 0.62 && levels[0].action === "outputMute" && levels[1].slider === 0.8 && levels[1].action === "micMute", "the default output and input carry their levels");
                     Fixture.data = ({});
                     v.close();
+                    finished = true;
+                    stop();
+                }
+                step++;
+            } catch (error) {
+                console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
+            }
+        }
+    }
+
+    // The launcher (M5) and the control center (M6) on one island: cc's
+    // Clipboard opens the palette in place, the palette's Open Control center
+    // goes to cc, and cc and power cover a banner rather than drop it. After
+    // the launcher check, whose fake engine it borrows. `mergeShell` stands in
+    // for Launcher.qml: openScope opens the engine on this island, as place()
+    // does, and leaving the launcher state closes it, as onLauncherLeft does.
+    QtObject {
+        id: mergeShell
+        property var calls: []
+        property var states: []
+        property int left: 0
+        function openScope(screen, route, options) {
+            calls = calls.concat([{ screen: screen?.name ?? "", route: route, title: options?.title ?? "" }]);
+            fakeLauncher.scope = route;
+            fakeLauncher.opened = true;
+            mergeView.showLauncher(fakeLauncher);
+        }
+    }
+    FloatingWindow {
+        visible: true
+        implicitWidth: 1000
+        implicitHeight: 608
+        IslandView {
+            id: mergeView
+            anchors.fill: parent
+            interrupt: quietInterrupt
+            liveData: ({})
+            laneData: ({})
+            paletteHost: mergeShell
+            monitor: ({ name: "check-merge", width: 1000, height: 700 })
+            workspaces: WorkspaceOrder.shown([{ name: "W", windows: 1 }], "W")
+            onIslandStateChanged: mergeShell.states = mergeShell.states.concat([islandState])
+            onLauncherLeft: {
+                mergeShell.left++;
+                if (fakeLauncher.opened) fakeLauncher.cancel();
+            }
+        }
+    }
+    Timer {
+        id: mergeCheck
+        interval: 600
+        repeat: true
+        running: true
+        property int step: 0
+        property bool finished: false
+        onTriggered: {
+            try {
+                const v = mergeView, e = fakeLauncher;
+                const cc = v.ccPanel.content;
+                if (step === 0) {
+                    if (!launcherCheck.finished) return;
+                    e.opened = false;
+                    e.scope = "";
+                    test.check(v.open("cc") === "ok" && v.islandState === "cc", "cc opens");
+                    mergeShell.states = [];
+                    // The Clipboard mini (a dry run still opens the palette: only the island changes).
+                    test.check(v.ccPanel.model.run("mini", "clipboard") === "ok", "the Clipboard mini runs");
+                    test.check(mergeShell.calls.length === 1 && mergeShell.calls[0].route === "clipboard" && mergeShell.calls[0].title === "Clipboard History"
+                        && mergeShell.calls[0].screen === "check-merge", "it opens the palette's clipboard scope on this screen: " + JSON.stringify(mergeShell.calls));
+                    test.check(v.islandState === "launcher" && v.launcherShown && JSON.stringify(mergeShell.states) === JSON.stringify(["launcher"]),
+                        "cc goes straight to the launcher state, no stop at rest: " + JSON.stringify(mergeShell.states));
+                    test.check(v.targetSize[0] === 760 && v.targetSize[1] === 472 && v.panelOpen, "the island targets the palette, still an open panel");
+                } else if (step === 1) {
+                    test.check(v.body.width === 760 && v.body.height === 472, "the body settles from 760 x 560 to the palette's 760 x 472: " + v.body.width + " x " + v.body.height);
+                    test.check(e.attachedView === v.launcherCard.content && !v.ccPanel.current, "the palette's content holds the engine, cc is hidden");
+                    // Open Control center: Launcher.qml's island effect calls open("cc") on the palette's island.
+                    mergeShell.states = [];
+                    test.check(v.open("cc") === "ok" && v.islandState === "cc", "the palette's Open Control center opens cc");
+                    test.check(JSON.stringify(mergeShell.states) === JSON.stringify(["cc"]) && mergeShell.left === 1 && !e.opened,
+                        "launcher -> cc in one step, and leaving the launcher state closed the palette: " + JSON.stringify(mergeShell.states));
+                    v.releaseLauncher(0);
+                    test.check(v.islandState === "cc", "the palette's own close afterwards leaves cc alone");
+                } else if (step === 2) {
+                    test.check(v.body.width === 760 && v.body.height === 560, "cc settles at 760 x 560");
+                    test.check(cc.tiles.itemAt(0).disc.focus, "cc holds the keys after the palette: the Wi-Fi disc (by key)");
+                    test.check(!v.keyboardDrop && v.launcherCard.content === null, "the island keeps the keyboard for cc, and the palette's content is gone");
+                    // The System provider's row, in this run's bar mode.
+                    const system = Qt.createComponent(Qt.resolvedUrl("launcher/providers/System.qml"));
+                    const provider = system.createObject(mergeView, { host: null });
+                    const row = provider.catalog({ settings: {} }).find(r => r.id === "control-center");
+                    test.check(!!row === (Prefs.barMode === "island"), "Open Control center is listed in island mode only (" + Prefs.barMode + ")");
+                    const any = row ?? provider.commandRow(provider.commands.find(c => c.id === "control-center"), {}, 0);
+                    test.check(JSON.stringify(provider.activate(any)) === JSON.stringify({ type: "island", state: "cc" }), "it asks for the island's cc state");
+                    test.check(Glyphs.forRow(Object.assign({ providerKey: "system" }, any)) === "sliders", "its tile draws sliders, as the voice board does");
+                    provider.destroy();
+                    // A banner cc covers comes back once cc closes.
+                    v.close();
+                    v.apply(IslandMachine.notify(v.machine, { id: -7, timeout: 0 }));
+                    test.check(v.islandState === "notif", "a critical banner shows");
+                    test.check(v.open("cc") === "ok" && v.islandState === "cc" && JSON.stringify((v.machine.queue ?? []).map(i => i.id)) === "[-7]", "cc covers it: it waits on the queue");
+                    v.dismiss();
+                } else if (step === 3) {
+                    test.check(v.islandState === "notif" && v.machine.item?.id === -7 && v.machine.timer === 0, "closing cc shows it again, still untimed");
+                    v.openPower();
+                    test.check(v.islandState === "power" && JSON.stringify((v.machine.queue ?? []).map(i => i.id)) === "[-7]", "the power menu covers it too");
+                    test.check(v.raised && v.scrimShown, "the power menu raises the island over its scrim");
+                    // The palette over the power menu: the dim goes, but the island stays
+                    // raised (the scrim mapped, clear) until the grab ends.
+                    mergeShell.openScope(null, "", {});
+                    test.check(v.islandState === "launcher" && !v.scrimShown && v.raised, "power -> launcher: no dim, still raised");
+                    v.dismiss();
+                } else if (step === 4) {
+                    test.check(v.islandState === "notif" && v.machine.item?.id === -7 && !v.raised, "and it comes back after the power menu and the palette, the island lowered");
+                    v.apply(IslandMachine.drop(v.machine, -7));
+                    test.check(v.islandState === "rest", "back to rest");
                     finished = true;
                     stop();
                 }

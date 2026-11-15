@@ -209,6 +209,23 @@ assert.deepEqual(M.size(launcher, 421, 900), [424, 560], 'rounded to the width s
   assert.deepEqual([after.item.id, after.queue.map(x => x.id)], [1, [2]], 'the one the palette covered comes back first, then the rest')
   assert.deepEqual(M.cover(rest, 'launcher'), M.go(rest, 'launcher'), 'with nothing showing it is go()')
   assert.equal(M.cover(rest, 'nope'), rest)
+  // M5 x M6: the control center and the power menu open over a banner the
+  // same way, and the palette and cc hand the island to each other with the
+  // queue kept and no stop at rest.
+  for (const s of ['cc', 'power']) {
+    const c = M.cover(crit, s)
+    assert.deepEqual([c.state, c.item, c.queue], [s, undefined, [it(7, 0)]], s + ' covers the critical banner')
+    assert.equal(M.settle(c, {}), c, 'nothing shows over ' + s)
+    assert.equal(M.settle(M.dismiss(c), {}).item.id, 7, 'closing ' + s + ' shows it again')
+  }
+  const cc = M.cover(crit, 'cc')
+  const pal2 = M.cover(cc, 'launcher')
+  assert.deepEqual([pal2.state, pal2.queue], ['launcher', [it(7, 0)]], 'cc -> launcher: straight there, the banner still waiting')
+  const back2 = M.cover(pal2, 'cc')
+  assert.deepEqual([back2.state, back2.queue], ['cc', [it(7, 0)]], 'launcher -> cc: the same')
+  assert.deepEqual(['launcher', 'cc', 'power'].map(s => M.rank(M.go(rest, s))), [1, 1, 1], 'all three rank as an open panel, under polkit')
+  const open = M.go(rest, 'cc')
+  assert.equal(M.offer(open, 'osd'), open, 'the OSD is dropped under cc')
 }
 
 // ---- M3: notification timeouts (DECISION 2, island-modes 9.1) --------------------

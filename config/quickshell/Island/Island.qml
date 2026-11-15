@@ -37,6 +37,12 @@ PanelWindow {
     // (shell.qml), for the island's own notif and dict states (M3).
     property var notifications: null
     property var voice: null
+    // shell.qml's Launcher: the control center's Clipboard opens the palette
+    // in place (IslandView.paletteHost). Not named `launcher`: inside the
+    // Island in shell.qml's per-screen delegate that name would then resolve
+    // to this property rather than shell.qml's Launcher (the delegate's scope
+    // object comes before the file's ids), breaking `voice:` there too.
+    property var paletteHost: null
 
     screen: modelData
     anchors {
@@ -49,8 +55,10 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "quickshell-island"
     // Overlay while the power menu shows, so the island is above its scrim
-    // (Scrim.qml, on Top); Top otherwise, under fullscreen windows' overlays.
-    WlrLayershell.layer: view.scrimShown ? WlrLayer.Overlay : WlrLayer.Top
+    // (Scrim.qml, on Top), and on through a panel opened over it (the palette,
+    // cc) until the island is back to rest (IslandView.raised); Top
+    // otherwise, under fullscreen windows' overlays.
+    WlrLayershell.layer: view.raised ? WlrLayer.Overlay : WlrLayer.Top
     // OnDemand in every state. The launcher state (M5) gets the keyboard from
     // the focus grab below, which hands it to the grabbing window: changing
     // keyboardFocus while the grab is active ends the grab and so closes the
@@ -89,6 +97,7 @@ PanelWindow {
         workspaces: island.workspaceItems
         notifications: island.notifications
         voice: island.voice
+        paletteHost: island.paletteHost
         dpr: island.devicePixelRatio > 0 ? island.devicePixelRatio : 1
         // A fixture's `still` holds the loops too, so a sandbox shot of a
         // breathing dot or sparkle is one colour.
@@ -105,6 +114,7 @@ PanelWindow {
     Scrim {
         screen: island.screen
         shown: view.scrimShown
+        held: view.raised
     }
 
     // The pinned panel, or a Hud opened from IPC without its own popup grab
