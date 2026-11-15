@@ -13,7 +13,8 @@ mkdir -p "$tmp/bin" "$tmp/qml" "$tmp/runtime/voxtype"
 chmod 700 "$tmp/runtime"
 printf 'idle\n' > "$tmp/runtime/voxtype/state"
 cp "$root"/*.qml "$root"/*.js "$tmp/qml/"
-cp -R "$root/Commons" "$root/Ui" "$root/launcher" "$tmp/qml/"
+# lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit.
+cp -R "$root/Commons" "$root/Ui" "$root/launcher" "$root/lib" "$root/Kit" "$tmp/qml/"
 cp "$root/tests/voxtype-osd.qml" "$tmp/qml/shell.qml"
 # Guard the native input policy, then test the content in a regular window.
 grep -qF 'WlrLayershell.keyboardFocus: WlrKeyboardFocus.None' "$root/VoxtypeOsd.qml"

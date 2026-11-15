@@ -14,16 +14,25 @@ node "$root/tests/window-switcher-model.cjs"
 python3 -B "$root/tests/battery-top-up.py"
 python3 -B "$root/tests/audio-hotplug.py"
 "$root/tests/net.sh"
+# Island shell foundation (PLAN M0): tokens, motion, Kit, services.
+bash "$root/tests/tokens.sh"
+node "$root/tests/token-parity.cjs"
+# tst_spring, tst_kit, then the Lucide icon provenance check. That one reads
+# lucide-static from $XDG_CACHE_HOME/quickshell-tests (downloaded once);
+# QS_TESTS_OFFLINE=1 lets it pass with a SKIP line when neither is available.
+bash "$root/tests/kit.sh" ${QS_TESTS_OFFLINE:+--offline-ok}
+bash "$root/tests/services.sh"
 
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
-for file in "$root"/*.qml; do
+for file in "$root"/*.qml "$root"/Kit/*.qml; do
     "$formatter" "$file" >/dev/null
 done
 # Singletons may import a sibling .js, so those ride along with the .qml.
 cp "$root"/*.qml "$tmp/"
 cp "$root/battery-top-up.py" "$tmp/"
 cp "$root"/*.js "$tmp/" 2>/dev/null || true
-cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$tmp/"
+# lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit.
+cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$root/lib" "$root/Kit" "$tmp/"
 cp "$root/tests/check.qml" "$tmp/shell.qml"
 env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen timeout 10 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
 grep -q CAPSULE_TEST_PASS "$tmp/result"

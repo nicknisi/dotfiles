@@ -2,7 +2,11 @@
 // the other .qml files in this directory are picked up by name.
 //
 // Run it with `qs`. Files are watched, so saving any of them reloads the shell in
-// place. Backup of the original single-file bar is in shell.qml.bak.
+// place.
+//
+// SHELL_SANDBOX=1 marks a screenshot sandbox run (.shell-rebuild/tmp/shoot.sh):
+// ShellServices leaves out what would change the real machine, a few services
+// skip their writers, and Fixture registers its `fixture` IPC target.
 import Quickshell
 import Quickshell.Io
 
@@ -25,8 +29,17 @@ ShellRoot {
         delegate: Bar {}
     }
     Variants {
+        id: reserveWindows
         model: Quickshell.screens
         delegate: Reserve {}
+    }
+
+    // Mode-independent services: the tray watcher, Caffeine's idle inhibitor
+    // (bound to a Reserve window, which exists in every bar mode) and the
+    // refresh-rate policy, plus the guards that keep a SHELL_SANDBOX=1 run from
+    // touching the real machine. See ShellServices.qml.
+    ShellServices {
+        reserves: reserveWindows.instances
     }
 
     // Global rather than per-monitor: one D-Bus notification server for the
@@ -42,8 +55,4 @@ ShellRoot {
     }
     ClipboardPicker {}
     WindowSwitcher {}
-
-    // Refresh rate follows the charger. Global, not per-monitor: it drives the
-    // internal panel only, and one UPower watcher is enough for the session.
-    PowerMode {}
 }

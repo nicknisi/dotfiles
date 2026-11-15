@@ -4,6 +4,8 @@ root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 cp "$root"/*.qml "$root"/*.js "$tmp/"
+# lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit.
+cp -R "$root/lib" "$root/Kit" "$tmp/"
 cp "$root/tests/tailscale.qml" "$tmp/shell.qml"
 mkdir "$tmp/bin"
 printf 'test transfer\n' >"$tmp/pick-me.txt"

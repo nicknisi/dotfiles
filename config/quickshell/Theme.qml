@@ -7,7 +7,7 @@ pragma Singleton
 // ~/.local/state/theme/current/colors.json on every switch. The file is watched
 // (and `qs ipc call theme reload` is a belt to that suspender), so the bar
 // retints without a restart. The literals below are Tokyo Night, the look until
-// theme has run once on a machine.
+// theme has run once on a machine. $THEME_COLORS overrides the path (sandbox).
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
@@ -138,9 +138,14 @@ Singleton {
 
     function reload() { file.reload() }
 
+    // $THEME_COLORS, when set, names another colors.json: the sandbox renders any
+    // pack with `bin/theme-color --json` and points the shell at that file.
+    readonly property string colorsPath: Quickshell.env("THEME_COLORS")
+        || Quickshell.env("HOME") + "/.local/state/theme/current/colors.json"
+
     FileView {
         id: file
-        path: Quickshell.env("HOME") + "/.local/state/theme/current/colors.json"
+        path: root.colorsPath
         watchChanges: true
         onFileChanged: reload()
         onLoaded: {

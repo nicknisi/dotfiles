@@ -1,6 +1,7 @@
 // Run with ./config/quickshell/tests/check.sh. No real player is controlled.
 import Quickshell
 import QtQuick
+import qs.Kit
 import "MenuAnchor.js" as MenuAnchor
 import "BarGeometry.js" as BarGeometry
 
@@ -50,6 +51,9 @@ ShellRoot {
             opacity: 0.5
             SurfaceShadow { id: innerShadow; surface: samplePanel }
         }
+        // The island Kit on the real Tokens, Motion and Prefs.
+        Surface { id: kitSurface; x: 240; y: 100; width: 120; height: 38; radius: 19 }
+        Icon { id: kitIcon; x: 240; y: 150; name: "wifi" }
     }
 
     Hud {
@@ -93,6 +97,7 @@ ShellRoot {
                     avatar.page = "";
                     test.check(!test.child(avatar, "nickFace").running, "hidden portrait stops animating");
                     test.check(styleCheck.finished, "all twelve layout and edge combinations settled");
+                    test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
                     console.log("CAPSULE_TEST_PASS");
                     Qt.quit();
                 }
@@ -361,6 +366,28 @@ ShellRoot {
                 test.check(String(innerShadow.color) === shadowColor && String(samplePanel.color) === String(Theme.surface), "theme switches recolor surfaces without tinting shadows");
                 test.check(String(play.background.color) === String(Theme.accent), "controls follow changed theme");
                 test.check(String(card.color) === String(Theme.raised), "card follows changed theme");
+
+                // Island foundation (PLAN M0) on the real singletons: Tokens
+                // follows Theme.palette, Motion follows Prefs, Kit reads both.
+                test.check(Tokens.p === Theme.palette && Tokens.mode === "light" && !Tokens.dark, "tokens read the live palette");
+                test.check(Tokens.d.surface === "#eeebe0" && Tokens.d.onAccent === "#f7f3e8", "tokens derive a palette written before the tokens");
+                test.check(String(kitSurface.color) === String(Tokens.surface) && String(kitSurface.border.color) === String(Tokens.hairline), "Kit surface wears the tokens");
+                test.check(kitIcon.path !== "" && Math.abs(kitIcon.strokeWidth - 1.2) < 1e-9, "Kit icon draws at 1.2 px on 16");
+                test.check(Fixture.sandbox === false && Object.keys(Fixture.data).length === 0, "fixtures stay inert outside the sandbox");
+                const oldMotion = Prefs.motion, oldReduced = Prefs.reducedMotion;
+                Prefs.setMotion("spring");
+                Prefs.setReducedMotion(false);
+                test.check(Motion.profile === "spring" && Motion.spatial === 400 && Motion.effects === 245
+                    && Motion.stagger === 80 && Motion.exitFade === 123 && Motion.loops, "spring is 400/245/80/123");
+                Prefs.setMotion("current");
+                test.check(Motion.spatial === 160 && Motion.effects === 90 && Motion.spring === Motion.easeOut, "current is today's ease-out");
+                Prefs.setMotion("warp");
+                test.check(Prefs.motion === "current", "an unknown motion profile is rejected");
+                Prefs.setMotion("spring");
+                Prefs.setReducedMotion(true);
+                test.check(Motion.reduced && Motion.spatial === 0 && Motion.effects === 0 && !Motion.loops, "reduced motion zeroes every duration");
+                Prefs.setMotion(oldMotion);
+                Prefs.setReducedMotion(oldReduced);
                 card.player = null;
                 test.check(!play.enabled && !seek.enabled && !next.enabled, "no-player controls disabled");
                 styleCheck.oldMode = Prefs.barMode;

@@ -1,13 +1,16 @@
 pragma Singleton
 // Prefs.qml - the handful of choices the capsule remembers across restarts.
 //
-// Which edge it lives on, its size and whether it is see-through. All three
-// are changed on the bar rather than by editing a file, so they have to be
-// written back somewhere or every reload would undo them.
+// Which edge it lives on, its size and whether it is see-through, plus the
+// island shell's own choices: the island's form, the look, the motion profile,
+// reduced motion and do-not-disturb. They are changed in the shell rather than
+// by editing a file, so they have to be written back somewhere or every reload
+// would undo them.
 //
 // JsonAdapter does the serialising: each property below is a key in the file,
 // the file's contents land in the properties on load, and any change writes
-// the whole object back out. Quickshell.statePath keeps it under
+// the whole object back out. A file saved before a key existed loads with that
+// key at its default. Quickshell.statePath keeps it under
 // $XDG_STATE_HOME/quickshell alongside its own state.
 import Quickshell
 import Quickshell.Io
@@ -16,12 +19,31 @@ import QtQuick
 Singleton {
     id: root
 
+    // Allowed values, first one the default. Reads validate against these, so a
+    // hand-edited or stale file can never hand the shell a value it cannot draw.
+    readonly property var islandForms: ["float", "notch"]
+    readonly property var looks: ["crew", "phosphor", "bridge", "arcade", "liner", "outrun"]
+    readonly property var motions: ["spring", "current", "slow", "off"]
+
     // "top" | "bottom" | "left" | "right"
     readonly property string edge: ["top", "bottom", "left", "right"].includes(store.edge) ? store.edge : "top"
     readonly property string barMode: ["pill", "full", "rail"].includes(store.barMode) ? store.barMode : "pill"
     readonly property bool translucent: store.translucent
 
     readonly property bool vertical: root.edge === "left" || root.edge === "right"
+
+    // "float" sits 8 px under the top edge; "notch" is flush with it.
+    readonly property string islandForm: root.islandForms.includes(store.islandForm) ? store.islandForm : "float"
+    // The personal look, separate from the theme pack.
+    readonly property string look: root.looks.includes(store.look) ? store.look : "crew"
+    // Motion profile: spring (default), current (today's 160 ms ease-out),
+    // slow (spring at quarter speed, for review), off (no animation).
+    readonly property string motion: root.motions.includes(store.motion) ? store.motion : "spring"
+    // Snaps morphs and stops ambient loops, whatever the motion profile.
+    readonly property bool reducedMotion: store.reducedMotion
+    // Do not disturb, kept across reloads. NotificationState.dnd is still the
+    // session flag until the notification work reads this.
+    readonly property bool dnd: store.dnd
 
     function setEdge(edge: string): void {
         if (["top", "bottom", "left", "right"].indexOf(edge) < 0) return;
@@ -42,12 +64,42 @@ Singleton {
     function cycleBarMode(): void { store.barMode = nextBarMode(store.barMode) }
     function toggleTranslucent(): void { store.translucent = !store.translucent }
 
+    function setIslandForm(form: string): void {
+        if (!root.islandForms.includes(form)) return;
+        store.islandForm = form;
+    }
+
+    function setLook(name: string): void {
+        if (!root.looks.includes(name)) return;
+        store.look = name;
+    }
+
+    function setMotion(profile: string): void {
+        if (!root.motions.includes(profile)) return;
+        store.motion = profile;
+    }
+
+    function setReducedMotion(on: bool): void { store.reducedMotion = on }
+    function setDnd(on: bool): void { store.dnd = on }
+
+    // Writes wait for the end of the current event. Writing from inside
+    // adapterUpdated lost every change after the first in the same call:
+    // setLook("arcade") straight after setIslandForm("notch") read back "crew",
+    // and the file kept "crew". One write per batch keeps them all.
+    Timer {
+        id: save
+        interval: 0
+        onTriggered: file.writeAdapter()
+    }
+
     FileView {
         id: file
         path: Quickshell.statePath("capsule.json")
         watchChanges: true
-        onFileChanged: reload()
-        onAdapterUpdated: writeAdapter()
+        // An edit made after our last write is still unsaved; reloading now
+        // would put the file's older value back over it.
+        onFileChanged: if (!save.running) reload()
+        onAdapterUpdated: save.restart()
 
         // First run on a machine: nothing saved yet. Writing the defaults out
         // is what makes every later load quiet.
@@ -58,6 +110,11 @@ Singleton {
             property string edge: "top"
             property string barMode: "pill"
             property bool translucent: false
+            property string islandForm: "float"
+            property string look: "crew"
+            property string motion: "spring"
+            property bool reducedMotion: false
+            property bool dnd: false
         }
     }
 }

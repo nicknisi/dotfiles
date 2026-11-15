@@ -35,7 +35,8 @@ Item {
 QML
 printf '%s\n' '{"version":1,"palette":{"animations":"off"},"voice":{"enabled":false},"matching":{"mode":"off"},"providers":{"extensions":{"autoCheck":false,"indexUrl":"","autoUpdate":false,"marketplace":false},"local.host-catalog":{"enabled":true}}}' > "$tmp/config/quickshell-launcher.json"
 cp "$root"/*.qml "$root"/*.js "$tmp/root/"
-cp -R "$root/Commons" "$root/Ui" "$root/launcher" "$tmp/root/"
+# lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit.
+cp -R "$root/Commons" "$root/Ui" "$root/launcher" "$root/lib" "$root/Kit" "$tmp/root/"
 cp "$root/launcher/tests/host-check.qml" "$tmp/root/shell.qml"
 # Like upstream's palette checks, mount the unchanged card in a Qt Window.
 # Offscreen Qt has no layer-shell backend. Monitor/layer behavior still needs

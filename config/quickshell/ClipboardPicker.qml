@@ -28,16 +28,19 @@ Scope {
     }
 
     // Separate MIME watchers ensure browsers' image data wins over text fallbacks.
+    // They write the real cliphist history, so a screenshot sandbox
+    // (SHELL_SANDBOX=1) never starts them.
+    readonly property bool capturing: Quickshell.env("SHELL_SANDBOX") !== "1"
     Process {
-        running: true
+        running: root.capturing
         command: ["sh", "-c", "command -v cliphist >/dev/null 2>&1 && exec wl-paste --type text --watch cliphist store"]
     }
     Process {
-        running: true
+        running: root.capturing
         command: ["sh", "-c", "command -v cliphist >/dev/null 2>&1 && exec wl-paste --type image --watch cliphist store"]
     }
     Process {
-        running: true
+        running: root.capturing
         command: ["sh", "-c", "command -v clipboard-store-video >/dev/null 2>&1 && exec wl-paste --type video --watch clipboard-store-video"]
     }
 

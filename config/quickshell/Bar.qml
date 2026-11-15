@@ -51,10 +51,8 @@ PanelWindow {
     WlrLayershell.namespace: "quickshell-capsule"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
-    IdleInhibitor {
-        window: bar
-        enabled: Caffeine.active
-    }
+    // Caffeine's IdleInhibitor lives in ShellServices, on the Reserve window,
+    // so keep-awake works in every bar mode and with one inhibitor per session.
     Timer {
         interval: 1000
         running: true

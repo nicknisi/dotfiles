@@ -34,6 +34,9 @@ Singleton {
         if (!busy && care.target) run(["stop"]);
     }
     function run(args): void {
+        // The top-up writes firmware charge settings through pkexec; a
+        // screenshot sandbox (SHELL_SANDBOX=1) must never reach the real battery.
+        if (Quickshell.env("SHELL_SANDBOX") === "1") { error = "Battery controls are off in the sandbox"; return; }
         error = "";
         action.command = ["pkexec", "/usr/bin/python3", "-I", helper].concat(args);
         action.running = true;

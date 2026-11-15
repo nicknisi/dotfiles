@@ -226,7 +226,9 @@ Singleton {
     Process {
         id: receiver
         command: ["env", "taildrop", "receive"]
-        running: root.wantReceiver && !receiveRetry.running
+        // Never in the screenshot sandbox: it would take the live tailnet's
+        // incoming files away from the real shell.
+        running: root.wantReceiver && !receiveRetry.running && Quickshell.env("SHELL_SANDBOX") !== "1"
         stdout: SplitParser {
             onRead: line => {
                 try {
