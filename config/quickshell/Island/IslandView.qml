@@ -58,6 +58,14 @@ import qs.Panels
 //     `island open cc/<sheet>` opens it on a sheet; the footer's Power opens
 //     the power menu (`power`, Island/PowerLayer.qml, 600 x 156), which
 //     Island.qml puts over a scrim;
+//   - draws a polkit authentication request (M8): `polkitFlow` (ShellServices'
+//     PolkitAgent flow, or Island/FixtureAuthFlow.qml in a sandbox fixture or
+//     a test) takes the island on the screen it was raised on (`polkitHere`)
+//     as the `polkit` state (Island/PolkitLayer.qml, 480 x 272) over the
+//     scrim, outranking everything; while it waits nothing else can take the
+//     island (the palette, cc and the power menu refuse to open, and any
+//     other change comes back to it). It leaves when the flow completes.
+//     Esc, Cancel or an outside click cancel the request;
 //   - moves between the palette and the control center in place (the M5 and
 //     M6 integration): the control center's Clipboard opens the palette's
 //     clipboard scope through `paletteHost` (shell.qml's Launcher.qml), so the
@@ -106,6 +114,12 @@ Item {
     property var notifications: null
     // The launcher's VoiceSession, for the daemon's dictation; null for none.
     property var voice: null
+    // A polkit AuthFlow (or Island/FixtureAuthFlow.qml), null for none, and
+    // whether this screen shows it (the screen focused when it started).
+    property var polkitFlow: null
+    property bool polkitHere: true
+    property string polkitUser: Quickshell.env("USER") ?? ""
+    readonly property bool polkitPending: view.polkitHere && view.polkitFlow !== null && view.polkitFlow.isCompleted !== true
     // shell.qml's Launcher (Launcher.qml), for the control center's Clipboard;
     // null for none, and then the Clipboard runs the `clipboard` IPC as
     // Super+V does.
@@ -299,19 +313,20 @@ Item {
     readonly property alias powerMenu: powerLayer
     readonly property alias themesPanel: themesLayer
     readonly property alias wallpapersPanel: wallsLayer
+    readonly property alias polkitCard: polkitLayer
     readonly property alias restAnchor: restAnchor
     readonly property alias hud: hud
     readonly property alias dwell: dwellTimer
     readonly property alias grace: graceTimer
 
     // Where each not-yet-built state lands, for the IPC's error text.
-    readonly property var arrives: ({ polkit: "M8" })
+    readonly property var arrives: ({})
     // The power menu's commands (launcher/providers/System.qml's), and the
     // last one asked for (tests, the sandbox: under Fixture.dryRun nothing runs).
     readonly property var powerCommands: CcData.POWER_COMMANDS
     property string powerRan: ""
-    // The power menu shows over the scrim (Island.qml).
-    readonly property bool scrimShown: machine.state === "power"
+    // The power menu and a polkit request show over the scrim (Island.qml).
+    readonly property bool scrimShown: machine.state === "power" || machine.state === "polkit"
     // From the power menu on until the island is back to something that is
     // not an open panel: the island stays on Overlay (Island.qml) and the
     // scrim stays mapped, clear (Scrim.held). A panel opened over the power
@@ -378,7 +393,7 @@ Item {
         if (machine.state === "launcher") Qt.callLater(view.focusLauncher);
         else if (machine.state === "themes" || machine.state === "wallpapers") Qt.callLater(view.focusPicker);
         else if (IslandMachine.panelOpen(machine)) {
-            if (machine.state === "cc" || machine.state === "power") Qt.callLater(view.focusPanel);
+            if (machine.state === "cc" || machine.state === "power" || machine.state === "polkit") Qt.callLater(view.focusPanel);
             else keys.forceActiveFocus();
         }
         // The last record's state and panel, noted before the signals below,
@@ -397,7 +412,7 @@ Item {
         // Tab between the two pickers stays inside them. From the record, as
         // above: the pickerState binding may lag here.
         if ((was === "themes" || was === "wallpapers") && machine.state !== "themes" && machine.state !== "wallpapers") view.pickerLeft();
-        if (machine.state === "power") view.raised = true;
+        if (machine.state === "power" || machine.state === "polkit") view.raised = true;
         else if (!IslandMachine.panelOpen(machine)) view.raised = false;
         if (machine.state === "rest" && view.pendingHail !== "") Qt.callLater(view.retryHail);
         view.holdNotifications(IslandMachine.notifIds(machine));
@@ -411,6 +426,11 @@ Item {
     // The conditions outside the record (dictation, a hand-off covering the
     // island): IslandMachine.settle after every change.
     function reconcile() {
+        // A waiting polkit request holds the island: whatever moved it comes back.
+        if (view.polkitPending && machine.state !== "polkit") {
+            apply(IslandMachine.cover(machine, "polkit"));
+            return;
+        }
         const next = IslandMachine.settle(machine, { dict: view.dictPhase !== "", blocked: view.handedOff });
         // A notif that shows under a parked pointer runs its course: only the
         // pointer coming to it pauses it (pointerEntered).
@@ -520,8 +540,13 @@ Item {
             view.crewUpdated();
         }
     }
-    // Outside click (the focus grab clearing) or Esc.
+    // Outside click (the focus grab clearing) or Esc. On a polkit request
+    // that is Cancel: the island never leaves one still waiting.
     function dismiss() {
+        if (machine.state === "polkit" && view.polkitPending) {
+            polkitLayer.cancel();
+            return;
+        }
         dwellTimer.stop();
         if (hudNeedsGrab) hudPage = "";
         apply(IslandMachine.dismiss(machine));
@@ -538,6 +563,26 @@ Item {
     function focusPanel() {
         if (machine.state === "cc") ccLayer.content.focusHome(!view.ccByPointer);
         else if (machine.state === "power") powerLayer.forceActiveFocus();
+        else if (machine.state === "polkit") polkitLayer.focusField();
+    }
+
+    // ---- polkit (M8) ---------------------------------------------------------
+
+    onPolkitPendingChanged: {
+        if (view.polkitPending) {
+            dwellTimer.stop();
+            graceTimer.stop();
+            hudPage = "";
+            NotificationState.closeCenter();
+            if (machine.state !== "polkit") apply(IslandMachine.cover(machine, "polkit"));
+        } else if (machine.state === "polkit") {
+            apply(IslandMachine.dismiss(machine));
+        }
+    }
+    function openPolkit(): string {
+        if (!view.polkitPending) return "error: no authentication request waiting" + (view.polkitFlow && !view.polkitHere ? " on this screen" : "");
+        if (machine.state !== "polkit") apply(IslandMachine.cover(machine, "polkit"));
+        return "ok";
     }
 
     // ---- the control center and the power menu (M6) -------------------------
@@ -547,6 +592,7 @@ Item {
     // Opened from the status pill: no focus ring on the Wi-Fi disc.
     property bool ccByPointer: false
     function openCc(sheet: string, byPointer: bool): bool {
+        if (view.polkitPending) return false;
         view.ccByPointer = byPointer === true;
         dwellTimer.stop();
         graceTimer.stop();
@@ -560,6 +606,7 @@ Item {
         return ccLayer.openSheet(sheet, null, !view.ccByPointer);
     }
     function openPower() {
+        if (view.polkitPending) return;
         dwellTimer.stop();
         graceTimer.stop();
         hudPage = "";
@@ -742,6 +789,9 @@ Item {
 
     // The IPC's verbs. Each returns "ok" or a line starting "error".
     function open(state: string): string {
+        if (state === "polkit") return openPolkit();
+        // A waiting polkit request keeps the island (M8).
+        if (view.polkitPending) return "error: an authentication request is waiting";
         dwellTimer.stop();
         graceTimer.stop();
         if (state === "rest") return close();
@@ -827,6 +877,7 @@ Item {
     // last close finished. A banner it covers waits on the queue and shows
     // again when the palette closes (IslandMachine.cover).
     function showLauncher(engine): string {
+        if (view.polkitPending) return "error: an authentication request is waiting";
         dwellTimer.stop();
         graceTimer.stop();
         launcherRelease.stop();
@@ -956,6 +1007,21 @@ Item {
                 preview: Tokens.previewPalette?.name ?? "",
                 surface: Tokens.hex(Tokens.surface)
             },
+            // A polkit request (M8): never the typed answer, only its length
+            // in the sandbox (Fixture.sandbox) for the key runs.
+            polkit: {
+                pending: view.polkitPending,
+                here: view.polkitHere,
+                actionId: String(view.polkitFlow?.actionId ?? ""),
+                label: polkitLayer.label,
+                error: polkitLayer.errorText,
+                typed: Fixture.sandbox ? polkitLayer.buffer.length : -1,
+                fieldFocus: polkitLayer.field.activeFocus,
+                // The window has the compositor's keyboard, and the field
+                // draws its focus ring (both, or the keys go elsewhere).
+                windowActive: view.windowActive,
+                keyboardHere: polkitLayer.field.keyboardHere
+            },
             lane: view.lane,
             live: view.live,
             // Where the measured parts sit, logical px in the view.
@@ -1028,7 +1094,11 @@ Item {
             wallpapersGrid: wallsLayer.content ? box(wallsLayer.content.grid) : null,
             wallpapersCard: wallsLayer.content ? box(wallsLayer.content.focusedCard) : null,
             powerItem: box(powerLayer.repeater.itemAt(0)),
-            powerHint: box(powerLayer.hint)
+            powerHint: box(powerLayer.hint),
+            polkit: box(polkitLayer),
+            polkitField: box(polkitLayer.field),
+            polkitCancel: box(polkitLayer.cancelButton),
+            polkitAuth: box(polkitLayer.authButton)
         };
     }
 
@@ -1352,6 +1422,15 @@ Item {
             onRun: id => view.runPower(id)
             onCancel: view.dismiss()
         }
+
+        PolkitLayer {
+            id: polkitLayer
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 0
+            current: view.machine.state === "polkit"
+            flow: view.polkitFlow
+            user: view.polkitUser
+        }
     }
 
     // The rest pill's place, whatever the body is doing: what the old menus,
@@ -1392,6 +1471,9 @@ Item {
         registerBell();
         Context.watch(view, view.drawsLane);
         Qt.callLater(adopt);
+        // A polkit request already waiting when this island is built (a mode
+        // change, a new screen) takes it (reconcile).
+        Qt.callLater(reconcile);
     }
     onMonitorChanged: registerBell()
     Component.onDestruction: {

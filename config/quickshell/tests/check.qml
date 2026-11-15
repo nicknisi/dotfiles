@@ -702,7 +702,7 @@ ShellRoot {
                     test.check(runner.visible && runner.running && !greeting.visible, "drag overrides menu costumes");
                 } else {
                     // The crew check's eleven beats outlast this timer's two: wait a round.
-                    if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running || mergeCheck.running || barCheck.running || !barCheck.finished || pickerCheck.running || !pickerCheck.finished) return;
+                    if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running || m8Check.running || mergeCheck.running || barCheck.running || !barCheck.finished || pickerCheck.running || !pickerCheck.finished) return;
                     test.check(avatarFrames.changes > 0, "running frames actually advance");
                     avatar.visible = false;
                     test.check(!runner.running, "hidden runner stops animating");
@@ -716,6 +716,7 @@ ShellRoot {
                     test.check(m3Check.finished, "the M3 check ran to the end");
                     test.check(launcherCheck.finished, "the launcher check ran to the end");
                     test.check(m6Check.finished, "the M6 check ran to the end");
+                    test.check(m8Check.finished, "the M8 polkit check ran to the end");
                     test.check(mergeCheck.finished, "the launcher and control center check ran to the end");
                     test.check(barCheck.finished, "the M4 bar check ran to the end");
                     test.check(pickerCheck.finished, "the picker check ran to the end");
@@ -1112,7 +1113,7 @@ ShellRoot {
                     v.open("battery");
                     v.dismiss();
                     test.check(v.hudPage === "" && !v.hudNeedsGrab, "an outside click closes an IPC-opened Hud");
-                    test.check(v.open("polkit").startsWith("error") && v.open("polkit").includes("M8"), "unbuilt states say when they land");
+                    test.check(v.open("polkit").startsWith("error: no authentication request"), "polkit opens only for a waiting request (M8)");
                     test.check(v.open("notif").startsWith("error: no notification") && v.open("dict").startsWith("error: no dictation"), "notif and dict need something to show");
                     test.check(v.open("bogus").startsWith("error: unknown"), "unknown states are refused");
                     const info = v.inspect();
@@ -1301,6 +1302,121 @@ ShellRoot {
                     const levels = cc.sheetItem.sheetData.groups.map(g => g.rows[0]);
                     test.check(levels[0].slider === 0.62 && levels[0].action === "outputMute" && levels[1].slider === 0.8 && levels[1].action === "micMute", "the default output and input carry their levels");
                     Fixture.data = ({});
+                    v.close();
+                    finished = true;
+                    stop();
+                }
+                step++;
+            } catch (error) {
+                console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
+            }
+        }
+    }
+
+    // A polkit request (PLAN M8) on its own island, against
+    // Island/FixtureAuthFlow.qml: the real PolkitAgent is never built here.
+    // It takes the island over the scrim, holds it while it waits, refuses
+    // the other panels, clears the typed answer on every way out, and only
+    // shows on its own screen.
+    FloatingWindow {
+        visible: true
+        implicitWidth: 1000
+        implicitHeight: 320
+        IslandView {
+            id: m8View
+            anchors.fill: parent
+            interrupt: quietInterrupt
+            liveData: ({})
+            laneData: ({})
+            polkitUser: "nicknisi"
+            monitor: ({ name: "check-m8", width: 1000, height: 700 })
+            workspaces: WorkspaceOrder.shown([{ name: "W", windows: 1 }], "W")
+        }
+    }
+    Component {
+        id: m8FlowComponent
+        FixtureAuthFlow {
+            accept: "hunter2"
+        }
+    }
+    Timer {
+        id: m8Check
+        interval: 600
+        repeat: true
+        running: true
+        property int step: 0
+        property bool finished: false
+        property var flow: null
+        onTriggered: {
+            try {
+                const v = m8View;
+                const pk = v.polkitCard;
+                if (step === 0) {
+                    if (crewCheck.running || m3Check.running) return;
+                    test.check(v.open("polkit").startsWith("error: no authentication request"), "no request, no polkit state");
+                    flow = m8FlowComponent.createObject(m8View);
+                    v.polkitFlow = flow;
+                    test.check(v.islandState === "polkit" && v.polkitPending && v.panelOpen, "a waiting request takes the island");
+                    test.check(v.scrimShown && v.raised, "over the scrim, raised to Overlay");
+                    test.check(v.open("cc").startsWith("error") && v.open("power").startsWith("error") && v.islandState === "polkit", "cc and power refuse while it waits");
+                } else if (step === 1) {
+                    test.check(v.body.width === 480 && v.body.height === 272 && v.body.radius === 28, "polkit settles at 480 x 272, radius 28: " + v.body.width + " x " + v.body.height + " r " + v.body.radius);
+                    test.check(v.body.x === 260 && v.body.y === 8, "top centre, 8 down: " + v.body.x + "," + v.body.y);
+                    test.check(pk.label === "Password for nicknisi", "the label names the user: " + pk.label);
+                    // What renders, not the markup (M8 review: StyledText dropped
+                    // the face and this passed on the string alone): the path in
+                    // Monaspace wraps the fixture's message to two lines, and the
+                    // field sits where the board's does, 114 under the island's top.
+                    test.check(pk.messageText.textFormat === Text.RichText && pk.messageLines === 2 && pk.messageText.height === 36, "the program path in Monaspace wraps the message to two lines: " + pk.messageLines);
+                    test.check(pk.authButton.opacity === 1, "Authenticate is full accent while the request waits, the field empty");
+                    test.check(pk.field.objectName === "polkitField" && pk.cancelButton.objectName === "polkitCancel" && pk.authButton.objectName === "polkitAuth", "objectNames");
+                    const parts = v.inspect().parts;
+                    test.check(parts.polkitField.width === 440 && parts.polkitField.height === 40, "the field is 440 x 40: " + JSON.stringify(parts.polkitField));
+                    test.check(parts.polkitField.y - parts.polkit.y === 114, "the field's top is 114 under the island's: " + (parts.polkitField.y - parts.polkit.y));
+                    pk.field.typed("nope");
+                    test.check(pk.buffer === "nope" && pk.field.length === 4 && pk.field.bullets.text === "••••", "the field draws bullets");
+                    test.check(v.inspect().polkit.typed === -1, "inspect never reports the answer outside the sandbox");
+                    pk.field.submitted();
+                    test.check(flow.submits === 1 && !flow.lastMatched && pk.buffer === "", "a wrong answer goes to the flow and leaves the field");
+                    test.check(pk.errorText.length > 0 && pk.errorLine.visible && pk.field.failed, "the flow's error shows in bad");
+                    test.check(v.islandState === "polkit", "a failure keeps the request up");
+                    // Anything else moving the island: it comes back.
+                    v.apply(IslandMachine.go(v.machine, "hover"));
+                } else if (step === 2) {
+                    test.check(v.islandState === "polkit", "the island returns to a waiting request");
+                    pk.field.typed("hunter");
+                    pk.field.typed("2");
+                    pk.field.cleared();
+                    test.check(pk.buffer === "", "Ctrl+U clears the answer");
+                    pk.field.typed("hunter2");
+                    pk.submit();
+                    test.check(flow.lastMatched && flow.isSuccessful && pk.buffer === "", "the right answer succeeds and leaves the field");
+                    test.check(!v.polkitPending && v.islandState === "rest" && !v.scrimShown, "a completed request gives the island back");
+                    flow.destroy();
+                    flow = m8FlowComponent.createObject(m8View);
+                    v.polkitFlow = flow;
+                    pk.field.typed("half");
+                    pk.field.escaped();
+                    test.check(flow.cancels === 1 && flow.isCancelled && pk.buffer === "", "Esc cancels the request and clears the field");
+                    test.check(v.islandState === "rest", "and the island goes back to rest");
+                } else if (step === 3) {
+                    flow.destroy();
+                    flow = m8FlowComponent.createObject(m8View);
+                    v.polkitFlow = flow;
+                    pk.field.typed("x");
+                    v.dismiss();
+                    test.check(flow.isCancelled && v.islandState === "rest" && pk.buffer === "", "an outside click cancels");
+                    flow.destroy();
+                    flow = m8FlowComponent.createObject(m8View);
+                    v.polkitHere = false;
+                    v.polkitFlow = flow;
+                    test.check(v.islandState === "rest" && v.open("polkit").includes("on this screen"), "another screen's request stays there");
+                    v.polkitFlow = null;
+                    v.polkitHere = true;
+                    flow.destroy();
+                    flow = null;
+                    test.check(v.open("hover") === "ok", "the island works again with no request");
                     v.close();
                     finished = true;
                     stop();

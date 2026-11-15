@@ -155,6 +155,13 @@ hl.config({
     -- link is opened from elsewhere. Off, Hyprland only marks the window
     -- urgent (the yellow chip) and leaves you where you were.
     focus_on_activate = true,
+    -- A lock screen that crashes can be relaunched: bin/shell-lock's watcher
+    -- starts a new one, which takes the dead lock over, instead of leaving
+    -- the "lockscreen crashed" screen until a TTY login (PLAN DECISION 4).
+    -- The cost: any process running as you can also take over a lock, a
+    -- live one too (Hyprland admits any new lock while this is on); it can
+    -- already end a dead one with hl.clear_crashed_lockscreen().
+    allow_session_lock_restore = true,
   },
 })
 
@@ -301,7 +308,7 @@ hl.window_rule({
 })
 hl.bind("SUPER + SHIFT + RETURN", hl.dsp.exec_cmd("sh -c 'uwsm-app -- \"$(xdg-settings get default-web-browser)\"'"))
 hl.bind("SUPER + Q", hl.dsp.window.close())
-hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("loginctl lock-session")) -- hypridle runs hyprlock
+hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("loginctl lock-session")) -- hypridle runs shell-lock (hyprlock as fallback)
 hl.bind("SUPER + SHIFT + ESCAPE", hl.dsp.exec_cmd("uwsm stop"))
 
 -- Native compositor cursor zoom (SUPER+=/- and SUPER+SHIFT+0).

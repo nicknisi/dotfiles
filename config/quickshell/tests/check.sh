@@ -66,8 +66,18 @@ bash "$root/../../bin/tests/theme-rows.sh"
 bash "$root/../../bin/tests/theme-wallpapers.sh"
 bash "$root/tests/pickers.sh"
 
+# The lock screen and the polkit prompt (PLAN M8): lib/LockMachine.js with a
+# fake PamContext, the source rules (one unlock, nothing logged, no capture,
+# no paste, allow_session_lock_restore on with the unlock mark for
+# shell-lock's watcher, the lock-in motion), tst_auth_card, tst_lock_surface
+# and tst_polkit (a fake AuthFlow), the real PamContext against test PAM
+# stacks, lock.qml loaded by file path with its IPC checked, and
+# bin/shell-lock against fakes (its watcher and two runs at once included).
+# The polkit state on the island runs in check.qml below.
+bash "$root/tests/lock.sh"
+
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
-for file in "$root"/*.qml "$root"/Kit/*.qml "$root"/Island/*.qml "$root"/Panels/*.qml "$root"/Panels/Sheets/*.qml "$root"/Hosts/*.qml; do
+for file in "$root"/*.qml "$root"/Kit/*.qml "$root"/Island/*.qml "$root"/Lock/*.qml "$root"/Panels/*.qml "$root"/Panels/Sheets/*.qml "$root"/Hosts/*.qml; do
     "$formatter" "$file" >/dev/null
 done
 # Singletons may import a sibling .js, so those ride along with the .qml.
@@ -75,8 +85,9 @@ cp "$root"/*.qml "$tmp/"
 cp "$root/battery-top-up.py" "$tmp/"
 cp "$root"/*.js "$tmp/" 2>/dev/null || true
 # lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit,
-# Island/ is qs.Island, Panels/ is qs.Panels (M6) and Hosts/ is qs.Hosts (M4).
-cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$root/lib" "$root/Kit" "$root/Island" "$root/Panels" "$root/Hosts" "$tmp/"
+# Island/ is qs.Island, Lock/ is qs.Lock (M8), Panels/ is qs.Panels (M6) and
+# Hosts/ is qs.Hosts (M4).
+cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$root/lib" "$root/Kit" "$root/Island" "$root/Lock" "$root/Panels" "$root/Hosts" "$tmp/"
 cp "$root/tests/check.qml" "$tmp/shell.qml"
 # SHELL_CREW=off: the Crew singleton polls no fleet or /proc and runs no jump.
 # SHELL_DRY_RUN=1: the control center, its sheets and the power menu read the
