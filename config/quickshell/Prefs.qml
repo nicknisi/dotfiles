@@ -48,8 +48,8 @@ Singleton {
     readonly property string motion: root.motions.includes(store.motion) ? store.motion : "spring"
     // Snaps morphs and stops ambient loops, whatever the motion profile.
     readonly property bool reducedMotion: store.reducedMotion
-    // Do not disturb, kept across reloads. NotificationState.dnd is still the
-    // session flag until the notification work reads this.
+    // Do not disturb, kept across reloads. NotificationState.dnd is the flag
+    // everything reads and toggles; it mirrors this both ways (M6).
     readonly property bool dnd: store.dnd
 
     function setEdge(edge: string): void {

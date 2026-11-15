@@ -41,22 +41,33 @@ python3 -B "$root/../../bin/tests/crew-jump.py"
 # routing in voxtype-osd.sh, and the states themselves, the Context lane and
 # the notification timeouts in check.qml below.
 node "$root/tests/calendar.cjs"
+# The control center, its sheets and the power menu (PLAN M6): Tailscale's
+# offline peers, lib/CcData.js and the leaf panels under qmltestrunner
+# (tst_cc_layout, tst_sheet_nav, tst_power_keys, tst_cc_live). The Wi-Fi sheet's portal
+# row runs in net.sh above, the states themselves in check.qml below.
+node "$root/tests/tailscale-model.cjs"
+bash "$root/tests/panels.sh"
 
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
-for file in "$root"/*.qml "$root"/Kit/*.qml "$root"/Island/*.qml; do
+for file in "$root"/*.qml "$root"/Kit/*.qml "$root"/Island/*.qml "$root"/Panels/*.qml "$root"/Panels/Sheets/*.qml; do
     "$formatter" "$file" >/dev/null
 done
 # Singletons may import a sibling .js, so those ride along with the .qml.
 cp "$root"/*.qml "$tmp/"
 cp "$root/battery-top-up.py" "$tmp/"
 cp "$root"/*.js "$tmp/" 2>/dev/null || true
-# lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit and
-# Island/ is qs.Island.
-cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$root/lib" "$root/Kit" "$root/Island" "$tmp/"
+# lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit,
+# Island/ is qs.Island and Panels/ is qs.Panels (M6).
+cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$root/lib" "$root/Kit" "$root/Island" "$root/Panels" "$tmp/"
 cp "$root/tests/check.qml" "$tmp/shell.qml"
 # SHELL_CREW=off: the Crew singleton polls no fleet or /proc and runs no jump.
+# SHELL_DRY_RUN=1: the control center, its sheets and the power menu read the
+# services but change nothing (this runs on the session's D-Bus).
+# XDG_STATE_HOME: Quickshell's state (Prefs' capsule.json, Do not disturb
+# from the M6 beat) stays in $tmp, not ~/.local/state/quickshell/by-shell.
 # About 10 s: the M3 check's fifteen beats (600 ms each) hold the final check.
-env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen SHELL_CREW=off timeout 15 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
+env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen SHELL_CREW=off SHELL_DRY_RUN=1 XDG_STATE_HOME="$tmp/.state" \
+    timeout 20 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
 grep -q CAPSULE_TEST_PASS "$tmp/result"
 # Prefs writes capsule.json on first load, after FileView reports that it is absent.
 ! grep -E 'CAPSULE_TEST_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|WARN scene:' "$tmp/result" \

@@ -9,7 +9,20 @@ import QtQuick
 Singleton {
     id: root
 
+    // Do not disturb: the one flag the toasts, the server, the island and the
+    // control center read. It is kept in Prefs.dnd (capsule.json), so it
+    // survives a shell reload (PLAN 1.6, M6): set here, Prefs follows; a
+    // Prefs load or another writer, this follows. Both directions compare
+    // first, so neither change bounces back.
     property bool dnd: false
+    onDndChanged: if (Prefs.dnd !== dnd) Prefs.setDnd(dnd)
+    Connections {
+        target: Prefs
+        function onDndChanged() {
+            if (root.dnd !== Prefs.dnd) root.dnd = Prefs.dnd;
+        }
+    }
+    Component.onCompleted: if (Prefs.dnd) root.dnd = true
     property bool centerOpen: false
     property var centerScreen: null
     property int unread: 0

@@ -621,8 +621,9 @@ ShellRoot {
                     fakeCrew.set(fakeCrew.four(false));
                     test.check(v.islandState === "vibes", "the attention clearing closes the hail, then vibes");
                     v.close();
-                    // A hail behind a hand-off (the old Hud) waits for it to close.
-                    v.open("cc");
+                    // A hail behind a hand-off (the old Hud's battery page, the
+                    // one left since M6) waits for it to close.
+                    v.open("battery");
                     fakeCrew.set(fakeCrew.four(true));
                     test.check(v.handedOff && v.islandState === "rest" && v.pendingHail === "%2", "a hail waits behind a hand-off");
                     // The Hud closing by itself: no machine change, only handedOff.
@@ -695,7 +696,7 @@ ShellRoot {
                     test.check(runner.visible && runner.running && !greeting.visible, "drag overrides menu costumes");
                 } else {
                     // The crew check's eleven beats outlast this timer's two: wait a round.
-                    if (crewCheck.running || m3Check.running) return;
+                    if (crewCheck.running || m3Check.running || m6Check.running) return;
                     test.check(avatarFrames.changes > 0, "running frames actually advance");
                     avatar.visible = false;
                     test.check(!runner.running, "hidden runner stops animating");
@@ -707,6 +708,7 @@ ShellRoot {
                     test.check(islandCheck.finished, "the island check ran to the end");
                     test.check(crewCheck.finished, "the crew check ran to the end");
                     test.check(m3Check.finished, "the M3 check ran to the end");
+                    test.check(m6Check.finished, "the M6 check ran to the end");
                     test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
                     console.log("CAPSULE_TEST_PASS");
                     Qt.quit();
@@ -812,7 +814,10 @@ ShellRoot {
                     // The IPC verbs, minus the window lookup.
                     test.check(v.open("hover") === "ok" && v.pinned, "open hover pins it");
                     test.check(v.toggle("hover") === "ok" && v.islandState === "rest", "toggle closes what is open");
-                    test.check(v.open("cc") === "ok" && v.hudPage === "home" && v.islandState === "rest", "cc hands off to the old Hud home");
+                    // M6: cc is the island's own state; the battery page is the one hand-off left.
+                    test.check(v.open("cc") === "ok" && v.islandState === "cc" && v.panelOpen && v.hudPage === "" && !v.handedOff, "cc is the island's own state (M6)");
+                    test.check(v.toggle("cc") === "ok" && v.islandState === "rest", "toggle closes cc");
+                    test.check(v.open("battery") === "ok" && v.hudPage === "battery" && v.islandState === "rest", "the battery page hands off to the old Hud");
                     // IPC has no input serial for a popup grab: the Hud opens
                     // without one and the window's focus grab covers it.
                     test.check(!v.hud.grabFocus && v.hudNeedsGrab, "an IPC hand-off opens the Hud without its own grab");
@@ -820,20 +825,20 @@ ShellRoot {
                     test.check(v.handedOff, "no hover while a hand-off shows");
                     v.pointerEntered();
                     test.check(!v.dwell.running, "the dwell waits for the hand-off to close");
-                    test.check(v.toggle("cc") === "ok" && v.hudPage === "", "toggle closes the hand-off");
+                    test.check(v.toggle("battery") === "ok" && v.hudPage === "", "toggle closes the hand-off");
                     test.check(v.open("cal") === "ok" && v.hudPage === "" && v.islandState === "cal", "cal is the island's own state (M3)");
                     test.check(v.close() === "ok" && v.hudPage === "" && v.islandState === "rest", "close clears everything");
                     test.check(!v.hudNeedsGrab, "no focus grab once the hand-off closes");
                     // A click hand-off (the hover layer's calendar) keeps the popup grab.
                     test.check(v.handOff("cal", true) === "ok" && v.hud.grabFocus && !v.hudNeedsGrab, "a click hand-off keeps the Hud's own grab");
-                    v.open("cc");
-                    test.check(v.hudPage === "home" && v.hud.grabFocus, "a page change keeps the grab the Hud opened with");
+                    v.open("battery");
+                    test.check(v.hudPage === "battery" && v.hud.grabFocus, "a page change keeps the grab the Hud opened with");
                     v.close();
                     // The focus grab clearing closes an IPC-opened Hud.
-                    v.open("cc");
+                    v.open("battery");
                     v.dismiss();
                     test.check(v.hudPage === "" && !v.hudNeedsGrab, "an outside click closes an IPC-opened Hud");
-                    test.check(v.open("power").startsWith("error") && v.open("power").includes("M6"), "unbuilt states say when they land");
+                    test.check(v.open("polkit").startsWith("error") && v.open("polkit").includes("M8"), "unbuilt states say when they land");
                     test.check(v.open("notif").startsWith("error: no notification") && v.open("dict").startsWith("error: no dictation"), "notif and dict need something to show");
                     test.check(v.open("bogus").startsWith("error: unknown"), "unknown states are refused");
                     const info = v.inspect();
@@ -841,6 +846,182 @@ ShellRoot {
                     v.pointerLeft();
                 } else {
                     test.check(v.body.width === 360 && v.body.height === 38 && v.body.radius === 19, "back at rest");
+                    finished = true;
+                    stop();
+                }
+                step++;
+            } catch (error) {
+                console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
+            }
+        }
+    }
+
+    // The control center and the power menu (PLAN M6) on their own island,
+    // after the crew and M3 checks (Do not disturb changing would flash on
+    // their islands). SHELL_DRY_RUN=1: the model and the sheets read the
+    // services and change nothing, except where a beat turns it off for the
+    // DND tile, whose state lives in this run's own Prefs.
+    FloatingWindow {
+        visible: true
+        implicitWidth: 1000
+        implicitHeight: 608
+        IslandView {
+            id: m6View
+            anchors.fill: parent
+            interrupt: quietInterrupt
+            liveData: ({})
+            laneData: ({})
+            monitor: ({ name: "check-m6", width: 1000, height: 700 })
+            workspaces: WorkspaceOrder.shown([{ name: "W", windows: 1 }], "W")
+        }
+    }
+    Timer {
+        id: m6Check
+        interval: 600
+        repeat: true
+        running: true
+        property int step: 0
+        property bool finished: false
+        onTriggered: {
+            try {
+                const v = m6View;
+                const cc = v.ccPanel.content;
+                const model = v.ccPanel.model;
+                if (step === 0) {
+                    if (crewCheck.running || m3Check.running) return;
+                    test.check(model.dryRun && Fixture.dryRun, "SHELL_DRY_RUN keeps the control center from changing anything");
+                    test.check(v.open("cc") === "ok" && v.islandState === "cc" && v.panelOpen && !v.handedOff, "open cc is the island's cc state");
+                    test.check(v.targetSize[0] === 760 && v.targetSize[1] === 560, "cc targets 760 x 560");
+                    const tiles = [0, 1, 2, 3].map(i => cc.tiles.itemAt(i)?.objectName).join(" ");
+                    test.check(tiles === "ccTile-wifi ccTile-bt ccTile-ts ccTile-dnd", "the four tiles, by objectName: " + tiles);
+                    const minis = [0, 1, 2, 3, 4, 5].map(i => cc.minis.itemAt(i)?.objectName).join(" ");
+                    test.check(minis === "ccMini-awake ccMini-power ccMini-display ccMini-theme ccMini-record ccMini-clipboard", "the six minis: " + minis);
+                    test.check(String(cc.media.playButton.ink) === String(Tokens.bg) && String(cc.media.playButton.fill) === String(Tokens.fg), "play is bg on fg, never onAccent");
+                } else if (step === 1) {
+                    test.check(v.body.width === 760 && v.body.height === 560 && v.body.radius === 28, "cc settles at 760 x 560, radius 28: " + v.body.width + " x " + v.body.height + " r " + v.body.radius);
+                    test.check(v.body.x === 120 && v.body.y === 8, "cc sits top centre, 8 down");
+                    const footer = cc.footer.mapToItem(cc, 0, 0);
+                    test.check(footer.y + cc.footer.height + 16 === 552 && cc.height === 560, "content is 552 inside 560: " + (footer.y + cc.footer.height + 16));
+                    test.check(v.inspect().parts.ccTile.width === 174 && v.inspect().parts.ccTile.height === 70, "tiles are 174 x 70");
+                    // The hover's status pill opens it too (the M1 hand-off is gone).
+                    v.close();
+                    v.open("hover");
+                    v.hover.openControlCenter();
+                    test.check(v.islandState === "cc" && v.hudPage === "", "the status pill opens the cc state, not the old Hud");
+                    test.check(v.ccByPointer, "by the pointer, so no focus ring lands on the Wi-Fi disc");
+                    test.check(v.open("cc/bogus").startsWith("error: no sheet"), "an unknown sheet is refused");
+                    test.check(v.open("cc/wifi") === "ok" && cc.sheet === "wifi" && cc.sheetItem?.objectName === "ccSheet-wifi", "open cc/wifi opens the Wi-Fi sheet");
+                    test.check(v.isOpen("cc/wifi") && !v.isOpen("cc/sound") && !v.ccByPointer, "isOpen knows the sheet; IPC opens count as keys");
+                } else if (step === 2) {
+                    test.check(cc.sheetOffset === 0 && cc.sheetItem.width === 728 && cc.sheetItem.height === 528, "the sheet slid in to 0 and fills 728 x 528: " + cc.sheetOffset);
+                    test.check(v.inspect().cc.sheet === "wifi", "inspect reports the sheet");
+                    v.stepBack();
+                    test.check(cc.sheet === "" && v.islandState === "cc", "Esc steps back out of the sheet first");
+                    for (const name of ["wifi", "sound", "tailscale", "bt", "notifications", "display", "awake"]) {
+                        test.check(v.open("cc/" + name) === "ok" && cc.sheetItem?.objectName === "ccSheet-" + name, "the " + name + " sheet loads");
+                        test.check(cc.sheetItem.shown && cc.sheetItem.sheetData.groups.length > 0, "the " + name + " sheet shows groups");
+                    }
+                    test.check(v.open("cc/net") === "ok" && cc.sheet === "wifi" && v.open("cc/audio") === "ok" && cc.sheet === "sound", "the launcher's page names reach the same sheets");
+                    test.check(v.open("cc") === "ok" && cc.sheet === "" && v.islandState === "cc", "open cc goes back to home");
+                } else if (step === 3) {
+                    test.check(cc.sheetOffset === 760 && cc.sheetLoader.source.toString() === "" && cc.home.opacity === 1, "home is back and the sheet unloaded: " + cc.sheetOffset + " " + cc.home.opacity);
+                    // Do not disturb from the tile is NotificationState.dnd, kept in Prefs.dnd.
+                    model.dryRun = false;
+                    const was = NotificationState.dnd;
+                    cc.tiles.itemAt(3).toggled(!was);
+                    test.check(NotificationState.dnd === !was && Prefs.dnd === !was, "the DND tile toggles NotificationState.dnd and Prefs.dnd");
+                    test.check(model.home.tiles[3].on === !was && model.home.tiles[3].sub === (!was ? "On" : "Off"), "the tile follows it");
+                    Prefs.setDnd(was);
+                    test.check(NotificationState.dnd === was, "Prefs.dnd changing (a reload, another writer) reaches NotificationState");
+                    model.dryRun = true;
+                    test.check(model.run("tile", { key: "wifi", on: false }) === "ok" && model.last.startsWith("tile"), "a dry run logs the press and changes nothing");
+                    // The footer's Power: the power state over the scrim.
+                    model.run("power", null);
+                    test.check(v.islandState === "power" && v.scrimShown && v.panelOpen, "Power opens the power state over the scrim");
+                    test.check(v.powerMenu.selectedId === "lock", "Lock is selected when it opens");
+                } else if (step === 4) {
+                    test.check(v.body.width === 600 && v.body.height === 156, "power settles at 600 x 156: " + v.body.width + " x " + v.body.height);
+                    test.check(v.body.x === 200, "power sits top centre");
+                    const pm = v.powerMenu;
+                    test.check(["lock", "suspend", "logout", "reboot", "shutdown"].every((id, i) => pm.repeater.itemAt(i).objectName === "powerItem-" + id), "power items by objectName");
+                    pm.select(pm.indexForKey("s"));
+                    test.check(pm.selectedId === "suspend" && v.islandState === "power", "a letter selects and does not run");
+                    pm.run(pm.selectedId);
+                    test.check(v.powerRan === "suspend" && v.islandState === "rest" && !v.scrimShown, "Enter runs it (not under a dry run) and the island goes back to rest");
+                    v.open("power");
+                    pm.cancel();
+                    test.check(v.islandState === "rest", "Esc cancels the power menu");
+                    // The battery (charge limit) hands off to the old Hud.
+                    v.open("cc");
+                    model.run("battery", null);
+                    test.check(v.islandState === "rest" && v.hudPage === "battery" && v.handedOff, "the battery hands off to the old Hud's battery page");
+                    // Its "Back to controls" is the control center, not the old Hud home (M6 review).
+                    v.hud.navigate("home");
+                    test.check(v.islandState === "cc" && v.hudPage === "" && !v.handedOff && v.ccByPointer, "the battery page's back opens the control center");
+                    v.close();
+                    v.open("cc");
+                    model.run("lock", null);
+                    test.check(v.islandState === "rest", "Lock closes the island first");
+                    const info = v.inspect();
+                    test.check(info.cc.dryRun && info.power.ran === "suspend" && "ccPower" in info.parts, "inspect reports cc and power");
+                    // The launcher's System pages load the same sheets (the theme
+                    // page keeps ThemeMenu until M7), in every bar mode.
+                    const system = Qt.createComponent(Qt.resolvedUrl("launcher/providers/System.qml"));
+                    test.check(system.status === Component.Ready, "the System provider compiles: " + system.errorString());
+                    let backs = 0;
+                    const host = { goBack() { backs++; }, cancel() {} };
+                    const provider = system.createObject(m6View, { host: host });
+                    const pages = { audio: "ccSheet-sound", net: "ccSheet-wifi", bt: "ccSheet-bt", display: "ccSheet-display", tailscale: "ccSheet-tailscale" };
+                    for (const page in pages) {
+                        provider.activePage = page;
+                        const view = provider.view.createObject(m6View, { host: host });
+                        const sheet = test.child(view, pages[page]);
+                        test.check(view.sheet && sheet !== null && sheet.shown, "System > " + page + " loads " + pages[page]);
+                        if (page === "net") {
+                            sheet.navigate("sound");
+                            test.check(provider.activePage === "audio" && test.child(view, "ccSheet-sound") !== null, "a sheet's navigate(\"sound\") is the launcher's audio page");
+                            test.child(view, "ccSheet-sound").back();
+                            test.check(backs === 1, "a sheet's back is the launcher's goBack");
+                        }
+                        view.destroy();
+                    }
+                    provider.activePage = "theme";
+                    const themeView = provider.view.createObject(m6View, { host: host });
+                    test.check(!themeView.sheet && test.child(themeView, "ccSheet-wifi") === null, "the theme page is still ThemeMenu");
+                    themeView.destroy();
+                    provider.destroy();
+                    // `island open cc/<sheet>` from rest: the keys end on the
+                    // sheet, not the hidden Wi-Fi disc (focusPanel runs later).
+                    v.close();
+                    test.check(v.open("cc/wifi") === "ok" && cc.sheet === "wifi", "cc/wifi from rest");
+                } else if (step === 5) {
+                    test.check(cc.sheetLoader.focus && !cc.tiles.itemAt(0).disc.focus && cc.sheetItem.keyboard, "the sheet holds the keys (by key, so its ring shows), not the Wi-Fi disc");
+                    // The Tailscale sheet on a tailnet (the M6 review's binding
+                    // loop showed only with machines): the footer is on, and with
+                    // This machine selected it opens the machines that take files.
+                    Fixture.data = ({ sheets: { tailscale: { now: 1794674700000, installed: true, running: true, state: "Connected", self: { name: "milhouse", ipv4: "100.101.12.4" },
+                                    peers: [{ id: "riker", name: "riker", os: "linux", ipv4: "100.88.3.21", canSend: true }, { id: "mbp", name: "nick-mbp", os: "macOS" }],
+                                    offline: [{ id: "pixel", name: "pixel-9", os: "android", lastSeen: 1794667500000 }],
+                                    accounts: [{ id: "p1", label: "work", selected: true }, { id: "p2", label: "home" }] },
+                                sound: { sink: "Speakers", volume: 0.62, micVolume: 0.8, sinks: [{ key: "s", name: "Speakers", isDefault: true }], sources: [{ key: "m", name: "Built-in mic", isDefault: true }] } } });
+                    test.check(v.open("cc/tailscale") === "ok" && cc.sheetItem?.objectName === "ccSheet-tailscale", "the Tailscale sheet on a fixture");
+                    const ts = cc.sheetItem;
+                    test.check(ts.sheetData.footerEnabled && ts.footerButton.enabled && ts.currentRow.key === "self", "Taildrop's footer is on with This machine selected");
+                    test.check(ts.sheetData.groups.some(g => g.label === "Accounts" && g.rows.length === 2), "two accounts show as Accounts");
+                    ts.footerClicked();
+                    test.check(ts.page === "send" && ts.sheetData.groups[0].rows.map(r => r.key).join(" ") === "riker", "the footer opens the machines that take files: " + ts.page);
+                    ts.activate(ts.sheetData.groups[0].rows[0]);
+                    test.check(ts.sentTo === "riker" && ts.page === "" && v.islandState === "cc", "a dry run picks riker and changes nothing");
+                    ts.current = 2;
+                    test.check(ts.currentRow.key === "riker", "riker selected");
+                    ts.footerClicked();
+                    test.check(ts.sentTo === "riker" && ts.page === "", "the footer sends to a selected machine directly");
+                    test.check(v.open("cc/sound") === "ok", "the Sound sheet on a fixture");
+                    const levels = cc.sheetItem.sheetData.groups.map(g => g.rows[0]);
+                    test.check(levels[0].slider === 0.62 && levels[0].action === "outputMute" && levels[1].slider === 0.8 && levels[1].action === "micMute", "the default output and input carry their levels");
+                    Fixture.data = ({});
+                    v.close();
                     finished = true;
                     stop();
                 }

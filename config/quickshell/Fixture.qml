@@ -19,6 +19,11 @@ Singleton {
 
     // Set by shoot.sh. Also the one place new code asks "am I in the sandbox?".
     readonly property bool sandbox: Quickshell.env("SHELL_SANDBOX") === "1"
+    // The control center, its sheets and the power menu read the services but
+    // change nothing: in the sandbox (it shares the session's D-Bus, so a
+    // Wi-Fi toggle there would turn off the real radio) and under
+    // SHELL_DRY_RUN=1 (tests/check.sh). M6.
+    readonly property bool dryRun: sandbox || Quickshell.env("SHELL_DRY_RUN") === "1"
     readonly property string dir: Quickshell.shellDir + "/tests/fixtures"
 
     // The loaded fixture's contents, {} when none is loaded.

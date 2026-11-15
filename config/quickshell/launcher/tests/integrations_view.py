@@ -87,7 +87,7 @@ ShellRoot {
  }
  Timer { interval: 12000; running: true; onTriggered: {console.log("FAIL timeout",test.stage,session.phase,session.error);Qt.quit()} }
 }'''%(json.dumps(str(p)),json.dumps(str(root/'tests/integrations_codex_server.py')),json.dumps(str(p/'requests.jsonl'))))
- env=os.environ.copy();env.pop('DISPLAY',None);env.pop('WAYLAND_DISPLAY',None);env.pop('HYPRLAND_INSTANCE_SIGNATURE',None);env.update(PATH=str(tools)+os.pathsep+env.get('PATH',''),DBUS_SESSION_BUS_ADDRESS='unix:path='+str(p/'no-session-bus'),HOME=str(p),XDG_RUNTIME_DIR=str(p),XDG_CONFIG_HOME=str(p/'.config'),XDG_DATA_HOME=str(p/'.local/share'),QML_IMPORT_PATH=str(p),QT_QPA_PLATFORM='offscreen',QT_QPA_PLATFORMTHEME='generic',QT_QUICK_BACKEND='software')
+ env=os.environ.copy();env.pop('DISPLAY',None);env.pop('WAYLAND_DISPLAY',None);env.pop('HYPRLAND_INSTANCE_SIGNATURE',None);env.update(PATH=str(tools)+os.pathsep+env.get('PATH',''),DBUS_SESSION_BUS_ADDRESS='unix:path='+str(p/'no-session-bus'),HOME=str(p),XDG_RUNTIME_DIR=str(p),XDG_CONFIG_HOME=str(p/'.config'),XDG_DATA_HOME=str(p/'.local/share'),XDG_STATE_HOME=str(p/'.local/state'),QML_IMPORT_PATH=str(p),QT_QPA_PLATFORM='offscreen',QT_QPA_PLATFORMTHEME='generic',QT_QUICK_BACKEND='software')
  r=subprocess.run(['quickshell','-p',str(p/'shell.qml')],env=env,text=True,capture_output=True,timeout=18)
  out=r.stdout+r.stderr
  assert 'PASS Codex' in out and 'FAIL' not in out,out

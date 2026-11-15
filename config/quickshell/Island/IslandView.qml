@@ -5,6 +5,7 @@ import qs.Kit
 import "../lib/IslandMachine.js" as IslandMachine
 import "../lib/CrewModel.js" as CrewModel
 import "../lib/Dictation.js" as Dictation
+import "../lib/CcData.js" as CcData
 
 // IslandView.qml - everything inside one island window, minus the window.
 //
@@ -44,18 +45,24 @@ import "../lib/Dictation.js" as Dictation
 //     Context lane. Which of them has the island is lib/IslandMachine.js
 //     (polkit > open panel > dict > osd > notif > flash > live > rest), and
 //     a transient that ends returns to what it interrupted;
-//   - hands off to the old surfaces where the island state is not built yet
-//     (PLAN 1.7): the status pill opens the old Hud home, anchored under the
-//     rest pill, and the notification center anchors to the rest pill.
-//     While one shows, nothing opens on the island by itself: the OSD and
-//     flashes are dropped and notifications wait.
+//   - draws the control center (M6): the status pill and `island open cc`
+//     open the `cc` state (Island/CcLayer.qml, 760 x 560), and
+//     `island open cc/<sheet>` opens it on a sheet; the footer's Power opens
+//     the power menu (`power`, Island/PowerLayer.qml, 600 x 156), which
+//     Island.qml puts over a scrim;
+//   - hands off to the old surfaces where the island has nothing yet (PLAN
+//     1.7): the control center's battery opens the old Hud's battery page
+//     (the charge-limit top-up), anchored under the rest pill, and the
+//     notification center anchors to the rest pill. While one shows, nothing
+//     opens on the island by itself: the OSD and flashes are dropped and
+//     notifications wait.
 //
 // A hand-off from a click opens the Hud with its usual xdg_popup grab, which
-// needs the click's input serial. One from IPC (`island open cc`, a keybind)
-// has no serial, and Qt refuses a grabbing popup without one ("Failed to
-// create grabbing popup"), so the IPC path opens it without the grab and
-// Island.qml's HyprlandFocusGrab covers the Hud too (hudNeedsGrab): an
-// outside click still closes it.
+// needs the click's input serial. One from IPC (`island open battery`, a
+// keybind) has no serial, and Qt refuses a grabbing popup without one
+// ("Failed to create grabbing popup"), so the IPC path opens it without the
+// grab and Island.qml's HyprlandFocusGrab covers the Hud too (hudNeedsGrab):
+// an outside click still closes it.
 //
 // Data in: monitor, workspaces (lib/WorkspaceOrder.js shown() records), crew
 // (the Crew singleton, or any object with its agents, total, spendToday,
@@ -231,13 +238,27 @@ Item {
     readonly property alias osdCard: osdLayer
     readonly property alias dictCard: dictLayer
     readonly property alias flashCard: flashLayer
+    readonly property alias ccPanel: ccLayer
+    readonly property alias powerMenu: powerLayer
     readonly property alias restAnchor: restAnchor
     readonly property alias hud: hud
     readonly property alias dwell: dwellTimer
     readonly property alias grace: graceTimer
 
     // Where each not-yet-built state lands, for the IPC's error text.
-    readonly property var arrives: ({ launcher: "M5", cc: "M6", power: "M6", polkit: "M8" })
+    readonly property var arrives: ({ launcher: "M5", polkit: "M8" })
+    // The power menu's commands (launcher/providers/System.qml's), and the
+    // last one asked for (tests, the sandbox: under Fixture.dryRun nothing runs).
+    readonly property var powerCommands: ({
+            lock: ["loginctl", "lock-session"],
+            suspend: ["systemctl", "suspend"],
+            logout: ["uwsm", "stop"],
+            reboot: ["systemctl", "reboot"],
+            shutdown: ["systemctl", "poweroff"]
+        })
+    property string powerRan: ""
+    // The power menu shows over the scrim (Island.qml).
+    readonly property bool scrimShown: machine.state === "power"
 
     signal workspaceActivated(string name)
 
@@ -289,8 +310,12 @@ Item {
         else if (!view.pointerInside) graceTimer.restart();
         if (machine.state !== "hail") view.hailId = "";
         // From the record itself: the panelOpen binding may not have caught
-        // up inside this handler.
-        if (IslandMachine.panelOpen(machine)) keys.forceActiveFocus();
+        // up inside this handler. The control center and the power menu take
+        // the keys themselves, once their layers are current.
+        if (IslandMachine.panelOpen(machine)) {
+            if (machine.state === "cc" || machine.state === "power") Qt.callLater(view.focusPanel);
+            else keys.forceActiveFocus();
+        }
         if (machine.state === "rest" && view.pendingHail !== "") Qt.callLater(view.retryHail);
         view.holdNotifications(IslandMachine.notifIds(machine));
         Qt.callLater(view.reconcile);
@@ -418,11 +443,53 @@ Item {
         if (hudNeedsGrab) hudPage = "";
         apply(IslandMachine.dismiss(machine));
     }
-    // Esc steps back one level: the calendar to hover (its back button),
-    // anything else to rest (island-modes 11).
+    // Esc steps back one level: the calendar to hover (its back button), a
+    // sheet to the control center, anything else to rest (island-modes 11).
     function stepBack() {
         if (machine.state === "cal") return backToHover();
+        if (machine.state === "cc" && ccLayer.content.sheet !== "") return ccLayer.content.back();
         dismiss();
+    }
+    // The control center's keys: its sheet when one is open (`island open
+    // cc/<sheet>` from rest opens the sheet before this runs), else home.
+    function focusPanel() {
+        if (machine.state === "cc") ccLayer.content.focusHome(!view.ccByPointer);
+        else if (machine.state === "power") powerLayer.forceActiveFocus();
+    }
+
+    // ---- the control center and the power menu (M6) -------------------------
+
+    // The control center, on `sheet` when one is named ("" for home); false
+    // when there is no such sheet.
+    // Opened from the status pill: no focus ring on the Wi-Fi disc.
+    property bool ccByPointer: false
+    function openCc(sheet: string, byPointer: bool): bool {
+        view.ccByPointer = byPointer === true;
+        dwellTimer.stop();
+        graceTimer.stop();
+        hudPage = "";
+        NotificationState.closeCenter();
+        if (machine.state !== "cc") apply(IslandMachine.go(machine, "cc"));
+        if (sheet === "") {
+            if (ccLayer.content.sheet !== "") ccLayer.content.closeSheet(true);
+            return true;
+        }
+        return ccLayer.openSheet(sheet, null, !view.ccByPointer);
+    }
+    function openPower() {
+        dwellTimer.stop();
+        graceTimer.stop();
+        hudPage = "";
+        apply(IslandMachine.go(machine, "power"));
+    }
+    // A power item: back to rest, then its command (never under a dry run).
+    function runPower(id: string): string {
+        const argv = view.powerCommands[id];
+        if (!argv) return "error: no power item " + id;
+        view.powerRan = id;
+        apply(IslandMachine.dismiss(machine));
+        if (!Fixture.dryRun) Quickshell.execDetached(argv);
+        return "ok";
     }
     // The calendar's back button: hover, pinned.
     function backToHover() {
@@ -592,7 +659,17 @@ Item {
             apply(IslandMachine.go(machine, "hover"));
             return "ok";
         }
-        if (state === "cc") return handOff(state, false);
+        if (state === "cc" || state.startsWith("cc/")) {
+            const sheet = state.slice(3);
+            if (sheet !== "" && CcData.sheetName(sheet) === "") return "error: no sheet \"" + sheet + "\" (sheets: " + CcData.SHEETS.filter(n => n !== "tray").join(" ") + ")";
+            return openCc(sheet, false) ? "ok" : "error: the " + sheet + " sheet could not load";
+        }
+        if (state === "power") {
+            openPower();
+            return "ok";
+        }
+        // The old Hud's battery page (the charge limit), the one hand-off left.
+        if (state === "battery") return handOff("battery", false);
         if (state === "cal") {
             hudPage = "";
             apply(IslandMachine.go(machine, "cal"));
@@ -648,22 +725,25 @@ Item {
         return "ok";
     }
     function isOpen(state: string): bool {
-        if (state === "cc") return hudPage === "home";
+        if (state.startsWith("cc/")) return machine.state === "cc" && ccLayer.content.sheet === CcData.sheetName(state.slice(3));
+        if (state === "battery") return hudPage === "battery";
         return machine.state === state;
     }
     function toggle(state: string): string {
         return isOpen(state) && state !== "rest" ? close() : open(state);
     }
-    // cc before its state exists (M6): back to rest, and the old menu drops
-    // from the rest pill. (cal is the island's own since M3; the Hud's
-    // clock page is still reachable from its home.) `clicked` says whether a pointer press led
-    // here: only then can the Hud take its own popup grab. A Hud already
-    // showing just changes page and keeps the grab it opened with.
+    // An old Hud page, for what the island has no state for yet: back to
+    // rest, and the old menu drops from the rest pill. The control center's
+    // battery opens "battery" (the charge-limit top-up); "cal" maps to the
+    // clock page and "cc" to the old home (kept for M4's classic hosts).
+    // `clicked` says whether a pointer press led here: only then can the Hud
+    // take its own popup grab. A Hud already showing just changes page and
+    // keeps the grab it opened with.
     function handOff(state: string, clicked: bool): string {
         apply(IslandMachine.go(machine, "rest"));
         NotificationState.closeCenter();
         if (hudPage === "") hud.grabFocus = clicked;
-        hudPage = state === "cal" ? "clock" : "home";
+        hudPage = state === "cal" ? "clock" : state === "cc" ? "home" : state;
         return "ok";
     }
 
@@ -685,6 +765,15 @@ Item {
             item: machine.item ?? null,
             queue: (machine.queue ?? []).map(i => i.id),
             back: machine.back?.state ?? "",
+            // The control center (M6): its sheet, how far the sheet is from
+            // home (760 out, 0 in) and its last press; the power menu's pick.
+            cc: {
+                sheet: ccLayer.content.sheet,
+                sheetOffset: ccLayer.content.sheetOffset,
+                last: ccLayer.model.last,
+                dryRun: ccLayer.model.dryRun
+            },
+            power: { selected: powerLayer.selectedId, ran: view.powerRan, scrim: view.scrimShown },
             lane: view.lane,
             live: view.live,
             // Where the measured parts sit, logical px in the view.
@@ -732,7 +821,21 @@ Item {
             osdTrack: box(osdLayer.track),
             osdFill: box(osdLayer.fill),
             dictStop: box(dictLayer.stopButton),
-            notifProgress: box(notifLayer.progress)
+            notifProgress: box(notifLayer.progress),
+            cc: box(ccLayer),
+            ccTile: box(ccLayer.content.tiles.itemAt(0)),
+            ccDisc: box(ccLayer.content.tiles.itemAt(0)?.disc ?? null),
+            ccMedia: box(ccLayer.content.media),
+            ccPlay: box(ccLayer.content.media.playButton),
+            ccLevels: box(ccLayer.content.levels),
+            ccMini: box(ccLayer.content.minis.itemAt(0)),
+            ccNotes: box(ccLayer.content.notes),
+            ccFooter: box(ccLayer.content.footer),
+            ccPower: box(ccLayer.content.powerButton),
+            ccSheet: box(ccLayer.content.sheetItem),
+            power: box(powerLayer),
+            powerItem: box(powerLayer.repeater.itemAt(0)),
+            powerHint: box(powerLayer.hint)
         };
     }
 
@@ -833,7 +936,7 @@ Item {
             animated: view.ambient
             onPin: view.clickPill()
             onOpenCalendar: view.apply(IslandMachine.go(view.machine, "cal"))
-            onOpenControlCenter: view.handOff("cc", true)
+            onOpenControlCenter: view.openCc("", true)
             onOpenContext: view.openContext()
             onPrevious: view.mediaAction("previous")
             onTogglePlaying: view.mediaAction("toggle")
@@ -930,6 +1033,27 @@ Item {
             dpr: view.dpr
             animated: view.ambient
         }
+
+        CcLayer {
+            id: ccLayer
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 0
+            current: view.machine.state === "cc"
+            monitor: view.monitor
+            animated: view.ambient
+            onClose: view.dismiss()
+            onPower: view.openPower()
+            onHandOff: page => view.handOff(page, true)
+        }
+
+        PowerLayer {
+            id: powerLayer
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 0
+            current: view.machine.state === "power"
+            onRun: id => view.runPower(id)
+            onCancel: view.dismiss()
+        }
     }
 
     // The rest pill's place, whatever the body is doing: what the old menus,
@@ -952,7 +1076,12 @@ Item {
         monitor: view.monitor ?? ({ width: 1920, height: 1200 })
         now: view.now
         page: view.hudPage
-        onNavigate: page => view.hudPage = page
+        // The battery page's "Back to controls" is the control center now,
+        // not the old Hud home (M6 review).
+        onNavigate: page => {
+            if (page === "home") view.openCc("", true);
+            else view.hudPage = page;
+        }
         onDismissed: view.hudPage = ""
         // grabFocus is set by handOff() each time the Hud opens.
     }

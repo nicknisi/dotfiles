@@ -14,10 +14,13 @@ import "../lib/WorkspaceOrder.js" as WorkspaceOrder
 // the body's rounded rectangle, so everything else on the strip passes clicks
 // through to the windows under it, and the mask follows the body as it morphs.
 //
-// While a panel is open (pinned hover in M1), or a Hud hand-off opened from
-// IPC, a Hyprland focus grab takes the pointer: a click anywhere outside the
-// island (and that Hud) clears the grab, which dismisses it. Namespace quickshell-island is outside hyprland.lua's
-// shell-blur rule on purpose (island-modes C6).
+// While a panel is open (pinned hover, the calendar, the control center, the
+// power menu), or a Hud hand-off opened from IPC, a Hyprland focus grab takes
+// the pointer and the keyboard: a click anywhere outside the island (and that
+// Hud) clears the grab, which dismisses it. The power menu shows over a
+// full-screen scrim (Scrim.qml), with the island raised to Overlay above it.
+// Namespace quickshell-island is outside hyprland.lua's shell-blur rule on
+// purpose (island-modes C6); so is quickshell-island-scrim (no blur).
 //
 // After a minute without input (ext-idle-notify, respecting idle inhibitors)
 // the Crew's bots hold still (IslandView.ambient), so an agent waiting on an
@@ -45,7 +48,9 @@ PanelWindow {
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "quickshell-island"
-    WlrLayershell.layer: WlrLayer.Top
+    // Overlay while the power menu shows, so the island is above its scrim
+    // (Scrim.qml, on Top); Top otherwise, under fullscreen windows' overlays.
+    WlrLayershell.layer: view.scrimShown ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
     mask: Region {
@@ -88,6 +93,12 @@ PanelWindow {
     IdleMonitor {
         id: idle
         timeout: 60
+    }
+
+    // The dim behind the power menu (M6).
+    Scrim {
+        screen: island.screen
+        shown: view.scrimShown
     }
 
     // The pinned panel, or a Hud opened from IPC without its own popup grab

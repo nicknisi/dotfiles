@@ -50,6 +50,10 @@ QtObject {
         property real signalStrength: 80
         property bool stateChanging: false
         property int state: ConnectionState.Connected
+        // The Wi-Fi sheet's presses (net-sheet.qml).
+        property int disconnects: 0
+        function disconnect() { disconnects++ }
+        function connect() {}
     }
     property QtObject wifi: QtObject {
         property int type: DeviceType.Wifi
@@ -59,7 +63,8 @@ QtObject {
 }
 QML
 # Qt's offscreen platform refuses URL opens, allowing the error path to be checked safely.
-env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen \
+# Quickshell's state (Prefs' capsule.json) stays in $tmp, not ~/.local/state.
+env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen XDG_STATE_HOME="$tmp/state" \
     timeout 10 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
 grep -q NETWORK_TEST_PASS "$tmp/result"
 # Three automatic attempts (startup, new detection, reconnect) and three manual
@@ -67,4 +72,24 @@ grep -q NETWORK_TEST_PASS "$tmp/result"
 [[ $(grep -Fc "QPlatformServices::openUrl() for 'http://neverssl.com/'" "$tmp/result") == 6 ]]
 # The isolated Prefs store creates its defaults on first load.
 ! grep -E 'NETWORK_TEST_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|WARN scene:' "$tmp/result" \
+    | grep -qv 'QML FileView.*capsule.json failed: File does not exist'
+
+# The control center's Wi-Fi sheet (PLAN M6) on the same mock: the whole
+# shell's files (Tokens and the Kit it draws with), the sheet and its frame.
+sheet=$tmp/sheet
+mkdir -p "$sheet/Panels/Sheets"
+cp "$root"/*.qml "$root"/*.js "$sheet/"
+cp -R "$root/lib" "$root/Kit" "$root/assets" "$sheet/"
+cp "$root/Panels/Sheets/SheetFrame.qml" "$root/Panels/Sheets/WifiSheet.qml" "$sheet/Panels/Sheets/"
+cp "$tmp/Tailscale.qml" "$sheet/"
+cp -R "$module" "$sheet/network"
+cp "$root/tests/net-sheet.qml" "$sheet/shell.qml"
+grep -lx 'import Quickshell.Networking' "$sheet"/*.qml | xargs sed -i 's/^import Quickshell.Networking$/import "network"/'
+sed -i 's/^import Quickshell.Networking$/import "..\/..\/network"/' "$sheet/Panels/Sheets/WifiSheet.qml"
+env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen XDG_STATE_HOME="$tmp/state" \
+    timeout 10 qs -p "$sheet" --no-color 2>&1 | tee "$tmp/sheet-result"
+grep -q NETWORK_SHEET_TEST_PASS "$tmp/sheet-result"
+# One automatic attempt at startup and the one press on the connected row.
+[[ $(grep -Fc "QPlatformServices::openUrl() for 'http://neverssl.com/'" "$tmp/sheet-result") == 2 ]]
+! grep -E 'NETWORK_SHEET_TEST_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|is not a type|WARN scene:' "$tmp/sheet-result" \
     | grep -qv 'QML FileView.*capsule.json failed: File does not exist'

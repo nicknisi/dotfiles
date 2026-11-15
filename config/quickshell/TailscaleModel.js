@@ -49,6 +49,31 @@ function canSend(peer, selfUserId, fileSharing, running) {
     return peer.userId !== "" && peer.userId === String(selfUserId || "");
 }
 
+// LastSeen as epoch ms, 0 when the daemon has none. tailscale status --json
+// writes an RFC 3339 time for a peer that has been away and Go's zero time
+// ("0001-01-01T00:00:00Z") or nothing for one it never saw or sees now.
+function lastSeenMs(value) {
+    var text = String(value || "");
+    if (text === "" || /^0001-/.test(text)) return 0;
+    var ms = Date.parse(text);
+    return isFinite(ms) && ms > 0 ? ms : 0;
+}
+
+// "Last seen 2 h ago" for an offline machine (the Control board's Machines
+// row), from lastSeen and now (both epoch ms). Minutes under an hour, hours
+// under two days, then days; "Last seen just now" under a minute, "Offline"
+// when the daemon never said.
+function lastSeenText(lastSeen, now) {
+    var seen = Number(lastSeen) || 0;
+    if (seen <= 0) return "Offline";
+    var minutes = Math.floor(Math.max(0, (Number(now) || 0) - seen) / 60000);
+    if (minutes < 1) return "Last seen just now";
+    if (minutes < 60) return "Last seen " + minutes + " min ago";
+    var hours = Math.floor(minutes / 60);
+    if (hours < 48) return "Last seen " + hours + " h ago";
+    return "Last seen " + Math.floor(hours / 24) + " d ago";
+}
+
 function peerFromStatus(id, raw, selfUserId, fileSharing, running) {
     if (!object(raw)) fail("bad peer schema");
     var ips = raw.TailscaleIPs || [];
@@ -60,6 +85,7 @@ function peerFromStatus(id, raw, selfUserId, fileSharing, running) {
         ipv6: firstIp(ips, 6),
         userId: String(raw.UserID || ""),
         online: raw.Online === true,
+        lastSeen: lastSeenMs(raw.LastSeen),
         os: String(raw.OS || ""),
         exitNode: raw.ExitNode === true,
         exitNodeOption: raw.ExitNodeOption === true,
@@ -80,6 +106,7 @@ function publicPeer(peer) {
         ipv6: peer.ipv6,
         userId: peer.userId,
         online: peer.online,
+        lastSeen: peer.lastSeen,
         os: peer.os,
         exitNode: peer.exitNode,
         exitNodeOption: peer.exitNodeOption,
@@ -114,6 +141,9 @@ function parseStatus(raw) {
     };
     var fileSharing = running && hasFileSharing(selfRaw);
     var peers = [];
+    // Machines that are away (M6, the Control board's "Last seen 2 h ago"
+    // rows): kept apart so `peers` stays the online list every caller reads.
+    var offline = [];
     var exitNodes = [];
     var selected = null;
 
@@ -122,10 +152,13 @@ function parseStatus(raw) {
         if (peer.exitNode) selected = publicPeer(peer);
         if (peer.mullvad) continue;
         if (peer.online) peers.push(publicPeer(peer));
+        else offline.push(publicPeer(peer));
         if (peer.exitNodeOption && (peer.online || peer.exitNode)) exitNodes.push(publicPeer(peer));
     }
 
     peers.sort(function(a, b) { return a.name.localeCompare(b.name); });
+    // Most recently seen first; never-seen ones last, by name.
+    offline.sort(function(a, b) { return (b.lastSeen - a.lastSeen) || a.name.localeCompare(b.name); });
     exitNodes.sort(function(a, b) { return a.name.localeCompare(b.name); });
 
     return {
@@ -136,6 +169,7 @@ function parseStatus(raw) {
         self: self,
         fileSharing: fileSharing,
         peers: peers,
+        offline: offline,
         exitNodes: exitNodes,
         exitNode: selected,
         health: Array.isArray(data.Health) ? data.Health.map(function(v) { return String(v); }) : [],
@@ -245,6 +279,8 @@ if (typeof module !== "undefined") {
         parseStatus: parseStatus,
         parseAccounts: parseAccounts,
         parseExitNodes: parseExitNodes,
+        lastSeenMs: lastSeenMs,
+        lastSeenText: lastSeenText,
         authLink: authLink,
         filePath: filePath
     };

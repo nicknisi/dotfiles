@@ -200,14 +200,20 @@ Item {
       property var host: null
       implicitWidth: 560
       implicitHeight: 540
-      function focusInput() { desktopView.forceActiveFocus() }
+      // A sheet walks its own rows (Up/Down, Enter; Esc is its back).
+      function focusInput() { if (desktopView.sheet) menuLoader.item.forceActiveFocus(); else desktopView.forceActiveFocus() }
+      // A control center sheet is loaded (it has its own header).
+      readonly property bool sheet: !!menuLoader.item && typeof menuLoader.item.backHandler !== "undefined"
       function dismiss() { if (menuLoader.item) menuLoader.item.shown = false }
       Keys.onEscapePressed: if (host) host.goBack()
       Column {
         anchors.fill: parent
         anchors.margins: 20
         spacing: 16
+        // The sheets (M6) draw their own back button; ThemeMenu still needs this one.
         Text {
+          visible: !desktopView.sheet
+          height: visible ? implicitHeight : 0
           text: "‹ Back to launcher"
           color: Desktop.Theme.fg
           font.family: Desktop.Theme.font
@@ -216,16 +222,20 @@ Item {
         }
         Flickable {
           width: parent.width
-          height: parent.height - 42
+          height: parent.height - (desktopView.sheet ? 0 : 42)
           clip: true
           contentWidth: width
           contentHeight: menuLoader.item ? menuLoader.item.implicitHeight : 0
           Loader {
             id: menuLoader
             width: parent.width
+            // M6: the control center's sheets (Panels/Sheets), with the old
+            // menus' interface (shown, monitor, dismissed(), navigate()) plus
+            // back(). The theme page keeps ThemeMenu until M7.
             source: {
-              var names = { audio: "AudioMenu", net: "NetMenu", bt: "BtMenu", display: "DisplayMenu", tailscale: "TailscaleMenu", theme: "ThemeMenu" }
-              return names[root.activePage] ? Qt.resolvedUrl("../../" + names[root.activePage] + ".qml") : ""
+              var sheets = { audio: "SoundSheet", net: "WifiSheet", bt: "BluetoothSheet", display: "DisplaySheet", tailscale: "TailscaleSheet" }
+              if (sheets[root.activePage]) return Qt.resolvedUrl("../../Panels/Sheets/" + sheets[root.activePage] + ".qml")
+              return root.activePage === "theme" ? Qt.resolvedUrl("../../ThemeMenu.qml") : ""
             }
             onLoaded: {
               if ("monitor" in item) item.monitor = desktopView.host && (desktopView.host.targetScreen || desktopView.host.screen) || Quickshell.screens[0] || null
@@ -236,7 +246,12 @@ Item {
             target: menuLoader.item
             ignoreUnknownSignals: true
             function onDismissed() { if (desktopView.host) desktopView.host.cancel() }
-            function onNavigate(page) { root.activePage = page }
+            // A sheet names another by its control center name (wifi, sound).
+            function onNavigate(page) {
+              var pages = { wifi: "net", sound: "audio" }
+              root.activePage = pages[page] || page
+            }
+            function onBack() { if (desktopView.host) desktopView.host.goBack() }
           }
         }
       }

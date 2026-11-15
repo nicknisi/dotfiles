@@ -35,7 +35,7 @@
 //
 // Some of them (search, x, the chevrons, lock, log-out, monitor, moon, music,
 // headphones, power, server, smartphone, terminal, type, link, plus, check,
-// arrow-right, clipboard) are on Lucide's list of icons derived from Feather,
+// arrow-right, clipboard, trash-2) are on Lucide's list of icons derived from Feather,
 // which carries this notice as well:
 //
 // The MIT License (MIT) (for the icons listed above)
@@ -88,6 +88,8 @@ var ICONS = {
     "micOff": {"lucide": "mic-off", "d": "M12 19v3M15 9.34V5a3 3 0 0 0 -5.68 -1.33M16.95 16.95A7 7 0 0 1 5 12v-2M18.89 13.23A7 7 0 0 0 19 12v-2M2 2l20 20M9 9v3a3 3 0 0 0 5.12 2.12"},
     "battery": {"lucide": "battery", "d": "M22 14L22 10M4 6H16A2 2 0 0 1 18 8V16A2 2 0 0 1 16 18H4A2 2 0 0 1 2 16V8A2 2 0 0 1 4 6Z"},
     "batteryLow": {"lucide": "battery-low", "d": "M22 14v-4M6 14v-4M4 6H16A2 2 0 0 1 18 8V16A2 2 0 0 1 16 18H4A2 2 0 0 1 2 16V8A2 2 0 0 1 4 6Z"},
+    "batteryMedium": {"lucide": "battery-medium", "d": "M10 14v-4M22 14v-4M6 14v-4M4 6H16A2 2 0 0 1 18 8V16A2 2 0 0 1 16 18H4A2 2 0 0 1 2 16V8A2 2 0 0 1 4 6Z"},
+    "batteryFull": {"lucide": "battery-full", "d": "M10 10v4M14 10v4M22 14v-4M6 10v4M4 6H16A2 2 0 0 1 18 8V16A2 2 0 0 1 16 18H4A2 2 0 0 1 2 16V8A2 2 0 0 1 4 6Z"},
     "batteryCharging": {"lucide": "battery-charging", "d": "M11 7l-3 5h4l-3 5M14.856 6H16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-2.935M22 14v-4M5.14 18H4a2 2 0 0 1 -2 -2V8a2 2 0 0 1 2 -2h2.936"},
     "sun": {"lucide": "sun", "d": "M8 12A4 4 0 1 0 16 12A4 4 0 1 0 8 12ZM12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"},
     "moon": {"lucide": "moon", "d": "M20.985 12.486a9 9 0 1 1 -9.473 -9.472c0.405 -0.022 0.617 0.46 0.402 0.803a6 6 0 0 0 8.268 8.268c0.344 -0.215 0.825 -0.004 0.803 0.401"},
@@ -125,7 +127,13 @@ var ICONS = {
     "text": {"lucide": "type", "d": "M12 4v16M4 7V5a1 1 0 0 1 1 -1h14a1 1 0 0 1 1 1v2M9 20h6"},
     "image": {"lucide": "image", "d": "M5 3H19A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3ZM7 9A2 2 0 1 0 11 9A2 2 0 1 0 7 9ZM21 15l-3.086 -3.086a2 2 0 0 0 -2.828 0L6 21"},
     "link": {"lucide": "link", "d": "M10 13a5 5 0 0 0 7.54 0.54l3 -3a5 5 0 0 0 -7.07 -7.07l-1.72 1.71M14 11a5 5 0 0 0 -7.54 -0.54l-3 3a5 5 0 0 0 7.07 7.07l1.71 -1.71"},
-    "sliders": {"lucide": "sliders-vertical", "d": "M10 8h4M12 21v-9M12 8V3M17 16h4M19 12V3M19 21v-5M3 14h4M5 10V3M5 21v-7"}
+    "sliders": {"lucide": "sliders-vertical", "d": "M10 8h4M12 21v-9M12 8V3M17 16h4M19 12V3M19 21v-5M3 14h4M5 10V3M5 21v-7"},
+    "trash": {"lucide": "trash-2", "d": "M10 11v6M14 11v6M19 6v14a2 2 0 0 1 -2 2H7a2 2 0 0 1 -2 -2V6M3 6h18M8 6V4a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"},
+    "refresh": {"lucide": "refresh-cw", "d": "M3 12a9 9 0 0 1 9 -9a9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1 -9 9a9.75 9.75 0 0 1 -6.74 -2.74L3 16M8 16H3v5"},
+    "keyboard": {"lucide": "keyboard", "d": "M10 8h0.01M12 12h0.01M14 8h0.01M16 12h0.01M18 8h0.01M6 8h0.01M7 16h10M8 12h0.01M4 4H20A2 2 0 0 1 22 6V18A2 2 0 0 1 20 20H4A2 2 0 0 1 2 18V6A2 2 0 0 1 4 4Z"},
+    "mouse": {"lucide": "mouse", "d": "M12 2H12A7 7 0 0 1 19 9V15A7 7 0 0 1 12 22H12A7 7 0 0 1 5 15V9A7 7 0 0 1 12 2ZM12 6v4"},
+    "gamepad": {"lucide": "gamepad-2", "d": "M6 11L10 11M8 9L8 13M15 12L15.01 12M18 10L18.01 10M17.32 5H6.68a4 4 0 0 0 -3.978 3.59c-0.006 0.052 -0.01 0.101 -0.017 0.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5 -0.5 2 -1l1.414 -1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414 0.586L17 18c0.5 0.5 1 1 2 1a3 3 0 0 0 3 -3c0 -1.545 -0.604 -6.584 -0.685 -7.258c-0.007 -0.05 -0.011 -0.1 -0.017 -0.151A4 4 0 0 0 17.32 5z"},
+    "user": {"lucide": "user", "d": "M19 21v-2a4 4 0 0 0 -4 -4H9a4 4 0 0 0 -4 4v2M8 7A4 4 0 1 0 16 7A4 4 0 1 0 8 7Z"}
 };
 // END ICONS
 
