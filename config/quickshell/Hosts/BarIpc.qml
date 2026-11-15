@@ -15,7 +15,8 @@ import qs
 //                 display, awake, tray) | power | cal | battery | appearance |
 //                 theme. cc and its sheets, power and the pages hang from the
 //                 status module, cal from the clock. Opened this way, the
-//                 first control draws its focus ring.
+//                 first control draws its focus ring. theme closes the panel
+//                 and opens the theme picker on that screen (M7).
 //   close         closes whatever is open
 //   toggle STATE  open, or close when that panel is already showing
 //   inspect       JSON: mode, edges, the reserve and every bar's host (the

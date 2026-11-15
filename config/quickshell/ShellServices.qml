@@ -102,6 +102,9 @@ Scope {
     readonly property var polkitAgent: polkitLoader.item
     readonly property var polkitFlow: root.fixtureFlow ?? root.polkitAgent?.flow ?? null
     property string polkitScreen: ""
+    // The classic modes' PolkitWindow while it is built (shell.qml), for
+    // `polkit inspect`.
+    property var polkitWindow: null
 
     LazyLoader {
         id: polkitLoader
@@ -145,7 +148,8 @@ Scope {
                 active: root.polkitAgent?.isActive ?? false,
                 fixture: root.fixtureFlow !== null,
                 screen: root.polkitScreen,
-                actionId: String(root.polkitFlow?.actionId ?? "")
+                actionId: String(root.polkitFlow?.actionId ?? ""),
+                window: root.polkitWindow ? root.polkitWindow.inspect() : null
             });
         }
         // on | off: Prefs.polkitAgent. Turn it on only once hyprpolkitagent

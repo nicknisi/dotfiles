@@ -9,6 +9,7 @@
 // skip their writers, and Fixture registers its `fixture` IPC target.
 import Quickshell
 import Quickshell.Io
+import QtQuick
 import qs.Island
 import qs.Hosts
 
@@ -44,7 +45,8 @@ ShellRoot {
                 active: Prefs.barMode !== "island"
                 Bar {
                     modelData: screenScope.modelData
-                    // The Hud's Theme packs open the theme picker (M7).
+                    // Appearance's Theme packs and the control center's
+                    // Theme mini open the theme picker here (M7).
                     pickerHost: themePicker
                 }
             }
@@ -82,6 +84,7 @@ ShellRoot {
     ShellServices {
         id: services
         reserves: screens.instances.map(s => s.reserve)
+        polkitWindow: polkitWindowLoader.item
     }
     // A polkit request in the classic bar modes (M8): the island draws it in
     // island mode. Built only while a flow exists (the agent, Prefs.polkitAgent,
@@ -93,6 +96,24 @@ ShellRoot {
         PolkitWindow {
             flow: services.polkitFlow
             screenName: services.polkitScreen
+        }
+    }
+    // A request in the classic modes takes the screen from whatever was open,
+    // as it takes the island in island mode (where the palette and the
+    // pickers close through launcherLeft and pickerLeft): the launcher's and
+    // the pickers' free panels and every bar's anchored panel close, so
+    // nothing waits under the prompt (a theme preview tinting it included)
+    // or takes the keys back once it ends.
+    Connections {
+        target: services
+        function onPolkitFlowChanged() {
+            if (services.polkitFlow === null || Prefs.barMode === "island")
+                return;
+            if (launcher.opened)
+                launcher.close();
+            themePicker.close();
+            for (const s of screens.instances)
+                s.classicBar?.host.close();
         }
     }
 

@@ -42,6 +42,21 @@ PanelWindow {
     readonly property alias card: card
     readonly property alias layer: layer
 
+    // `polkit inspect`'s window (ShellServices): where the card sits and
+    // whether the field has the keys. Never the typed answer: only its length,
+    // and only in the sandbox (Fixture.sandbox), for the key runs.
+    function inspect(): var {
+        return {
+            waiting: win.waiting,
+            shown: win.shown,
+            screen: win.screen?.name ?? "",
+            card: { x: card.x, y: card.y, width: card.width, height: card.height },
+            typed: Fixture.sandbox ? layer.buffer.length : -1,
+            fieldFocus: layer.field.activeFocus,
+            keyboardHere: layer.field.keyboardHere
+        };
+    }
+
     screen: Quickshell.screens.find(s => s.name === win.screenName) ?? Quickshell.screens[0] ?? null
     visible: win.showing
     anchors {

@@ -27,7 +27,8 @@ PanelWindow {
     readonly property bool vertical: Prefs.vertical
     readonly property alias view: barView
     readonly property alias host: host
-    // shell.qml's ThemePicker: Appearance's Theme packs opens it (M7).
+    // shell.qml's ThemePicker: the anchored host's Theme packs, Theme mini
+    // and `bar open theme` open it on this screen (M7).
     property var pickerHost: null
     property date now: new Date()
 
@@ -203,5 +204,6 @@ PanelWindow {
         // and left edges, flush with the far edge for the bottom and right.
         barOrigin: Qt.point(bar.edge === "right" ? bar.screen.width - bar.width : 0, bar.edge === "bottom" ? bar.screen.height - bar.height : 0)
         now: bar.now
+        pickerHost: bar.pickerHost
     }
 }

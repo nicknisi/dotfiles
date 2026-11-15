@@ -25,6 +25,9 @@ PanelWindow {
     // Where the bar window's top-left sits on the screen.
     property point barOrigin: Qt.point(0, 0)
     property date now: new Date()
+    // shell.qml's ThemePicker: Appearance's Theme packs, the control center's
+    // Theme mini and `bar open theme` open it on this screen (M7).
+    property var pickerHost: null
 
     readonly property alias content: anchored
     readonly property bool shown: anchored.shown
@@ -79,5 +82,6 @@ PanelWindow {
         monitor: host.barWindow.screen
         barOrigin: host.barOrigin
         now: host.now
+        pickerHost: host.pickerHost
     }
 }

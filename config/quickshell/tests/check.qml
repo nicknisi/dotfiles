@@ -1701,6 +1701,22 @@ ShellRoot {
                     test.check(new Set(icons).size === 4 && icons.every(n => n !== ""), "one icon per mode: " + icons.join(" "));
                     h.stepBack();
                     test.check(b.openMenu === "", "Esc closes the page");
+                    // The theme picker replaced ThemeMenu's page (M7): Theme
+                    // packs, `bar open theme` and the control center's Theme
+                    // mini close the panel and open the picker on this bar's
+                    // screen (shell.qml's ThemePicker as pickerHost).
+                    const picks = [];
+                    h.pickerHost = { openOn: (screen, kind) => picks.push((screen?.name ?? "") + " " + kind) };
+                    test.check(h.open("appearance") === "ok" && h.page === "appearance", "Appearance again");
+                    const appearance = test.child(h.pageLayer, "appearancePage");
+                    test.check(appearance !== null && appearance.shown, "the appearance page shows");
+                    appearance.navigate("theme");
+                    test.check(JSON.stringify(picks) === JSON.stringify(["check-m4 themes"]) && b.openMenu === "" && h.themesRan === "picker",
+                        "Theme packs opens the theme picker on the bar's screen and closes the page: " + JSON.stringify(picks) + " [" + b.openMenu + "]");
+                    test.check(h.open("theme") === "ok" && picks.length === 2 && b.openMenu === "", "bar open theme opens the picker, no page: " + JSON.stringify(picks));
+                    test.check(h.open("cc") === "ok" && h.ccLayer.model.run("mini", "theme") === "ok" && picks.length === 3 && b.openMenu === "",
+                        "the control center's Theme mini opens the picker and closes cc: " + JSON.stringify(picks) + " [" + b.openMenu + "]");
+                    h.pickerHost = null;
                     // The bell, then a mode switch closes what is open.
                     b.toggleMenu("notifications", b.notificationsButton);
                     test.check(h.kind === "cc" && h.ccLayer.content.sheet === "notifications", "the bell opens the Notifications sheet");

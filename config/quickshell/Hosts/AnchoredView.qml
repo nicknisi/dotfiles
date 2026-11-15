@@ -23,10 +23,15 @@ import "../lib/CcData.js" as CcData
 //          from), over the scrim, rgba(bg, .56); on a strip the scrim stops
 //          at the strip, which is one piece with the panel;
 //   page   the old Hud pages the control center still hands off to: the
-//          battery page, Appearance (the bar's mode and edge) and its Theme
-//          page, on the same frame under one header (the page's title and its
-//          subtitle; the page's own header is hidden: BarMenu.framed), M10
-//          retires them.
+//          battery page and Appearance (the bar's mode and edge), on the
+//          same frame under one header (the page's title and its subtitle;
+//          the page's own header is hidden: BarMenu.framed), M10 retires
+//          them.
+//
+// The theme picker (M7) replaced ThemeMenu's page (PLAN 1.3): Appearance's
+// Theme packs, the control center's Theme mini and `bar open theme` close
+// this panel and open the picker's free panel on this screen (pickerHost,
+// shell.qml's ThemePicker; without one, `theme picker themes`).
 //
 // Placement, corners, hairlines and motion are lib/Anchored.js place(): the
 // pill's panel floats 8 from the bar and grows from the module's corner; the
@@ -39,8 +44,7 @@ import "../lib/CcData.js" as CcData
 // Motion.exitFade (Kit/Layer). One panel into another (cc to power, cc to
 // the calendar): the outgoing layer stays where it was laid out while it
 // fades (leaving, leavingAt), and only the incoming one takes the new
-// place. Esc steps back (a sheet to the control center, Theme to
-// Appearance), then closes.
+// place. Esc steps back (a sheet to the control center), then closes.
 //
 // open/toggle/inspect are `bar open|toggle|inspect` (Hosts/BarIpc.qml);
 // opened that way, the first control draws its focus ring (control-lock 2.9).
@@ -53,6 +57,10 @@ Item {
     // Where the bar window's top-left sits on the screen.
     property point barOrigin: Qt.point(0, 0)
     property date now: new Date()
+    // shell.qml's ThemePicker (openOn(screen, kind)), or null.
+    property var pickerHost: null
+    // What the last theme hand-off did: "picker" or "exec" (tests, inspect).
+    property string themesRan: ""
     // Device pixels per logical px: the bar's window (always mapped; this
     // host's own window maps only once a panel shows).
     readonly property real dpr: view.dpr ?? 1
@@ -64,7 +72,7 @@ Item {
     // The panel on screen ("" for none): cc | cal | power | page. Kept through
     // the close, so the panel can leave.
     property string kind: ""
-    // battery | appearance | theme, while kind is "page".
+    // battery | appearance, while kind is "page".
     property string page: ""
     // Opened by `bar open` (IPC): the first control takes the focus ring.
     property bool byKey: false
@@ -171,6 +179,12 @@ Item {
         // From the menu itself: `target` may not have re-evaluated yet when
         // menuChanged reaches this handler.
         const t = Anchored.target(view.openMenu);
+        // Theme is the picker now (M7), not a page here. Later: closing from
+        // inside this change would loop the `menu` binding.
+        if (t && t.page === "theme") {
+            Qt.callLater(host.openThemes);
+            return;
+        }
         if (!t) {
             if (host.kind !== "")
                 host.leave();
@@ -265,15 +279,26 @@ Item {
         if (view.openMenu !== "")
             view.openMenu = "";
     }
-    // Esc: a sheet back to the control center, Theme back to Appearance, then close.
+    // Esc: a sheet back to the control center, then close.
     function stepBack(): void {
         if (host.kind === "cc" && ccLayer.content.sheet !== "")
             return ccLayer.content.back();
-        if (host.kind === "page" && host.page === "theme") {
-            view.openMenu = "appearance";
-            return;
-        }
         host.close();
+    }
+    // The theme picker on this screen (M7): this panel closes first, so the
+    // picker's free panel takes the keys. Under a dry run with no picker,
+    // nothing runs.
+    function openThemes(): bool {
+        host.close();
+        if (host.pickerHost) {
+            host.themesRan = "picker";
+            host.pickerHost.openOn(host.monitor, "themes");
+        } else {
+            host.themesRan = "exec";
+            if (!Fixture.dryRun)
+                Quickshell.execDetached(["theme", "picker", "themes"]);
+        }
+        return true;
     }
     function focusPanel(): void {
         if (!host.shown)
@@ -306,6 +331,10 @@ Item {
             return "error: no panel \"" + state + "\" (cc, cc/<sheet>, cal, power, battery, appearance, theme)";
         if (m.sheet !== "" && CcData.sheetName(m.sheet) === "")
             return "error: no sheet \"" + m.sheet + "\" (" + CcData.SHEETS.join(" ") + ")";
+        if (m.menu === "theme") {
+            host.openThemes();
+            return "ok";
+        }
         host.ipcOpening = true;
         const clock = m.menu === "clock";
         view.menuAnchor = clock ? view.clockButton : view.systemButton;
@@ -343,6 +372,7 @@ Item {
             sheet: ccLayer.content.sheet,
             ccLast: ccLayer.model.last,
             powerRan: host.powerRan,
+            themesRan: host.themesRan,
             bar: host.barRect(),
             module: view.menuAnchor ? host.moduleRect() : null,
             anchor: r(view.menuAnchor),
@@ -433,6 +463,9 @@ Item {
                 current: host.shown && host.kind === "cc"
                 monitor: host.monitor
                 animated: true
+                // The Theme mini: the picker on this screen (M7); without a
+                // picker host, CcModel's own close and `theme picker themes`.
+                openThemes: host.pickerHost ? host.openThemes : null
                 onClose: host.close()
                 onPower: host.view.openMenu = "power"
                 onHandOff: page => {
@@ -492,13 +525,13 @@ Item {
                         spacing: 8
                         BarChip {
                             objectName: "pageBack"
-                            visible: host.page === "battery" || host.page === "theme"
-                            text: host.page === "theme" ? "Back to appearance" : "Back to controls"
+                            visible: host.page === "battery"
+                            text: "Back to controls"
                             cornerRadius: 8
                             implicitWidth: 32
                             implicitHeight: 32
                             padding: 0
-                            onClicked: host.view.openMenu = host.page === "theme" ? "appearance" : "home"
+                            onClicked: host.view.openMenu = "home"
                             Icon {
                                 name: "chevL"
                                 size: 16
@@ -514,7 +547,7 @@ Item {
                             Text {
                                 objectName: "pageTitle"
                                 Layout.fillWidth: true
-                                text: ({ battery: "Battery", appearance: "Appearance", theme: "Theme" })[host.page] ?? ""
+                                text: ({ battery: "Battery", appearance: "Appearance" })[host.page] ?? ""
                                 color: Tokens.fg
                                 font.family: "Adwaita Sans"
                                 font.pixelSize: 15
@@ -554,21 +587,18 @@ Item {
                         id: pages
                         Layout.fillWidth: true
                         Layout.preferredHeight: children[currentIndex]?.implicitHeight ?? 0
-                        currentIndex: Math.max(0, ["battery", "appearance", "theme"].indexOf(host.page))
+                        currentIndex: Math.max(0, ["battery", "appearance"].indexOf(host.page))
                         BatteryMenu {
                             framed: true
                             shown: host.shown && host.page === "battery"
                             onDismissed: host.close()
                         }
                         AppearanceMenu {
+                            objectName: "appearancePage"
                             framed: true
                             shown: host.shown && host.page === "appearance"
-                            onNavigate: page => host.view.openMenu = page
-                            onDismissed: host.close()
-                        }
-                        ThemeMenu {
-                            framed: true
-                            shown: host.shown && host.page === "theme"
+                            // Theme packs: the picker (M7), not a page.
+                            onNavigate: page => page === "theme" ? host.openThemes() : host.view.openMenu = page
                             onDismissed: host.close()
                         }
                     }
