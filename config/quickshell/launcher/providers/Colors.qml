@@ -22,12 +22,20 @@ Item {
     var s = ctx.query ? Match.match(ctx.query, "Pick a Color", "color picker eyedropper screen hex") : 21
     if (s) rows.push({ id: "picker", title: "Pick a Color", subtitle: "Sample any pixel on your screen", icon: "󰃉", section: "Colors",
                        verb: "Pick color", tier: "item", score: s, order: 6, action: { type: "exec", argv: ["hyprpicker", "-a", "-f", ctx.settings.format] } })
-    var parsed = Colors.parse(ctx.query)
+    // The host (Keystroke) knows the theme; a bare provider contrasts with black.
+    var h = root.host
+    var parsed = Colors.answer(ctx.query, h && h.contrastBackground ? h.contrastBackground : "#000000")
     if (!parsed) return rows
-    for (var i = 0; i < parsed.values.length; i++) {
-      var v = parsed.values[i]
+    // The answer layout (launcher-pickers 5.3) reads these from the rows:
+    // the key (subtitle), the value (title), the caption under the swatch and
+    // the contrast row's WCAG level as its hint.
+    var caption = Colors.caption(parsed.swatch, h ? h.themePalette : null, h ? h.themeName : "")
+    var values = parsed.values.concat([parsed.contrast])
+    for (var i = 0; i < values.length; i++) {
+      var v = values[i]
       rows.push({ id: "color-" + i, title: v.text, subtitle: v.label, icon: "●", tint: parsed.swatch, section: "Colors", verb: "Copy color",
-                  tier: "answer", score: 190 - i, action: { type: "copy", text: v.text }, preview: v.text, previewLabel: "COLOR", swatch: parsed.swatch })
+                  tier: "answer", score: 190 - i, action: { type: "copy", text: v.text }, preview: v.text, previewLabel: "COLOR", swatch: parsed.swatch,
+                  answerKind: "color", caption: caption, hint: v.level || "", mono: true })
     }
     return rows
   }

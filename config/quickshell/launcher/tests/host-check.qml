@@ -85,8 +85,9 @@ Scope {
         check(host.bindingsPath === Quickshell.env("HOME") + "/.config/hypr/launcher-voice.lua", "dedicated voice bindings")
         wrapper.open()
         check(host.opened, "wrapper open")
-        const panel = Array.from(host.data).find(item => item.contentItem && item.color !== undefined)
+        const panel = wrapper.freePanel
         check(panel && panel.color.a === 0, "launcher window stays transparent")
+        check(!wrapper.islandHosting && host.hostKind === "panel" && host.attachedView !== null, "outside island mode the free panel shows the content")
         const dismiss = Array.from(panel.contentItem.children).find(item => item.objectName === "launcher-dismiss-area")
         check(dismiss && dismiss.color === undefined, "outside-click area does not paint a dimming layer")
         dismiss.clicked(null)

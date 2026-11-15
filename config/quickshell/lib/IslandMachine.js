@@ -66,7 +66,9 @@ var DIMS = {
 };
 
 // Which side of each hugging state follows its content, and its minimum.
-var HUGS = { rest: "width", hover: "width", flash: "width", hail: "width", vibes: "width", crew: "both" };
+// The launcher (M5) is its content's size: 760 x 472 for the palette, a
+// picker (`launcher select`) its requested width and only as tall as its rows.
+var HUGS = { rest: "width", hover: "width", flash: "width", hail: "width", vibes: "width", crew: "both", launcher: "both" };
 var MINS = { rest: 360, hover: 720, crew: 460 };
 
 // The tallest state, cc, sets the island window's height: 8 inset + 560 + 40
@@ -165,6 +167,22 @@ function go(m, s, timer) {
     if (!isState(s)) return m;
     var t = typeof timer === "number" && timer >= 0 ? timer : (TIMERS[s] || 0);
     return carry({ state: s, pinned: HOVERS.indexOf(s) >= 0, timer: t, seq: m.seq + 1 }, m, ["queue"]);
+}
+
+// Go to s, keeping the notifications it covers: the one showing and any it
+// interrupted go back on the queue, the showing one last (newest), so
+// settle() shows it again once nothing outranks a notif. The launcher (M5)
+// opens this way: it is called up over a banner, and a critical one stays
+// until it is handled (M5 review: go() expired it under the palette). Each
+// comes back with its full timer.
+function cover(m, s) {
+    if (!isState(s)) return m;
+    var covered = [];
+    for (var b = m; b; b = b.back)
+        if (b.item) covered.unshift(b.item);
+    var r = go(m, s);
+    if (covered.length > 0) r.queue = (m.queue || []).concat(covered);
+    return r;
 }
 
 // The same state, pinned, with its timer stopped.
@@ -470,7 +488,7 @@ if (typeof module !== "undefined")
         DROPS: DROPS, DWELL: DWELL, LEAVE_GRACE: LEAVE_GRACE, MAX_RADIUS: MAX_RADIUS, WIDTH_STEP: WIDTH_STEP, REST_MIN: REST_MIN,
         REST_HEIGHT: REST_HEIGHT, REST_PADDING: REST_PADDING, REST_CLOCK_GAP: REST_CLOCK_GAP, SEGMENT_GAP: SEGMENT_GAP, ZONE_GAP: ZONE_GAP,
         TOP_INSET: TOP_INSET, TALLEST: TALLEST, SHADOW_ROOM: SHADOW_ROOM, WINDOW_HEIGHT: WINDOW_HEIGHT,
-        initial: initial, isState: isState, go: go, pin: pin, hold: hold, pause: pause, unpause: unpause, RESUME_MIN: RESUME_MIN,
+        initial: initial, isState: isState, go: go, cover: cover, pin: pin, hold: hold, pause: pause, unpause: unpause, RESUME_MIN: RESUME_MIN,
         freeze: freeze, enter: enter, leave: leave, closesOnLeave: closesOnLeave, resumesOnLeave: resumesOnLeave,
         watchesLeave: watchesLeave, click: click, finish: finish,
         dismiss: dismiss, expire: expire, panelOpen: panelOpen, rank: rank, offer: offer, enqueue: enqueue, notify: notify,

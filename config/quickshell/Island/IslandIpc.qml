@@ -12,9 +12,10 @@ import qs
 // mode.
 //
 //   open STATE    rest | hover | crew | hail | vibes | cal | notif | osd | dict | flash | cc | launcher;
-//                 cc opens the old Hud home under the rest pill and launcher
-//                 opens Keystroke's own window until their island states land
-//                 (PLAN 1.7). IPC has no input serial for a popup grab, so the
+//                 cc opens the old Hud home under the rest pill until its
+//                 island state lands (PLAN 1.7). launcher opens the palette
+//                 (Launcher.qml), which in island mode is the island's own
+//                 launcher state (M5). IPC has no input serial for a popup grab, so the
 //                 Hud opens without one and the island's focus grab closes it
 //                 on an outside click (IslandView.hudNeedsGrab). M2 adds crew
 //                 (the Crew panel, pinned), hail (the first agent that needs
@@ -35,7 +36,7 @@ Scope {
 
     // Island.qml instances, one per screen, empty outside island mode.
     property var islands: []
-    // shell.qml's Launcher, for `open launcher` until M5.
+    // shell.qml's Launcher, for `open launcher` and `toggle launcher`.
     property var launcher: null
 
     function target() {
@@ -58,7 +59,6 @@ Scope {
             if (why !== "") return why;
             if (state === "launcher") {
                 if (!root.launcher) return "error: no launcher";
-                root.target().view.close();
                 root.launcher.open();
                 return "ok";
             }

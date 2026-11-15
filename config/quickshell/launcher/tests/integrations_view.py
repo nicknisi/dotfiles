@@ -13,8 +13,11 @@ with tempfile.TemporaryDirectory(prefix='keystroke-codex-test-') as temp:
  (p/'codex').symlink_to(root/'codex');(p/'qs').symlink_to(shim)
  for name in ['ui','voice']: (p/name).symlink_to(root/name)
  for name in ['Commons','Ui']: (p/name).symlink_to(shim/name)
+ # The M5 view paints with the island tokens and Kit (icons, keycaps): Kit/,
+ # and lib/ for the scripts Tokens.qml and Motion.qml import.
+ for name in ['Kit','lib']: (p/name).symlink_to(shim/name)
  # qs.Commons uses the production root Theme singleton, not a fake theme kit.
- for name in ['Theme.qml', 'Prefs.qml']: shutil.copy2(shim/name, p/name)
+ for name in ['Theme.qml', 'Prefs.qml', 'Tokens.qml', 'Motion.qml']: shutil.copy2(shim/name, p/name)
  theme=p/'.local/state/theme/current';theme.mkdir(parents=True);(theme/'colors.json').write_text('{}')
  tools=p/'bin';tools.mkdir();(tools/'hyprctl').write_text('#!/bin/sh\nexit 1\n');(tools/'hyprctl').chmod(0o700)
  (p/'shell.qml').write_text('''import QtQuick

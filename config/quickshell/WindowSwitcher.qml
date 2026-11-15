@@ -3,8 +3,11 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import qs.Kit
 import "WindowSwitcherModel.js" as Model
 
+// WindowSwitcher.qml - Super+Tab's window thumbnails. Restyled to the island
+// tokens in M5 (launcher-pickers 5.5); keys, GlobalShortcuts and IPC as before.
 Scope {
     id: root
 
@@ -125,9 +128,10 @@ Scope {
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: root.opened ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
+        // The scrim (main-tokens: rgba(bg, .56)); a click outside cancels.
         Rectangle {
             anchors.fill: parent
-            color: Theme.alpha(Theme.sunken, 0.30)
+            color: Tokens.scrim
             MouseArea { anchors.fill: parent; onClicked: root.cancel() }
         }
 
@@ -149,27 +153,35 @@ Scope {
                 event.accepted = true;
             }
 
-            ShellSurface {
+            // The island material (M5 token restyle): opaque surface, hairline
+            // ring, the one shadow, radius 28. Cards are raised, radius 14;
+            // the current one sits on accentTint with an accent ring.
+            // Centred on whole device pixels: at scale 1.5 a centre on an odd
+            // logical px (1200 - 270 = 930, so y 465) puts the 1 px ring
+            // across two device rows.
+            Surface {
                 id: surface
-                anchors.centerIn: parent
+                readonly property real dpr: panel.devicePixelRatio > 0 ? panel.devicePixelRatio : 1
+                x: Math.round((parent.width - width) / 2 * dpr) / dpr
+                y: Math.round((parent.height - height) / 2 * dpr) / dpr
                 width: Math.min(parent.width - 48, Math.max(300, root.entries.length * 260 + 36))
                 height: 270
-                fill: Theme.alpha(Theme.surface, 0.97)
+                radius: 28
 
                 Text {
-                    x: 22; y: 17
+                    x: 22; y: 18
                     text: "Windows"
-                    color: Theme.fg
-                    font.family: Theme.uiFont
+                    color: Tokens.fg
+                    font.family: "Adwaita Sans"
                     font.pixelSize: 15
-                    font.weight: Font.DemiBold
+                    font.weight: Font.Medium
                 }
                 Text {
-                    anchors.right: parent.right; anchors.rightMargin: 22; y: 19
+                    anchors.right: parent.right; anchors.rightMargin: 22; y: 20
                     text: (root.selected + 1) + " / " + root.entries.length
-                    color: Theme.secondary
-                    font.family: Theme.uiFont
-                    font.pixelSize: 12
+                    color: Tokens.inkDim
+                    font.family: "Monaspace Argon"
+                    font.pixelSize: 11
                 }
 
                 ListView {
@@ -183,7 +195,7 @@ Scope {
                     model: root.entries
                     currentIndex: root.selected
                     boundsBehavior: Flickable.StopAtBounds
-                    highlightMoveDuration: Theme.quick
+                    highlightMoveDuration: Motion.effects
 
                     delegate: Rectangle {
                         id: card
@@ -191,16 +203,16 @@ Scope {
                         required property int index
                         readonly property bool hasPreview: preview.hasContent
                         width: Math.min(250, cards.width); height: cards.height
-                        radius: Theme.controlRadius
-                        color: ListView.isCurrentItem ? Theme.glowFill : Theme.raised
-                        border.width: ListView.isCurrentItem ? 2 : 1
-                        border.color: ListView.isCurrentItem ? Theme.accent : Theme.borderIdle
+                        radius: 14
+                        color: ListView.isCurrentItem ? Tokens.accentTint : Tokens.raised
+                        border.width: 1
+                        border.color: ListView.isCurrentItem ? Tokens.accent : Tokens.hairline
 
                         Rectangle {
                             id: imageArea
                             x: 7; y: 7; width: parent.width - 14; height: 119
-                            radius: 7
-                            color: Theme.sunken
+                            radius: 8
+                            color: Tokens.fillLow
                             clip: true
 
                             ScreencopyView {
@@ -217,31 +229,32 @@ Scope {
                                 source: card.modelData.icon
                                 visible: !preview.hasContent && status === Image.Ready
                             }
-                            Text {
+                            Icon {
                                 anchors.centerIn: parent
                                 visible: !preview.hasContent && !card.modelData.icon
-                                text: "󰖯"
-                                color: Theme.secondary
-                                font.family: Theme.icons
-                                font.pixelSize: 32
+                                name: "window"
+                                size: 28
+                                color: Tokens.inkDim
                             }
                         }
                         Text {
                             x: 11; y: 133; width: parent.width - 22
                             text: card.modelData.title
+                            textFormat: Text.PlainText
                             elide: Text.ElideRight
-                            color: Theme.fg
-                            font.family: Theme.uiFont
+                            color: Tokens.fg
+                            font.family: "Adwaita Sans"
                             font.pixelSize: 12
-                            font.weight: Font.DemiBold
+                            font.weight: Font.Medium
                         }
                         Text {
-                            x: 11; y: 150; width: parent.width - 22
+                            x: 11; y: 151; width: parent.width - 22
                             text: card.modelData.app + (card.modelData.workspace ? " · " + card.modelData.workspace : "")
+                            textFormat: Text.PlainText
                             elide: Text.ElideRight
-                            color: Theme.secondary
-                            font.family: Theme.uiFont
-                            font.pixelSize: 10
+                            color: Tokens.inkDim
+                            font.family: "Adwaita Sans"
+                            font.pixelSize: 11
                         }
                         MouseArea {
                             anchors.fill: parent
@@ -249,13 +262,27 @@ Scope {
                         }
                     }
                 }
-                Text {
+                Row {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottom: parent.bottom; anchors.bottomMargin: 17
-                    text: "Tab to cycle · Shift to reverse · Release Super to switch · Esc to cancel"
-                    color: Theme.secondary
-                    font.family: Theme.uiFont
-                    font.pixelSize: 11
+                    anchors.bottom: parent.bottom; anchors.bottomMargin: 16
+                    spacing: 6
+                    Repeater {
+                        model: [["Tab", "cycle"], ["Shift", "reverse"], ["Super", "release to switch"], ["Esc", "cancel"]]
+                        Row {
+                            required property var modelData
+                            required property int index
+                            spacing: 6
+                            Item { visible: parent.index > 0; width: 8; height: 1 }
+                            Keycap { anchors.verticalCenter: parent.verticalCenter; small: true; fontSize: 10; text: parent.modelData[0] }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: parent.modelData[1]
+                                color: Tokens.inkDim
+                                font.family: "Adwaita Sans"
+                                font.pixelSize: 11
+                            }
+                        }
+                    }
                 }
             }
         }

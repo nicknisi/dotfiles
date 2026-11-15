@@ -38,15 +38,18 @@ cp "$root"/*.qml "$root"/*.js "$tmp/root/"
 # lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit.
 cp -R "$root/Commons" "$root/Ui" "$root/launcher" "$root/lib" "$root/Kit" "$tmp/root/"
 cp "$root/launcher/tests/host-check.qml" "$tmp/root/shell.qml"
-# Like upstream's palette checks, mount the unchanged card in a Qt Window.
+# Like upstream's palette checks, mount the unchanged free panel (Launcher.qml,
+# which holds launcher/ui/LauncherContent.qml since M5) in a Qt Window.
 # Offscreen Qt has no layer-shell backend. Monitor/layer behavior still needs
 # a compositor check, and this replacement applies only to the temporary copy.
-"$python_bin" - "$tmp/root/launcher/Keystroke.qml" <<'PY'
+"$python_bin" - "$tmp/root/Launcher.qml" <<'PY'
 import pathlib, sys
 path = pathlib.Path(sys.argv[1])
-source = path.read_text().replace('  PanelWindow {', '  Window {\n    transientParent: null\n    width: 1000; height: 800')
-source = source.replace('    anchors { top: true; bottom: true; left: true; right: true }\n', '')
-path.write_text('\n'.join(line for line in source.splitlines() if not any(token in line for token in ['exclusionMode:', 'WlrLayershell.', 'screen: root.targetScreen', 'mask: Region {'])))
+text = path.read_text()
+assert '    PanelWindow {' in text, 'Launcher.qml lost its free panel'
+source = text.replace('    PanelWindow {', '    Window {\n        transientParent: null\n        width: 1000; height: 800')
+source = source.replace('        anchors { top: true; bottom: true; left: true; right: true }\n', '')
+path.write_text('\n'.join(line for line in source.splitlines() if not any(token in line for token in ['exclusionMode:', 'WlrLayershell.', 'screen: host.targetScreen', 'mask: Region {'])))
 PY
 
 # No session bus, compositor or real app tools. Only mkdir, the picker writer

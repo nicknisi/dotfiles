@@ -5,6 +5,7 @@ import qs.Kit
 import "../lib/IslandMachine.js" as IslandMachine
 import "../lib/CrewModel.js" as CrewModel
 import "../lib/Dictation.js" as Dictation
+import "../launcher/ui" as LauncherUi
 
 // IslandView.qml - everything inside one island window, minus the window.
 //
@@ -44,6 +45,12 @@ import "../lib/Dictation.js" as Dictation
 //     Context lane. Which of them has the island is lib/IslandMachine.js
 //     (polkit > open panel > dict > osd > notif > flash > live > rest), and
 //     a transient that ends returns to what it interrupted;
+//   - shows the launcher as its `launcher` state (M5): Launcher.qml hands it
+//     the engine (showLauncher) when the palette opens on this screen in
+//     island mode, the body morphs to the content's size (760 x 472, or a
+//     picker's), and the window takes the keyboard while it is up. Leaving
+//     the state any other way (an outside click, IPC close) tells Launcher.qml
+//     (launcherLeft), which closes the palette;
 //   - hands off to the old surfaces where the island state is not built yet
 //     (PLAN 1.7): the status pill opens the old Hud home, anchored under the
 //     rest pill, and the notification center anchors to the rest pill.
@@ -102,6 +109,21 @@ Item {
     readonly property bool hudNeedsGrab: hudPage !== "" && !hud.grabFocus
     readonly property bool pointerInside: hoverer.hovered
 
+    // The launcher's engine (launcher/Keystroke.qml) once this island has shown
+    // the palette (showLauncher); the content reads and drives it.
+    property var launcherEngine: null
+    readonly property bool launcherShown: machine.state === "launcher" && launcherEngine !== null
+    // The palette is up and wants the keys (the focus grab hands them over).
+    readonly property bool launcherFocus: launcherShown && launcherEngine.opened === true
+    // Whether this window has the keyboard (Qt's active window).
+    readonly property bool windowActive: Window.active
+    property string lastState: "rest"
+    signal launcherLeft
+    // True for a moment after the launcher state, while the island still has
+    // the keyboard: Island.qml turns its keyboard focus off and on again
+    // (keyboardRelease below).
+    property bool keyboardDrop: false
+
     readonly property var crewAgents: view.crew?.agents ?? []
     // The agent the hail card shows, and one waiting for the island to be free.
     property string hailId: ""
@@ -111,8 +133,9 @@ Item {
 
     // What the hugging states measure. The Crew panel and hover take the rest
     // pill's (IslandMachine.size keeps them at least 460 and 720).
-    readonly property real hugWidth: machine.state === "hail" ? hailLayer.hugWidth : machine.state === "vibes" ? vibesLayer.hugWidth : machine.state === "flash" ? flashLayer.hugWidth : restLayer.hugWidth
-    readonly property var targetSize: IslandMachine.size(machine, view.hugWidth, crewLayer.hugHeight)
+    readonly property real hugWidth: machine.state === "hail" ? hailLayer.hugWidth : machine.state === "vibes" ? vibesLayer.hugWidth : machine.state === "flash" ? flashLayer.hugWidth : machine.state === "launcher" ? launcherLayer.hugWidth : restLayer.hugWidth
+    readonly property real hugHeight: machine.state === "launcher" ? launcherLayer.hugHeight : crewLayer.hugHeight
+    readonly property var targetSize: IslandMachine.size(machine, view.hugWidth, view.hugHeight)
     readonly property string clock: Fixture.data.clock ?? Qt.formatDateTime(view.now, "HH:mm")
     readonly property string date: Fixture.data.date ?? Qt.formatDateTime(view.now, "dddd, MMMM d")
     // The Context lane (Context.lane). A fixture's `context` is a lane object,
@@ -231,13 +254,14 @@ Item {
     readonly property alias osdCard: osdLayer
     readonly property alias dictCard: dictLayer
     readonly property alias flashCard: flashLayer
+    readonly property alias launcherCard: launcherLayer
     readonly property alias restAnchor: restAnchor
     readonly property alias hud: hud
     readonly property alias dwell: dwellTimer
     readonly property alias grace: graceTimer
 
     // Where each not-yet-built state lands, for the IPC's error text.
-    readonly property var arrives: ({ launcher: "M5", cc: "M6", power: "M6", polkit: "M8" })
+    readonly property var arrives: ({ cc: "M6", power: "M6", polkit: "M8" })
 
     signal workspaceActivated(string name)
 
@@ -289,8 +313,15 @@ Item {
         else if (!view.pointerInside) graceTimer.restart();
         if (machine.state !== "hail") view.hailId = "";
         // From the record itself: the panelOpen binding may not have caught
-        // up inside this handler.
-        if (IslandMachine.panelOpen(machine)) keys.forceActiveFocus();
+        // up inside this handler. The launcher's query field takes it there.
+        if (machine.state === "launcher") Qt.callLater(view.focusLauncher);
+        else if (IslandMachine.panelOpen(machine)) keys.forceActiveFocus();
+        if (view.lastState === "launcher" && machine.state !== "launcher") {
+            launcherRelease.stop();
+            keyboardRelease.restart();
+            view.launcherLeft();
+        }
+        view.lastState = machine.state;
         if (machine.state === "rest" && view.pendingHail !== "") Qt.callLater(view.retryHail);
         view.holdNotifications(IslandMachine.notifIds(machine));
         Qt.callLater(view.reconcile);
@@ -637,6 +668,7 @@ Item {
             apply(IslandMachine.go(machine, "vibes"));
             return "ok";
         }
+        if (state === "launcher") return "error: the launcher opens through Launcher.qml (`qs ipc call launcher open`, or `island open launcher`)";
         if (!IslandMachine.isState(state)) return "error: unknown island state \"" + state + "\" (states: " + IslandMachine.STATES.join(" ") + ")";
         return "error: the " + state + " state arrives in " + (arrives[state] ?? "a later milestone");
     }
@@ -646,6 +678,35 @@ Item {
         hudPage = "";
         apply(IslandMachine.go(machine, "rest"));
         return "ok";
+    }
+    // The palette opened on this screen in island mode (Launcher.qml): the
+    // island becomes it. Called again for a palette that reopens before the
+    // last close finished. A banner it covers waits on the queue and shows
+    // again when the palette closes (IslandMachine.cover).
+    function showLauncher(engine): string {
+        dwellTimer.stop();
+        graceTimer.stop();
+        launcherRelease.stop();
+        keyboardRelease.stop();
+        hudPage = "";
+        NotificationState.closeCenter();
+        view.launcherEngine = engine;
+        if (machine.state !== "launcher") apply(IslandMachine.cover(machine, "launcher"));
+        else view.focusLauncher();
+        return "ok";
+    }
+    // The palette closed: back to rest once the activated row's flash has
+    // peaked (`delay` ms), so a launch still reads as "that row".
+    function releaseLauncher(delay: int) {
+        if (machine.state !== "launcher") return;
+        if (delay > 0) {
+            launcherRelease.interval = delay;
+            launcherRelease.restart();
+        } else
+            apply(IslandMachine.dismiss(machine));
+    }
+    function focusLauncher() {
+        if (view.launcherShown && view.launcherEngine.opened) view.launcherEngine.focusInput();
     }
     function isOpen(state: string): bool {
         if (state === "cc") return hudPage === "home";
@@ -675,6 +736,8 @@ Item {
             held: machine.held === true,
             panelOpen: view.panelOpen,
             hud: view.hudPage,
+            launcher: { shown: view.launcherShown, focus: view.launcherFocus, windowActive: view.windowActive, loaded: launcherLayer.content !== null,
+                fieldFocus: launcherLayer.content ? launcherLayer.content.fieldItem.activeFocus : false },
             hudShown: view.hud.visible,
             hudGrab: view.hud.grabFocus,
             target: { width: targetSize[0], height: targetSize[1], radius: body.targetRadius },
@@ -732,7 +795,11 @@ Item {
             osdTrack: box(osdLayer.track),
             osdFill: box(osdLayer.fill),
             dictStop: box(dictLayer.stopButton),
-            notifProgress: box(notifLayer.progress)
+            notifProgress: box(notifLayer.progress),
+            launcher: box(launcherLayer),
+            launcherList: launcherLayer.content ? box(launcherLayer.content.listItem) : null,
+            launcherCard: launcherLayer.content ? box(launcherLayer.content.cardItem) : null,
+            launcherRow: launcherLayer.content ? box(launcherLayer.content.selectedRow) : null
         };
     }
 
@@ -753,6 +820,31 @@ Item {
         id: graceTimer
         interval: IslandMachine.LEAVE_GRACE
         onTriggered: if (!view.pointerInside) view.apply(IslandMachine.leave(view.machine))
+    }
+    Timer {
+        id: launcherRelease
+        onTriggered: if (view.machine.state === "launcher" && !(view.launcherEngine?.opened)) view.apply(IslandMachine.dismiss(view.machine))
+    }
+    // The palette closed and Hyprland had no window to give the keyboard back
+    // to (nothing had focus when it opened): the island, OnDemand, keeps it,
+    // and the next window to map is not focused, so an app launched from an
+    // empty workspace got no keys (M5 review). Once the focus grab has ended,
+    // drop it: keyboard focus None for a moment, then OnDemand again. Never
+    // while a panel holds the grab (changing keyboardFocus then remaps the
+    // surface and ends the grab).
+    Timer {
+        id: keyboardRelease
+        interval: 150
+        onTriggered: {
+            if (!view.windowActive || IslandMachine.panelOpen(view.machine) || view.hudPage !== "") return;
+            view.keyboardDrop = true;
+            keyboardRestore.restart();
+        }
+    }
+    Timer {
+        id: keyboardRestore
+        interval: 100
+        onTriggered: view.keyboardDrop = false
     }
     Timer {
         id: stateTimer
@@ -929,6 +1021,31 @@ Item {
             current: view.machine.state === "vibes"
             dpr: view.dpr
             animated: view.ambient
+        }
+
+        // The launcher (M5): launcher/ui/LauncherContent.qml, no background of
+        // its own (the body is the material), at its own size. Built while the
+        // state is up or fading out; it takes the engine only while current.
+        Layer {
+            id: launcherLayer
+            readonly property var content: launcherLoader.item
+            readonly property real hugWidth: content ? content.implicitWidth : 0
+            readonly property real hugHeight: content ? content.implicitHeight : 0
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 0
+            width: content ? content.implicitWidth : 760
+            height: content ? content.implicitHeight : 472
+            current: view.launcherShown
+
+            Loader {
+                id: launcherLoader
+                anchors.fill: parent
+                active: view.launcherEngine !== null && (launcherLayer.current || launcherLayer.visible)
+                sourceComponent: LauncherUi.LauncherContent {
+                    engine: view.launcherEngine
+                    active: launcherLayer.current
+                }
+            }
         }
     }
 
