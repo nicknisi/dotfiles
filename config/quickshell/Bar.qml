@@ -29,6 +29,8 @@ PanelWindow {
     property string openMenu: ""
     // The tray icon whose menu the HUD is showing, when openMenu is "tray".
     property var trayItem: null
+    // shell.qml's ThemePicker: the Hud's Theme packs open it (M7).
+    property var pickerHost: null
     property Item menuAnchor: systemButton
     property string menuAlignment: "end"
     property date now: new Date()
@@ -609,6 +611,7 @@ PanelWindow {
         now: bar.now
         page: bar.openMenu
         trayItem: bar.trayItem
+        pickerHost: bar.pickerHost
         onNavigate: page => bar.openMenu = page
         onDismissed: {
             bar.openMenu = "";

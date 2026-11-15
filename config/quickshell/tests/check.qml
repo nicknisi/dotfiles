@@ -3,6 +3,7 @@ import Quickshell
 import QtQuick
 import qs.Kit
 import qs.Island
+import qs.Panels
 import "launcher/ui" as LauncherUi
 import "MenuAnchor.js" as MenuAnchor
 import "BarGeometry.js" as BarGeometry
@@ -699,7 +700,7 @@ ShellRoot {
                     test.check(runner.visible && runner.running && !greeting.visible, "drag overrides menu costumes");
                 } else {
                     // The crew check's eleven beats outlast this timer's two: wait a round.
-                    if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running || mergeCheck.running) return;
+                    if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running || mergeCheck.running || pickerCheck.running) return;
                     test.check(avatarFrames.changes > 0, "running frames actually advance");
                     avatar.visible = false;
                     test.check(!runner.running, "hidden runner stops animating");
@@ -714,6 +715,7 @@ ShellRoot {
                     test.check(launcherCheck.finished, "the launcher check ran to the end");
                     test.check(m6Check.finished, "the M6 check ran to the end");
                     test.check(mergeCheck.finished, "the launcher and control center check ran to the end");
+                    test.check(pickerCheck.finished, "the picker check ran to the end");
                     test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
                     console.log("CAPSULE_TEST_PASS");
                     Qt.quit();
@@ -1218,8 +1220,9 @@ ShellRoot {
                     test.check(v.islandState === "rest", "Lock closes the island first");
                     const info = v.inspect();
                     test.check(info.cc.dryRun && info.power.ran === "suspend" && "ccPower" in info.parts, "inspect reports cc and power");
-                    // The launcher's System pages load the same sheets (the theme
-                    // page keeps ThemeMenu until M7), in every bar mode.
+                    // The launcher's System pages load the same sheets, in every
+                    // bar mode; the theme page is gone (M7: Theme Picker runs
+                    // `theme picker themes`).
                     const system = Qt.createComponent(Qt.resolvedUrl("launcher/providers/System.qml"));
                     test.check(system.status === Component.Ready, "the System provider compiles: " + system.errorString());
                     let backs = 0;
@@ -1239,9 +1242,14 @@ ShellRoot {
                         }
                         view.destroy();
                     }
+                    const themeRow = provider.commandRow(provider.commands.find(c => c.id === "theme-controls"), {}, 0);
+                    test.check(themeRow.title === "Theme Picker" && JSON.stringify(themeRow.action) === JSON.stringify({ type: "exec", argv: ["theme", "picker", "themes"] }) && themeRow.verb === "Run",
+                        "System > Themes > Theme Picker runs `theme picker themes`: " + JSON.stringify(themeRow.action));
+                    test.check(provider.commands.every(c => !c.page), "no System command opens a page of its own");
                     provider.activePage = "theme";
                     const themeView = provider.view.createObject(m6View, { host: host });
-                    test.check(!themeView.sheet && test.child(themeView, "ccSheet-wifi") === null, "the theme page is still ThemeMenu");
+                    const loaded = (item) => (item.children ?? []).some(c => (c.title === "Theme" && c.menuWidth === 360) || loaded(c));
+                    test.check(!themeView.sheet && !loaded(themeView), "a theme page loads no ThemeMenu");
                     themeView.destroy();
                     provider.destroy();
                     // `island open cc/<sheet>` from rest: the keys end on the
@@ -1402,6 +1410,232 @@ ShellRoot {
         }
     }
 
+    // The theme and wallpaper pickers (PLAN M7) as the island's themes and
+    // wallpapers states, with the live preview through the real Tokens.
+    // `pickerShell` stands in for ThemePicker.qml (its PanelWindow cannot
+    // load offscreen) around the real PickerModel, PickerPreview and
+    // PickerRouter, with rows as `theme _rows` prints them for hackerman and
+    // catppuccin-latte: openOn() opens the model and places it on the island
+    // for that screen, as ThemePicker's openOn() and place() do, on two
+    // islands (two screens). Leaving the picker states closes it through the
+    // router, as in the shell.
+    QtObject {
+        id: pickerShell
+        property var calls: []
+        property var applies: []
+        property var target: null
+        readonly property var model: checkPicker
+        // Island.qml as the router sees it: its `view`.
+        readonly property var islands: [{ view: pickerView }, { view: pickerView2 }]
+        readonly property var latte: ({ background: "#eff1f5", foreground: "#4c4f69", accent: "#1e66f5", red: "#d20f39", green: "#40a02b", yellow: "#df8e1d", blue: "#1e66f5", magenta: "#ea76cb", cyan: "#179299", muted: "#acb0be", dark_foreground: "#9ca0b0", bright_magenta: "#ea76cb", darker_background: "#d7d8dc", mode: "light" })
+        readonly property var hacker: ({ background: "#0b0c16", foreground: "#ddf7ff", accent: "#82fb9c", red: "#50f872", green: "#4fe88f", yellow: "#50f7d4", blue: "#829dd4", magenta: "#86a7df", cyan: "#7cf8f7", muted: "#2d3450", dark_foreground: "#6a6e95", bright_magenta: "#cddbf4", darker_background: "#06060c", mode: "dark" })
+        function row(name, palette, current) {
+            return { name: name, label: name, image: "", tagline: name, swatches: [], current: current, mode: palette.mode, bg: palette.background, fg: palette.foreground, palette: palette };
+        }
+        function rows() {
+            const out = [];
+            for (let i = 0; i < 20; i++) out.push(row("pack-" + i, hacker, false));
+            out[3] = row("catppuccin-latte", latte, false);
+            out[11] = row("hackerman", hacker, true);
+            return out;
+        }
+        function islandFor(screen) {
+            const name = screen?.name ?? "";
+            return islands.find(i => i.view.monitor.name === name) ?? null;
+        }
+        function place() {
+            checkRouter.place(checkPicker.opened ? islandFor(target) : null);
+        }
+        function openOn(screen, kind) {
+            calls = calls.concat([{ screen: screen?.name ?? "", kind: kind }]);
+            target = screen;
+            checkPicker.open(kind === "wallpapers" || kind === "backgrounds" ? "backgrounds" : "themes");
+            checkPicker.setRows("themes", rows());
+            checkPicker.setRows("backgrounds", [{ name: "/w/1-a.jpg", label: "A", image: "", tagline: "hackerman", swatches: [], current: true }, { name: "/w/2-b.jpg", label: "B", image: "", tagline: "hackerman", swatches: [], current: false }]);
+            place();
+        }
+    }
+    PickerModel {
+        id: checkPicker
+        onApplied: (row, kind) => {
+            pickerShell.applies = pickerShell.applies.concat([kind + " " + row.name]);
+            if (kind === "themes") checkPreview.pin(row);
+            close();
+        }
+        onCloseRequested: close()
+        onOpenedChanged: pickerShell.place()
+        onKindChanged: if (opened) pickerShell.place()
+    }
+    PickerPreview {
+        id: checkPreview
+        model: checkPicker
+    }
+    PickerRouter {
+        id: checkRouter
+        model: checkPicker
+    }
+    // Enter's runner, on commands that fail and succeed.
+    PickerRun {
+        id: checkRun
+        property var results: []
+        onEnded: (argv, code, output) => results = results.concat([{ argv: argv, code: code, output: output }])
+    }
+    FloatingWindow {
+        visible: true
+        implicitWidth: 1300
+        implicitHeight: 656
+        IslandView {
+            id: pickerView
+            anchors.fill: parent
+            interrupt: quietInterrupt
+            liveData: ({})
+            laneData: ({})
+            pickerHost: pickerShell
+            monitor: ({ name: "check-picker", width: 1300, height: 800 })
+            workspaces: WorkspaceOrder.shown([{ name: "W", windows: 1 }], "W")
+        }
+    }
+    // The second screen's island.
+    FloatingWindow {
+        visible: true
+        implicitWidth: 1300
+        implicitHeight: 656
+        IslandView {
+            id: pickerView2
+            anchors.fill: parent
+            interrupt: quietInterrupt
+            liveData: ({})
+            laneData: ({})
+            pickerHost: pickerShell
+            monitor: ({ name: "check-picker-2", width: 1300, height: 800 })
+            workspaces: WorkspaceOrder.shown([{ name: "W", windows: 1 }], "W")
+        }
+    }
+    Timer {
+        id: pickerCheck
+        interval: 600
+        repeat: true
+        running: true
+        property int step: 0
+        property bool finished: false
+        property string base: ""
+        function key(k, text) {
+            return checkPicker.handleKey({ key: k, modifiers: 0, text: text ?? "", isAutoRepeat: false });
+        }
+        onTriggered: {
+            try {
+                const v = pickerView, m = checkPicker;
+                const themes = v.themesPanel.content, walls = v.wallpapersPanel.content;
+                if (step === 0) {
+                    // After the M6 and merge checks: their own islands animate Tokens-bound colours.
+                    if (!mergeCheck.finished || !m6Check.finished) return;
+                    base = Tokens.hex(Tokens.surface);
+                    // Enter's runner, checked at the last beat: a failing run
+                    // reports its code and last lines, a good one 0.
+                    checkRun.run(["sh", "-c", "echo one; echo two; echo three; echo it broke >&2; exit 3"]);
+                    checkRun.run(["true"]);
+                    test.check(v.open("themes") === "ok" && JSON.stringify(pickerShell.calls) === JSON.stringify([{ screen: "check-picker", kind: "themes" }]),
+                        "`island open themes` goes through the picker host, on this island's screen: " + JSON.stringify(pickerShell.calls));
+                    test.check(v.islandState === "themes" && v.pickerShown && v.panelOpen, "the island is the themes state, an open panel");
+                    test.check(v.targetSize[0] === 1240 && v.targetSize[1] === 600, "it targets 1240 x 600: " + v.targetSize);
+                    test.check(m.focused?.name === "hackerman" && Tokens.previewPalette === null, "focus starts on the applied theme, which does not preview");
+                } else if (step === 1) {
+                    test.check(v.body.width === 1240 && v.body.height === 600, "the body settles at 1240 x 600: " + v.body.width + " x " + v.body.height);
+                    test.check(themes !== null && themes.activeFocus, "the themes panel holds the keys");
+                    test.check(themes.columns === 8 && themes.grid.width === 1200 && themes.grid.height === 486, "8 columns, 3 rows in view");
+                    const card = themes.focusedCard;
+                    test.check(card && card.objectName === "themeCard-hackerman" && card.height === 154 && card.noteText.text === "Current", "the focused card is hackerman's, 154 high, noted Current: " + card?.objectName + " " + card?.height + " " + card?.noteText?.text);
+                    // Focus catppuccin-latte: the whole island previews it.
+                    test.check(m.focusName("catppuccin-latte") && Tokens.previewPalette?.name === "catppuccin-latte", "focusing catppuccin-latte previews it through Tokens.previewPalette");
+                } else if (step === 2) {
+                    test.check(Tokens.hex(Tokens.surface) === "#e8ebef" && Tokens.d.surface === "#e8ebef", "600 ms later the island's surface is latte's #e8ebef: " + Tokens.hex(Tokens.surface));
+                    test.check(themes.focusedCard.noteText.text === "Previewing", "the card says Previewing");
+                    // Esc with no filter closes, and the preview goes with it.
+                    test.check(key(Qt.Key_Escape) && !m.opened, "Esc closes the picker");
+                    test.check(Tokens.previewPalette === null, "the preview is dropped");
+                    test.check(v.islandState === "rest", "the island goes back to rest");
+                } else if (step === 3) {
+                    test.check(Tokens.hex(Tokens.surface) === base, "the surface is back to the applied theme's " + base + ": " + Tokens.hex(Tokens.surface));
+                    // The control center's Theme mini opens the picker in place.
+                    test.check(v.open("cc") === "ok" && v.islandState === "cc", "cc opens");
+                    test.check(v.ccPanel.model.run("mini", "theme") === "ok" && v.islandState === "themes" && pickerShell.calls.length === 2,
+                        "the Theme mini goes straight to the themes state: " + v.islandState);
+                    // A filter, then Tab: the wallpapers state, the filter cleared.
+                    key(Qt.Key_P, "p");
+                    key(Qt.Key_A, "a");
+                    test.check(m.filter === "pa" && m.focused?.name === "pack-0", "typing filters, and focus falls back to the first match: " + m.focused?.name);
+                    test.check(key(Qt.Key_Tab) && v.islandState === "wallpapers" && m.filter === "" && m.wallIndex === 0, "Tab morphs to the wallpapers state, filter cleared: " + v.islandState + " " + m.kind + " [" + m.filter + "] " + m.wallIndex);
+                    test.check(v.targetSize[0] === 780 && v.targetSize[1] === 252, "two wallpapers: 780 x 252: " + v.targetSize);
+                } else if (step === 4) {
+                    test.check(v.body.width === 780 && v.body.height === 252, "the body settles at 780 x 252");
+                    test.check(walls !== null && walls.activeFocus && walls.focusedCard?.objectName === "wallpaperCard-1-a.jpg", "the wallpapers panel holds the keys, on the applied wallpaper");
+                    test.check(Tokens.previewPalette === null, "wallpapers never preview");
+                    // Shift+Tab back, then Enter on latte: applied, and the preview pinned.
+                    test.check(key(Qt.Key_Backtab) && v.islandState === "themes", "Shift+Tab goes back to themes");
+                    m.focusName("catppuccin-latte");
+                    test.check(key(Qt.Key_Return) && JSON.stringify(pickerShell.applies) === JSON.stringify(["themes catppuccin-latte"]), "Enter applies catppuccin-latte");
+                    test.check(!m.opened && v.islandState === "rest" && Tokens.previewPalette?.name === "catppuccin-latte" && checkPreview.pinnedName === "catppuccin-latte",
+                        "the picker closes and latte stays pinned until colors.json names it");
+                    checkPreview.unpin();
+                    test.check(Tokens.previewPalette === null, "unpinned");
+                    // `island close` from a picker state closes the picker too.
+                    v.open("wallpapers");
+                    test.check(v.islandState === "wallpapers" && m.opened && m.kind === "backgrounds", "`island open wallpapers` opens the wallpapers picker");
+                    v.close();
+                    test.check(!m.opened && v.islandState === "rest", "`island close` closes it (pickerLeft)");
+                } else if (step === 5) {
+                    test.check(Tokens.hex(Tokens.surface) === base, "and the surface is the applied theme's again");
+                    // The palette, cc or the calendar opened over a picker take
+                    // the island; the picker closes (M7 review: the picker's
+                    // release dismissed them too, back to rest).
+                    v.open("themes");
+                    const e = fakeLauncher;
+                    e.opened = true;
+                    test.check(v.showLauncher(e) === "ok" && v.islandState === "launcher" && v.launcherShown && !m.opened,
+                        "the palette over the themes picker: the launcher state, the picker closed: " + v.islandState + " " + m.opened);
+                    v.releasePicker();
+                    test.check(v.islandState === "launcher", "a late picker release leaves the palette alone");
+                    e.opened = false;
+                    v.releaseLauncher(0);
+                    test.check(v.islandState === "rest", "the palette closes to rest");
+                    v.open("themes");
+                    test.check(v.open("cc") === "ok" && v.islandState === "cc" && !m.opened, "cc over the themes picker: cc, the picker closed: " + v.islandState);
+                    v.close();
+                    v.open("wallpapers");
+                    test.check(v.open("cal") === "ok" && v.islandState === "cal" && !m.opened, "the calendar over the wallpapers picker: cal, the picker closed: " + v.islandState);
+                    v.close();
+                    // The picker over the palette still takes the island.
+                    e.opened = true;
+                    v.showLauncher(e);
+                    v.open("themes");
+                    test.check(v.islandState === "themes" && m.opened, "the themes picker over the palette");
+                    test.check(key(Qt.Key_Escape) && !m.opened && v.islandState === "rest", "Esc closes it to rest");
+                    e.opened = false;
+                    // Two screens (M7 review): reopening on the second moves the
+                    // picker there, still open, and Esc closes it there.
+                    const v2 = pickerView2;
+                    pickerShell.openOn(v.monitor, "themes");
+                    test.check(v.islandState === "themes" && v2.islandState === "rest" && checkRouter.shownIsland?.view === v, "the picker opens on the first island");
+                    pickerShell.openOn(v2.monitor, "themes");
+                    test.check(m.opened && v.islandState === "rest" && v2.islandState === "themes" && v2.pickerShown && checkRouter.shownIsland?.view === v2,
+                        "reopened on the second screen: the first island rests, the second shows it, still open: " + [m.opened, v.islandState, v2.islandState]);
+                    test.check(key(Qt.Key_Escape) && !m.opened && v2.islandState === "rest" && v.islandState === "rest", "Esc closes it on the second island");
+                    test.check(v2.showPicker(m, "themes") === "error: the picker is closed" && v2.islandState === "rest", "an island refuses a closed picker");
+                    const r = checkRun.results;
+                    const bad = r.find(x => x.argv[0] === "sh"), good = r.find(x => x.argv[0] === "true");
+                    test.check(r.length === 2 && bad && bad.code === 3 && bad.output === "two\nthree\nit broke", "a failed run reports exit 3 and its last three lines: " + JSON.stringify(r));
+                    test.check(good && good.code === 0 && good.output === "", "a good run reports 0 and nothing else: " + JSON.stringify(good));
+                    finished = true;
+                    stop();
+                }
+                step++;
+            } catch (error) {
+                console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
+            }
+        }
+    }
+
     function check(condition, message) {
         if (!condition) throw new Error(message);
     }
@@ -1530,6 +1764,23 @@ ShellRoot {
                 popupPlay.click();
                 hud.page = "";
                 test.check(!mediaPage.active, "closed media popup stops polling");
+
+                // The appearance page's Theme packs is the theme picker since
+                // M7 (ThemeMenu replaced, PLAN 1.3): it opens on the Hud's
+                // screen and the Hud closes.
+                const themeCalls = [];
+                let hudClosed = 0;
+                const countClose = () => hudClosed++;
+                hud.dismissed.connect(countClose);
+                hud.pickerHost = { openOn: (screen, kind) => themeCalls.push([screen?.width ?? 0, kind]) };
+                hud.page = "appearance";
+                const appearancePage = test.child(hud.contentItem, "appearancePage");
+                test.check(appearancePage !== null && appearancePage.parent.children[appearancePage.parent.currentIndex] === appearancePage, "the appearance route shows the appearance page");
+                appearancePage.navigate("theme");
+                test.check(JSON.stringify(themeCalls) === JSON.stringify([[800, "themes"]]) && hudClosed === 1, "Theme packs opens the theme picker on the Hud's screen and closes the Hud: " + JSON.stringify(themeCalls) + " " + hudClosed);
+                hud.dismissed.disconnect(countClose);
+                hud.pickerHost = null;
+                hud.page = "";
 
                 const play = test.child(card, "playPause");
                 const next = test.child(card, "next");

@@ -42,8 +42,8 @@ usage:
   theme next | prev           cycle themes
   theme bg [next|prev|N|path] change only the wallpaper
   theme picker [themes|backgrounds]
-                              the carousel overlay (quickshell); what the "Theme"
-                              and "Wallpaper" entries in wofi run
+                              the grid picker (quickshell, with a live preview);
+                              what the "Theme" and "Wallpaper" entries in wofi run
   theme menu                  plain wofi list (the fallback when no shell runs)
   theme thumbs                cache picker thumbnails (runs itself after a switch)
   theme refresh               re-render the current theme (after editing a template)
@@ -927,6 +927,85 @@ swatch_json() { # DIR -> "#..","#..",...
   done
   printf '%s' "$out"
 }
+pack_mode() { # DIR -> THEME_MODE from its theme.conf (dark|light), else nothing
+  local m; m="$( (THEME_MODE=""; source "$1/theme.conf" 2>/dev/null; printf '%s' "${THEME_MODE:-}") )"
+  case "$m" in dark | light) printf '%s' "$m" ;; esac
+}
+# DIR -> "mode":..,"bg":..,"fg":..,"palette":{..}: what the picker's live
+# preview recolours the shell with (launcher-pickers 7.4), keyed as
+# colors.json names them. One POSIX awk pass over colors.toml, no theme-color
+# (37 packs per open), so it runs with BSD awk on macOS too. The fallbacks are
+# theme-color resolve()'s for every key the shell tokens derive from (bg, fg,
+# accent, red, mode, the pack's own darker_background): slots for named hues,
+# THEME_MODE over `mode` over `theme_type` over the background's brightness.
+# A key the pack has no spelling for is left out; Tokens fills it the way
+# lib/TokenMath.js does. bin/tests/theme-rows.sh checks it against theme-color.
+palette_json() {
+  awk -v forced="$(pack_mode "$1")" -v sq="'" '
+    function hv(c) { return index("0123456789abcdef", c) - 1 }
+    function ch(h, i) { return 16 * hv(substr(h, i, 1)) + hv(substr(h, i + 1, 1)) }
+    function hex6(v,   h) {
+      h = tolower(v); sub(/^#/, "", h)
+      if (length(h) != 6 && length(h) != 8) return ""
+      if (h ~ /[^0-9a-f]/) return ""
+      return "#" substr(h, 1, 6)
+    }
+    function first(a, b, c, d) {
+      if (a in p) return p[a]
+      if (b in p) return p[b]
+      if (c in p) return p[c]
+      if (d in p) return p[d]
+      return ""
+    }
+    function put(k, v) { if (v != "") { printf "%s\"%s\":\"%s\"", sep, k, v; sep = "," } }
+    {
+      line = $0
+      sub(/^[ \t]+/, "", line)
+      if (line == "" || substr(line, 1, 1) == "#") next
+      eq = index(line, "=")
+      if (eq == 0) next
+      key = substr(line, 1, eq - 1); val = substr(line, eq + 1)
+      gsub(/[ \t"]/, "", key); gsub(sq, "", key)
+      sub(/^[ \t]+/, "", val)
+      q = substr(val, 1, 1)
+      if (q == "\"" || q == sq) {
+        val = substr(val, 2); e = index(val, q); if (e > 0) val = substr(val, 1, e - 1)
+      } else {
+        e = index(val, "#"); if (e > 0) val = substr(val, 1, e - 1)
+        sub(/[ \t]+$/, "", val)
+      }
+      if (key == "" || key ~ /[^A-Za-z0-9_-]/ || val == "") next
+      v = hex6(val)
+      if (v != "") p[key] = v
+      else if ((key == "mode" || key == "theme_type") && val ~ /^[A-Za-z]+$/) m[key] = val
+    }
+    END {
+      bg = first("background", "bg", "color0")
+      fg = first("foreground", "fg", "color15", "color7")
+      if (forced != "") mode = forced
+      else if ("mode" in m) mode = m["mode"]
+      else if ("theme_type" in m) mode = m["theme_type"]
+      else if (bg != "" && 0.2126 * ch(bg, 2) + 0.7152 * ch(bg, 4) + 0.0722 * ch(bg, 6) > 128) mode = "light"
+      else mode = "dark"
+      blue = first("blue", "color4")
+      dfg = first("dark_foreground", "dark_fg")
+      if (dfg == "" && ("color7" in p) && p["color7"] != fg) dfg = p["color7"]
+      printf "\"mode\":\"%s\",\"bg\":%s,\"fg\":%s,\"palette\":{", mode, \
+        (bg != "" ? "\"" bg "\"" : "null"), (fg != "" ? "\"" fg "\"" : "null")
+      sep = ""
+      put("background", bg); put("foreground", fg)
+      put("accent", first("accent") != "" ? first("accent") : blue)
+      put("red", first("red", "color1")); put("green", first("green", "color2"))
+      put("yellow", first("yellow", "color3")); put("blue", blue)
+      put("magenta", first("magenta", "purple", "color5")); put("cyan", first("cyan", "color6"))
+      put("muted", first("muted", "color8")); put("dark_foreground", dfg)
+      put("bright_magenta", first("bright_magenta", "bright_purple", "color13"))
+      put("darker_background", first("darker_background", "darker_bg"))
+      put("mode", mode)
+      printf "}"
+    }
+  ' "$1/colors.toml"
+}
 
 cmd_rows() { # themes|backgrounds -> JSON rows for the picker
   local kind="${1:-themes}" sep="" cur t img
@@ -945,9 +1024,10 @@ cmd_rows() { # themes|backgrounds -> JSON rows for the picker
     cur="$(current_theme)"
     while IFS= read -r t; do
       img="$(default_background "$t")"
-      printf '%s{"name":%s,"label":%s,"image":%s,"tagline":%s,"swatches":[%s],"current":%s}' "$sep" \
+      printf '%s{"name":%s,"label":%s,"image":%s,"tagline":%s,"swatches":[%s],"current":%s,%s}' "$sep" \
         "$(json_str "$t")" "$(json_str "$(humanize "$t")")" "$(json_str "$([ -n "$img" ] && thumb_for "$img")")" \
-        "$(json_str "$(tagline "$THEMES_DIR/$t")")" "$(swatch_json "$THEMES_DIR/$t")" "$([ "$t" = "$cur" ] && echo true || echo false)"
+        "$(json_str "$(tagline "$THEMES_DIR/$t")")" "$(swatch_json "$THEMES_DIR/$t")" "$([ "$t" = "$cur" ] && echo true || echo false)" \
+        "$(palette_json "$THEMES_DIR/$t")"
       sep=","
     done < <(list_themes)
   fi

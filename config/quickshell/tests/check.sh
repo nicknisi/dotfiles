@@ -52,6 +52,15 @@ bash "$root/tests/clipboard-store.sh"
 # row runs in net.sh above, the states themselves in check.qml below.
 node "$root/tests/tailscale-model.cjs"
 bash "$root/tests/panels.sh"
+# The theme and wallpaper pickers (PLAN M7): `theme _rows` (mode, bg, fg and
+# the preview palette for every pack, agreeing with bin/theme-color), the
+# wallpaper paths it keeps working with, and the panels' keys and grid under
+# qmltestrunner (tst_picker_nav). The machine's picker states run in
+# island-machine.cjs above, the island states and the live preview in
+# check.qml below.
+bash "$root/../../bin/tests/theme-rows.sh"
+bash "$root/../../bin/tests/theme-wallpapers.sh"
+bash "$root/tests/pickers.sh"
 
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
 for file in "$root"/*.qml "$root"/Kit/*.qml "$root"/Island/*.qml "$root"/Panels/*.qml "$root"/Panels/Sheets/*.qml; do
@@ -70,9 +79,11 @@ cp "$root/tests/check.qml" "$tmp/shell.qml"
 # services but change nothing (this runs on the session's D-Bus).
 # XDG_STATE_HOME: Quickshell's state (Prefs' capsule.json, Do not disturb
 # from the M6 beat) stays in $tmp, not ~/.local/state/quickshell/by-shell.
-# About 10 s: the M3 check's fifteen beats (600 ms each) hold the final check.
+# About 19 s: the picker check (M7) starts once the M6 check's beats are done
+# (about 13 s in), and its own six hold the final check. The timeout leaves
+# room for a loaded machine.
 env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen SHELL_CREW=off SHELL_DRY_RUN=1 XDG_STATE_HOME="$tmp/.state" \
-    timeout 20 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
+    timeout 30 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
 grep -q CAPSULE_TEST_PASS "$tmp/result"
 # Prefs writes capsule.json on first load, after FileView reports that it is absent.
 ! grep -E 'CAPSULE_TEST_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|WARN scene:' "$tmp/result" \

@@ -12,12 +12,23 @@ PopupWindow {
     property string alignment: "end"
     property string page: ""
     property var trayItem: null
+    // shell.qml's ThemePicker, for the appearance page's Theme packs (M7:
+    // the picker replaced ThemeMenu's page here, PLAN 1.3); null runs
+    // `theme picker themes`.
+    property var pickerHost: null
     readonly property bool shown: page !== ""
     readonly property var offset: MenuAnchor.position(edge, alignment,
         anchorItem?.width ?? 0, anchorItem?.height ?? 0,
         frame.width, frame.height, Theme.shadowPadding, 8)
     signal navigate(string page)
     signal dismissed()
+
+    // Theme packs: the theme picker on this screen, and the Hud closes.
+    function openThemes() {
+        hud.dismissed();
+        if (hud.pickerHost) hud.pickerHost.openOn(hud.monitor, "themes");
+        else Quickshell.execDetached(["theme", "picker", "themes"]);
+    }
 
     anchor {
         item: hud.anchorItem
@@ -75,8 +86,8 @@ PopupWindow {
                     spacing: 10
                     BarModule {
                         visible: hud.page !== "home" && hud.page !== "tray" && hud.page !== "media"
-                        text: hud.page === "tailscale" ? "Back to network" : hud.page === "theme" ? "Back to appearance" : "Back to controls"
-                        onClicked: hud.navigate(hud.page === "tailscale" ? "net" : hud.page === "theme" ? "appearance" : "home")
+                        text: hud.page === "tailscale" ? "Back to network" : "Back to controls"
+                        onClicked: hud.navigate(hud.page === "tailscale" ? "net" : "home")
                         Text {
                             text: "\u{f0141}"
                             font.family: Theme.icons
@@ -123,17 +134,16 @@ PopupWindow {
                     width: viewport.width
                     implicitHeight: children[currentIndex]?.implicitHeight ?? 0
                     height: implicitHeight
-                    currentIndex: Math.max(0, ["home", "caffeine", "audio", "net", "bt", "display", "theme", "clock", "tailscale", "appearance", "battery", "tray", "media"].indexOf(hud.page))
+                    currentIndex: Math.max(0, ["home", "caffeine", "audio", "net", "bt", "display", "clock", "tailscale", "appearance", "battery", "tray", "media"].indexOf(hud.page))
                     HudHome { shown: hud.shown && hud.page === "home"; onNavigate: page => hud.navigate(page) }
                     CaffeineMenu { shown: hud.shown && hud.page === "caffeine"; onDismissed: hud.dismissed() }
                     AudioMenu { shown: hud.shown && hud.page === "audio"; onDismissed: hud.dismissed() }
                     NetMenu { shown: hud.shown && hud.page === "net"; onNavigate: page => hud.navigate(page); onDismissed: hud.dismissed() }
                     BtMenu { shown: hud.shown && hud.page === "bt"; onDismissed: hud.dismissed() }
                     DisplayMenu { monitor: hud.monitor; shown: hud.shown && hud.page === "display"; onDismissed: hud.dismissed() }
-                    ThemeMenu { shown: hud.shown && hud.page === "theme"; onDismissed: hud.dismissed() }
                     ClockMenu { now: hud.now; shown: hud.shown && hud.page === "clock"; onDismissed: hud.dismissed() }
                     TailscaleMenu { shown: hud.shown && hud.page === "tailscale"; onDismissed: hud.dismissed() }
-                    AppearanceMenu { shown: hud.shown && hud.page === "appearance"; onNavigate: page => hud.navigate(page); onDismissed: hud.dismissed() }
+                    AppearanceMenu { objectName: "appearancePage"; shown: hud.shown && hud.page === "appearance"; onNavigate: page => page === "theme" ? hud.openThemes() : hud.navigate(page); onDismissed: hud.dismissed() }
                     BatteryMenu { shown: hud.shown && hud.page === "battery"; onDismissed: hud.dismissed() }
                     TrayMenu { item: hud.trayItem; shown: hud.shown && hud.page === "tray"; onDismissed: hud.dismissed() }
                     MediaCard { objectName: "mediaPage"; active: hud.shown && hud.page === "media" }

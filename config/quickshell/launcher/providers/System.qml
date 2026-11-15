@@ -56,7 +56,8 @@ Item {
     { id: "action-record-screen", parent: "capture", title: "Record Screen", subtitle: "Start recording the whole screen", keywords: "video capture wf-recorder", argv: ["capture", "record", "screen"], intentFamily: "record-start" },
     { id: "action-record-stop", parent: "capture", title: "Stop Recording", subtitle: "Stop the active wf-recorder capture", keywords: "video capture wf-recorder", argv: ["capture", "record", "stop"], intentFamily: "record-stop" },
     { id: "theme-next", parent: "theme", title: "Next Theme", keywords: "cycle appearance colors", argv: ["theme", "next"], intentFamily: "change" },
-    { id: "theme-controls", parent: "theme", title: "Theme Controls", keywords: "appearance swatches preview", page: "theme" },
+    // The theme picker (M7), which replaced ThemeMenu's page here (PLAN 1.3).
+    { id: "theme-controls", parent: "theme", title: "Theme Picker", keywords: "appearance swatches preview controls grid", argv: ["theme", "picker", "themes"], intentFamily: "navigate" },
     { id: "wallpaper-next", parent: "backgrounds", title: "Next Wallpaper", keywords: "cycle background image", argv: ["theme", "bg", "next"], intentFamily: "change" },
     { id: "wallpaper-picker", parent: "backgrounds", title: "Wallpaper Picker", keywords: "background carousel", argv: ["theme", "picker", "backgrounds"], intentFamily: "navigate" },
     { id: "bar-cycle", parent: "bar", title: "Cycle Bar Layout", subtitle: "Pill, full bar, rail or island", keywords: "capsule panel mode island", preference: "cycle" },
@@ -234,7 +235,8 @@ Item {
         anchors.fill: parent
         anchors.margins: desktopView.sheet ? 16 : 20
         spacing: 16
-        // The sheets (M6) draw their own back button; ThemeMenu still needs this one.
+        // The sheets (M6) draw their own back button. Every page is a sheet
+        // since M7 (the theme page is the picker); this is for one that is not.
         Text {
           visible: !desktopView.sheet
           height: visible ? implicitHeight : 0
@@ -258,11 +260,10 @@ Item {
             height: desktopView.sheet ? menuFlick.height : (item ? item.implicitHeight : 0)
             // M6: the control center's sheets (Panels/Sheets), with the old
             // menus' interface (shown, monitor, dismissed(), navigate()) plus
-            // back(). The theme page keeps ThemeMenu until M7.
+            // back(). M7: no theme page; Theme Picker runs `theme picker themes`.
             source: {
               var sheets = { audio: "SoundSheet", net: "WifiSheet", bt: "BluetoothSheet", display: "DisplaySheet", tailscale: "TailscaleSheet" }
-              if (sheets[root.activePage]) return Qt.resolvedUrl("../../Panels/Sheets/" + sheets[root.activePage] + ".qml")
-              return root.activePage === "theme" ? Qt.resolvedUrl("../../ThemeMenu.qml") : ""
+              return sheets[root.activePage] ? Qt.resolvedUrl("../../Panels/Sheets/" + sheets[root.activePage] + ".qml") : ""
             }
             onLoaded: {
               if ("monitor" in item) item.monitor = desktopView.host && (desktopView.host.targetScreen || desktopView.host.screen) || Quickshell.screens[0] || null

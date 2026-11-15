@@ -8,9 +8,10 @@ import "../lib/WorkspaceOrder.js" as WorkspaceOrder
 
 // Island.qml - the island's window on one screen (PLAN 1.6, island-modes 3.3).
 //
-// A transparent layer-shell strip across the top: 8 (top inset) + 560 (the
-// tallest state, cc) + 40 (room for the 0 10 28 shadow) = 608 high, ignoring
-// exclusion (Reserve.qml holds the zone, 46 in island mode). The input mask is
+// A transparent layer-shell strip across the top: 8 (top inset) + 600 (the
+// tallest state, the themes picker, M7) + 40 (room for the 0 10 28 shadow) =
+// 648 high, ignoring exclusion (Reserve.qml holds the zone, 46 in island
+// mode). The input mask is
 // the body's rounded rectangle, so everything else on the strip passes clicks
 // through to the windows under it, and the mask follows the body as it morphs.
 //
@@ -43,6 +44,9 @@ PanelWindow {
     // to this property rather than shell.qml's Launcher (the delegate's scope
     // object comes before the file's ids), breaking `voice:` there too.
     property var paletteHost: null
+    // shell.qml's ThemePicker (M7): `island open themes` and the control
+    // center's Theme mini open the pickers in place (IslandView.pickerHost).
+    property var pickerHost: null
 
     screen: modelData
     anchors {
@@ -63,8 +67,9 @@ PanelWindow {
     // the focus grab below, which hands it to the grabbing window: changing
     // keyboardFocus while the grab is active ends the grab and so closes the
     // panel it was opened for (seen in the sandbox). The one change is at
-    // rest: None for a moment after the launcher when the island kept the
-    // keyboard with no window to return it to (IslandView.keyboardDrop).
+    // rest: None for a moment after a panel (the launcher, a picker, cc) when
+    // the island kept the keyboard with no window to return it to
+    // (IslandView.keyboardDrop).
     WlrLayershell.keyboardFocus: view.keyboardDrop ? WlrKeyboardFocus.None : WlrKeyboardFocus.OnDemand
 
     mask: Region {
@@ -98,6 +103,7 @@ PanelWindow {
         notifications: island.notifications
         voice: island.voice
         paletteHost: island.paletteHost
+        pickerHost: island.pickerHost
         dpr: island.devicePixelRatio > 0 ? island.devicePixelRatio : 1
         // A fixture's `still` holds the loops too, so a sandbox shot of a
         // breathing dot or sparkle is one colour.
