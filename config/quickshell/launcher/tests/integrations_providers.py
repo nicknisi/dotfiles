@@ -49,7 +49,8 @@ ShellRoot {
    test.check(converter.query(test.ctx("32 F to C", "converter"))[0].title === "0 °C", "temperature conversion")
    test.check(time[0].action.type === "copy", "timezone helper")
    var values = colors.query(test.ctx("#ff6644", "", {format:"hex"})).filter(x => x.tier === "answer")
-   test.check(values.length === 3 && values[0].action.text === "#FF6644", "HEX RGB HSL")
+   test.check(values.length === 4 && values[0].action.text === "#FF6644", "HEX RGB HSL")
+   test.check(values[3].subtitle === "On bg" && values[3].title === "7.2 : 1" && values[3].hint === "AAA", "contrast on the host's bg, black without one")
    var text = "Unchanged prose!\\nTwo lines."
    var copied = dictation.provider.query(test.ctx(text)).find(x => x.id === "copy-query")
    test.check(copied.action.text === text && copied.altAction.paste, "dictation copy/paste explicit actions")

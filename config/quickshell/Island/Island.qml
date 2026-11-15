@@ -46,7 +46,13 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "quickshell-island"
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    // OnDemand in every state. The launcher state (M5) gets the keyboard from
+    // the focus grab below, which hands it to the grabbing window: changing
+    // keyboardFocus while the grab is active ends the grab and so closes the
+    // panel it was opened for (seen in the sandbox). The one change is at
+    // rest: None for a moment after the launcher when the island kept the
+    // keyboard with no window to return it to (IslandView.keyboardDrop).
+    WlrLayershell.keyboardFocus: view.keyboardDrop ? WlrKeyboardFocus.None : WlrKeyboardFocus.OnDemand
 
     mask: Region {
         item: view.body

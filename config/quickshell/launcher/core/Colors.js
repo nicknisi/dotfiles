@@ -28,3 +28,52 @@ function parse(text) {
     ]
   }
 }
+
+// WCAG 2 relative luminance of "#rrggbb", linearised at 0.03928 like the
+// shell's token rules (lib/TokenMath.js), so "On bg" agrees with them.
+function luminance(hex) {
+  var h = String(hex || "").replace(/^#/, "")
+  if (h.length === 3) h = h.split("").map(function(c) { return c + c }).join("")
+  var c = [0, 2, 4].map(function(i) {
+    var v = parseInt(h.substr(i, 2), 16) / 255
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
+  })
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+}
+
+function contrast(a, b) {
+  var x = luminance(a), y = luminance(b)
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
+}
+
+// "15.1 : 1": one decimal, rounded half up.
+function ratioText(ratio) {
+  return (Math.round(Number(ratio) * 10) / 10).toFixed(1) + " : 1"
+}
+
+// The WCAG level a ratio reaches for body text, or "AA large" for large text only.
+function level(ratio) {
+  var r = Number(ratio)
+  return r >= 7 ? "AAA" : r >= 4.5 ? "AA" : r >= 3 ? "AA large" : "Fail"
+}
+
+// The swatch's caption: "<theme> <key>" when the colour is one of the current
+// pack's colors.json values, else the upper-case hex.
+function caption(swatch, palette, themeName) {
+  var want = String(swatch || "").toLowerCase()
+  var keys = Object.keys(palette || {})
+  for (var i = 0; i < keys.length; i++) {
+    var v = palette[keys[i]]
+    if (typeof v === "string" && v.toLowerCase() === want) return (themeName ? themeName + " " : "") + keys[i]
+  }
+  return want.toUpperCase()
+}
+
+// parse() plus the "On bg" row: the colour's contrast against `bg`.
+function answer(text, bg) {
+  var parsed = parse(text)
+  if (!parsed) return null
+  var ratio = contrast(parsed.swatch, bg)
+  parsed.contrast = { label: "On bg", text: ratioText(ratio), ratio: ratio, level: level(ratio) }
+  return parsed
+}

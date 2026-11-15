@@ -287,8 +287,115 @@ function match(query, title, keywords, path, description) {
   return best >= MIN_SCORE ? best : 0
 }
 
+// Which characters of one term the best alignment in a prepared haystack
+// used, or null when the term does not match. The same recurrence as
+// termScore, kept whole (n x m) so the path can be walked back: a cell that
+// took the match branch steps diagonally, a gap cell steps left. Titles are
+// short, so the full table costs little; only rendered rows ask.
+function termPositions(term, t) {
+  var n = term.length, m = t.length
+  if (n === 0 || n > m) return null
+  var q = term.codes, codes = t.codes, bonus = t.bonus
+  var H = [], C = [], i, j
+  for (i = 0; i < n; i++) {
+    var h = new Array(m), c = new Array(m), inGap = false, floor = NONE
+    for (j = 0; j < m; j++) {
+      var s1 = NONE, cons = 0
+      if (codes[j] === q[i]) {
+        if (i === 0) { s1 = SCORE_MATCH + bonus[j] * FIRST_CHAR_MULTIPLIER; cons = 1 }
+        else if (j > 0 && H[i - 1][j - 1] > NONE) {
+          var b = bonus[j]
+          cons = C[i - 1][j - 1] + 1
+          if (cons > 1) {
+            var fb = bonus[j - cons + 1]
+            if (b >= BONUS_BOUNDARY && b > fb) cons = 1
+            else { if (fb > b) b = fb; if (BONUS_CONSECUTIVE > b) b = BONUS_CONSECUTIVE }
+          }
+          s1 = H[i - 1][j - 1] + SCORE_MATCH + b
+        }
+      }
+      var s2 = j > 0 && h[j - 1] > NONE ? h[j - 1] - (inGap ? GAP_EXTEND : GAP_START) : NONE
+      if (floor > s2) s2 = floor
+      if (s1 > NONE && s1 >= s2) { h[j] = s1; c[j] = cons; inGap = false; if (s1 - GAP_CAP > floor) floor = s1 - GAP_CAP }
+      else { h[j] = s2; c[j] = 0; inGap = s2 > NONE }
+    }
+    H.push(h); C.push(c)
+  }
+  var best = NONE, end = -1
+  for (j = n - 1; j < m; j++) if (C[n - 1][j] > 0 && H[n - 1][j] > best) { best = H[n - 1][j]; end = j }
+  if (end < 0) return null
+  var out = []
+  i = n - 1; j = end
+  while (i >= 0 && j >= 0) {
+    if (C[i][j] > 0) { out.push(j); i--; j-- }
+    else j--
+  }
+  return i < 0 ? out : null
+}
+
+// Where `term` occurs whole in a prepared haystack (case folded), or -1: the
+// occurrence starting on the strongest boundary (a word start before a
+// mid-word one), the earliest of those.
+function substringAt(term, t) {
+  var n = term.length, m = t.length, q = term.codes, codes = t.codes, best = -1, bestBonus = -1
+  for (var j = 0; j + n <= m; j++) {
+    var k = 0
+    while (k < n && codes[j + k] === q[k]) k++
+    if (k === n && t.bonus[j] > bestBonus) { best = j; bestBonus = t.bonus[j] }
+  }
+  return best
+}
+
+// [start, end) pairs of `title` that `query` matched, merged and sorted, for
+// the result row's highlight. A word that occurs whole in the title marks
+// that run ("shot" in Screen**shot** Region, as the Main board draws it);
+// only a true subsequence ("vsc") marks the letters fzf's alignment used,
+// which can prefer a word start to a run (M5 review). A word that matched
+// only the path, keywords or description marks nothing.
+function ranges(query, title) {
+  var q = String(query || "").trim(), name = String(title || "")
+  if (!q || !name) return []
+  var terms = termsOf(q), t = prepare(name), hit = ({}), any = false
+  for (var k = 0; k < terms.length; k++) {
+    var at = substringAt(terms[k], t), pos = null
+    if (at >= 0) {
+      pos = []
+      for (var c = 0; c < terms[k].length; c++) pos.push(at + c)
+    } else pos = termPositions(terms[k], t)
+    if (!pos) continue
+    for (var p = 0; p < pos.length; p++) { hit[pos[p]] = true; any = true }
+  }
+  if (!any) return []
+  var out = [], start = -1
+  for (var j = 0; j <= name.length; j++) {
+    if (hit[j] && start < 0) start = j
+    else if (!hit[j] && start >= 0) { out.push([start, j]); start = -1 }
+  }
+  return out
+}
+
 function tierValue(row) {
   return TIERS[row && row.tier] || TIERS.item
+}
+
+// Ranked rows regrouped by section, for a list that draws section headers:
+// each section's rows follow its best one, sections in the order of their
+// best rows, inside each tier (answers stay first, fallbacks last). Stable:
+// a section keeps its rows' ranked order, so the top row stays on top and
+// Up and Down walk the list as drawn (M5 review: score order drew Desktop,
+// Hotkeys, then Desktop again).
+function groupSections(rows) {
+  var list = rows || [], out = [], i = 0
+  while (i < list.length) {
+    var tier = tierValue(list[i]), order = [], groups = ({})
+    for (; i < list.length && tierValue(list[i]) === tier; i++) {
+      var key = "s:" + String(list[i].section || "")
+      if (!groups[key]) { groups[key] = []; order.push(key) }
+      groups[key].push(list[i])
+    }
+    for (var k = 0; k < order.length; k++) out = out.concat(groups[order[k]])
+  }
+  return out
 }
 
 // bonus(row) is the frecency bonus; it only ever reorders within the item

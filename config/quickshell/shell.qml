@@ -89,13 +89,22 @@ ShellRoot {
     }
     NotificationCenter {}
     ThemePicker {}
-    Launcher { id: launcher }
+    // The palette: the island's launcher state in island mode, its own panel
+    // in the classic modes (Launcher.qml).
+    Launcher {
+        id: launcher
+        islands: screens.instances.map(s => s.island).filter(i => i)
+    }
     // Dictation from the daemon (the Copilot key): this bottom popup in the
     // classic modes, the island's dict state in island mode.
     VoxtypeOsd {
         voice: launcher.launcherHost.voice
         onVisibleChanged: if (visible) screen = launcher.targetScreen()
     }
-    ClipboardPicker {}
+    // Clipboard history capture (the wl-paste watchers) in every bar mode, and
+    // the `clipboard` IPC that Super+V uses: the launcher's clipboard scope.
+    ClipboardStore {
+        launcher: launcher
+    }
     WindowSwitcher {}
 }

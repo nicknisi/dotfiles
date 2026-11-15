@@ -122,6 +122,58 @@ TestCase {
         compare(Match.rank(withAnswer,boost)[0].id,"answer")
         compare(Match.rank(withAnswer,boost).slice(-1)[0].id,"fallback")
     }
+    // The highlight: [start, end) pairs of the title, from the alignment the score used.
+    function test_ranges_mark_the_matched_title_letters() {
+        compare(Match.ranges("chro", "Google Chrome"), [[7, 11]])
+        compare(Match.ranges("vsc", "Visual Studio Code"), [[0, 1], [7, 8], [14, 15]])
+        // Words are separate terms, in any order, merged where they touch.
+        compare(Match.ranges("code vis", "Visual Studio Code"), [[0, 3], [14, 18]])
+        // A word found whole marks that run, as the Main board draws "shot"
+        // (fzf's alignment would take the word-start S and "hot").
+        compare(Match.ranges("shot", "Screenshot Region"), [[6, 10]])
+        compare(Match.ranges("shot reg", "Screenshot Region"), [[6, 10], [11, 14]])
+        compare(Match.ranges("shot", "Annotate Screenshot"), [[15, 19]])
+        // Of several runs, the one on a word start, else the first.
+        compare(Match.ranges("on", "Session Online"), [[8, 10]])
+        compare(Match.ranges("ss", "Session Settings"), [[2, 4]])
+        // Case folds; the exact title marks it all.
+        compare(Match.ranges("CALCULATOR", "Calculator"), [[0, 10]])
+        // The word start wins over an earlier mid-word letter.
+        compare(Match.ranges("b", "Abc Bluetooth"), [[4, 5]])
+        // Nothing to mark: no query, no title, or a word only the path matched.
+        compare(Match.ranges("", "Anything"), [])
+        compare(Match.ranges("chrome", ""), [])
+        compare(Match.ranges("zzz", "Google Chrome"), [])
+        compare(Match.ranges("keysepro", "Preferred assistant"), [])
+        // A row the matcher keeps still gets its title letters when only some words hit it.
+        compare(Match.ranges("blue pair", "Bluetooth"), [[0, 4]])
+        // Every range lies inside the title and never overlaps the next.
+        var r = Match.ranges("ss", "Session Settings")
+        for (var i = 0; i < r.length; i++) {
+            verify(r[i][0] >= 0 && r[i][1] <= 16 && r[i][0] < r[i][1])
+            if (i) verify(r[i][0] > r[i - 1][1])
+        }
+    }
+    function test_sections_gather_under_their_best_row() {
+        var rows = [
+            { id: "a", section: "Desktop", tier: "item" }, { id: "b", section: "Hotkeys", tier: "item" },
+            { id: "c", section: "Desktop", tier: "item" }, { id: "d", section: "Clipboard", tier: "item" },
+            { id: "e", section: "Hotkeys", tier: "item" }, { id: "f", section: "Web", tier: "fallback" }
+        ]
+        compare(Match.groupSections(rows).map(function(r) { return r.id }), ["a", "c", "b", "e", "d", "f"])
+        // Tiers stay apart: an answer keeps the top even beside its section's items.
+        var mixed = [{ id: "x", section: "Calc", tier: "answer" }, { id: "y", section: "Desktop", tier: "item" }, { id: "z", section: "Calc", tier: "item" }]
+        compare(Match.groupSections(mixed).map(function(r) { return r.id }), ["x", "y", "z"])
+        // Section names that are Object keys group like any other.
+        var odd = [{ id: 1, section: "constructor" }, { id: 2, section: "" }, { id: 3, section: "constructor" }]
+        compare(Match.groupSections(odd).map(function(r) { return r.id }), [1, 3, 2])
+        compare(Match.groupSections([]), [])
+    }
+    function test_ranges_stay_cheap_for_a_screen_of_rows() {
+        var started = Date.now()
+        for (var i = 0; i < 200; i++) Match.ranges("setnum " + (i % 9), "Setup Section " + i + " Item number " + i + " with some words")
+        verify((Date.now() - started) / 200 < 2, "ranges per row")
+    }
     function test_a_keystroke_over_a_full_menu_stays_fast() {
         var titles = [], paths = []
         for (var i = 0; i < 700; i++) {

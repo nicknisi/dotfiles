@@ -183,6 +183,33 @@ for (const w of [361, 390, 401, 213.4, 455].map(v => M.size(hail, v)[0]).concat(
 assert.equal(M.radiusFor(52), 26, 'the hail card is fully round at 26')
 assert.equal(M.radiusFor(44), 22)
 assert.deepEqual(M.size(M.go(rest, 'flash'), 201), [204, 52], 'flash hugs its words with no minimum')
+const launcher = M.go(rest, 'launcher')
+assert.deepEqual(M.size(launcher, 760, 472), [760, 472], 'M5: the palette is its content, 760 x 472')
+assert.deepEqual(M.size(launcher), [760, 472], 'before it measures, the launcher takes its default')
+assert.deepEqual(M.size(launcher, 300, 172.5), [300, 173], 'a picker hugs both sides, with no minimum')
+assert.deepEqual(M.size(launcher, 421, 900), [424, 560], 'rounded to the width step and capped at the window')
+// The launcher covers a banner without losing it (M5 review): the one
+// showing, and what it interrupted, wait on the queue for the palette to close.
+{
+  const it = (id, timeout) => ({ id, timeout })
+  const crit = M.notify(rest, it(7, 0))
+  assert.equal(crit.state, 'notif')
+  const pal = M.cover(crit, 'launcher')
+  assert.deepEqual([pal.state, pal.item, pal.back, pal.queue], ['launcher', undefined, undefined, [it(7, 0)]], 'the critical banner waits')
+  assert.deepEqual(M.notifIds(pal), [7], 'and stays held, so it is not expired')
+  assert.equal(M.settle(pal, {}), pal, 'nothing shows over the palette')
+  const back = M.settle(M.dismiss(pal), {})
+  assert.deepEqual([back.state, back.item, back.timer], ['notif', it(7, 0), 0], 'closing the palette shows it again, still untimed')
+  // The OSD over banner 1, banner 2 waiting: 1 rejoins the queue behind 2.
+  const osd = M.notify(M.offer(M.notify(rest, it(1, 4200)), 'osd'), it(2, 4200))
+  assert.deepEqual([osd.state, osd.back.item.id, osd.queue.map(x => x.id)], ['osd', 1, [2]])
+  const p2 = M.cover(osd, 'launcher')
+  assert.deepEqual([p2.back, p2.queue.map(x => x.id)], [undefined, [2, 1]], 'queued after what was waiting, the covered one newest')
+  const after = M.settle(M.dismiss(p2), {})
+  assert.deepEqual([after.item.id, after.queue.map(x => x.id)], [1, [2]], 'the one the palette covered comes back first, then the rest')
+  assert.deepEqual(M.cover(rest, 'launcher'), M.go(rest, 'launcher'), 'with nothing showing it is go()')
+  assert.equal(M.cover(rest, 'nope'), rest)
+}
 
 // ---- M3: notification timeouts (DECISION 2, island-modes 9.1) --------------------
 assert.equal(M.notifTimeout(3000, false), 3000, 'the sender timeout when it sets one')

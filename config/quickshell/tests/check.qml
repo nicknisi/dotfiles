@@ -3,12 +3,15 @@ import Quickshell
 import QtQuick
 import qs.Kit
 import qs.Island
+import "launcher/ui" as LauncherUi
 import "MenuAnchor.js" as MenuAnchor
 import "BarGeometry.js" as BarGeometry
 import "lib/WorkspaceOrder.js" as WorkspaceOrder
 import "lib/CrewModel.js" as CrewModel
 import "lib/IslandMachine.js" as IslandMachine
 import "lib/Calendar.js" as Calendar
+import "launcher/core/Match.js" as Match
+import "launcher/core/Glyphs.js" as Glyphs
 
 ShellRoot {
     id: test
@@ -695,7 +698,7 @@ ShellRoot {
                     test.check(runner.visible && runner.running && !greeting.visible, "drag overrides menu costumes");
                 } else {
                     // The crew check's eleven beats outlast this timer's two: wait a round.
-                    if (crewCheck.running || m3Check.running) return;
+                    if (crewCheck.running || m3Check.running || launcherCheck.running) return;
                     test.check(avatarFrames.changes > 0, "running frames actually advance");
                     avatar.visible = false;
                     test.check(!runner.running, "hidden runner stops animating");
@@ -707,6 +710,7 @@ ShellRoot {
                     test.check(islandCheck.finished, "the island check ran to the end");
                     test.check(crewCheck.finished, "the crew check ran to the end");
                     test.check(m3Check.finished, "the M3 check ran to the end");
+                    test.check(launcherCheck.finished, "the launcher check ran to the end");
                     test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
                     console.log("CAPSULE_TEST_PASS");
                     Qt.quit();
@@ -756,6 +760,254 @@ ShellRoot {
                 Prefs.setEdge(edges[step % 4]);
                 step++;
             } catch (error) { console.error("CAPSULE_TEST_FAIL: " + error.message); Qt.quit(); }
+        }
+    }
+
+    // The launcher (PLAN M5): launcher/ui/LauncherContent.qml on a fake
+    // engine with Keystroke.qml's shape (the real one reads and writes the
+    // launcher's config under $HOME, which check.sh does not isolate), shown
+    // by a fourth island as its launcher state and by a free-standing content
+    // as the classic modes' panel would hold it.
+    QtObject {
+        id: fakeLauncher
+        property bool opened: false
+        property string mode: "palette"
+        readonly property bool dmenuActive: mode === "select" || mode === "input"
+        property int dmenuWidth: 300
+        property int dmenuMaxHeight: 0
+        property string dmenuPrompt: "Pick one"
+        property string scope: ""
+        property string scopeTitle: ""
+        property var history: []
+        property var rows: []
+        property int selected: 0
+        property bool selectionTouched: false
+        readonly property var current: rows.length && selected >= 0 && selected < rows.length ? rows[selected] : ({})
+        property bool ctrlHeld: false
+        readonly property int shortcutRows: 8
+        property bool pending: false
+        property bool showLoading: false
+        property string errorMessage: ""
+        property string statusMessage: ""
+        property var confirmPending: null
+        property bool capturing: false
+        property string captureChord: ""
+        property string capturePartial: ""
+        property var captureCurrent: null
+        property var captureRow: null
+        property var captureCheck: ({ message: "", state: "" })
+        property bool captureReady: false
+        property bool dictationMode: false
+        readonly property bool clipboardChoice: false
+        readonly property bool providerViewActive: false
+        property var paletteSettings: ({ showPreview: true })
+        property string matchQuery: ""
+        property var voice: ({ active: false, phase: "idle", level: 0, history: [], liveText: "" })
+        property string voiceTrigger: "tap"
+        readonly property var motion: ({ flashRise: 0, flashFall: 0 })
+        property real levelOpacity: 1
+        property var levelTransform: ({ x: 0 })
+        property Item attachedView: null
+        property var detachedFrom: []
+        property int focusCalls: 0
+        property int cancels: 0
+        property int activations: 0
+        property var searchProxy: QtObject {
+            property string text: ""
+            property int cursorPosition: 0
+        }
+        property var viewProxy: QtObject {
+            property Component sourceComponent: null
+            property var item: null
+        }
+        property ListModel results: ListModel {}
+        signal flashed(string uid)
+        property Item listView: null
+        onSelectedChanged: if (listView) listView.currentIndex = selected
+        function attach(view, field, list) {
+            if (attachedView && attachedView !== view) attachedView.detached();
+            attachedView = view;
+            listView = list;
+            list.currentIndex = selected;
+        }
+        function detach(view) {
+            if (attachedView !== view) return;
+            detachedFrom = detachedFrom.concat([view]);
+            attachedView = null;
+            listView = null;
+        }
+        function typed(t) { searchProxy.text = t }
+        function focusInput() { focusCalls++ }
+        function cancel() { cancels++; opened = false }
+        function edited() {}
+        function usefulPreview(row) { return false }
+        function bindable(row) { return row && row.id === "region" }
+        function select(d) { selected = (selected + d + rows.length) % rows.length }
+        function selectPage(d) { select(d) }
+        function selectFromPointer(i, item, mouse) {}
+        function activate(alt) { activations++ }
+        function activateAt(i) {}
+        function goBack() {}
+        function beginCapture() {}
+        function isSuperKey(k) { return false }
+        function isModifierKey(k) { return false }
+        function voiceStop() {}
+        function voiceCancel() {}
+        // Rows the way Keystroke.display() lays them into the model.
+        function show(list, query) {
+            matchQuery = query;
+            rows = list;
+            selected = 0;
+            results.clear();
+            let last = "";
+            for (const r of list) {
+                results.append({ uid: r.uid, providerKey: r.providerKey, title: r.title, subtitle: r.subtitle || "", icon: r.icon || "", iconFont: "",
+                    iconSource: "", section: r.section || "", sectionStart: (r.section || "") !== last, accessory: r.accessory || "", disabled: false,
+                    badge: "", hint: r.hint || "", ranges: query ? JSON.stringify(Match.ranges(query, r.title)) : "[]",
+                    glyph: Glyphs.forRow(r), meta: r.meta || "", mono: r.mono === true });
+                last = r.section || "";
+            }
+            if (listView) listView.currentIndex = selected;
+        }
+    }
+    QtObject {
+        id: launcherLeft
+        property int count: 0
+    }
+    FloatingWindow {
+        visible: true
+        implicitWidth: 1000
+        implicitHeight: 608
+        IslandView {
+            id: launcherIsland
+            anchors.fill: parent
+            interrupt: quietInterrupt
+            liveData: ({})
+            monitor: ({ name: "check-launcher", width: 1000, height: 700 })
+            workspaces: WorkspaceOrder.shown([{ name: "W", windows: 1 }], "W")
+            onLauncherLeft: launcherLeft.count++
+        }
+    }
+    FloatingWindow {
+        visible: true
+        implicitWidth: 800
+        implicitHeight: 520
+        LauncherUi.LauncherContent {
+            id: panelContent
+            x: 20
+            y: 20
+            width: implicitWidth
+            height: implicitHeight
+            engine: fakeLauncher
+            active: false
+        }
+    }
+    readonly property var launcherRows: [
+        { uid: "system/region", id: "region", providerKey: "system", providerName: "Desktop", section: "Capture", title: "Screenshot Region",
+          subtitle: "Select an area, save it, and copy it", accessory: "PRINT", action: { type: "exec", argv: ["capture", "shot", "region"] } },
+        { uid: "system/screen", id: "screen", providerKey: "system", providerName: "Desktop", section: "Capture", title: "Screenshot Screen",
+          subtitle: "The whole screen", accessory: "Shift + PRINT", action: { type: "exec", argv: ["capture", "shot", "screen"] } },
+        { uid: "clipboard/12", id: "12", providerKey: "clipboard", providerName: "Clipboard", section: "Clipboard", title: "capture shot region",
+          subtitle: "", meta: "Text", mono: true, glyph: "text", action: { type: "copy" } }
+    ]
+    // The launcher in four beats, 600 ms apart.
+    Timer {
+        id: launcherCheck
+        interval: 600
+        repeat: true
+        property int step: 0
+        property bool finished: false
+        onTriggered: {
+            try {
+                const v = launcherIsland, e = fakeLauncher;
+                if (step === 0) {
+                    e.opened = true;
+                    e.show(test.launcherRows, "shot");
+                    test.check(v.showLauncher(e) === "ok" && v.islandState === "launcher" && v.panelOpen, "the palette opens as the island's launcher state");
+                    test.check(v.launcherShown && v.launcherFocus, "the palette wants the keyboard while it is up");
+                    const c = v.launcherCard.content;
+                    test.check(c !== null && e.attachedView === c, "the island's content takes the engine");
+                    test.check(c.implicitWidth === 760 && c.implicitHeight === 472 && v.targetSize[0] === 760 && v.targetSize[1] === 472, "the island targets the palette's 760 x 472: " + v.targetSize);
+                    test.check(v.body.width < 760, "the body morphs to it");
+                    test.check(v.open("launcher").startsWith("error") && v.open("launcher").includes("launcher open"), "the island's own open points at the launcher IPC");
+                } else if (step === 1) {
+                    const c = v.launcherCard.content;
+                    test.check(v.body.width === 760 && v.body.height === 472 && v.body.radius === 28 && v.body.x === 120, "760 x 472, radius 28, centred: " + v.body.width + " x " + v.body.height + " @" + v.body.x);
+                    const list = v.box(c.listItem), card = v.box(c.cardItem);
+                    test.check(list.x === 130 && list.y === 72 && list.width === 420, "the list is 440 wide with 8 10 padding under the 56 header: " + JSON.stringify(list));
+                    test.check(card.x === 560 && card.y === 76 && card.width === 306 && card.height === 352, "the detail card is 306 x 352 at 12 / 14: " + JSON.stringify(card));
+                    test.check(String(c.cardItem.color) === String(Tokens.raised) && String(c.cardItem.border.color) === String(Tokens.hairline), "the card is raised with a hairline ring");
+                    const row = c.selectedRow;
+                    test.check(row !== null && row.selected && row.height === 48 && row.title === "Screenshot Region", "the first row is selected, 48 high");
+                    test.check(String(row.children[0].color) === String(Tokens.accentTint), "the selected row sits on accentTint");
+                    test.check(JSON.stringify(Match.ranges("shot", row.title)) === JSON.stringify([[6, 10]]) && row.ranges === "[[6,10]]", "the row carries its match ranges, the run as the board marks it: " + row.ranges);
+                    test.check(c.sectioned, "a query mixing Capture and Clipboard shows section headers");
+                    test.check(row.keys.length === 1 && row.keys[0] === "PRINT", "the chord trails as keycaps");
+                    // Actions on a command row (M5 review): the hotkey and the provider's settings, not a paste.
+                    const dc = c.cardItem;
+                    test.check(JSON.stringify(dc.menuItems.map(i => i.id)) === JSON.stringify(["hotkey", "settings"]) && dc.menuItems[1].label === "Desktop settings",
+                        "the card's Actions lists the row's other actions: " + JSON.stringify(dc.menuItems));
+                    dc.openMenu();
+                    test.check(dc.menuOpen && test.child(dc, "launcherActionsMenu").visible, "Actions opens its list");
+                    dc.moveMenu(1);
+                    test.check(dc.menuIndex === 1, "the list moves");
+                    e.selected = 1;
+                    test.check(!dc.menuOpen, "and closes when the selection moves");
+                    e.selected = 0;
+                    test.check(Glyphs.forRow({ providerKey: "system", id: "action-screenshot-window", parent: "capture" }) === "window"
+                        && Glyphs.forRow({ providerKey: "system", id: "action-screenshot-screen", parent: "capture" }) === "monitor", "capture rows draw window and monitor, as the board does");
+                    // A picker hugs its rows at its own width, with no card and no footer.
+                    e.dmenuWidth = 420;
+                    e.mode = "select";
+                    test.check(c.implicitWidth === 420 && c.implicitHeight === 56 + 3 * 50 - 2 + 16 && v.targetSize[0] === 420 && v.targetSize[1] === c.implicitHeight, "a picker is its width and as tall as its rows: " + v.targetSize);
+                    test.check(!c.cardShown, "no detail card in a picker");
+                    e.mode = "palette";
+                    // A colour answer swaps the body.
+                    e.show([{ uid: "colors/hex", id: "hex", providerKey: "colors", providerName: "Colors", tier: "answer", answerKind: "color", section: "Colors",
+                        title: "#82FB9C", subtitle: "HEX", swatch: "#82FB9C", caption: "#82FB9C", hint: "" }], "#82fb9c");
+                    test.check(c.colorAnswer && !c.cardShown && c.answerRow.providerName === "Colors", "a colour answers in place, the chip names Colors");
+                    e.show(test.launcherRows, "shot");
+                    // An outside click (the focus grab clearing) leaves the state: the palette closes.
+                    v.dismiss();
+                    test.check(v.islandState === "rest" && launcherLeft.count === 1, "leaving the launcher state tells the launcher");
+                    test.check(!v.launcherFocus, "and lets the keyboard go at once");
+                } else if (step === 2) {
+                    test.check(v.body.width === 360 && v.body.height === 38, "back at rest");
+                    test.check(e.attachedView === null && e.detachedFrom.length === 1, "the island's content let go of the engine");
+                    test.check(v.launcherCard.content === null, "and was unloaded once it faded");
+                    // The panel host: the same view, free-standing.
+                    panelContent.active = true;
+                    test.check(e.attachedView === panelContent && panelContent.implicitWidth === 760 && panelContent.implicitHeight === 472, "the free panel's content takes the engine");
+                    test.check(panelContent.fieldItem.font.pixelSize === 16 && panelContent.cardItem.width === 306, "the same frame in the panel");
+                    panelContent.active = false;
+                    test.check(e.attachedView === null, "an inactive content holds nothing");
+                    // A close after a launch waits for the flash, then rest.
+                    e.opened = true;
+                    v.showLauncher(e);
+                    test.check(e.attachedView === v.launcherCard.content, "reopening on the island moves the engine back");
+                    e.opened = false;
+                    v.releaseLauncher(300);
+                    test.check(v.islandState === "launcher", "the close waits for the activation flash");
+                } else if (step === 3) {
+                    test.check(v.islandState === "rest" && launcherLeft.count === 2, "then the island goes back to rest");
+                    // The voice layout, from the session's levels.
+                    panelContent.active = true;
+                    test.check(e.attachedView === panelContent, "the panel takes it back");
+                    e.voice = { active: true, phase: "listening", level: 0.5, history: [0, 0.25, 0.5, 1], liveText: "open the control center" };
+                    test.check(panelContent.voiceActive && panelContent.dense && !panelContent.cardShown, "voice takes the header and the dense rows");
+                    const vrow = panelContent.selectedRow;
+                    test.check(vrow !== null && vrow.height === 46 && !vrow.compactText && vrow.subtitle.indexOf("Capture › ") === 0,
+                        "voice rows: 46 high, the title at 13 and the crumb before the subtitle: " + (vrow ? vrow.subtitle : "none"));
+                    e.voice = { active: false, phase: "idle", level: 0, history: [], liveText: "" };
+                    panelContent.active = false;
+                    finished = true;
+                    stop();
+                }
+                step++;
+            } catch (error) {
+                console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
+            }
         }
     }
 
@@ -1141,6 +1393,7 @@ ShellRoot {
                 islandCheck.start();
                 crewCheck.start();
                 m3Check.start();
+                launcherCheck.start();
                 avatarCheck.start();
             } catch (error) {
                 console.error("CAPSULE_TEST_FAIL: " + error.message);

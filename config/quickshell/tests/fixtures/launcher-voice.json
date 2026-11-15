@@ -1,0 +1,90 @@
+{
+  "about": "M5: the launcher's voice layout (launcher-pickers 5.4). Hold mode, listening, 28 loudness samples, and the live transcript \"open bluetooth\" (the last word still tentative), over the M3 island (island-main). The shot types the same words with `launcher query`, since the transcript is the query.",
+  "workspaces": [
+    {
+      "name": "S",
+      "windows": 1
+    },
+    {
+      "name": "D",
+      "windows": 2
+    },
+    {
+      "name": "special:scratch",
+      "windows": 1
+    },
+    {
+      "name": "W",
+      "windows": 3
+    },
+    {
+      "name": "N",
+      "windows": 0
+    },
+    {
+      "name": "C",
+      "windows": 1
+    }
+  ],
+  "focused": "D",
+  "clock": "10:45",
+  "date": "Saturday, November 14",
+  "today": "2026-11-14",
+  "media": {
+    "title": "Neon Grid",
+    "artist": "Night Rider",
+    "playing": false
+  },
+  "status": {
+    "wifi": true,
+    "bt": true,
+    "tailscale": true,
+    "muted": false,
+    "battery": 25
+  },
+  "context": {
+    "kind": "agent",
+    "icon": "sparkle",
+    "working": false,
+    "text": "dotfiles",
+    "who": "Claude Code",
+    "where": "dotfiles",
+    "detail": "main +2"
+  },
+  "launcherVoice": {
+    "phase": "listening",
+    "trigger": "hold",
+    "level": 0.6,
+    "history": [
+      0.05,
+      0.1,
+      0.2,
+      0.35,
+      0.5,
+      0.62,
+      0.7,
+      0.55,
+      0.4,
+      0.3,
+      0.45,
+      0.6,
+      0.8,
+      0.95,
+      0.85,
+      0.7,
+      0.5,
+      0.35,
+      0.25,
+      0.4,
+      0.55,
+      0.7,
+      0.6,
+      0.45,
+      0.3,
+      0.2,
+      0.12,
+      0.08
+    ],
+    "text": "open bluetooth"
+  }
+}

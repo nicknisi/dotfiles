@@ -41,6 +41,11 @@ python3 -B "$root/../../bin/tests/crew-jump.py"
 # routing in voxtype-osd.sh, and the states themselves, the Context lane and
 # the notification timeouts in check.qml below.
 node "$root/tests/calendar.cjs"
+# The launcher restyle (PLAN M5): clipboard history keeps filling with the old
+# picker gone (ClipboardStore against fake wl-paste and cliphist). Match
+# ranges, clipboard metadata and the Colors contrast row are qmltests in
+# launcher/tests (check.sh above); the island and panel hosts run in check.qml.
+bash "$root/tests/clipboard-store.sh"
 
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
 for file in "$root"/*.qml "$root"/Kit/*.qml "$root"/Island/*.qml; do

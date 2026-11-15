@@ -35,7 +35,7 @@
 //
 // Some of them (search, x, the chevrons, lock, log-out, monitor, moon, music,
 // headphones, power, server, smartphone, terminal, type, link, plus, check,
-// arrow-right, clipboard) are on Lucide's list of icons derived from Feather,
+// arrow-right, clipboard, smile, command) are on Lucide's list of icons derived from Feather,
 // which carries this notice as well:
 //
 // The MIT License (MIT) (for the icons listed above)
@@ -125,7 +125,18 @@ var ICONS = {
     "text": {"lucide": "type", "d": "M12 4v16M4 7V5a1 1 0 0 1 1 -1h14a1 1 0 0 1 1 1v2M9 20h6"},
     "image": {"lucide": "image", "d": "M5 3H19A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3ZM7 9A2 2 0 1 0 11 9A2 2 0 1 0 7 9ZM21 15l-3.086 -3.086a2 2 0 0 0 -2.828 0L6 21"},
     "link": {"lucide": "link", "d": "M10 13a5 5 0 0 0 7.54 0.54l3 -3a5 5 0 0 0 -7.07 -7.07l-1.72 1.71M14 11a5 5 0 0 0 -7.54 -0.54l-3 3a5 5 0 0 0 7.07 7.07l1.71 -1.71"},
-    "sliders": {"lucide": "sliders-vertical", "d": "M10 8h4M12 21v-9M12 8V3M17 16h4M19 12V3M19 21v-5M3 14h4M5 10V3M5 21v-7"}
+    "sliders": {"lucide": "sliders-vertical", "d": "M10 8h4M12 21v-9M12 8V3M17 16h4M19 12V3M19 21v-5M3 14h4M5 10V3M5 21v-7"},
+    "file": {"lucide": "file", "d": "M6 22a2 2 0 0 1 -2 -2V4a2 2 0 0 1 2 -2h8a2.4 2.4 0 0 1 1.704 0.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1 -2 2zM14 2v5a1 1 0 0 0 1 1h5"},
+    "folder": {"lucide": "folder", "d": "M20 20a2 2 0 0 0 2 -2V8a2 2 0 0 0 -2 -2h-7.9a2 2 0 0 1 -1.69 -0.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0 -2 2v13a2 2 0 0 0 2 2Z"},
+    "calculator": {"lucide": "calculator", "d": "M6 2H18A2 2 0 0 1 20 4V20A2 2 0 0 1 18 22H6A2 2 0 0 1 4 20V4A2 2 0 0 1 6 2ZM8 6L16 6M16 14L16 18M16 10h0.01M12 10h0.01M8 10h0.01M12 14h0.01M8 14h0.01M12 18h0.01M8 18h0.01"},
+    "timer": {"lucide": "timer", "d": "M10 2L14 2M12 14L15 11M4 14A8 8 0 1 0 20 14A8 8 0 1 0 4 14Z"},
+    "keyboard": {"lucide": "keyboard", "d": "M10 8h0.01M12 12h0.01M14 8h0.01M16 12h0.01M18 8h0.01M6 8h0.01M7 16h10M8 12h0.01M4 4H20A2 2 0 0 1 22 6V18A2 2 0 0 1 20 20H4A2 2 0 0 1 2 18V6A2 2 0 0 1 4 4Z"},
+    "smile": {"lucide": "smile", "d": "M15 10V9M16.472 15a6 6 0 0 1 -8.943 0M9 10V9M2 12A10 10 0 1 0 22 12A10 10 0 1 0 2 12Z"},
+    "puzzle": {"lucide": "puzzle", "d": "M15.39 4.39a1 1 0 0 0 1.68 -0.474a2.5 2.5 0 1 1 3.014 3.015a1 1 0 0 0 -0.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1 -1.68 -0.474a2.5 2.5 0 1 0 -3.014 3.015a1 1 0 0 1 0.474 1.68l-1.683 1.682a2.414 2.414 0 0 1 -3.414 0L8.61 19.61a1 1 0 0 0 -1.68 0.474a2.5 2.5 0 1 1 -3.014 -3.015a1 1 0 0 0 0.474 -1.68l-1.683 -1.682a2.414 2.414 0 0 1 0 -3.414L4.39 8.61a1 1 0 0 1 1.68 0.474a2.5 2.5 0 1 0 3.014 -3.015a1 1 0 0 1 -0.474 -1.68l1.683 -1.682a2.414 2.414 0 0 1 3.414 0z"},
+    "settings": {"lucide": "settings", "d": "M9.671 4.136a2.34 2.34 0 0 1 4.659 0a2.34 2.34 0 0 0 3.319 1.915a2.34 2.34 0 0 1 2.33 4.033a2.34 2.34 0 0 0 0 3.831a2.34 2.34 0 0 1 -2.33 4.033a2.34 2.34 0 0 0 -3.319 1.915a2.34 2.34 0 0 1 -4.659 0a2.34 2.34 0 0 0 -3.32 -1.915a2.34 2.34 0 0 1 -2.33 -4.033a2.34 2.34 0 0 0 0 -3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319 -1.915M9 12A3 3 0 1 0 15 12A3 3 0 1 0 9 12Z"},
+    "command": {"lucide": "command", "d": "M15 6v12a3 3 0 1 0 3 -3H6a3 3 0 1 0 3 3V6a3 3 0 1 0 -3 3h12a3 3 0 1 0 -3 -3"},
+    "convert": {"lucide": "arrow-right-left", "d": "M16 3l4 4l-4 4M20 7H4M8 21l-4 -4l4 -4M4 17h16"},
+    "pipette": {"lucide": "pipette", "d": "M12 9l-8.414 8.414A2 2 0 0 0 3 18.828v1.344a2 2 0 0 1 -0.586 1.414A2 2 0 0 1 3.828 21h1.344a2 2 0 0 0 1.414 -0.586L15 12M18 9l0.4 0.4a1 1 0 1 1 -3 3l-3.8 -3.8a1 1 0 1 1 3 -3l0.4 0.4l3.4 -3.4a1 1 0 1 1 3 3zM2 22l0.414 -0.414"}
 };
 // END ICONS
 
