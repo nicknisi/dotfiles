@@ -1,0 +1,218 @@
+{
+  "about": "M2 review: crew-many plus the Context text 'dotfiles' (DECISION 1). The rest pill grows to 608, so its bots sit right of a 460 panel's edge; the Crew panel opened from them keeps the pill's width, so every bot stays under it.",
+  "workspaces": [
+    {
+      "name": "S",
+      "windows": 1
+    },
+    {
+      "name": "D",
+      "windows": 2
+    },
+    {
+      "name": "special:scratch",
+      "windows": 1
+    },
+    {
+      "name": "W",
+      "windows": 3
+    },
+    {
+      "name": "N",
+      "windows": 0
+    },
+    {
+      "name": "C",
+      "windows": 1
+    }
+  ],
+  "focused": "D",
+  "clock": "10:45",
+  "date": "Saturday, November 14",
+  "media": {
+    "title": "Neon Grid",
+    "artist": "Night Rider"
+  },
+  "status": {
+    "wifi": true,
+    "bt": true,
+    "tailscale": true,
+    "muted": false,
+    "battery": 25
+  },
+  "context": "dotfiles",
+  "crew": {
+    "now": 1794715378,
+    "fleet": {
+      "agents": [
+        {
+          "pane": "%2",
+          "windowId": "@1",
+          "session": "projects",
+          "label": "Make a detailed artifact",
+          "agentType": "pi",
+          "status": "QUESTION",
+          "needsAttention": true,
+          "ts": 1794715378,
+          "timestampKind": "observed",
+          "hookTs": 0,
+          "project": "~/Developer/dotfiles"
+        },
+        {
+          "pane": "%6",
+          "windowId": "@5",
+          "session": "projects",
+          "label": "review the diff",
+          "agentType": "opencode",
+          "status": "DONE",
+          "needsAttention": true,
+          "ts": 1794715378,
+          "timestampKind": "observed",
+          "hookTs": 0,
+          "project": "~/Developer/dotfiles"
+        },
+        {
+          "pane": "%0",
+          "windowId": "@0",
+          "session": "projects",
+          "label": "island mocks",
+          "agentType": "claude",
+          "status": "BUSY",
+          "needsAttention": false,
+          "ts": 1794715378,
+          "timestampKind": "observed",
+          "hookTs": 0,
+          "project": "~/Developer/dotfiles"
+        },
+        {
+          "pane": "%7",
+          "windowId": "@6",
+          "session": "projects",
+          "label": "launcher restyle",
+          "agentType": "claude",
+          "status": "BUSY",
+          "needsAttention": false,
+          "ts": 1794715378,
+          "timestampKind": "observed",
+          "hookTs": 0,
+          "project": "~/Developer/dotfiles"
+        },
+        {
+          "pane": "%8",
+          "windowId": "@7",
+          "session": "projects",
+          "label": "lock screen",
+          "agentType": "codex",
+          "status": "BUSY",
+          "needsAttention": false,
+          "ts": 1794715378,
+          "timestampKind": "observed",
+          "hookTs": 0,
+          "project": "~/Developer/shell"
+        },
+        {
+          "pane": "%3",
+          "windowId": "@2",
+          "session": "projects",
+          "label": "tests",
+          "agentType": "codex",
+          "status": "IDLE",
+          "needsAttention": false,
+          "ts": 1794714658,
+          "timestampKind": "state_change",
+          "hookTs": 0,
+          "project": "~/Developer/dotfiles"
+        },
+        {
+          "pane": "%9",
+          "windowId": "@8",
+          "session": "projects",
+          "label": "notes",
+          "agentType": "pi",
+          "status": "IDLE",
+          "needsAttention": false,
+          "ts": 1794704578,
+          "timestampKind": "state_change",
+          "hookTs": 0,
+          "project": "~/Developer/notes"
+        },
+        {
+          "pane": "%10",
+          "windowId": "@9",
+          "session": "projects",
+          "label": "blog draft",
+          "agentType": "claude",
+          "status": "IDLE",
+          "needsAttention": false,
+          "ts": 1794712978,
+          "timestampKind": "state_change",
+          "hookTs": 0,
+          "project": "~/Developer/blog"
+        },
+        {
+          "pane": "%11",
+          "windowId": "@10",
+          "session": "projects",
+          "label": "talk outline",
+          "agentType": "claude",
+          "status": "IDLE",
+          "needsAttention": false,
+          "ts": 1794542578,
+          "timestampKind": "state_change",
+          "hookTs": 0,
+          "project": "~/Developer/talks"
+        }
+      ]
+    },
+    "scan": {
+      "total": 3,
+      "agents": [
+        {
+          "kind": "pi",
+          "host": "riker",
+          "age": "20m",
+          "state": "running",
+          "label": "#12 Rebuild the crew",
+          "where": "~/Developer/dotfiles/.riker/worktrees/12",
+          "pid": 6010,
+          "pane": "",
+          "session": "",
+          "windowId": "",
+          "attention": false
+        },
+        {
+          "kind": "pi",
+          "host": "riker",
+          "age": "20m",
+          "state": "running",
+          "label": "#13 Port the sprites",
+          "where": "~/Developer/dotfiles/.riker/worktrees/13",
+          "pid": 6020,
+          "pane": "",
+          "session": "",
+          "windowId": "",
+          "attention": false
+        },
+        {
+          "kind": "claude",
+          "host": "ghostty",
+          "age": "2d",
+          "state": "running",
+          "label": "notes",
+          "where": "~/Developer/notes",
+          "pid": 5000,
+          "pane": "",
+          "session": "",
+          "windowId": "",
+          "attention": false
+        }
+      ],
+      "spend": {
+        "today": 4.37,
+        "sessions": 6,
+        "tools": [],
+        "models": []
+      }
+    }
+  }
+}

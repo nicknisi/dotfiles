@@ -13,7 +13,25 @@ and Claude's 5h usage. The JSON goes to the widget via
   omniwm-agents --print    print the JSON instead of pushing
   omniwm-agents --watch    push every 15s (the LaunchAgent from
                            config/mise/config.toml runs this)
+  --crew                   with --print: the Quickshell Crew's scan. Skips
+                           `fleet list` (the Crew polls fleet itself) and the
+                           `riker jobs` goal lookup (about 1 s of CPU, and a
+                           fresh --print never has the cache warm); the label
+                           keeps "#<job>"
 Stays Python 3.9 compatible for launchd's /usr/bin/python3.
+
+On Linux (the Quickshell island's Crew polls `--print`) the process scan reads
+/proc directly, read-only: no ps, and no lsof, which milhouse does not have.
+tmux's server is `tmux: server` there, so hosts match on the `tmux` prefix.
+Each agent carries pid, plus pane, session and windowId for tmux agents (from
+`tmux list-panes`), so a click can jump to it (bin/crew-jump). A tmux agent
+fleet does not know takes the pane's path as `where` on Linux only; macOS
+keeps "" there, as the OmniWM widget expects.
+
+Spend: `sessions report` refreshes ~/.cache/omniwm-agents/spend.json in the
+background at most every 10 min; a failed refresh backs off for 10 min too
+(spend.failed) instead of retrying on every scan, and the cache dir is only
+created when a refresh starts.
 """
 
 import json
@@ -33,7 +51,11 @@ AGENTS = {"pi", "claude", "codex", "opencode"}
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")  # claude retitles itself to its version
 TERMINALS = {"ghostty": "ghostty", "wezterm-gui": "wezterm", "Terminal": "terminal", "iTerm2": "iterm",
              "Code": "vscode", "Cursor": "cursor", "zed": "zed", "Zed": "zed"}
+# Linux-only terminal names, kept out of TERMINALS so macOS hosts read as before.
+LINUX_TERMINALS = {"foot": "foot", "kitty": "kitty", "alacritty": "alacritty", "konsole": "konsole"}
 INTERVAL, SPEND_TTL, RIKER_TTL = 15, 600, 120
+LINUX = sys.platform.startswith("linux")
+PROC = Path("/proc")
 os.environ["PATH"] = ":".join([str(HOME / ".local/bin"), str(HOME / ".local/share/mise/shims"),
                                "/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin", os.environ.get("PATH", "")])
 
@@ -47,6 +69,8 @@ def run(*cmd, timeout=10):
 
 def processes():
     """pid -> (ppid, etime, comm basename, full command)."""
+    if LINUX:
+        return proc_processes()
     # Two calls: ps truncates comm to 16 chars unless it's the last column.
     commands = {}
     for line in run("ps", "-axww", "-o", "pid=,command=").splitlines():
@@ -58,6 +82,51 @@ def processes():
         if len(parts) == 4:
             pid, ppid, etime, comm = parts
             procs[int(pid)] = (int(ppid), etime, os.path.basename(comm), commands.get(pid, ""))
+    return procs
+
+
+def etime_of(secs):
+    """Seconds -> ps etime ([[dd-]hh:]mm:ss), so age() reads both scans alike."""
+    secs = max(0, int(secs))
+    days, rest = divmod(secs, 86400)
+    hours, rest = divmod(rest, 3600)
+    mins, secs = divmod(rest, 60)
+    clock = "%02d:%02d:%02d" % (hours, mins, secs) if days or hours else "%02d:%02d" % (mins, secs)
+    return "%d-%s" % (days, clock) if days else clock
+
+
+def proc_stat(text):
+    """A /proc/<pid>/stat line -> (comm, ppid, starttime ticks). comm sits in
+    parentheses and may hold spaces or parentheses itself ("tmux: server")."""
+    head, _, tail = text.rpartition(")")
+    comm = head.partition("(")[2]
+    fields = tail.split()
+    # fields[0] is field 3 (state): ppid is field 4, starttime field 22.
+    return comm, int(fields[1]), int(fields[19])
+
+
+def proc_processes(root=None):
+    """The same table as the ps path, read from /proc. One pass, nothing written."""
+    root = Path(root) if root is not None else PROC
+    try:
+        uptime = float((root / "uptime").read_text().split()[0])
+    except (OSError, ValueError, IndexError):
+        uptime = 0.0
+    try:
+        hz = os.sysconf("SC_CLK_TCK")
+    except (ValueError, OSError, AttributeError):
+        hz = 100
+    procs = {}
+    for entry in root.iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            comm, ppid, start = proc_stat((entry / "stat").read_text())
+            cmdline = (entry / "cmdline").read_bytes()
+        except (OSError, ValueError, IndexError):
+            continue  # gone mid-scan, or not ours to read
+        command = cmdline.replace(b"\0", b" ").decode("utf-8", "replace").strip()
+        procs[int(entry.name)] = (ppid, etime_of(uptime - start / hz), os.path.basename(comm), command)
     return procs
 
 
@@ -79,7 +148,7 @@ def ancestors(pid, procs):
 def host_of(pid, procs):
     for anc in ancestors(pid, procs):
         _, _, comm, command = procs[anc]
-        if comm == "tmux":
+        if comm.startswith("tmux"):  # "tmux" on macOS, "tmux: server" on Linux
             return "tmux"
         if comm == "rex" or "Rex Server" in command:
             return "rex"
@@ -89,6 +158,8 @@ def host_of(pid, procs):
             return "quake"
         if comm in TERMINALS:
             return TERMINALS[comm]
+        if LINUX and comm in LINUX_TERMINALS:
+            return LINUX_TERMINALS[comm]
     return "other"
 
 
@@ -104,6 +175,11 @@ def age(etime):
 
 
 def cwd(pid):
+    if LINUX:
+        try:
+            return os.readlink(str(PROC / str(pid) / "cwd"))
+        except OSError:
+            return ""
     out = run("lsof", "-a", "-p", str(pid), "-d", "cwd", "-Fn")
     paths = [line[1:] for line in out.splitlines() if line.startswith("n")]
     return paths[0] if paths else ""
@@ -114,11 +190,13 @@ def short(path):
 
 
 def tmux_panes():
+    """pane pid -> {pane, session, windowId, path} for every tmux pane."""
     panes = {}
-    for line in run("tmux", "list-panes", "-a", "-F", "#{pane_pid} #{pane_id}").splitlines():
-        pid, _, pane = line.partition(" ")
-        if pid.isdigit():
-            panes[int(pid)] = pane
+    fmt = "#{pane_pid}\t#{pane_id}\t#{session_name}\t#{window_id}\t#{pane_current_path}"
+    for line in run("tmux", "list-panes", "-a", "-F", fmt).splitlines():
+        parts = line.split("\t")
+        if len(parts) == 5 and parts[0].isdigit():
+            panes[int(parts[0])] = {"pane": parts[1], "session": parts[2], "windowId": parts[3], "path": parts[4]}
     return panes
 
 
@@ -142,15 +220,24 @@ def riker_jobs():
     return _riker["jobs"]
 
 
+def fresh(path, ttl):
+    try:
+        return time.time() - path.stat().st_mtime <= ttl
+    except OSError:
+        return False
+
+
 def spend():
-    """Today's spend from the cache; kicks off a background refresh when stale."""
-    CACHE.mkdir(parents=True, exist_ok=True)
-    stale = not SPEND.exists() or time.time() - SPEND.stat().st_mtime > SPEND_TTL
-    lock = CACHE / "spend.lock"
-    if stale and (not lock.exists() or time.time() - lock.stat().st_mtime > 120):
+    """Today's spend from the cache; kicks off a background refresh when stale.
+    A refresh that fails leaves spend.failed, which holds off the next try for
+    SPEND_TTL, so a broken `sessions` is not re-run on every scan."""
+    lock, failed = CACHE / "spend.lock", CACHE / "spend.failed"
+    if not fresh(SPEND, SPEND_TTL) and not fresh(lock, 120) and not fresh(failed, SPEND_TTL):
+        CACHE.mkdir(parents=True, exist_ok=True)
         lock.touch()
-        subprocess.Popen(["sh", "-c", 'sessions report --today --stdout > "$1.tmp" && mv "$1.tmp" "$1"; rm -f "$2"',
-                          "sh", str(SPEND), str(lock)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.Popen(["sh", "-c", 'if sessions report --today --stdout > "$1.tmp"; then mv "$1.tmp" "$1"; rm -f "$3";'
+                          ' else rm -f "$1.tmp"; touch "$3"; fi; rm -f "$2"',
+                          "sh", str(SPEND), str(lock), str(failed)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         report = json.loads(SPEND.read_text())
     except (OSError, ValueError):
@@ -181,7 +268,8 @@ def claude_usage():
     return usage
 
 
-def collect():
+def collect(crew=False):
+    """crew: the Crew's scan (--crew), without fleet or the riker job goals."""
     procs = processes()
     found = {pid: kind_of(p[2]) for pid, p in procs.items() if kind_of(p[2])}
     top = [pid for pid in found if not any(a in found for a in ancestors(pid, procs))]
@@ -189,18 +277,23 @@ def collect():
     for pid in top:
         host = host_of(pid, procs)
         agent = {"kind": found[pid], "host": host, "age": age(procs[pid][1]), "state": "running", "label": "",
-                 "where": ""}
+                 "where": "", "pid": pid, "pane": "", "session": "", "windowId": ""}
         if host == "tmux":
-            pane = next((panes[p] for p in [pid, *ancestors(pid, procs)] if p in panes), None)
-            fleet = fleet if fleet is not None else fleet_agents()
+            tp = next((panes[p] for p in [pid, *ancestors(pid, procs)] if p in panes), None) or {}
+            pane = tp.get("pane")
+            fleet = fleet if fleet is not None else ({} if crew else fleet_agents())
             info = fleet.get(pane, {})
-            agent.update(label=info.get("label") or info.get("window") or "", where=info.get("project") or "",
-                         state=(info.get("status") or "running").lower(), attention=bool(info.get("needsAttention")))
+            agent.update(label=info.get("label") or info.get("window") or "",
+                         where=info.get("project") or (short(tp.get("path", "")) if LINUX else ""),
+                         state=(info.get("status") or "running").lower(), attention=bool(info.get("needsAttention")),
+                         pane=pane or "", session=tp.get("session") or info.get("session") or "",
+                         windowId=tp.get("windowId") or info.get("windowId") or "")
         else:
             path = cwd(pid)
             job = re.search(r"/\.riker/worktrees/(\d+)", path)
             if job:
-                agent.update(label="#%s %s" % (job.group(1), riker_jobs().get(job.group(1), "")), where=short(path))
+                label = "#" + job.group(1) if crew else "#%s %s" % (job.group(1), riker_jobs().get(job.group(1), ""))
+                agent.update(label=label, where=short(path))
             else:
                 agent.update(label=os.path.basename(path), where=short(path))
         agent["label"] = agent["label"][:70]
@@ -249,12 +342,15 @@ def heal_bar_shader():
 def self_check():
     assert age("05:03") == "5m" and age("02:00:00") == "2h" and age("3-01:00:00") == "3d" and age("09") == "9s"
     assert kind_of("2.1.220") == "claude" and kind_of("pi") == "pi" and kind_of("node") is None
+    assert etime_of(9) == "00:09" and etime_of(303) == "05:03" and etime_of(7200) == "02:00:00"
+    assert etime_of(90000) == "1-01:00:00" and age(etime_of(90000)) == "1d"
+    assert proc_stat("2599 (tmux: server) S 1303 2599 2599 0 -1 4194624 " + "0 " * 12 + "4242 0") == ("tmux: server", 1303, 4242)
 
 
 def main():
     self_check()
     if "--print" in sys.argv:
-        print(json.dumps(collect(), indent=2))
+        print(json.dumps(collect(crew="--crew" in sys.argv), indent=2))
         return
     last, pushed, last_theme, theme_pushed, healed_pid = None, 0, None, 0, None
     while True:

@@ -11,12 +11,14 @@ import qs
 // first one when Hyprland cannot say) and answer "error: ..." outside island
 // mode.
 //
-//   open STATE    rest | hover | cc | cal | launcher; cc and cal open the old
+//   open STATE    rest | hover | crew | hail | vibes | cc | cal | launcher; cc and cal open the old
 //                 Hud pages under the rest pill and launcher opens Keystroke's
 //                 own window until their island states land (PLAN 1.7). IPC
 //                 has no input serial for a popup grab, so the Hud opens
 //                 without one and the island's focus grab closes it on an
-//                 outside click (IslandView.hudNeedsGrab)
+//                 outside click (IslandView.hudNeedsGrab). M2 adds crew
+//                 (the Crew panel, pinned), hail (the first agent that needs
+//                 you; an error when none does) and vibes
 //   close         back to rest, closing any hand-off
 //   toggle STATE  open, or close when that state is already showing
 //   mode MODE     pill | full | rail | island (Prefs.setBarMode)

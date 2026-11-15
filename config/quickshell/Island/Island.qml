@@ -19,8 +19,12 @@ import "../lib/WorkspaceOrder.js" as WorkspaceOrder
 // island (and that Hud) clears the grab, which dismisses it. Namespace quickshell-island is outside hyprland.lua's
 // shell-blur rule on purpose (island-modes C6).
 //
+// After a minute without input (ext-idle-notify, respecting idle inhibitors)
+// the Crew's bots hold still (IslandView.ambient), so an agent waiting on an
+// unattended screen does not keep the island redrawing.
+//
 // The drawing and the state live in IslandView; this file adds what needs a
-// compositor: the window, the grab and the Hyprland workspaces.
+// compositor: the window, the grab, idle and the Hyprland workspaces.
 PanelWindow {
     id: island
 
@@ -68,7 +72,14 @@ PanelWindow {
         anchors.fill: parent
         monitor: island.screen
         workspaces: island.workspaceItems
+        dpr: island.devicePixelRatio > 0 ? island.devicePixelRatio : 1
+        ambient: !idle.isIdle
         onWorkspaceActivated: name => island.activateWorkspace(name)
+    }
+
+    IdleMonitor {
+        id: idle
+        timeout: 60
     }
 
     // The pinned panel, or a Hud opened from IPC without its own popup grab

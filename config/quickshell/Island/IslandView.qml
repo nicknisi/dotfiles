@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import qs
 import qs.Kit
 import "../lib/IslandMachine.js" as IslandMachine
+import "../lib/CrewModel.js" as CrewModel
 
 // IslandView.qml - everything inside one island window, minus the window.
 //
@@ -14,10 +15,21 @@ import "../lib/IslandMachine.js" as IslandMachine
 //
 // What it does:
 //   - holds the machine record (lib/IslandMachine.js) and wires the pointer
-//     and timers to it: a 250 ms dwell before hover opens, a 150 ms grace on
-//     leave, the state's own timer restarted on every go();
-//   - sizes the body to the state (rest hugs its content) and lays the state
-//     layers inside it;
+//     and timers to it: a 250 ms dwell before hover opens (the Crew panel when
+//     the pointer rests on the bots), a 150 ms grace on leave, the state's own
+//     timer restarted on every go();
+//   - opens the Crew's moments (M2): a hail when an agent starts needing you
+//     (5 s peek, held while the pointer rests on it and closed when it leaves,
+//     pinned only by a click, queued behind an open panel or hand-off until
+//     the island is back at rest), and vibes when the last one is handled.
+//     A hail raised under the pointer must not take the keyboard: only a
+//     pinned panel gets the focus grab and keys.forceActiveFocus(), so typing
+//     in the window under it carries on (M2 review);
+//   - sizes the body to the state (rest hugs its content; the Crew panel is
+//     at least as wide as the rest pill, so the bots that opened it stay
+//     under it) and lays the state layers inside it;
+//   - holds the bots still while `ambient` is false (Island.qml clears it
+//     while the session is idle);
 //   - hands off to the old surfaces where the island state is not built yet
 //     (PLAN 1.7): the status pill opens the old Hud home and the clock its
 //     clock page, both anchored under the rest pill; the Interrupt popup
@@ -31,7 +43,9 @@ import "../lib/IslandMachine.js" as IslandMachine
 // Island.qml's HyprlandFocusGrab covers the Hud too (hudNeedsGrab): an
 // outside click still closes it.
 //
-// Data in: monitor, workspaces (lib/WorkspaceOrder.js shown() records) and
+// Data in: monitor, workspaces (lib/WorkspaceOrder.js shown() records), crew
+// (the Crew singleton, or any object with its agents, total, spendToday,
+// stale, jump() and hailed/vibes signals; tests/check.qml passes a fake) and
 // whatever IslandView reads itself through `Fixture.data.<x> ?? live`. The
 // Context text slot reads only the fixture: PLAN M2 keeps it empty on the
 // desktop until M3 gives Context board-like labels (raw titles and paths
@@ -41,6 +55,13 @@ Item {
 
     property var monitor: null
     property var workspaces: []
+    property var crew: Crew
+    // The window's devicePixelRatio: the bots snap their pixels to it.
+    property real dpr: 1
+    // Ambient loops (the bots) run only while this holds: Island.qml clears it
+    // after a minute without input, so a waiting agent does not keep the
+    // island redrawing on an unattended screen.
+    property bool ambient: true
     property date now: new Date()
 
     property var machine: IslandMachine.initial()
@@ -55,7 +76,17 @@ Item {
     readonly property bool hudNeedsGrab: hudPage !== "" && !hud.grabFocus
     readonly property bool pointerInside: hoverer.hovered
 
-    readonly property var targetSize: IslandMachine.size(machine, restLayer.hugWidth)
+    readonly property var crewAgents: view.crew?.agents ?? []
+    // The agent the hail card shows, and one waiting for the island to be free.
+    property string hailId: ""
+    property string pendingHail: ""
+    readonly property var hailAgent: CrewModel.hailTarget({ agents: view.crewAgents }, view.hailId)
+    readonly property int hailOthers: Math.max(0, view.crewAgents.filter(a => a.attention).length - (view.hailAgent ? 1 : 0))
+
+    // What the hugging states measure. The Crew panel takes the rest pill's
+    // (IslandMachine.size keeps it at least 460).
+    readonly property real hugWidth: machine.state === "hail" ? hailLayer.hugWidth : machine.state === "vibes" ? vibesLayer.hugWidth : restLayer.hugWidth
+    readonly property var targetSize: IslandMachine.size(machine, view.hugWidth, crewLayer.hugHeight)
     readonly property string clock: Fixture.data.clock ?? Qt.formatDateTime(view.now, "HH:mm")
     readonly property string date: Fixture.data.date ?? Qt.formatDateTime(view.now, "dddd, MMMM d")
     readonly property string context: Fixture.data.context ?? ""
@@ -78,9 +109,13 @@ Item {
     readonly property alias body: body
     readonly property alias rest: restLayer
     readonly property alias hover: hoverLayer
+    readonly property alias crewPanel: crewLayer
+    readonly property alias hailCard: hailLayer
+    readonly property alias vibesCard: vibesLayer
     readonly property alias restAnchor: restAnchor
     readonly property alias hud: hud
     readonly property alias dwell: dwellTimer
+    readonly property alias grace: graceTimer
 
     // Where each not-yet-built state lands, for the IPC's error text.
     readonly property var arrives: ({ launcher: "M5", cal: "M3", notif: "M3", osd: "M3", dict: "M3", flash: "M3", cc: "M6", power: "M6", polkit: "M8" })
@@ -101,24 +136,108 @@ Item {
             stateTimer.interval = machine.timer;
             stateTimer.start();
         }
-        if (machine.state !== "hover" || machine.pinned) graceTimer.stop();
+        if (!IslandMachine.closesOnLeave(machine)) graceTimer.stop();
+        if (machine.state !== "hail") view.hailId = "";
         // From the record itself: the panelOpen binding may not have caught
         // up inside this handler.
         if (IslandMachine.panelOpen(machine)) keys.forceActiveFocus();
+        if (machine.state === "rest" && view.pendingHail !== "") Qt.callLater(view.retryHail);
     }
 
     function pointerEntered() {
         graceTimer.stop();
         if (machine.state === "rest" && !handedOff) dwellTimer.restart();
+        // A peeking hail holds while you read it (held, not pinned: no keyboard).
+        else if (machine.state === "hail") apply(IslandMachine.enter(machine));
     }
     function pointerLeft() {
         dwellTimer.stop();
-        if (machine.state === "hover" && !machine.pinned) graceTimer.restart();
+        if (IslandMachine.closesOnLeave(machine)) graceTimer.restart();
+    }
+    // The dwell ran out with the pointer still inside: hover, or the Crew
+    // panel when the pointer rests on the bots (DECISION 1).
+    function dwelled(onCrew: bool) {
+        if (!handedOff) apply(IslandMachine.enter(machine, onCrew ? "crew" : "hover"));
     }
     function clickPill() {
         dwellTimer.stop();
         hudPage = "";
         apply(IslandMachine.click(machine));
+    }
+    // A click on the bots: the Crew panel, pinned.
+    function clickCrew() {
+        dwellTimer.stop();
+        hudPage = "";
+        apply(IslandMachine.click(machine, "crew"));
+    }
+
+    // ---- the Crew's moments ------------------------------------------------------
+
+    // An agent started needing you. It takes the island when nothing outranks
+    // a hail (IslandMachine.offer); otherwise it waits for rest.
+    function hail(id: string) {
+        if (view.handedOff || !CrewModel.hailTarget({ agents: view.crewAgents }, id)) {
+            if (view.handedOff) view.pendingHail = id;
+            return;
+        }
+        const next = IslandMachine.offer(machine, "hail");
+        if (next === machine) {
+            view.pendingHail = id;
+            return;
+        }
+        view.pendingHail = "";
+        // Before the morph, so the card measures the right words.
+        view.hailId = id;
+        apply(next);
+        // Raised under the pointer (it took unpinned hover or the Crew panel,
+        // or the pointer sat where the card opened): no enter event will come,
+        // so it holds now, and closes when the pointer leaves.
+        if (view.pointerInside) apply(IslandMachine.enter(machine));
+    }
+    // A hand-off closing leaves the machine at rest without a change, so the
+    // waiting hail is retried from here too.
+    onHandedOffChanged: if (!handedOff && pendingHail !== "") Qt.callLater(retryHail)
+    function retryHail() {
+        const id = view.pendingHail;
+        if (id === "" || machine.state !== "rest" || view.handedOff) return;
+        view.pendingHail = "";
+        const target = CrewModel.hailTarget({ agents: view.crewAgents }, id);
+        if (target) view.hail(target.id);
+    }
+    // The last hail handled: vibes, in place of a showing hail or from rest.
+    function vibe() {
+        if (view.handedOff) return;
+        if (machine.state === "hail") {
+            apply(IslandMachine.go(machine, "vibes"));
+            return;
+        }
+        const next = IslandMachine.offer(machine, "vibes");
+        if (next !== machine) apply(next);
+    }
+    // The feed moved on: a hail whose agent no longer needs you closes.
+    function crewUpdated() {
+        if (machine.state === "hail" && !CrewModel.hailTarget({ agents: view.crewAgents }, view.hailId)) apply(IslandMachine.dismiss(machine));
+        if (view.pendingHail !== "" && !CrewModel.hailTarget({ agents: view.crewAgents }, view.pendingHail)) view.pendingHail = "";
+    }
+    // Go to pane / window: jump, and the hail or panel has done its job.
+    function jumpTo(id: string): string {
+        const result = view.crew?.jump ? view.crew.jump(id) : "error: no crew";
+        if (!String(result).startsWith("error")) apply(IslandMachine.dismiss(machine));
+        return result;
+    }
+
+    Connections {
+        target: view.crew
+        ignoreUnknownSignals: true
+        function onHailed(agent) {
+            if (agent) view.hail(agent.id);
+        }
+        function onVibes() {
+            view.vibe();
+        }
+        function onAgentsChanged() {
+            view.crewUpdated();
+        }
     }
     // Outside click (the focus grab clearing) or Esc.
     function dismiss() {
@@ -144,6 +263,24 @@ Item {
             return "ok";
         }
         if (state === "cc" || state === "cal") return handOff(state, false);
+        if (state === "crew") {
+            hudPage = "";
+            apply(IslandMachine.go(machine, "crew"));
+            return "ok";
+        }
+        if (state === "hail") {
+            const target = CrewModel.hailTarget({ agents: view.crewAgents }, "");
+            if (!target) return "error: no agent needs you";
+            hudPage = "";
+            view.hailId = target.id;
+            apply(IslandMachine.go(machine, "hail"));
+            return "ok";
+        }
+        if (state === "vibes") {
+            hudPage = "";
+            apply(IslandMachine.go(machine, "vibes"));
+            return "ok";
+        }
         if (!IslandMachine.isState(state)) return "error: unknown island state \"" + state + "\" (states: " + IslandMachine.STATES.join(" ") + ")";
         return "error: the " + state + " state arrives in " + (arrives[state] ?? "a later milestone");
     }
@@ -179,6 +316,7 @@ Item {
             screen: view.monitor?.name ?? "",
             state: machine.state,
             pinned: machine.pinned,
+            held: machine.held === true,
             panelOpen: view.panelOpen,
             hud: view.hudPage,
             hudShown: view.hud.visible,
@@ -187,7 +325,25 @@ Item {
             body: { x: body.x, y: body.y, width: body.width, height: body.height, radius: body.radius },
             workspaces: (view.workspaces || []).map(w => w.name),
             focused: restLayer.strip.focusedName,
-            shape: restLayer.strip.shapeName
+            shape: restLayer.strip.shapeName,
+            crew: {
+                // The strip's top-left in the view, logical px (the sandbox
+                // shots measure the bots from it).
+                strip: (() => {
+                        const p = restLayer.crewStrip.mapToItem(view, 0, 0);
+                        return { x: p.x, y: p.y, width: restLayer.crewStrip.width };
+                    })(),
+                bots: restLayer.crewStrip.ids,
+                more: restLayer.crewStrip.more,
+                stale: restLayer.crewStrip.stale,
+                rows: crewLayer.ids,
+                // The bots move on one clock per group: its step (ms, 0 still) and whether it ticks.
+                clock: { step: restLayer.crewStrip.clock.step, ticking: restLayer.crewStrip.clock.ticking },
+                ambient: view.ambient,
+                selected: crewLayer.selected,
+                hail: view.machine.state === "hail" ? (view.hailAgent?.id ?? "") : "",
+                pendingHail: view.pendingHail
+            }
         };
     }
 
@@ -202,7 +358,7 @@ Item {
     Timer {
         id: dwellTimer
         interval: IslandMachine.DWELL
-        onTriggered: if (view.pointerInside && !view.handedOff) view.apply(IslandMachine.enter(view.machine))
+        onTriggered: if (view.pointerInside) view.dwelled(restLayer.crewHovered)
     }
     Timer {
         id: graceTimer
@@ -221,6 +377,16 @@ Item {
         id: keys
         focus: true
         Keys.onEscapePressed: view.dismiss()
+        // The Crew panel: Up and Down move the selection, Enter jumps.
+        // The hail card: Enter is Go, once a click has pinned it (a key left
+        // over from an earlier panel must not jump from a hail that opened by
+        // itself).
+        Keys.onUpPressed: if (view.machine.state === "crew") crewLayer.move(-1)
+        Keys.onDownPressed: if (view.machine.state === "crew") crewLayer.move(1)
+        Keys.onReturnPressed: {
+            if (view.machine.state === "crew") crewLayer.activate();
+            else if (view.machine.state === "hail" && view.machine.pinned && view.hailAgent) view.jumpTo(view.hailAgent.id);
+        }
     }
 
     // ---- the island --------------------------------------------------------------
@@ -248,7 +414,12 @@ Item {
             clock: view.clock
             context: view.context
             privacy: view.privacy
+            crew: view.crewAgents
+            crewStale: view.crew?.stale === true
+            dpr: view.dpr
+            crewAnimated: view.ambient
             onPin: view.clickPill()
+            onPinCrew: view.clickCrew()
             onWorkspaceActivated: name => view.workspaceUsed(name)
         }
 
@@ -264,6 +435,43 @@ Item {
             onPin: view.clickPill()
             onOpenCalendar: view.handOff("cal", true)
             onOpenControlCenter: view.handOff("cc", true)
+        }
+
+        CrewPanel {
+            id: crewLayer
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 0
+            current: view.machine.state === "crew"
+            agents: view.crewAgents
+            total: view.crew?.total ?? 0
+            spendToday: view.crew?.spendToday ?? null
+            dpr: view.dpr
+            restWidth: restLayer.width
+            animated: view.ambient
+            onPin: view.clickPill()
+            onJump: id => view.jumpTo(id)
+        }
+
+        HailCard {
+            id: hailLayer
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 0
+            current: view.machine.state === "hail"
+            agent: view.hailAgent
+            others: view.hailOthers
+            dpr: view.dpr
+            animated: view.ambient
+            onPin: view.clickPill()
+            onGo: if (view.hailAgent) view.jumpTo(view.hailAgent.id)
+        }
+
+        VibesCard {
+            id: vibesLayer
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 0
+            current: view.machine.state === "vibes"
+            dpr: view.dpr
+            animated: view.ambient
         }
     }
 

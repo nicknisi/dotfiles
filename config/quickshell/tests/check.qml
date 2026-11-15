@@ -6,6 +6,7 @@ import qs.Island
 import "MenuAnchor.js" as MenuAnchor
 import "BarGeometry.js" as BarGeometry
 import "lib/WorkspaceOrder.js" as WorkspaceOrder
+import "lib/CrewModel.js" as CrewModel
 
 ShellRoot {
     id: test
@@ -82,6 +83,246 @@ ShellRoot {
         }
     }
 
+    // The Crew (PLAN M2) on a second island, fed by a fake with the Crew
+    // singleton's shape: the real one is off here (SHELL_CREW=off) and polls
+    // nothing. set() applies a payload like Crew.rebuild does, raising
+    // hailed / vibes on the CrewModel edges unless told to stay quiet.
+    QtObject {
+        id: fakeCrew
+        readonly property real now: 1794715378
+        property var model: CrewModel.empty()
+        readonly property var agents: model.agents
+        readonly property int total: model.total
+        readonly property int attention: model.attention
+        readonly property var spendToday: model.spendToday
+        property bool stale: false
+        property var jumps: []
+        signal hailed(var agent)
+        signal vibes
+        function agent(pane, kind, status, attention, extra) {
+            return Object.assign({ pane: pane, windowId: "@0", session: "projects", label: "island mocks", agentType: kind,
+                status: status, needsAttention: attention, ts: now, timestampKind: "observed", project: "~/Developer/dotfiles" }, extra || {});
+        }
+        // Pi waiting, a Riker worker, Claude Code working, Codex asleep: crew-4.
+        function four(piNeeds) {
+            return { fleet: { agents: [
+                agent("%2", "pi", piNeeds ? "QUESTION" : "BUSY", piNeeds, { label: "artifact" }),
+                agent("%0", "claude", "BUSY", false),
+                agent("%3", "codex", "IDLE", false, { ts: now - 720, timestampKind: "state_change" })] },
+                scan: { agents: [{ kind: "pi", host: "riker", state: "running", label: "#12 Rebuild", pid: 6010,
+                    where: "~/Developer/dotfiles/.riker/worktrees/12", pane: "" }], spend: { today: 4.37 } } };
+        }
+        function many() {
+            const a = [];
+            for (let i = 0; i < 12; i++)
+                a.push(agent("%" + (20 + i), "claude", i < 2 ? "DONE" : "BUSY", i < 2, { label: "job " + i }));
+            return { fleet: { agents: a }, scan: null };
+        }
+        function set(payload, quiet) {
+            const next = CrewModel.build(payload, now);
+            const e = CrewModel.edges(model, next);
+            model = next;
+            if (quiet) return;
+            if (e.hails.length > 0) hailed(CrewModel.find(next, e.hails[0]));
+            if (e.vibes) vibes();
+        }
+        function jump(id) {
+            jumps = jumps.concat([id]);
+            return "ok";
+        }
+    }
+
+    FloatingWindow {
+        visible: true
+        implicitWidth: 1000
+        implicitHeight: 608
+        IslandView {
+            id: crewView
+            anchors.fill: parent
+            crew: fakeCrew
+            dpr: 1.5
+            monitor: ({ name: "check-crew", width: 1000, height: 700 })
+            workspaces: WorkspaceOrder.shown([{ name: "W", windows: 1 }, { name: "D", windows: 1 }], "D")
+        }
+    }
+
+    // The Crew in eleven beats, 500 ms apart: the bots on the rest pill, the
+    // dwell on them opening the Crew panel, a click pinning it, rows and keys
+    // and jumps, then the moments: vibes, a hail peeking, held under the
+    // pointer without the keyboard and pinned by a click, a hail waiting
+    // behind a pinned panel or a hand-off, and the attention clearing; last, a
+    // 600 px pill whose bots must stay under the Crew panel they open.
+    Timer {
+        id: crewCheck
+        interval: 500
+        repeat: true
+        property int step: 0
+        property bool finished: false
+        onTriggered: {
+            try {
+                const v = crewView;
+                const strip = v.rest.crewStrip;
+                if (step === 0) {
+                    test.check(v.crew === fakeCrew && !strip.visible && strip.width === 0, "no agents: no crew zone");
+                    fakeCrew.set(fakeCrew.many(), true);
+                    test.check(strip.ids.length === CrewModel.MAX_BOTS && strip.more === 4, "twelve agents: eight bots and +4");
+                    const first = strip.botAt(0);
+                    test.check(first.mood === "needs" && String(first.tint) === String(Tokens.accent), "the waiting bot is accent");
+                    test.check(first.sprite.cell === 2 && first.width === 16, "bots are 16 px of 2 px cells at dpr 1.5");
+                    test.check(strip.botAt(2).mood === "working" && String(strip.botAt(2).tint) === String(Tokens.fg), "working bots are fg");
+                } else if (step === 1) {
+                    test.check(v.rest.hugWidth > 360 && v.targetSize[0] === 4 * Math.ceil(v.rest.hugWidth / 4), "eight bots and +4 widen the rest pill: "
+                        + v.rest.hugWidth + " -> " + v.targetSize[0]);
+                    fakeCrew.set(fakeCrew.four(true), true);
+                    test.check(JSON.stringify(strip.ids) === JSON.stringify(["%2", "pid:6010", "%0", "%3"]), "crew-4 sorts needs first: " + JSON.stringify(strip.ids));
+                    test.check(strip.botAt(1).spriteName === "hat" && strip.botAt(3).spriteName === "sleep" && !strip.botAt(3).moving, "the hat, and the sleeper holds still");
+                    test.check(strip.botAt(0).moving && strip.botAt(2).moving && strip.botAt(2).phase === 2, "the second working bot starts half a bob later");
+                    test.check(strip.clock.step === 125 && strip.clock.ticking && strip.botAt(0).clock === strip.clock && strip.botAt(2).clock === strip.clock,
+                        "the strip's bots share one 125 ms clock: " + strip.clock.step);
+                    v.ambient = false;
+                    test.check(!strip.clock.ticking && strip.botAt(0).offset === 0, "an idle session holds the bots still");
+                    v.ambient = true;
+                    // Resting on the bots opens the Crew panel, unpinned.
+                    v.dwelled(true);
+                    test.check(v.islandState === "crew" && !v.pinned && !v.panelOpen, "the dwell on the bots opens the Crew panel unpinned");
+                    // The strip relays out on the next polish, so the pill (and the panel's
+                    // width with it) settles in the next beat; step 3 checks 460.
+                    test.check(v.targetSize[0] === Math.max(460, v.rest.width) && v.targetSize[1] === 332,
+                        "the Crew panel targets the wider of 460 and the pill, 332 tall for four rows: " + v.targetSize);
+                    test.check(v.crewPanel.current && !v.rest.current, "the crew layer takes over");
+                    v.pointerLeft();
+                } else if (step === 2) {
+                    test.check(v.islandState === "rest", "leaving the unpinned Crew panel goes back to rest");
+                    test.check(strip.width === 4 * 16 + 3 * 6 && v.rest.hugWidth === 360, "four bots fit the 360 minimum: " + strip.width + ", " + v.rest.hugWidth);
+                    v.dwelled(false);
+                    test.check(v.islandState === "hover", "the dwell elsewhere still opens hover");
+                    v.close();
+                    v.clickCrew();
+                    test.check(v.islandState === "crew" && v.pinned && v.panelOpen, "a click on the bots pins the Crew panel");
+                } else if (step === 3) {
+                    const p = v.crewPanel;
+                    test.check(v.body.width === 460 && v.body.height === 332 && v.body.x === 270 && v.body.radius === 28,
+                        "the Crew panel settles at 460 x 332, x 270, radius 28: " + v.body.width + " x " + v.body.height + " @" + v.body.x + " r " + v.body.radius);
+                    // The board's spacer: the footer sits two gaps under the last row.
+                    const lastRow = p.rowAt(3).mapToItem(p, 0, 0).y + 52;
+                    test.check(p.footer.mapToItem(p, 0, 0).y === lastRow + 8 && p.footer.height === 8 + 14 && lastRow + 8 + 8 + 14 + 16 === 332,
+                        "the footer text starts 16 under the last row and 16 above the edge: row ends " + lastRow);
+                    // Row bots: one clock, staggered like the rest pill.
+                    test.check(p.rowAt(1).bot.clock === p.clock && p.rowAt(2).bot.clock === p.clock && p.clock.ticking,
+                        "the rows' bots share the panel's clock");
+                    test.check(p.rowAt(1).bot.phase === 0 && p.rowAt(2).bot.phase === 2, "the second working row bobs half a beat later");
+                    // The needs row's text reads at 4.5:1 on accentTint.
+                    const whereC = Tokens.contrast(p.rowAt(0).whereLine.color, Tokens.accentTint);
+                    const stateC = Tokens.contrast(p.rowAt(0).stateLine.color, Tokens.accentTint);
+                    test.check(whereC >= 4.5 && stateC >= 4.5, "the needs row's where line and state read at 4.5:1: " + whereC.toFixed(2) + ", " + stateC.toFixed(2));
+                    test.check(String(p.rowAt(2).whereLine.color) === String(Tokens.inkDim), "other rows keep inkDim");
+                    test.check(p.ids.length === 4 && p.rowAt(0).height === 52 && p.rowAt(0).width === 428, "four rows, 52 tall, 428 wide inside the 16 padding");
+                    test.check(String(p.rowAt(0).color) === String(Tokens.accentTint) && String(p.rowAt(2).color) === String(Qt.rgba(0, 0, 0, 0)), "the waiting row sits on accentTint");
+                    test.check(p.rowAt(0).y === 0 && p.rowAt(1).y === 60, "rows 8 apart");
+                    // The feed answers again with the same agents: nothing rebuilt.
+                    const bots = strip.builds, rowsBuilt = p.builds;
+                    const again = fakeCrew.four(true);
+                    again.fleet.agents[1].label = "renamed";
+                    fakeCrew.set(again, true);
+                    test.check(p.builds === rowsBuilt && strip.builds === bots, "the same ids keep their rows and bots");
+                    test.check(p.rowAt(2).agent.where === "dotfiles \u00b7 renamed", "and the rows read the new answer");
+                    // Keys: Down starts on the waiting row, Enter on Riker does nothing, on Pi it jumps.
+                    p.move(1);
+                    test.check(p.selected === 0 && p.rowAt(0).border.width === 1, "the selection starts on the waiting row, ringed");
+                    p.move(1);
+                    p.activate();
+                    test.check(fakeCrew.jumps.length === 0 && v.islandState === "crew", "Riker has no window to jump to");
+                    p.move(-1);
+                    p.activate();
+                    test.check(fakeCrew.jumps.join() === "%2" && v.islandState === "rest", "Enter on a row jumps and closes the panel");
+                    test.check(p.selected === -1, "the selection clears when the panel closes");
+                } else if (step === 4) {
+                    // Pi answered: the last one handled brings vibes.
+                    fakeCrew.set(fakeCrew.four(false));
+                    test.check(v.islandState === "vibes" && v.machine.timer === 4000 && v.vibesCard.current, "attention clearing brings vibes for 4 s");
+                    test.check(v.targetSize[1] === 44 && v.targetSize[0] === 4 * Math.ceil(v.vibesCard.hugWidth / 4), "vibes hugs its line, 44 tall: " + v.targetSize);
+                    // Pi asks again: a hail outranks vibes.
+                    fakeCrew.set(fakeCrew.four(true));
+                    test.check(v.islandState === "hail" && !v.pinned && v.machine.timer === 5000, "a new question raises a 5 s hail");
+                    const w = v.hailCard.words;
+                    test.check(w.title === "Pi needs you" && w.subtitle === "Waiting for approval in tmux \u00b7 dotfiles" && w.button === "Go to pane",
+                        "the hail says who, why and where: " + JSON.stringify(w));
+                    test.check(v.targetSize[1] === 52 && v.targetSize[0] >= 360 && v.targetSize[0] % 4 === 0, "the hail card is 52 tall: " + v.targetSize);
+                    test.check(v.hailCard.ring.width === 36 && v.hailCard.ring.border.width === 2
+                        && String(v.hailCard.ring.border.color) === String(Tokens.accent), "the ring is 36 px with a 2 px accent border");
+                } else if (step === 5) {
+                    test.check(v.body.height === 52 && v.body.radius === 26, "the hail settles 52 tall, radius 26: " + v.body.height + " r " + v.body.radius);
+                    // The pointer on a hail holds it, without the focus grab or the keyboard.
+                    v.pointerEntered();
+                    test.check(v.islandState === "hail" && !v.pinned && !v.panelOpen && v.machine.held && v.machine.timer === 0,
+                        "resting on the hail holds it, unpinned: no grab, no keyboard");
+                    v.pointerLeft();
+                    test.check(v.grace.running, "leaving a held hail starts the grace");
+                    v.pointerEntered();
+                    test.check(!v.grace.running && v.islandState === "hail", "coming back within the grace keeps it");
+                    v.clickPill();
+                    test.check(v.pinned && v.panelOpen && !v.machine.held, "a click on the hail pins it: now it takes the keyboard");
+                    v.hailCard.go();
+                    test.check(fakeCrew.jumps.join() === "%2,%2" && v.islandState === "rest", "Go to pane jumps and closes");
+                    // A hail behind a pinned panel waits for rest.
+                    v.open("crew");
+                    fakeCrew.set(fakeCrew.four(false));
+                    test.check(v.islandState === "crew", "vibes never covers a pinned panel");
+                    fakeCrew.set(fakeCrew.four(true));
+                    test.check(v.islandState === "crew" && v.pendingHail === "%2", "a hail waits behind the pinned Crew panel");
+                    v.close();
+                } else if (step === 6) {
+                    test.check(v.islandState === "hail" && v.inspect().crew.hail === "%2" && v.pendingHail === "", "the waiting hail shows once the island is back at rest");
+                    fakeCrew.set(fakeCrew.four(false));
+                    test.check(v.islandState === "vibes", "the attention clearing closes the hail, then vibes");
+                    v.close();
+                    // A hail behind a hand-off (the old Hud) waits for it to close.
+                    v.open("cc");
+                    fakeCrew.set(fakeCrew.four(true));
+                    test.check(v.handedOff && v.islandState === "rest" && v.pendingHail === "%2", "a hail waits behind a hand-off");
+                    // The Hud closing by itself: no machine change, only handedOff.
+                    v.hudPage = "";
+                } else if (step === 7) {
+                    test.check(v.islandState === "hail" && v.pendingHail === "", "the hand-off closing lets the hail through");
+                    // A held hail closes when the pointer has gone (the grace runs out).
+                    v.pointerEntered();
+                    v.pointerLeft();
+                    test.check(v.machine.held && v.grace.running, "a held hail with the pointer gone waits out the grace");
+                } else if (step === 8) {
+                    test.check(v.islandState === "rest", "a held hail closes once the pointer has left");
+                    fakeCrew.set({ fleet: { agents: [] }, scan: null }, true);
+                    test.check(!strip.visible && v.open("hail").startsWith("error"), "an empty crew hides the bots and has nobody to hail");
+                    test.check(v.inspect().crew.bots.length === 0, "inspect reports the bots");
+                    // A wide pill: twelve agents and a Context label (DECISION 1).
+                    fakeCrew.set(fakeCrew.many(), true);
+                    v.rest.context = "dotfiles";
+                } else if (step === 9) {
+                    test.check(v.rest.width >= 600 && v.body.width === v.rest.width, "eight bots, +4 and Context widen the pill past 600: " + v.rest.width);
+                    // Resting on the bots at the pill's right end opens the Crew panel at
+                    // the pill's width, so they stay under the pointer while it morphs.
+                    v.dwelled(true);
+                    test.check(v.islandState === "crew" && v.targetSize[0] === v.rest.width && v.targetSize[1] === CrewModel.panelHeight(12),
+                        "the Crew panel keeps the pill's width: " + v.targetSize + " for a " + v.rest.width + " pill");
+                } else {
+                    const p = strip.mapToItem(v.body, 0, 0);
+                    test.check(v.body.width === v.rest.width && v.crewPanel.width === v.body.width && v.crewPanel.rowAt(0).width === v.body.width - 32,
+                        "the panel settles at the pill's width with full-width rows: " + v.body.width);
+                    test.check(p.x >= 0 && p.x + strip.width <= v.body.width && p.y >= 0 && p.y + strip.height <= v.body.height,
+                        "every bot lies inside the open Crew panel: strip " + p.x + ".." + (p.x + strip.width) + " in 0.." + v.body.width);
+                    v.close();
+                    v.rest.context = "";
+                    fakeCrew.set({ fleet: { agents: [] }, scan: null }, true);
+                    finished = true;
+                    stop();
+                }
+                step++;
+            } catch (error) {
+                console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
+            }
+        }
+    }
+
     Connections {
         id: avatarFrames
         target: null
@@ -108,6 +349,8 @@ ShellRoot {
                     avatarFrames.changes = 0;
                     test.check(runner.visible && runner.running && !greeting.visible, "drag overrides menu costumes");
                 } else {
+                    // The crew check's eleven beats outlast this timer's two: wait a round.
+                    if (crewCheck.running) return;
                     test.check(avatarFrames.changes > 0, "running frames actually advance");
                     avatar.visible = false;
                     test.check(!runner.running, "hidden runner stops animating");
@@ -117,6 +360,7 @@ ShellRoot {
                     test.check(!test.child(avatar, "nickFace").running, "hidden portrait stops animating");
                     test.check(styleCheck.finished, "all sixteen layout and edge combinations settled");
                     test.check(islandCheck.finished, "the island check ran to the end");
+                    test.check(crewCheck.finished, "the crew check ran to the end");
                     test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
                     console.log("CAPSULE_TEST_PASS");
                     Qt.quit();
@@ -514,6 +758,7 @@ ShellRoot {
                 styleCheck.oldEdge = Prefs.storedEdge;
                 styleCheck.start();
                 islandCheck.start();
+                crewCheck.start();
                 avatarCheck.start();
             } catch (error) {
                 console.error("CAPSULE_TEST_FAIL: " + error.message);

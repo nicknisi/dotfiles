@@ -81,6 +81,11 @@ for (const pack of packs) {
         mismatches.push(`${pack}: bad ${json.bad} is ${TokenMath.contrast(json.bad, json.surface).toFixed(2)}:1 on surface`)
     if (TokenMath.contrast(json.on_fg, json.foreground) < 4.5)
         mismatches.push(`${pack}: on_fg ${json.on_fg} is ${TokenMath.contrast(json.on_fg, json.foreground).toFixed(2)}:1 on fg`)
+    // The Crew panel's needs row (Island/CrewPanel.qml onTint): its where line
+    // and state word keep ink_dim and accent only where they read at 4.5:1 on
+    // accent_tint and fall back to foreground, so foreground must pass there.
+    if (TokenMath.contrast(json.foreground, json.accent_tint) < 4.5)
+        mismatches.push(`${pack}: foreground ${json.foreground} is ${TokenMath.contrast(json.foreground, json.accent_tint).toFixed(2)}:1 on accent_tint`)
 }
 
 if (mismatches.length) {

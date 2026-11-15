@@ -12,7 +12,9 @@
 //   - Caffeine's idle inhibitor. Wayland ties an inhibitor to a surface, so it
 //     rides the primary screen's Reserve window: the one window that exists in
 //     every bar mode, for as long as the screen does.
-//   - The `capture` IPC target (Capture), which no bar may be around to build.
+//   - The `capture` IPC target (Capture), which no bar may be around to build,
+//     and the `crew` target (Crew) for the same reason. Crew polls only in the
+//     island mode, so building it elsewhere costs nothing.
 //   - The refresh-rate policy (PowerMode).
 //   - Sandbox guards. Under SHELL_SANDBOX=1 (the screenshot sandbox) anything
 //     that would change the real machine is left unbuilt. M8 adds the
@@ -54,6 +56,9 @@ Scope {
     // Bar reads Capture, so without this a mode with no Bar would drop the
     // `capture` target that bin/capture pings on every start and stop.
     readonly property bool captureRecording: Capture.recording
+    // The same for `crew`: tests and the sandbox drive the Crew by IPC even
+    // when the island has not read it yet.
+    readonly property int crewTotal: Crew.total
 
     IdleInhibitor {
         window: root.primaryReserve

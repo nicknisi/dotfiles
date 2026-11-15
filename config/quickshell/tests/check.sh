@@ -29,6 +29,11 @@ node "$root/tests/celestial.cjs"
 node "$root/tests/island-machine.cjs"
 node "$root/tests/workspace-order.cjs"
 python3 -B "$root/tools/gen-celestial.py" --check
+# The Crew (PLAN M2): the model, the Linux agent scan and the jump helper.
+# tst_pixel_sprite runs inside kit.sh above.
+node "$root/tests/crew-model.cjs"
+python3 -B "$root/../../bin/tests/omniwm-agents.py"
+python3 -B "$root/../../bin/tests/crew-jump.py"
 
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
 for file in "$root"/*.qml "$root"/Kit/*.qml "$root"/Island/*.qml; do
@@ -42,7 +47,9 @@ cp "$root"/*.js "$tmp/" 2>/dev/null || true
 # Island/ is qs.Island.
 cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$root/lib" "$root/Kit" "$root/Island" "$tmp/"
 cp "$root/tests/check.qml" "$tmp/shell.qml"
-env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen timeout 10 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
+# SHELL_CREW=off: the Crew singleton polls no fleet or /proc and runs no jump.
+# About 7.5 s: the crew check's eleven beats hold the final check one round.
+env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen SHELL_CREW=off timeout 15 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
 grep -q CAPSULE_TEST_PASS "$tmp/result"
 # Prefs writes capsule.json on first load, after FileView reports that it is absent.
 ! grep -E 'CAPSULE_TEST_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|WARN scene:' "$tmp/result" \

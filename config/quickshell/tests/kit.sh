@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Motion, lib/Spring.js and the Kit leaf components under qmltestrunner
-# (tst_spring, tst_kit, tst_workspace_strip), plus the icon provenance check
-# and the Kit import rules.
+# (tst_spring, tst_kit, tst_workspace_strip, tst_pixel_sprite), plus the icon
+# provenance check and the Kit import rules.
 #
 # qmltestrunner cannot load Quickshell, so this builds a stand-in `qs` module:
-# the real Motion.qml, lib/Spring.js, lib/Celestial.js and Kit/, with stub
+# the real Motion.qml, lib/Spring.js, lib/Celestial.js, lib/CrewModel.js and Kit/, with stub
 # Tokens (hackerman's values) and Prefs (the two motion keys). Every Tokens
 # property Kit reads is stubbed. `--offline-ok` lets the provenance check pass
 # with a SKIP line when the pinned Lucide package is neither cached nor
@@ -31,9 +31,10 @@ fi
 qs="$tmp/qs"
 mkdir -p "$qs/lib" "$qs/Kit" "$qs/tests"
 cp "$root/Motion.qml" "$qs/"
-cp "$root/lib/Spring.js" "$root/lib/Celestial.js" "$qs/lib/"
+cp "$root/lib/Spring.js" "$root/lib/Celestial.js" "$root/lib/CrewModel.js" "$qs/lib/"
 cp "$root"/Kit/*.qml "$root"/Kit/*.js "$qs/Kit/"
-cp "$root/tests/tst_spring.qml" "$root/tests/tst_kit.qml" "$root/tests/tst_workspace_strip.qml" "$qs/tests/"
+cp "$root/tests/tst_spring.qml" "$root/tests/tst_kit.qml" "$root/tests/tst_workspace_strip.qml" \
+    "$root/tests/tst_pixel_sprite.qml" "$qs/tests/"
 
 cat > "$qs/qmldir" <<'EOF'
 module qs
