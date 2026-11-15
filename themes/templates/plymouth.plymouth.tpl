@@ -4,8 +4,11 @@
 #
 # Font= matters beyond looks: the initramfs hook reads it, resolves it with
 # fc-match and bundles that one file, and it is the only font Image.Text has at
-# boot. Monaspace Argon covers ● and █, which the script draws with. Adwaita
-# Sans, the stock themes' choice, has no █.
+# boot. The script's "Monaspace Argon 12px" style names only pick the size:
+# label-freetype loads this file for any family without "Mono" in it. Monaspace
+# Argon covers ● and █, which the script draws with, and every tagline, and
+# the script's ● sizes are measured from it. Adwaita Sans, the stock themes'
+# choice, has no █.
 [Plymouth Theme]
 Name=nisi
 Description=Boot splash rendered from the active theme pack ({{ name }})

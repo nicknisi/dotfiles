@@ -18,18 +18,27 @@ Template tokens:
   {{ key_strip }}      rrggbb        hypr rgba(..ff), Qt #aarrggbb, sketchybar 0xaa..
   {{ key_rgb }}        r,g,b         css rgb(), claude themes
   {{ key_float }}      r, g, b       0..1 floats: plymouth's script module
+  {{ key_str }}        the value escaped for a "double-quoted" literal (\\ and \")
   {{ mix a b 30% }}    a moved 30% toward b; mix_strip / mix_rgb / mix_float likewise
   {{ name }} {{ mode }}
+  {{ tagline }}        TAGLINE from the theme.conf beside colors.toml ("" without one)
+  {{ hostname }}       this machine's short hostname (templates only, not in --json)
   {{ hyprland_active_border_lua }}    the pack's hyprland_active_border, or its accent,
                                       as the Lua literal hl.config takes; _inactive_ likewise
+Shell tokens (surface, raised, overlay, hairline, fill_low, fill_high, ink_dim,
+ink_mid, faint, accent_tint, on_accent, bad, darker, shadow_alpha) follow the
+island shell's token rules; see shell_tokens(). They are in --json too, so
+Quickshell reads the same values Plymouth is rendered with.
 An unknown token is left in place and reported on stderr, so a typo in a
 template is visible in the rendered file rather than silently blank.
 """
 
 import argparse
 import json
+import math
 import os
 import re
+import socket
 import sys
 
 HEX = re.compile(r"^#?([0-9a-fA-F]{6})([0-9a-fA-F]{2})?$")
@@ -111,6 +120,102 @@ def hypr_lua(spec):
     if angle is not None:
         lua += ", angle = %d" % angle
     return lua + " }"
+
+
+# ── Shell tokens ────────────────────────────────────────────────
+# The island shell's surfaces, inks and states, derived from the palette by the
+# same rules as the design mocks' themeVals(), so Plymouth, Quickshell and the
+# mocks agree to the channel. Mirrored exactly, rounding included: these helpers
+# round like JS Math.round and never clamp the mix amount (mix() above does
+# both differently, and the ink_dim search can step k a hair past 1).
+
+def _js_round(x):
+    return int(math.floor(x + 0.5))
+
+
+def _hex_js(chans):
+    return "#" + "".join("%02x" % _js_round(max(0, min(255, v))) for v in chans)
+
+
+def _mix_js(a, b, t):
+    x, y = rgb(a), rgb(b)
+    return _hex_js([x[i] + (y[i] - x[i]) * t for i in range(3)])
+
+
+def _lum(v):
+    def lin(c):
+        c /= 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (lin(c) for c in rgb(v))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast(a, b):
+    x, y = _lum(a), _lum(b)
+    return (max(x, y) + 0.05) / (min(x, y) + 0.05)
+
+
+def _hue(v):
+    r, g, b = (c / 255 for c in rgb(v))
+    mx, mn = max(r, g, b), min(r, g, b)
+    d = mx - mn
+    if not d:
+        return 0.0
+    if mx == r:
+        h = math.fmod((g - b) / d, 6)
+    elif mx == g:
+        h = (b - r) / d + 2
+    else:
+        h = (r - g) / d + 4
+    return math.fmod(h * 60 + 360, 360)
+
+
+def shell_tokens(p, raw):
+    """Fill the shell tokens into p (a pack may set any of them itself)."""
+    bg, fg, accent = p["background"], p["foreground"], p["accent"]
+    dark = p["mode"] != "light"
+    t = {}
+    t["surface"] = p.get("surface") or _mix_js(bg, fg, 0.04)
+    surface = t["surface"]
+    k = 0.62
+    ink = _mix_js(bg, fg, k)
+    while contrast(ink, surface) < 4.5 and k < 1:  # first step that reads at 4.5:1
+        k += 0.02
+        ink = _mix_js(bg, fg, k)
+    t["ink_dim"] = ink
+    t["ink_mid"] = _mix_js(bg, fg, max(0.5, k - 0.1))
+    t["raised"] = _mix_js(bg, fg, 0.08)
+    t["overlay"] = _mix_js(bg, fg, 0.12)
+    t["hairline"] = _mix_js(surface, fg, 0.14)
+    t["fill_low"] = _mix_js(surface, fg, 0.06)
+    t["fill_high"] = _mix_js(surface, fg, 0.13)
+    t["faint"] = _mix_js(bg, fg, 0.375)
+    t["accent_tint"] = _mix_js(surface, accent, 0.16 if dark else 0.14)
+    on = bg if contrast(bg, accent) >= contrast(fg, accent) else fg
+    if contrast(on, accent) < 4.5:
+        on = "#ffffff" if contrast("#ffffff", accent) >= contrast("#000000", accent) else "#000000"
+    t["on_accent"] = on
+    # errors in a red that reads as red: hackerman's "red" is a green, like its accent
+    hd = abs(_hue(p["red"]) - _hue(accent))
+    near = min(hd, 360 - hd) < 40
+    t["bad"] = ("#ff6b6b" if dark else "#d20f39") if near else p["red"]
+    # the pack's own darker_background, else a shallower step than the resolver's 50%
+    own = raw.get("darker_background") or raw.get("darker_bg")
+    t["darker"] = own if own and is_hex(own) else _mix_js(bg, "#000000", 0.3 if dark else 0.06)
+    t["shadow_alpha"] = "0.45" if dark else "0.14"
+    for key, value in t.items():
+        p.setdefault(key, value)
+
+
+def tagline(colors_path):
+    """TAGLINE="..." from the theme.conf beside colors.toml, as bin/theme sources it."""
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(colors_path)), "theme.conf"), encoding="utf-8") as fh:
+            conf = fh.read()
+    except OSError:
+        return ""
+    m = re.search(r"""^\s*TAGLINE=(?:"([^"]*)"|'([^']*)'|(\S*))""", conf, re.M)
+    return next((g for g in m.groups() if g is not None), "") if m else ""
 
 
 def parse(path):
@@ -202,6 +307,7 @@ def resolve(raw, name=None, mode=None):
     p["theme_type"] = p["mode"]
     if name:
         p["name"] = name
+    shell_tokens(p, raw)
     return p
 
 
@@ -211,6 +317,8 @@ def render(text, p, warn):
         parts = m.group(1).split()
         if len(parts) == 1:
             key = parts[0]
+            if key.endswith("_str") and key[:-4] in p:
+                return p[key[:-4]].replace("\\", "\\\\").replace('"', '\\"')
             for suffix, fn in (("_strip", lambda v: v.lstrip("#")),
                                ("_rgb", lambda v: "%d,%d,%d" % rgb(v)),
                                ("_float", lambda v: "%.3f, %.3f, %.3f" % tuple(c / 255 for c in rgb(v)))):
@@ -254,6 +362,9 @@ def main():
     if not os.path.isfile(a.file):
         sys.exit("theme-color: no such file: %s" % a.file)
     p = resolve(parse(a.file), name=a.name, mode=a.mode)
+    p.setdefault("tagline", tagline(a.file))
+    if a.render or a.stdout:
+        p.setdefault("hostname", socket.gethostname().split(".")[0])
 
     def warn(token):
         print("theme-color: %s: unknown token %s" % (warn.where, token), file=sys.stderr)

@@ -1038,13 +1038,30 @@ plymouth_hint() { # one line after a switch, only once a themed splash exists an
   echo "boot splash still shows the previous theme: theme plymouth (rebuilds the initramfs)"
 }
 
+plymouth_render() { # current pack + today's templates -> $STATE/theme/plymouth.*
+  # The copy staged at the last switch can predate a template change, and the
+  # hostname is baked in, so render again right before installing. Pack files
+  # win over templates, as in stage(). Touches nothing that reloads.
+  local name mode pack f
+  name="$(current_theme)" mode="$(current_mode)" pack="$THEMES_DIR/$name"
+  [ -f "$pack/colors.toml" ] || die "current theme '$name' has no pack in $THEMES_DIR"
+  for f in plymouth.script plymouth.plymouth; do
+    if [ -f "$pack/$f" ]; then
+      cp "$pack/$f" "$STATE/theme/$f.new"
+    else
+      "$COLOR" -f "$pack/colors.toml" --name "$name" --mode "$mode" --stdout "$TEMPLATES_DIR/$f.tpl" >"$STATE/theme/$f.new"
+    fi || die "could not render $f"
+    mv "$STATE/theme/$f.new" "$STATE/theme/$f"
+  done
+}
+
 cmd_plymouth() {
   $IS_MAC && die "the boot splash is Linux only"
   [ "$(current_theme)" != none ] || die "no theme set yet"
   local T="$STATE/theme"
-  [ -f "$T/plymouth.script" ] && [ -f "$T/plymouth.plymouth" ] ||
-    die "nothing rendered for plymouth; run: theme refresh"
+  [ -d "$T" ] || die "nothing staged; run: theme refresh"
   command -v plymouth-set-default-theme >/dev/null 2>&1 || die "plymouth is not installed"
+  plymouth_render
   if plymouth_current; then
     echo "boot splash already matches $(current_theme)"
     return 0
