@@ -2,8 +2,10 @@
 import Quickshell
 import QtQuick
 import qs.Kit
+import qs.Island
 import "MenuAnchor.js" as MenuAnchor
 import "BarGeometry.js" as BarGeometry
+import "lib/WorkspaceOrder.js" as WorkspaceOrder
 
 ShellRoot {
     id: test
@@ -63,6 +65,23 @@ ShellRoot {
         monitor: ({ width: 800, height: 600 })
     }
 
+    // The island (PLAN M1) without its PanelWindow, which has no offscreen
+    // backend: IslandView is everything inside it. W C D S with D focused,
+    // from records in Hyprland's creation order.
+    FloatingWindow {
+        visible: true
+        implicitWidth: 1000
+        implicitHeight: 608
+        IslandView {
+            id: islandView
+            anchors.fill: parent
+            monitor: ({ name: "check-island", width: 1000, height: 700 })
+            workspaces: WorkspaceOrder.shown([
+                { name: "S", windows: 1 }, { name: "D", windows: 2 }, { name: "special:scratch", windows: 1 },
+                { name: "W", windows: 3 }, { name: "N", windows: 0 }, { name: "C", windows: 1 }], "D")
+        }
+    }
+
     Connections {
         id: avatarFrames
         target: null
@@ -96,7 +115,8 @@ ShellRoot {
                     avatar.hovered = false;
                     avatar.page = "";
                     test.check(!test.child(avatar, "nickFace").running, "hidden portrait stops animating");
-                    test.check(styleCheck.finished, "all twelve layout and edge combinations settled");
+                    test.check(styleCheck.finished, "all sixteen layout and edge combinations settled");
+                    test.check(islandCheck.finished, "the island check ran to the end");
                     test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
                     console.log("CAPSULE_TEST_PASS");
                     Qt.quit();
@@ -118,21 +138,27 @@ ShellRoot {
         property bool finished: false
         onTriggered: {
             try {
-                const modes = ["pill", "full", "rail"];
+                const modes = ["pill", "full", "rail", "island"];
                 const edges = ["top", "bottom", "left", "right"];
                 if (step > 0) {
                     const expectedMode = modes[Math.floor((step - 1) / 4)];
                     const expectedEdge = edges[(step - 1) % 4];
+                    const island = expectedMode === "island";
                     test.check(Prefs.barMode === expectedMode, "layout preference settles: " + expectedMode);
                     test.check(Theme.controlRadius === 12 && Theme.panelRadius === 28, "controls stay rounded in every layout");
-                    test.check(Theme.barExtent === (expectedMode === "full" ? 40 : 56), "reservation matches layout geometry");
-                    test.check(Prefs.edge === expectedEdge && Prefs.vertical === ["left", "right"].includes(expectedEdge), "edge preference settles: " + expectedEdge);
+                    test.check(Theme.barExtent === (island ? 46 : expectedMode === "full" ? 40 : 56), "reservation matches layout geometry: " + expectedMode);
+                    // The island always sits at the top and keeps the stored edge for later.
+                    const shownEdge = island ? "top" : expectedEdge;
+                    test.check(Prefs.edge === shownEdge && Prefs.storedEdge === expectedEdge
+                        && Prefs.vertical === ["left", "right"].includes(shownEdge), "edge preference settles: " + expectedMode + "/" + expectedEdge);
                     test.check(Theme.barExtent >= Theme.barHeight, "reservation includes bar inset");
                     test.check(Theme.contrast(Theme.accent, Theme.accentText) >= Math.max(Theme.contrast(Theme.accent, Theme.bg), Theme.contrast(Theme.accent, Theme.fg)), "accent text uses the contrasting palette color");
                 }
-                if (step === 12) {
+                if (step === 16) {
                     Prefs.setBarMode("invalid"); Prefs.setEdge("invalid");
-                    test.check(Prefs.barMode === "rail" && Prefs.edge === "right", "invalid preferences are rejected");
+                    test.check(Prefs.barMode === "island" && Prefs.edge === "top" && Prefs.storedEdge === "right", "invalid preferences are rejected");
+                    Prefs.setBarMode("pill");
+                    test.check(Prefs.edge === "right", "leaving the island restores the stored edge");
                     Prefs.setBarMode(oldMode); Prefs.setEdge(oldEdge);
                     finished = true; stop(); return;
                 }
@@ -140,6 +166,98 @@ ShellRoot {
                 Prefs.setEdge(edges[step % 4]);
                 step++;
             } catch (error) { console.error("CAPSULE_TEST_FAIL: " + error.message); Qt.quit(); }
+        }
+    }
+
+    // The island in three beats: rest as drawn, hover opening on the spatial
+    // spring, then the hand-offs and the IPC verbs.
+    Timer {
+        id: islandCheck
+        interval: 600
+        repeat: true
+        property int step: 0
+        property bool finished: false
+        onTriggered: {
+            try {
+                const v = islandView;
+                if (step === 0) {
+                    test.check(v.islandState === "rest" && !v.pinned && !v.panelOpen, "the island starts at rest");
+                    test.check(v.body.width === 360 && v.body.height === 38 && v.body.radius === 19, "rest is 360 x 38, radius 19: "
+                        + v.body.width + " x " + v.body.height + " r " + v.body.radius);
+                    test.check(v.body.x === 320 && v.body.y === 8, "rest sits top centre, 8 down");
+                    test.check(v.rest.hugWidth === 360, "four letters and the clock hug to the 360 minimum");
+                    test.check(String(v.body.color) === String(Tokens.surface) && String(v.body.border.color) === String(Tokens.hairline), "the body wears surface and hairline");
+                    const strip = v.rest.strip;
+                    test.check(JSON.stringify(strip.names) === JSON.stringify(["W", "C", "D", "S"]) && strip.focusedName === "D", "W C D S with D focused");
+                    test.check(strip.shapeName === "Cookie6Sided" && String(strip.shape.color) === String(Tokens.accent), "the focused shape is the boards' cookie in accent");
+                    test.check(v.rest.current && !v.hover.current, "the rest layer shows");
+                    test.check(v.restAnchor.width === 360 && v.restAnchor.x === 320, "the hand-off anchor is the rest pill");
+                    test.check(NotificationState.resolveAnchor(v.monitor)?.item === v.restAnchor, "the notification center hangs from the rest pill");
+                    // Pointer: the dwell starts on enter and stops on leave.
+                    v.pointerEntered();
+                    test.check(v.dwell.running && v.dwell.interval === 250, "hover waits for a 250 ms dwell");
+                    v.pointerLeft();
+                    test.check(!v.dwell.running && v.islandState === "rest", "leaving before the dwell keeps rest");
+                    // A letter used inside the dwell ends it: hover must not open over it.
+                    v.pointerEntered();
+                    v.rest.strip.activated("W");
+                    test.check(!v.dwell.running && v.islandState === "rest", "a letter click or wheel inside the dwell cancels it");
+                    v.pointerLeft();
+                    // Live Context stays out of the rest pill until M3 (PLAN M2).
+                    test.check(v.context === "" && !v.rest.privacyDot.visible, "no Context text and no privacy dot without a fixture or a recorder");
+                    // A click on the pill pins hover at once.
+                    v.clickPill();
+                    test.check(v.islandState === "hover" && v.pinned && v.panelOpen, "a click pins hover");
+                    test.check(v.targetSize[0] === 720 && v.targetSize[1] === 136, "hover targets 720 x 136");
+                    test.check(v.body.width < 720 && v.body.width >= 360, "the body morphs rather than jumps");
+                    test.check(v.hover.current && !v.rest.current, "the hover layer takes over");
+                } else if (step === 1) {
+                    test.check(v.body.width === 720 && v.body.height === 136 && v.body.radius === 28, "hover settles at 720 x 136, radius 28: "
+                        + v.body.width + " x " + v.body.height + " r " + v.body.radius);
+                    test.check(v.body.x === 140, "hover stays centred");
+                    v.pointerLeft();
+                    test.check(v.islandState === "hover", "pinned hover ignores the pointer leaving");
+                    v.dismiss();
+                    test.check(v.islandState === "rest", "an outside click closes pinned hover");
+                    // The IPC verbs, minus the window lookup.
+                    test.check(v.open("hover") === "ok" && v.pinned, "open hover pins it");
+                    test.check(v.toggle("hover") === "ok" && v.islandState === "rest", "toggle closes what is open");
+                    test.check(v.open("cc") === "ok" && v.hudPage === "home" && v.islandState === "rest", "cc hands off to the old Hud home");
+                    // IPC has no input serial for a popup grab: the Hud opens
+                    // without one and the window's focus grab covers it.
+                    test.check(!v.hud.grabFocus && v.hudNeedsGrab, "an IPC hand-off opens the Hud without its own grab");
+                    test.check(v.hud.anchorItem === v.restAnchor && v.hud.alignment === "center" && v.hud.edge === "top", "the old Hud drops from the rest pill");
+                    test.check(v.handedOff, "no hover while a hand-off shows");
+                    v.pointerEntered();
+                    test.check(!v.dwell.running, "the dwell waits for the hand-off to close");
+                    test.check(v.toggle("cc") === "ok" && v.hudPage === "", "toggle closes the hand-off");
+                    test.check(v.open("cal") === "ok" && v.hudPage === "clock", "cal hands off to the old clock page");
+                    test.check(v.close() === "ok" && v.hudPage === "" && v.islandState === "rest", "close clears everything");
+                    test.check(!v.hudNeedsGrab, "no focus grab once the hand-off closes");
+                    // A click hand-off (the hover layer's calendar) keeps the popup grab.
+                    test.check(v.handOff("cal", true) === "ok" && v.hud.grabFocus && !v.hudNeedsGrab, "a click hand-off keeps the Hud's own grab");
+                    v.open("cc");
+                    test.check(v.hudPage === "home" && v.hud.grabFocus, "a page change keeps the grab the Hud opened with");
+                    v.close();
+                    // The focus grab clearing closes an IPC-opened Hud.
+                    v.open("cc");
+                    v.dismiss();
+                    test.check(v.hudPage === "" && !v.hudNeedsGrab, "an outside click closes an IPC-opened Hud");
+                    test.check(v.open("notif").startsWith("error") && v.open("notif").includes("M3"), "unbuilt states say when they land");
+                    test.check(v.open("bogus").startsWith("error: unknown"), "unknown states are refused");
+                    const info = v.inspect();
+                    test.check(info.state === "rest" && info.target.width === 360 && info.workspaces.join("") === "WCDS" && info.focused === "D", "inspect reports state and geometry");
+                    v.pointerLeft();
+                } else {
+                    test.check(v.body.width === 360 && v.body.height === 38 && v.body.radius === 19, "back at rest");
+                    finished = true;
+                    stop();
+                }
+                step++;
+            } catch (error) {
+                console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
+            }
         }
     }
 
@@ -164,7 +282,9 @@ ShellRoot {
                 const playing = { dbusName: "playing", isPlaying: true };
                 test.check(Prefs.nextBarMode("pill") === "full", "pill cycles to full");
                 test.check(Prefs.nextBarMode("full") === "rail", "full cycles to rail");
-                test.check(Prefs.nextBarMode("rail") === "pill", "rail cycles to pill");
+                test.check(Prefs.nextBarMode("rail") === "island", "rail cycles to island");
+                test.check(Prefs.nextBarMode("island") === "pill", "island cycles to pill");
+                test.check(Prefs.nextBarMode("bogus") === "pill", "an unknown mode cycles to pill");
                 for (const mode of ["pill", "full", "rail"]) {
                     for (const origin of ["top", "bottom", "left", "right"]) {
                         const vertical = origin === "left" || origin === "right";
@@ -391,8 +511,9 @@ ShellRoot {
                 card.player = null;
                 test.check(!play.enabled && !seek.enabled && !next.enabled, "no-player controls disabled");
                 styleCheck.oldMode = Prefs.barMode;
-                styleCheck.oldEdge = Prefs.edge;
+                styleCheck.oldEdge = Prefs.storedEdge;
                 styleCheck.start();
+                islandCheck.start();
                 avatarCheck.start();
             } catch (error) {
                 console.error("CAPSULE_TEST_FAIL: " + error.message);

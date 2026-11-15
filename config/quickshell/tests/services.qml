@@ -18,10 +18,22 @@ ShellRoot {
         test.check(Prefs.motion === "spring", "motion defaults to spring");
         test.check(!Prefs.reducedMotion && !Prefs.dnd, "reducedMotion and dnd default off");
         test.check(Prefs.barMode === "pill", "barMode keeps its pill default");
-        // Island is M1: not a bar mode yet.
+        // Island is a bar mode (M1): the fourth stop of the cycle. It sits at
+        // the top whatever the stored edge, and leaves that edge alone so the
+        // bar goes back to it.
+        test.check(JSON.stringify(Prefs.barModes) === JSON.stringify(["pill", "full", "rail", "island"]), "four bar modes");
+        test.check(Prefs.nextBarMode("rail") === "island" && Prefs.nextBarMode("island") === "pill", "rail -> island -> pill");
+        Prefs.setEdge("bottom");
         Prefs.setBarMode("island");
-        test.check(Prefs.barMode === "pill", "island is not a bar mode yet");
-        test.check(Prefs.nextBarMode("rail") === "pill", "the cycle is unchanged");
+        test.check(Prefs.barMode === "island", "island is a bar mode");
+        test.check(Prefs.edge === "top" && !Prefs.vertical && Prefs.storedEdge === "bottom", "island forces the top edge and keeps the stored one");
+        Prefs.setEdge("left");
+        test.check(Prefs.edge === "top" && Prefs.storedEdge === "left", "an edge chosen in island mode is remembered for later");
+        Prefs.setBarMode("pill");
+        test.check(Prefs.edge === "left" && Prefs.vertical, "leaving island restores the stored edge");
+        Prefs.setEdge("top");
+        Prefs.setBarMode("bogus");
+        test.check(Prefs.barMode === "pill", "unknown bar modes are refused");
         // Invalid values are refused, valid ones land.
         Prefs.setIslandForm("bubble"); Prefs.setLook("vaporwave"); Prefs.setMotion("warp");
         test.check(Prefs.islandForm === "float" && Prefs.look === "crew" && Prefs.motion === "spring", "invalid values are rejected");

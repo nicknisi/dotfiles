@@ -1,0 +1,17 @@
+{
+  "about": "PLAN M1 shot: the Main board's rest pill. Workspaces W C D S with D focused, the clock at 10:45, Context 'dotfiles'. Records are in Hyprland's creation order, not display order, so the shot also proves lib/WorkspaceOrder.js.",
+  "workspaces": [
+    { "name": "S", "windows": 1 },
+    { "name": "D", "windows": 2 },
+    { "name": "special:scratch", "windows": 1 },
+    { "name": "W", "windows": 3 },
+    { "name": "N", "windows": 0 },
+    { "name": "C", "windows": 1 }
+  ],
+  "focused": "D",
+  "clock": "10:45",
+  "date": "Saturday, November 14",
+  "context": "dotfiles",
+  "media": { "title": "Neon Grid", "artist": "Night Rider" },
+  "status": { "wifi": true, "bt": true, "tailscale": true, "muted": false, "battery": 25 }
+}

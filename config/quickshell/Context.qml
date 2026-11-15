@@ -135,7 +135,9 @@ Singleton {
         property int pendingAhead: 0
         property int pendingBehind: 0
 
-        command: ["git", "-C", root.repoDir, "status", "--porcelain=v2", "--branch"]
+        // --no-optional-locks: a plain `git status` refreshes .git/index under
+        // index.lock, and a poll every 5 s would collide with git run by hand.
+        command: ["git", "--no-optional-locks", "-C", root.repoDir, "status", "--porcelain=v2", "--branch"]
 
         // Porcelain v2: header lines start with "# ", every other line is one
         // path that differs from HEAD in some way.

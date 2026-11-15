@@ -83,7 +83,13 @@ Singleton {
     readonly property int iconSize:  14
     readonly property int barHeight: 40
     readonly property int barInset: Prefs.barMode === "full" ? 0 : 8
-    readonly property int barExtent: barHeight + 2 * barInset
+    // The exclusive zone Reserve holds along the bar's edge. The island is 38
+    // high, 8 under the top edge, and Hyprland adds gaps_out (8) below the zone
+    // itself, so 46 puts window edges 8 under the island (Main board: y 54).
+    // The notch form (40) arrives with its body in M9; until then the island
+    // always draws the float form, so it always reserves 46.
+    readonly property int islandExtent: 46
+    readonly property int barExtent: Prefs.barMode === "island" ? islandExtent : barHeight + 2 * barInset
 
     // A light accent wash for selected controls, independent of theme mode.
     readonly property color glowFill: alpha(accent, 0.14)

@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# Motion, lib/Spring.js and the Kit leaf components under qmltestrunner, plus
-# the icon provenance check and the Kit import rules.
+# Motion, lib/Spring.js and the Kit leaf components under qmltestrunner
+# (tst_spring, tst_kit, tst_workspace_strip), plus the icon provenance check
+# and the Kit import rules.
 #
 # qmltestrunner cannot load Quickshell, so this builds a stand-in `qs` module:
-# the real Motion.qml, lib/Spring.js and Kit/, with stub Tokens (hackerman's
-# values) and Prefs (the two motion keys). Every Tokens property Kit reads is
-# stubbed. `--offline-ok` lets the provenance check pass with a SKIP line
-# when the pinned Lucide package is neither cached nor downloadable.
+# the real Motion.qml, lib/Spring.js, lib/Celestial.js and Kit/, with stub
+# Tokens (hackerman's values) and Prefs (the two motion keys). Every Tokens
+# property Kit reads is stubbed. `--offline-ok` lets the provenance check pass
+# with a SKIP line when the pinned Lucide package is neither cached nor
+# downloadable.
 set -euo pipefail
 root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
@@ -17,11 +19,11 @@ if grep -nE '^\s*import\s+Quickshell' "$root"/Kit/*.qml; then
     echo "KIT_TEST_FAIL: Kit components must not import Quickshell" >&2
     exit 1
 fi
-if grep -nE 'NickAvatar|assets/nick' "$root"/Kit/* "$root/Motion.qml" "$root/lib/Spring.js" "$root/tests/gallery/shell.qml"; then
+if grep -nE 'NickAvatar|assets/nick' "$root"/Kit/* "$root/Motion.qml" "$root"/lib/* "$root"/Island/* "$root"/tools/* "$root/tests/gallery/shell.qml"; then
     echo "KIT_TEST_FAIL: NickAvatar is retired" >&2
     exit 1
 fi
-if grep -rn 'SpringAnimation' "$root"/Kit "$root/Motion.qml" "$root/lib/Spring.js" "$root/tests/gallery" | grep -v '^\S*:\s*//'; then
+if grep -rn 'SpringAnimation' "$root"/Kit "$root"/Island "$root/Motion.qml" "$root"/lib "$root/tests/gallery" | grep -v '^\S*:\s*//'; then
     echo "KIT_TEST_FAIL: no SpringAnimation (lib/Spring.js says why)" >&2
     exit 1
 fi
@@ -29,9 +31,9 @@ fi
 qs="$tmp/qs"
 mkdir -p "$qs/lib" "$qs/Kit" "$qs/tests"
 cp "$root/Motion.qml" "$qs/"
-cp "$root/lib/Spring.js" "$qs/lib/"
+cp "$root/lib/Spring.js" "$root/lib/Celestial.js" "$qs/lib/"
 cp "$root"/Kit/*.qml "$root"/Kit/*.js "$qs/Kit/"
-cp "$root/tests/tst_spring.qml" "$root/tests/tst_kit.qml" "$qs/tests/"
+cp "$root/tests/tst_spring.qml" "$root/tests/tst_kit.qml" "$root/tests/tst_workspace_strip.qml" "$qs/tests/"
 
 cat > "$qs/qmldir" <<'EOF'
 module qs

@@ -9,6 +9,7 @@
 // skip their writers, and Fixture registers its `fixture` IPC target.
 import Quickshell
 import Quickshell.Io
+import qs.Island
 
 ShellRoot {
     id: root
@@ -21,17 +22,39 @@ ShellRoot {
         function reload(): void { Theme.reload() }
     }
 
-    // One capsule per connected monitor, created and destroyed as displays
-    // come and go, and beside each one the 1px window that holds its exclusive
-    // zone (see Reserve.qml for why that is not the capsule's own job).
+    // Per connected monitor, created and destroyed as displays come and go:
+    // the classic bar (pill, full, rail) or the island, whichever
+    // Prefs.barMode names, and beside it the 1px window that holds the
+    // exclusive zone in every mode (see Reserve.qml for why that is not the
+    // bar's own job). Only one of the two loaders is active, so a mode change
+    // destroys one window and builds the other.
     Variants {
+        id: screens
         model: Quickshell.screens
-        delegate: Bar {}
-    }
-    Variants {
-        id: reserveWindows
-        model: Quickshell.screens
-        delegate: Reserve {}
+        delegate: Scope {
+            id: screenScope
+            required property var modelData
+            readonly property var reserve: reserveWindow
+            readonly property var island: islandLoader.item
+
+            LazyLoader {
+                active: Prefs.barMode !== "island"
+                Bar {
+                    modelData: screenScope.modelData
+                }
+            }
+            LazyLoader {
+                id: islandLoader
+                active: Prefs.barMode === "island"
+                Island {
+                    modelData: screenScope.modelData
+                }
+            }
+            Reserve {
+                id: reserveWindow
+                modelData: screenScope.modelData
+            }
+        }
     }
 
     // Mode-independent services: the tray watcher, Caffeine's idle inhibitor
@@ -39,7 +62,14 @@ ShellRoot {
     // refresh-rate policy, plus the guards that keep a SHELL_SANDBOX=1 run from
     // touching the real machine. See ShellServices.qml.
     ShellServices {
-        reserves: reserveWindows.instances
+        reserves: screens.instances.map(s => s.reserve)
+    }
+
+    // `qs ipc call island ...`: open, close, toggle, mode, inspect. Present in
+    // every mode so `island mode island` can leave the pill.
+    IslandIpc {
+        islands: screens.instances.map(s => s.island).filter(i => i)
+        launcher: launcher
     }
 
     // Global rather than per-monitor: one D-Bus notification server for the

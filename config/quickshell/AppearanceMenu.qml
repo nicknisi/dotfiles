@@ -62,6 +62,20 @@ BarMenu {
         Qt.callLater(() => Prefs.setEdge(edge));
     }
 
+    // Between pill, full and rail the bar stays and just reshapes. Entering
+    // or leaving the island swaps the window this menu hangs from (the bar's
+    // Hud, or the island's hand-off Hud), so close the menu first and switch
+    // once the click has finished: destroying the Hud from inside its own
+    // click handler would pull the window out from under it.
+    function switchMode(mode: string): void {
+        if (mode !== "island" && Prefs.barMode !== "island") {
+            Prefs.setBarMode(mode);
+            return;
+        }
+        menu.dismissed();
+        Qt.callLater(() => Prefs.setBarMode(mode));
+    }
+
     SectionTitle { text: "BAR LAYOUT" }
 
     Choice {
@@ -69,7 +83,7 @@ BarMenu {
         glyph: "\u{f0356}"
         caption: "Compact and floating"
         selected: Prefs.barMode === "pill"
-        onClicked: Prefs.setBarMode("pill")
+        onClicked: menu.switchMode("pill")
     }
 
     Choice {
@@ -77,7 +91,7 @@ BarMenu {
         glyph: "\u{f0a71}"
         caption: "Spans the entire screen edge"
         selected: Prefs.barMode === "full"
-        onClicked: Prefs.setBarMode("full")
+        onClicked: menu.switchMode("full")
     }
 
     Choice {
@@ -85,7 +99,15 @@ BarMenu {
         glyph: "\u{f0356}"
         caption: "Long and floating, on any edge"
         selected: Prefs.barMode === "rail"
-        onClicked: Prefs.setBarMode("rail")
+        onClicked: menu.switchMode("rail")
+    }
+
+    Choice {
+        text: "Island"
+        glyph: "\u{f104f}"
+        caption: "Top centre, grows into what you open"
+        selected: Prefs.barMode === "island"
+        onClicked: menu.switchMode("island")
     }
 
     MenuRule {}
@@ -104,17 +126,21 @@ BarMenu {
                 { edge: "left", label: "Left" }
             ]
 
+            // The island always sits at the top; the edge it remembers is
+            // where the bar goes back to.
             BarModule {
                 required property var modelData
                 Layout.fillWidth: true
+                enabled: Prefs.barMode !== "island"
+                opacity: enabled ? 1 : 0.45
                 text: modelData.label
-                highlighted: Prefs.edge === modelData.edge
+                highlighted: Prefs.storedEdge === modelData.edge
                 cornerRadius: Theme.controlRadius
                 onClicked: menu.switchEdge(modelData.edge)
 
                 Label {
                     text: modelData.label
-                    color: Prefs.edge === modelData.edge ? Theme.accent : Theme.fg
+                    color: Prefs.storedEdge === modelData.edge ? Theme.accent : Theme.fg
                     horizontalAlignment: Text.AlignHCenter
                     Layout.fillWidth: true
                 }

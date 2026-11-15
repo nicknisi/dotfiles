@@ -1,11 +1,11 @@
 pragma Singleton
 // Prefs.qml - the handful of choices the capsule remembers across restarts.
 //
-// Which edge it lives on, its size and whether it is see-through, plus the
-// island shell's own choices: the island's form, the look, the motion profile,
-// reduced motion and do-not-disturb. They are changed in the shell rather than
-// by editing a file, so they have to be written back somewhere or every reload
-// would undo them.
+// Which bar mode it uses (pill, full, rail or the island), which edge it lives
+// on and whether it is see-through, plus the island shell's own choices: the
+// island's form, the look, the motion profile, reduced motion and
+// do-not-disturb. They are changed in the shell rather than by editing a file,
+// so they have to be written back somewhere or every reload would undo them.
 //
 // JsonAdapter does the serialising: each property below is a key in the file,
 // the file's contents land in the properties on load, and any change writes
@@ -21,13 +21,20 @@ Singleton {
 
     // Allowed values, first one the default. Reads validate against these, so a
     // hand-edited or stale file can never hand the shell a value it cannot draw.
+    // barModes is also the order nextBarMode() cycles through.
+    readonly property var barModes: ["pill", "full", "rail", "island"]
     readonly property var islandForms: ["float", "notch"]
     readonly property var looks: ["crew", "phosphor", "bridge", "arcade", "liner", "outrun"]
     readonly property var motions: ["spring", "current", "slow", "off"]
 
-    // "top" | "bottom" | "left" | "right"
-    readonly property string edge: ["top", "bottom", "left", "right"].includes(store.edge) ? store.edge : "top"
-    readonly property string barMode: ["pill", "full", "rail"].includes(store.barMode) ? store.barMode : "pill"
+    // "pill" | "full" | "rail" | "island"
+    readonly property string barMode: root.barModes.includes(store.barMode) ? store.barMode : "pill"
+    // The edge the shell sits on: "top" | "bottom" | "left" | "right". The
+    // island lives at the top centre only, so island mode reads "top" here and
+    // leaves the remembered edge alone: leaving island puts the bar back where
+    // it was. storedEdge is that remembered edge, whatever the mode.
+    readonly property string storedEdge: ["top", "bottom", "left", "right"].includes(store.edge) ? store.edge : "top"
+    readonly property string edge: root.barMode === "island" ? "top" : root.storedEdge
     readonly property bool translucent: store.translucent
 
     readonly property bool vertical: root.edge === "left" || root.edge === "right"
@@ -51,14 +58,14 @@ Singleton {
     }
 
     function setBarMode(mode: string): void {
-        if (!["pill", "full", "rail"].includes(mode)) return;
+        if (!root.barModes.includes(mode)) return;
         store.barMode = mode;
     }
 
+    // pill -> full -> rail -> island -> pill; anything else starts over at pill.
     function nextBarMode(mode: string): string {
-        if (mode === "pill") return "full";
-        if (mode === "full") return "rail";
-        return "pill";
+        const i = root.barModes.indexOf(mode);
+        return i < 0 ? "pill" : root.barModes[(i + 1) % root.barModes.length];
     }
 
     function cycleBarMode(): void { store.barMode = nextBarMode(store.barMode) }
