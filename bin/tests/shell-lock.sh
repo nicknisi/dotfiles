@@ -217,6 +217,31 @@ wait_for '[ "$(starts)" = 2 ] && [ -f "$TMP/state/running" ]' 4 || fail "a symli
 rm -f "$planted"
 stop_all
 
+# hypridle's on_unlock_cmd after another locker displaced this lock and
+# unlocked: the instance still answers secure. --unlocked marks it done (no
+# relaunch) and ends it, and the next shell-lock starts a fresh lock instead
+# of trusting the stale answer.
+run "displaced" FAKE_QS_SECURE_AT=1
+[ "$code" = 0 ] || fail "locks first ($(cat "$TMP/out"))"
+displaced=$(cat "$TMP/state/done-path")
+wait_for 'pgrep -f "shell-lock --watch [0-9]+ $displaced" >/dev/null' 3 || fail "a watcher stays behind"
+lockenv() {
+  env PATH="$TMP/bin:/usr/bin:/bin" HOME="$TMP" FAKE_QS_STATE="$TMP/state" XDG_RUNTIME_DIR="$TMP/rt" \
+    SHELL_LOCK_QML="$TMP/lock.qml" SHELL_LOCK_WAIT=6 SHELL_LOCK_WATCH=0.1 SHELL_LOCK_LOG="$TMP/watch.log" FAKE_QS_SECURE_AT=1 "$@"
+}
+lockenv bash "$ROOT/bin/shell-lock" --unlocked || fail "--unlocked exits 0"
+wait_for '[ ! -f "$TMP/state/running" ]' 3 || fail "--unlocked ends the displaced lock instance"
+wait_for '! pgrep -f "shell-lock --watch [0-9]+ $TMP/" >/dev/null' 3 || fail "its watcher ends"
+sleep 1.5 # time for a relaunch to show: the watcher's poll, its 0.5 s grace, a start
+[ "$(starts)" = 1 ] || fail "no relaunch after --unlocked (starts $(starts))"
+[ ! -f "$TMP/state/running" ] || fail "no lock instance after --unlocked"
+[ ! -f "$TMP/state/hyprlock" ] || fail "no fallback after --unlocked"
+lockenv bash "$ROOT/bin/shell-lock" >"$TMP/out" 2>&1 || fail "the next lock request locks ($(cat "$TMP/out"))"
+[ "$(starts)" = 2 ] || fail "the next request starts a new lock, not a no-op (starts $(starts))"
+stop_all
+# With nothing running, --unlocked is a quiet no-op.
+lockenv bash "$ROOT/bin/shell-lock" --unlocked || fail "--unlocked with no lock exits 0"
+
 # No usable XDG_RUNTIME_DIR: no mark in a shared dir, straight to hyprlock.
 run "no runtime dir" XDG_RUNTIME_DIR=
 [ -f "$TMP/state/hyprlock" ] || fail "falls back without XDG_RUNTIME_DIR"

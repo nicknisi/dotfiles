@@ -84,6 +84,7 @@ grep -qE '^\s*property bool shown: false$' "$root/lock.qml" || fail "lock.qml st
 if grep -nE 'shown:\s*true' "$root/lock.qml"; then fail "nothing in lock.qml is built shown"; fi
 grep -q 'lock_cmd = shell-lock || hyprlock' "$root/../hypr/hypridle.conf" || fail "hypridle runs shell-lock, hyprlock as fallback"
 grep -q 'inhibit_sleep = 3' "$root/../hypr/hypridle.conf" || fail "hypridle waits for the lock before sleep"
+grep -q 'on_unlock_cmd = shell-lock --unlocked' "$root/../hypr/hypridle.conf" || fail "hypridle ends displaced lock instances on every unlock"
 
 # ---- 3 ---------------------------------------------------------------------------
 qs="$tmp/qs"

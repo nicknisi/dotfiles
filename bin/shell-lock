@@ -3,6 +3,9 @@
 #
 #   shell-lock            lock now (hypridle's lock_cmd; SUPER+ESCAPE and
 #                         `loginctl lock-session` reach it through hypridle)
+#   shell-lock --unlocked hypridle's on_unlock_cmd: Hyprland reports the session
+#                         unlocked, so any lock instance still running holds
+#                         nothing; mark it done and end it
 #   shell-lock --help     this text, the TTY recovery steps and the real-PAM
 #                         test steps
 #
@@ -28,6 +31,11 @@
 #      runs hyprlock itself. Only a committed lock counts as locked: a second
 #      locker is harmless, a skipped one is not. The fallback stays installed
 #      until the Quickshell lock has survived real use.
+#   5. With allow_session_lock_restore on, Hyprland admits a new lock over a
+#      live one. The displaced lock instance keeps answering `secure` after
+#      the newcomer unlocks, which would make every later run of step 1 a
+#      no-op. hypridle's on_unlock_cmd runs `shell-lock --unlocked` on every
+#      real unlock and ends such instances, so the next request locks again.
 #
 # Exit status: 0 locked by the Quickshell lock (or already locked, or another
 # run's lock committed); otherwise hyprlock's, which this process becomes.
@@ -62,8 +70,9 @@ If the lock screen crashes
   one with hl.clear_crashed_lockscreen(); a live one too, as Hyprland admits
   any new lock while the option is on). After 3 relaunches in a row the
   watcher runs hyprlock instead.
-  If another locker took the session over and unlocked it, this lock still
-  thinks it holds the session, and shell-lock does nothing until it is gone:
+  If another locker takes the session over and unlocks it, hypridle's
+  on_unlock_cmd (shell-lock --unlocked) ends the displaced lock, so the next
+  lock request locks again. Without hypridle running, end it by hand:
          pkill -f 'qs -n -p .*lock.qml'
   If the crash screen stays (the option is off, or no lock can start),
   recover from a text console:
@@ -111,7 +120,7 @@ EOF
 
 case "${1:-}" in
   -h|--help) help; exit 0 ;;
-  --watch) ;;
+  --watch|--unlocked) ;;
   "") ;;
   *) echo "shell-lock: unknown argument $1 (see --help)" >&2; exit 2 ;;
 esac
@@ -157,6 +166,25 @@ lock_pending() {
     *) return 1 ;;
   esac
 }
+
+# shell-lock --unlocked (hypridle's on_unlock_cmd). Hyprland just reported
+# the session unlocked, so no lock instance of this config holds it. Mark each
+# watched lock done first, so its watcher does not relaunch it, then end every
+# instance. Only marks under this user's runtime dir are touched.
+if [ "${1:-}" = --unlocked ]; then
+  rundir=${XDG_RUNTIME_DIR:-}
+  watchers=$(pgrep -u "$uid" -a -f "shell-lock --watch [0-9]+ " 2>/dev/null || true)
+  while read -r line; do
+    mark=${line##* }
+    case "$mark" in
+      "$rundir"/shell-lock.*.unlocked) [ -n "$rundir" ] && [ ! -L "$mark" ] && touch -- "$mark" ;;
+    esac
+  done <<EOF
+$watchers
+EOF
+  pkill -u "$uid" -f "qs -n -p $qml" 2>/dev/null || true
+  exit 0
+fi
 
 # shell-lock --watch PID DONE: wait for the lock instance PID to end. It ends
 # after a real unlock (lock.qml created DONE first) or because it died with
