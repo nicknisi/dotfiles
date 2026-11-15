@@ -35,7 +35,7 @@
 //
 // Some of them (search, x, the chevrons, lock, log-out, monitor, moon, music,
 // headphones, power, server, smartphone, terminal, type, link, plus, check,
-// arrow-right, clipboard, smile, command) are on Lucide's list of icons derived from Feather,
+// arrow-right, clipboard, smile, command, trash-2) are on Lucide's list of icons derived from Feather,
 // which carries this notice as well:
 //
 // The MIT License (MIT) (for the icons listed above)
@@ -88,6 +88,8 @@ var ICONS = {
     "micOff": {"lucide": "mic-off", "d": "M12 19v3M15 9.34V5a3 3 0 0 0 -5.68 -1.33M16.95 16.95A7 7 0 0 1 5 12v-2M18.89 13.23A7 7 0 0 0 19 12v-2M2 2l20 20M9 9v3a3 3 0 0 0 5.12 2.12"},
     "battery": {"lucide": "battery", "d": "M22 14L22 10M4 6H16A2 2 0 0 1 18 8V16A2 2 0 0 1 16 18H4A2 2 0 0 1 2 16V8A2 2 0 0 1 4 6Z"},
     "batteryLow": {"lucide": "battery-low", "d": "M22 14v-4M6 14v-4M4 6H16A2 2 0 0 1 18 8V16A2 2 0 0 1 16 18H4A2 2 0 0 1 2 16V8A2 2 0 0 1 4 6Z"},
+    "batteryMedium": {"lucide": "battery-medium", "d": "M10 14v-4M22 14v-4M6 14v-4M4 6H16A2 2 0 0 1 18 8V16A2 2 0 0 1 16 18H4A2 2 0 0 1 2 16V8A2 2 0 0 1 4 6Z"},
+    "batteryFull": {"lucide": "battery-full", "d": "M10 10v4M14 10v4M22 14v-4M6 10v4M4 6H16A2 2 0 0 1 18 8V16A2 2 0 0 1 16 18H4A2 2 0 0 1 2 16V8A2 2 0 0 1 4 6Z"},
     "batteryCharging": {"lucide": "battery-charging", "d": "M11 7l-3 5h4l-3 5M14.856 6H16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-2.935M22 14v-4M5.14 18H4a2 2 0 0 1 -2 -2V8a2 2 0 0 1 2 -2h2.936"},
     "sun": {"lucide": "sun", "d": "M8 12A4 4 0 1 0 16 12A4 4 0 1 0 8 12ZM12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"},
     "moon": {"lucide": "moon", "d": "M20.985 12.486a9 9 0 1 1 -9.473 -9.472c0.405 -0.022 0.617 0.46 0.402 0.803a6 6 0 0 0 8.268 8.268c0.344 -0.215 0.825 -0.004 0.803 0.401"},
@@ -136,7 +138,12 @@ var ICONS = {
     "settings": {"lucide": "settings", "d": "M9.671 4.136a2.34 2.34 0 0 1 4.659 0a2.34 2.34 0 0 0 3.319 1.915a2.34 2.34 0 0 1 2.33 4.033a2.34 2.34 0 0 0 0 3.831a2.34 2.34 0 0 1 -2.33 4.033a2.34 2.34 0 0 0 -3.319 1.915a2.34 2.34 0 0 1 -4.659 0a2.34 2.34 0 0 0 -3.32 -1.915a2.34 2.34 0 0 1 -2.33 -4.033a2.34 2.34 0 0 0 0 -3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319 -1.915M9 12A3 3 0 1 0 15 12A3 3 0 1 0 9 12Z"},
     "command": {"lucide": "command", "d": "M15 6v12a3 3 0 1 0 3 -3H6a3 3 0 1 0 3 3V6a3 3 0 1 0 -3 3h12a3 3 0 1 0 -3 -3"},
     "convert": {"lucide": "arrow-right-left", "d": "M16 3l4 4l-4 4M20 7H4M8 21l-4 -4l4 -4M4 17h16"},
-    "pipette": {"lucide": "pipette", "d": "M12 9l-8.414 8.414A2 2 0 0 0 3 18.828v1.344a2 2 0 0 1 -0.586 1.414A2 2 0 0 1 3.828 21h1.344a2 2 0 0 0 1.414 -0.586L15 12M18 9l0.4 0.4a1 1 0 1 1 -3 3l-3.8 -3.8a1 1 0 1 1 3 -3l0.4 0.4l3.4 -3.4a1 1 0 1 1 3 3zM2 22l0.414 -0.414"}
+    "pipette": {"lucide": "pipette", "d": "M12 9l-8.414 8.414A2 2 0 0 0 3 18.828v1.344a2 2 0 0 1 -0.586 1.414A2 2 0 0 1 3.828 21h1.344a2 2 0 0 0 1.414 -0.586L15 12M18 9l0.4 0.4a1 1 0 1 1 -3 3l-3.8 -3.8a1 1 0 1 1 3 -3l0.4 0.4l3.4 -3.4a1 1 0 1 1 3 3zM2 22l0.414 -0.414"},
+    "trash": {"lucide": "trash-2", "d": "M10 11v6M14 11v6M19 6v14a2 2 0 0 1 -2 2H7a2 2 0 0 1 -2 -2V6M3 6h18M8 6V4a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"},
+    "refresh": {"lucide": "refresh-cw", "d": "M3 12a9 9 0 0 1 9 -9a9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1 -9 9a9.75 9.75 0 0 1 -6.74 -2.74L3 16M8 16H3v5"},
+    "mouse": {"lucide": "mouse", "d": "M12 2H12A7 7 0 0 1 19 9V15A7 7 0 0 1 12 22H12A7 7 0 0 1 5 15V9A7 7 0 0 1 12 2ZM12 6v4"},
+    "gamepad": {"lucide": "gamepad-2", "d": "M6 11L10 11M8 9L8 13M15 12L15.01 12M18 10L18.01 10M17.32 5H6.68a4 4 0 0 0 -3.978 3.59c-0.006 0.052 -0.01 0.101 -0.017 0.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5 -0.5 2 -1l1.414 -1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414 0.586L17 18c0.5 0.5 1 1 2 1a3 3 0 0 0 3 -3c0 -1.545 -0.604 -6.584 -0.685 -7.258c-0.007 -0.05 -0.011 -0.1 -0.017 -0.151A4 4 0 0 0 17.32 5z"},
+    "user": {"lucide": "user", "d": "M19 21v-2a4 4 0 0 0 -4 -4H9a4 4 0 0 0 -4 4v2M8 7A4 4 0 1 0 16 7A4 4 0 1 0 8 7Z"}
 };
 // END ICONS
 

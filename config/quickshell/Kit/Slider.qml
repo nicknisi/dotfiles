@@ -12,13 +12,15 @@ import qs
 //
 // Steps: `stepSize` per arrow key or wheel notch (5 %, as the media keys
 // step), Page Up/Down two steps, Home and End the ends. None of this is drawn
-// in the mocks.
+// in the mocks. `verticalKeys: false` leaves Up and Down to the parent (the
+// control center's levels move focus with them, control-lock 2.9).
 Item {
     id: root
 
     property real value: 0
     property real stepSize: 0.05
     property bool interactive: true
+    property bool verticalKeys: true
     property int thickness: 6
     property string label: ""
     property color trackColor: Tokens.fillHigh
@@ -55,8 +57,10 @@ Item {
     Keys.enabled: interactive
     Keys.onPressed: event => {
         switch (event.key) {
-        case Qt.Key_Right: case Qt.Key_Up: nudge(1); break;
-        case Qt.Key_Left: case Qt.Key_Down: nudge(-1); break;
+        case Qt.Key_Up: if (!root.verticalKeys) return; nudge(1); break;
+        case Qt.Key_Down: if (!root.verticalKeys) return; nudge(-1); break;
+        case Qt.Key_Right: nudge(1); break;
+        case Qt.Key_Left: nudge(-1); break;
         case Qt.Key_PageUp: nudge(2); break;
         case Qt.Key_PageDown: nudge(-2); break;
         case Qt.Key_Home: root.moved(0); break;
