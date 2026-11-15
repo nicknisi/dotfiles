@@ -20,7 +20,9 @@ import "../lib/CcData.js" as CcData
 //   level light    brightnessctl set N% (N >= 1), 80 ms debounce (HudHome)
 //   media          Media.player previous / togglePlaying / next, seek, cycle
 //   mini awake     Caffeine.start(selected) / stop()
-//   mini theme     closes, then `theme picker themes`
+//   mini theme     the host's openThemes() when it has one (the island: the
+//                  themes picker in place, M7); else closes, then
+//                  `theme picker themes`
 //   mini record    closes, then `capture record region` (Stop while recording)
 //   mini clipboard the host's openClipboard() when it has one (the island: the
 //                  palette's clipboard scope, from cc straight to the launcher
@@ -60,6 +62,8 @@ Item {
     property string last: ""
     // The host's way to the launcher's clipboard scope, or null (CcLayer).
     property var openClipboard: null
+    // The host's way to the themes picker in place, or null (CcLayer).
+    property var openThemes: null
 
     signal close
     signal power
@@ -255,6 +259,8 @@ Item {
         if (key === "awake") {
             if (!model.dryRun) Caffeine.active ? Caffeine.stop() : Caffeine.start(Caffeine.selectedMinutes);
         } else if (key === "theme") {
+            // Only the island changes (the picker writes nothing until Enter).
+            if (typeof model.openThemes === "function" && model.openThemes()) return "ok";
             model.close();
             model.exec(["theme", "picker", "themes"]);
         } else if (key === "record") {

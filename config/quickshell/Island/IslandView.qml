@@ -7,6 +7,7 @@ import "../lib/CrewModel.js" as CrewModel
 import "../lib/Dictation.js" as Dictation
 import "../lib/CcData.js" as CcData
 import "../launcher/ui" as LauncherUi
+import qs.Panels
 
 // IslandView.qml - everything inside one island window, minus the window.
 //
@@ -64,6 +65,15 @@ import "../launcher/ui" as LauncherUi
 //     Open Control center goes from launcher straight to cc (Launcher.qml's
 //     `island` effect). The launcher, cc and power cover a banner rather than
 //     drop it (IslandMachine.cover): it shows again once they close;
+//   - shows the theme and wallpaper pickers as its `themes` and `wallpapers`
+//     states (M7): ThemePicker.qml hands it the picker's model (showPicker)
+//     when the picker opens on this screen in island mode, and the body
+//     morphs to the panel (1240 x 600, or 780 wide and as tall as the
+//     theme's wallpapers), between the two on Tab. `island open themes`
+//     and the control center's Theme mini go through ThemePicker
+//     (pickerHost), so the IPC and the cc open it in place too. Leaving the
+//     two states any other way tells ThemePicker (pickerLeft), which closes
+//     the picker and ends its live preview;
 //   - hands off to the old surfaces where the island has nothing yet (PLAN
 //     1.7): the control center's battery opens the old Hud's battery page
 //     (the charge-limit top-up), anchored under the rest pill, and the
@@ -100,6 +110,10 @@ Item {
     // null for none, and then the Clipboard runs the `clipboard` IPC as
     // Super+V does.
     property var paletteHost: null
+    // shell.qml's ThemePicker (M7), for `island open themes|wallpapers` and
+    // the control center's Theme mini; null for none (an error, and the mini
+    // runs `theme picker themes`).
+    property var pickerHost: null
     // What raises the OSD: Interrupt, or a fake with its shown(kind) signal,
     // kind, fraction (tests/check.qml: the real one fires as PipeWire binds).
     property var interrupt: Interrupt
@@ -136,10 +150,18 @@ Item {
     // Whether this window has the keyboard (Qt's active window).
     readonly property bool windowActive: Window.active
     property string lastState: "rest"
+    // Whether the last record was an open panel (IslandMachine.panelOpen).
+    property bool lastPanel: false
     signal launcherLeft
-    // True for a moment after the launcher state, while the island still has
-    // the keyboard: Island.qml turns its keyboard focus off and on again
-    // (keyboardRelease below).
+    // The pickers (M7): ThemePicker's PickerModel once this island has shown
+    // one (showPicker); the panels read and drive it.
+    property var pickerModel: null
+    readonly property bool pickerState: machine.state === "themes" || machine.state === "wallpapers"
+    readonly property bool pickerShown: pickerState && pickerModel !== null
+    signal pickerLeft
+    // True for a moment after an open panel (the launcher, a picker, cc),
+    // while the island still has the keyboard: Island.qml turns its keyboard
+    // focus off and on again (keyboardRelease below).
     property bool keyboardDrop: false
 
     readonly property var crewAgents: view.crew?.agents ?? []
@@ -151,8 +173,8 @@ Item {
 
     // What the hugging states measure. The Crew panel and hover take the rest
     // pill's (IslandMachine.size keeps them at least 460 and 720).
-    readonly property real hugWidth: machine.state === "hail" ? hailLayer.hugWidth : machine.state === "vibes" ? vibesLayer.hugWidth : machine.state === "flash" ? flashLayer.hugWidth : machine.state === "launcher" ? launcherLayer.hugWidth : restLayer.hugWidth
-    readonly property real hugHeight: machine.state === "launcher" ? launcherLayer.hugHeight : crewLayer.hugHeight
+    readonly property real hugWidth: machine.state === "hail" ? hailLayer.hugWidth : machine.state === "vibes" ? vibesLayer.hugWidth : machine.state === "flash" ? flashLayer.hugWidth : machine.state === "launcher" ? launcherLayer.hugWidth : machine.state === "themes" ? themesLayer.hugWidth : machine.state === "wallpapers" ? wallsLayer.hugWidth : restLayer.hugWidth
+    readonly property real hugHeight: machine.state === "launcher" ? launcherLayer.hugHeight : machine.state === "themes" ? themesLayer.hugHeight : machine.state === "wallpapers" ? wallsLayer.hugHeight : crewLayer.hugHeight
     readonly property var targetSize: IslandMachine.size(machine, view.hugWidth, view.hugHeight)
     readonly property string clock: Fixture.data.clock ?? Qt.formatDateTime(view.now, "HH:mm")
     readonly property string date: Fixture.data.date ?? Qt.formatDateTime(view.now, "dddd, MMMM d")
@@ -275,6 +297,8 @@ Item {
     readonly property alias launcherCard: launcherLayer
     readonly property alias ccPanel: ccLayer
     readonly property alias powerMenu: powerLayer
+    readonly property alias themesPanel: themesLayer
+    readonly property alias wallpapersPanel: wallsLayer
     readonly property alias restAnchor: restAnchor
     readonly property alias hud: hud
     readonly property alias dwell: dwellTimer
@@ -352,16 +376,27 @@ Item {
         // the control center and the power menu take the keys themselves,
         // once their layers are current.
         if (machine.state === "launcher") Qt.callLater(view.focusLauncher);
+        else if (machine.state === "themes" || machine.state === "wallpapers") Qt.callLater(view.focusPicker);
         else if (IslandMachine.panelOpen(machine)) {
             if (machine.state === "cc" || machine.state === "power") Qt.callLater(view.focusPanel);
             else keys.forceActiveFocus();
         }
-        if (view.lastState === "launcher" && machine.state !== "launcher") {
+        // The last record's state and panel, noted before the signals below,
+        // whose handlers can change the record again.
+        const was = view.lastState, wasPanel = view.lastPanel;
+        view.lastState = machine.state;
+        view.lastPanel = IslandMachine.panelOpen(machine);
+        // A panel closed: the island lets go of the keyboard if Hyprland had
+        // no window to give it back to (keyboardRelease). The launcher (M5
+        // review), the pickers, cc and power alike (M7 review).
+        if (wasPanel && !view.lastPanel) keyboardRelease.restart();
+        if (was === "launcher" && machine.state !== "launcher") {
             launcherRelease.stop();
-            keyboardRelease.restart();
             view.launcherLeft();
         }
-        view.lastState = machine.state;
+        // Tab between the two pickers stays inside them. From the record, as
+        // above: the pickerState binding may lag here.
+        if ((was === "themes" || was === "wallpapers") && machine.state !== "themes" && machine.state !== "wallpapers") view.pickerLeft();
         if (machine.state === "power") view.raised = true;
         else if (!IslandMachine.panelOpen(machine)) view.raised = false;
         if (machine.state === "rest" && view.pendingHail !== "") Qt.callLater(view.retryHail);
@@ -771,6 +806,12 @@ Item {
             return "ok";
         }
         if (state === "launcher") return "error: the launcher opens through Launcher.qml (`qs ipc call launcher open`, or `island open launcher`)";
+        // The pickers open through ThemePicker, which hands them back here.
+        if (state === "themes" || state === "wallpapers") {
+            if (!view.pickerHost) return "error: no theme picker";
+            view.pickerHost.openOn(view.monitor, state);
+            return "ok";
+        }
         if (!IslandMachine.isState(state)) return "error: unknown island state \"" + state + "\" (states: " + IslandMachine.STATES.join(" ") + ")";
         return "error: the " + state + " state arrives in " + (arrives[state] ?? "a later milestone");
     }
@@ -806,6 +847,43 @@ Item {
             launcherRelease.restart();
         } else
             apply(IslandMachine.dismiss(machine));
+    }
+    // The picker opened on this screen in island mode (ThemePicker.qml): the
+    // island becomes the `themes` or `wallpapers` state, in place from
+    // whatever it showed (a banner it covers waits on the queue, as under the
+    // launcher). Called again on Tab, and for a picker that reopens.
+    function showPicker(model, state: string): string {
+        if (state !== "themes" && state !== "wallpapers") return "error: no picker state \"" + state + "\"";
+        // A closed model would leave the state up with nothing to close it.
+        if (!model || model.opened !== true) return "error: the picker is closed";
+        dwellTimer.stop();
+        graceTimer.stop();
+        keyboardRelease.stop();
+        hudPage = "";
+        NotificationState.closeCenter();
+        view.pickerModel = model;
+        if (machine.state !== state) apply(IslandMachine.cover(machine, state));
+        else view.focusPicker();
+        return "ok";
+    }
+    // The picker closed: back to rest, unless the island has already left
+    // the picker states (the palette, cc or the calendar opening over it is
+    // what closed it). From the record: inside onMachineChanged, where
+    // pickerLeft brings this round, the pickerState binding can still say
+    // themes, and dismissing then closed the palette or cc too (M7 review).
+    function releasePicker() {
+        if (machine.state === "themes" || machine.state === "wallpapers") apply(IslandMachine.dismiss(machine));
+    }
+    function focusPicker() {
+        const c = machine.state === "themes" ? themesLayer.content : machine.state === "wallpapers" ? wallsLayer.content : null;
+        if (c && view.pickerShown) c.forceActiveFocus();
+    }
+    // The control center's Theme mini: the themes picker on this screen, in
+    // place (ThemePicker hands it back through showPicker).
+    function openThemes(): bool {
+        if (!view.pickerHost) return false;
+        view.pickerHost.openOn(view.monitor, "themes");
+        return true;
     }
     function focusLauncher() {
         if (view.launcherShown && view.launcherEngine.opened) view.launcherEngine.focusInput();
@@ -865,6 +943,19 @@ Item {
                 focus: view.Window.activeFocusItem?.objectName ?? ""
             },
             power: { selected: powerLayer.selectedId, ran: view.powerRan, scrim: view.scrimShown, raised: view.raised },
+            // The pickers (M7): the model's kind, focus and filter, whether a
+            // panel has the keys, and the preview on screen.
+            picker: {
+                shown: view.pickerShown,
+                kind: view.pickerModel ? view.pickerModel.kind : "",
+                focused: view.pickerModel?.focused?.name ?? "",
+                index: view.pickerModel ? view.pickerModel.index : -1,
+                filter: view.pickerModel ? view.pickerModel.filter : "",
+                rows: view.pickerModel ? view.pickerModel.rows.length : 0,
+                focus: (themesLayer.content?.activeFocus ?? false) || (wallsLayer.content?.activeFocus ?? false),
+                preview: Tokens.previewPalette?.name ?? "",
+                surface: Tokens.hex(Tokens.surface)
+            },
             lane: view.lane,
             live: view.live,
             // Where the measured parts sit, logical px in the view.
@@ -929,6 +1020,13 @@ Item {
             ccPower: box(ccLayer.content.powerButton),
             ccSheet: box(ccLayer.content.sheetItem),
             power: box(powerLayer),
+            themes: box(themesLayer),
+            themesGrid: themesLayer.content ? box(themesLayer.content.grid) : null,
+            themesCard: themesLayer.content ? box(themesLayer.content.focusedCard) : null,
+            themesFilter: themesLayer.content ? box(themesLayer.content.filterPill) : null,
+            wallpapers: box(wallsLayer),
+            wallpapersGrid: wallsLayer.content ? box(wallsLayer.content.grid) : null,
+            wallpapersCard: wallsLayer.content ? box(wallsLayer.content.focusedCard) : null,
             powerItem: box(powerLayer.repeater.itemAt(0)),
             powerHint: box(powerLayer.hint)
         };
@@ -956,10 +1054,11 @@ Item {
         id: launcherRelease
         onTriggered: if (view.machine.state === "launcher" && !(view.launcherEngine?.opened)) view.apply(IslandMachine.dismiss(view.machine))
     }
-    // The palette closed and Hyprland had no window to give the keyboard back
-    // to (nothing had focus when it opened): the island, OnDemand, keeps it,
-    // and the next window to map is not focused, so an app launched from an
-    // empty workspace got no keys (M5 review). Once the focus grab has ended,
+    // A panel (the palette, a picker, cc, power) closed and Hyprland had no
+    // window to give the keyboard back to (nothing had focus when it opened):
+    // the island, OnDemand, keeps it, and the next window to map is not
+    // focused, so an app launched from an empty workspace got no keys (M5
+    // review; the pickers and cc in the M7 review). Once the focus grab has ended,
     // drop it: keyboard focus None for a moment, then OnDemand again. Never
     // while a panel holds the grab (changing keyboardFocus then remaps the
     // surface and ends the grab).
@@ -1190,6 +1289,59 @@ Item {
             onPower: view.openPower()
             onHandOff: page => view.handOff(page, true)
             openClipboard: view.paletteHost ? view.openClipboard : null
+            openThemes: view.pickerHost ? view.openThemes : null
+        }
+
+        // The theme and wallpaper pickers (M7): Panels/ThemesPanel.qml and
+        // Panels/WallpapersPanel.qml over ThemePicker's model, no background
+        // of their own, at their own size. Built while the state is up or
+        // fading out, so a closed picker costs the island nothing.
+        Layer {
+            id: themesLayer
+            readonly property var content: themesLoader.item
+            readonly property real hugWidth: content ? content.implicitWidth : 0
+            readonly property real hugHeight: content ? content.implicitHeight : 0
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 0
+            width: content ? content.implicitWidth : 1240
+            height: content ? content.implicitHeight : 600
+            current: view.pickerShown && view.machine.state === "themes"
+
+            Loader {
+                id: themesLoader
+                anchors.fill: parent
+                active: view.pickerModel !== null && (themesLayer.current || themesLayer.visible)
+                sourceComponent: ThemesPanel {
+                    picker: view.pickerModel
+                    active: themesLayer.current
+                    dpr: view.dpr
+                    availableWidth: view.width
+                }
+                onLoaded: if (themesLayer.current) Qt.callLater(view.focusPicker)
+            }
+        }
+        Layer {
+            id: wallsLayer
+            readonly property var content: wallsLoader.item
+            readonly property real hugWidth: content ? content.implicitWidth : 0
+            readonly property real hugHeight: content ? content.implicitHeight : 0
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 0
+            width: 780
+            height: content ? content.implicitHeight : 444
+            current: view.pickerShown && view.machine.state === "wallpapers"
+
+            Loader {
+                id: wallsLoader
+                anchors.fill: parent
+                active: view.pickerModel !== null && (wallsLayer.current || wallsLayer.visible)
+                sourceComponent: WallpapersPanel {
+                    picker: view.pickerModel
+                    active: wallsLayer.current
+                    dpr: view.dpr
+                }
+                onLoaded: if (wallsLayer.current) Qt.callLater(view.focusPicker)
+            }
         }
 
         PowerLayer {
@@ -1222,6 +1374,7 @@ Item {
         monitor: view.monitor ?? ({ width: 1920, height: 1200 })
         now: view.now
         page: view.hudPage
+        pickerHost: view.pickerHost
         // The battery page's "Back to controls" is the control center now,
         // not the old Hud home (M6 review).
         onNavigate: page => {

@@ -44,6 +44,8 @@ ShellRoot {
                 active: Prefs.barMode !== "island"
                 Bar {
                     modelData: screenScope.modelData
+                    // The Hud's Theme packs open the theme picker (M7).
+                    pickerHost: themePicker
                 }
             }
             LazyLoader {
@@ -58,6 +60,8 @@ ShellRoot {
                     // The palette and the control center hand the island to
                     // each other in place (IslandView, Launcher.qml).
                     paletteHost: launcher
+                    // The theme and wallpaper pickers become island states (M7).
+                    pickerHost: themePicker
                 }
             }
             Reserve {
@@ -98,7 +102,12 @@ ShellRoot {
         source: notificationServer
     }
     NotificationCenter {}
-    ThemePicker {}
+    // The theme and wallpaper pickers: the island's themes and wallpapers
+    // states in island mode, a free panel in the classic modes (M7).
+    ThemePicker {
+        id: themePicker
+        islands: screens.instances.map(s => s.island).filter(i => i)
+    }
     // The palette: the island's launcher state in island mode, its own panel
     // in the classic modes (Launcher.qml).
     Launcher {

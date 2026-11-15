@@ -27,6 +27,8 @@ PanelWindow {
     readonly property bool vertical: Prefs.vertical
     readonly property alias view: barView
     readonly property alias host: host
+    // shell.qml's ThemePicker: Appearance's Theme packs opens it (M7).
+    property var pickerHost: null
     property date now: new Date()
 
     anchors {

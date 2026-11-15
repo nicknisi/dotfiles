@@ -26,6 +26,9 @@ Layer {
     // island's palette, opened in place (IslandView.openClipboard); null for
     // none.
     property var openClipboard: null
+    // What the Theme mini calls instead of `theme picker themes`: the themes
+    // picker in place (IslandView.openThemes); null for none.
+    property var openThemes: null
 
     signal close
     signal power
@@ -70,6 +73,7 @@ Layer {
         active: layer.current
         monitor: layer.monitor
         openClipboard: layer.openClipboard
+        openThemes: layer.openThemes
         onClose: layer.close()
         onPower: layer.power()
         onHandOff: page => layer.handOff(page)

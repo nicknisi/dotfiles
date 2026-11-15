@@ -42,10 +42,10 @@ assert.equal(M.click(cc), cc)
 
 // ---- panelOpen -------------------------------------------------------------------
 const open = M.STATES.filter(s => M.panelOpen(M.go(rest, s)))
-assert.deepEqual(open.sort(), ['cal', 'cc', 'crew', 'hover', 'launcher', 'polkit', 'power'].sort(), 'panels plus pinned hover and crew')
+assert.deepEqual(open.sort(), ['cal', 'cc', 'crew', 'hover', 'launcher', 'polkit', 'power', 'themes', 'wallpapers'].sort(), 'panels plus pinned hover and crew')
 assert.equal(M.panelOpen(hover), false, 'unpinned hover is not a panel')
 for (const s of ['rest', 'notif', 'osd', 'dict', 'flash', 'hail', 'vibes']) assert.equal(M.panelOpen(M.go(rest, s)), false, s + ' is not a panel')
-assert.deepEqual(M.PANELS.slice().sort(), ['cal', 'cc', 'launcher', 'polkit', 'power'])
+assert.deepEqual(M.PANELS.slice().sort(), ['cal', 'cc', 'launcher', 'polkit', 'power', 'themes', 'wallpapers'])
 
 // ---- timers ----------------------------------------------------------------------
 assert.deepEqual(M.TIMERS, { notif: 4200, osd: 1400, flash: 1400, hail: 5000, vibes: 4000 })
@@ -80,10 +80,11 @@ assert.equal(M.radiusFor(136), 28, 'radius min(28, h/2)')
 assert.equal(M.radiusFor(560), 28)
 const dims = { rest: [360, 38], hover: [720, 136], launcher: [760, 472], cc: [760, 560], cal: [400, 368], notif: [520, 92],
     osd: [340, 44], dict: [360, 48], polkit: [480, 272], power: [600, 156], flash: [360, 52],
-    crew: [460, 332], hail: [360, 52], vibes: [240, 44] }
+    crew: [460, 332], hail: [360, 52], vibes: [240, 44], themes: [1240, 600], wallpapers: [780, 444] }
 assert.deepEqual(M.DIMS, dims)
 for (const s of M.STATES) assert.ok(M.DIMS[s], s + ' has a size')
-assert.equal(M.WINDOW_HEIGHT, 608, 'window: 8 + 560 + 40')
+assert.equal(M.WINDOW_HEIGHT, 648, 'window: 8 + 600 (the themes picker, M7) + 40')
+assert.equal(M.TALLEST, Math.max(...Object.values(M.DIMS).map(d => d[1])), 'the tallest state sets the window')
 assert.deepEqual(M.size(rest, 0), [360, 38])
 assert.deepEqual(M.size(rest, 420), [420, 38], 'rest hugs its content')
 assert.deepEqual(M.size(rest, 300), [360, 38], 'with a 360 minimum')
@@ -160,14 +161,14 @@ assert.equal(M.offer(hover, 'vibes').state, 'vibes', 'vibes may replace unpinned
 assert.equal(M.offer(hail, 'vibes'), hail, 'vibes never cuts a hail short by itself')
 assert.equal(M.offer(rest, 'bogus'), rest)
 
-// Sizes: the crew panel hugs its height under the window's 560, the cards their
+// Sizes: the crew panel hugs its height under the window's 600, the cards their
 // width. The crew panel's width is the rest pill's when that is wider than 460,
 // so the bots that opened it stay under the pointer (M2 review).
 assert.deepEqual(M.size(crewPinned, 0, 332), [460, 332])
 assert.deepEqual(M.size(crewPinned, 392, 332), [460, 332], 'crew-4: the 392 pill grows into the 460 panel')
 assert.deepEqual(M.size(crewPinned, 608, 536), [608, 536], 'a 608 pill keeps its width in the panel')
 assert.deepEqual(M.size(crewPinned, 501, 0), [504, 332], 'rounded up to a multiple of 4 like the pill')
-assert.deepEqual(M.size(crewPinned, 999, 900), [1000, 560], 'the crew panel never outgrows the window')
+assert.deepEqual(M.size(crewPinned, 999, 900), [1000, 600], 'the crew panel never outgrows the window')
 assert.deepEqual(M.size(crewPinned), [460, 332], 'before it measures, the panel takes its default')
 for (const w of [360, 392, 460, 492, 504, 600, 608])
     assert.ok(M.size(crewPinned, w, 332)[0] >= M.size(rest, w)[0], 'the panel is never narrower than a ' + w + ' rest pill')
@@ -187,7 +188,27 @@ const launcher = M.go(rest, 'launcher')
 assert.deepEqual(M.size(launcher, 760, 472), [760, 472], 'M5: the palette is its content, 760 x 472')
 assert.deepEqual(M.size(launcher), [760, 472], 'before it measures, the launcher takes its default')
 assert.deepEqual(M.size(launcher, 300, 172.5), [300, 173], 'a picker hugs both sides, with no minimum')
-assert.deepEqual(M.size(launcher, 421, 900), [424, 560], 'rounded to the width step and capped at the window')
+assert.deepEqual(M.size(launcher, 421, 900), [424, 600], 'rounded to the width step and capped at the window')
+// The pickers (M7): their content's size, open panels under polkit, and the
+// launcher, cc or a banner they cover comes back the same way.
+const pickItem = (id, timeout) => ({ id, timeout })
+const themes = M.go(rest, 'themes'), walls = M.go(rest, 'wallpapers')
+assert.deepEqual(M.size(themes, 1240, 600), [1240, 600], 'M7: the themes panel, 1240 x 600')
+assert.deepEqual(M.size(themes), [1240, 600], 'before it measures, the themes panel takes its default')
+assert.deepEqual(M.size(walls, 780, 252), [780, 252], 'a theme with one row of wallpapers is shorter')
+assert.deepEqual(M.size(walls, 780, 444), [780, 444])
+assert.deepEqual(M.size(themes, 1088.5, 600), [1092, 600], 'a narrow screen\'s 7 columns round to the width step')
+assert.ok(M.panelOpen(themes) && M.panelOpen(walls) && !themes.pinned, 'both are open panels, never pinned')
+assert.deepEqual(['themes', 'wallpapers'].map(s => M.rank(M.go(rest, s))), [1, 1], 'they rank as an open panel')
+assert.equal(M.offer(themes, 'notif', pickItem(3, 4200)), themes, 'a banner waits behind the picker')
+{
+  const tabbed = M.cover(themes, 'wallpapers')
+  assert.deepEqual([tabbed.state, tabbed.pinned, tabbed.timer], ['wallpapers', false, 0], 'Tab: themes -> wallpapers in place')
+  const crit = M.notify(rest, pickItem(9, 0))
+  const t = M.cover(crit, 'themes')
+  assert.deepEqual([t.state, t.queue], ['themes', [pickItem(9, 0)]], 'the picker covers a critical banner, which waits')
+  assert.deepEqual([M.settle(M.dismiss(t), {}).state], ['notif'], 'and shows again once the picker closes')
+}
 // The launcher covers a banner without losing it (M5 review): the one
 // showing, and what it interrupted, wait on the queue for the palette to close.
 {

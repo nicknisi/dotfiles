@@ -11,7 +11,7 @@ import qs
 // first one when Hyprland cannot say) and answer "error: ..." outside island
 // mode.
 //
-//   open STATE    rest | hover | crew | hail | vibes | cal | notif | osd | dict | flash | cc | cc/<sheet> | power | battery | launcher;
+//   open STATE    rest | hover | crew | hail | vibes | cal | notif | osd | dict | flash | cc | cc/<sheet> | power | battery | launcher | themes | wallpapers;
 //                 cc is the control center (M6), cc/<sheet> opens it on a
 //                 sheet (wifi, sound, tailscale, bt, notifications, display,
 //                 awake), power the power menu over its scrim, and battery the
@@ -27,7 +27,9 @@ import qs
 //                 calendar, a panel), notif (the newest waiting notification,
 //                 or a fixture's `notif`; an error when there is none), osd
 //                 and flash (each with its own 1400 ms), and dict (an error
-//                 unless dictation is running)
+//                 unless dictation is running). M7 adds themes and
+//                 wallpapers: the pickers (ThemePicker.qml, the `picker`
+//                 IPC's own), as island states on the focused screen
 //   close         back to rest, closing any hand-off
 //   toggle STATE  open, or close when that state is already showing
 //   hold          stop the state's timer, so an OSD, flash or notification

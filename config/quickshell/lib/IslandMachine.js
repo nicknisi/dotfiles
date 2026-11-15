@@ -32,11 +32,11 @@
 //
 // Every function returns a new record and never changes the one it was given.
 // M1 draws rest and hover, M2 the Crew's three (crew, hail, vibes), M3 the
-// island's own (cal, notif, osd, dict, flash); the other states are here so
-// their sizes, timers and priority have one home, and M5 to M8 fill in their
-// layers.
+// island's own (cal, notif, osd, dict, flash), M5 the launcher, M6 cc and
+// power, M7 the pickers (themes, wallpapers); polkit is here so its size,
+// timer and priority have one home, and M8 fills in its layer.
 
-var STATES = ["rest", "hover", "launcher", "cc", "cal", "notif", "osd", "dict", "polkit", "power", "flash", "crew", "hail", "vibes"];
+var STATES = ["rest", "hover", "launcher", "cc", "cal", "notif", "osd", "dict", "polkit", "power", "flash", "crew", "hail", "vibes", "themes", "wallpapers"];
 
 // Target size per state, logical px (Main `dims`). Rest hugs its content with
 // this minimum (restWidth below); flash hugs its content too, with no minimum
@@ -62,19 +62,28 @@ var DIMS = {
     flash: [360, 52],
     crew: [460, 332],
     hail: [360, 52],
-    vibes: [240, 44]
+    vibes: [240, 44],
+    // M7: Panels/ThemesPanel (8 columns, a 3-row viewport) and
+    // Panels/WallpapersPanel (3 columns, at most 2 rows in view, so as tall as
+    // its wallpapers: 252 for one row, 444 with 2 rows or more).
+    themes: [1240, 600],
+    wallpapers: [780, 444]
 };
 
 // Which side of each hugging state follows its content, and its minimum.
 // The launcher (M5) is its content's size: 760 x 472 for the palette, a
 // picker (`launcher select`) its requested width and only as tall as its rows.
-var HUGS = { rest: "width", hover: "width", flash: "width", hail: "width", vibes: "width", crew: "both", launcher: "both" };
+// So are the theme and wallpaper pickers (M7): the themes panel narrower on a
+// narrow screen, the wallpapers panel as tall as a theme's wallpapers.
+var HUGS = { rest: "width", hover: "width", flash: "width", hail: "width", vibes: "width", crew: "both", launcher: "both", themes: "both", wallpapers: "both" };
 var MINS = { rest: 360, hover: 720, crew: 460 };
 
-// The tallest state, cc, sets the island window's height: 8 inset + 560 + 40
-// for the shadow (28 blur + 10 offset, rounded up).
+// The tallest state, the themes picker (M7; cc's 560 until then), sets the
+// island window's height: 8 inset + 600 + 40 for the shadow (28 blur + 10
+// offset, rounded up). The window is transparent and its input mask is the
+// body, so the room costs nothing at rest.
 var TOP_INSET = 8;
-var TALLEST = 560;
+var TALLEST = 600;
 var SHADOW_ROOM = 40;
 var WINDOW_HEIGHT = TOP_INSET + TALLEST + SHADOW_ROOM;
 
@@ -99,7 +108,7 @@ var ZONE_GAP = 12;
 // the pointer alone: a hail can open under a pointer that was not reaching
 // for it, and the panel's focus grab would take the keyboard from the window
 // being typed in (M2 review).
-var PANELS = ["launcher", "cc", "cal", "polkit", "power"];
+var PANELS = ["launcher", "cc", "cal", "polkit", "power", "themes", "wallpapers"];
 // Opened by the pointer resting on the island, closed by it leaving, unless pinned.
 var HOVERS = ["hover", "crew"];
 
