@@ -1,5 +1,18 @@
+// AppearanceMenu.qml - the bar's mode and edge, and the way to the theme
+// packs (the status module's right click; the classic bars' anchored host
+// shows it on its frame, PLAN M4).
+//
+// In the island's material, the control center sheets' type: section labels
+// Adwaita 11 / 500 `inkDim` in capitals, rows 46 high with a 16 px Lucide
+// icon (Kit/Icon), a 13 title and an 11 `inkDim` caption. The current mode
+// and edge sit on `accentTint` with the icon and the label in `accent`. One
+// icon per mode: the pill a capsule of modules (rectangle-ellipsis), the full
+// strip a bar across the top (panel-top), the rail a strip down the side
+// (panel-left), the island the sparkle the Display sheet uses.
 import QtQuick
 import QtQuick.Layouts
+import qs
+import qs.Kit
 
 BarMenu {
     id: menu
@@ -10,50 +23,79 @@ BarMenu {
     title: "Appearance"
     subtitle: "Bar layout, edge, and theme packs"
 
-    component Label: Text {
-        textFormat: Text.PlainText
-        color: Theme.fg
-        font.family: Theme.uiFont
-        font.pixelSize: Theme.fontSize - 1
-        Layout.alignment: Qt.AlignVCenter
-        elide: Text.ElideRight
-    }
-
     component SectionTitle: Text {
         textFormat: Text.PlainText
-        color: Theme.secondary
-        font.family: Theme.headingFont
-        font.pixelSize: Theme.fontSize - 3
-        font.bold: true
-        font.letterSpacing: 0.6
+        color: Tokens.inkDim
+        font.family: "Adwaita Sans"
+        font.pixelSize: 11
+        font.weight: Font.Medium
+        font.letterSpacing: 0.66
+        leftPadding: 4
         Layout.fillWidth: true
     }
 
-    component Choice: BarModule {
+    component Rule: Rectangle {
+        Layout.fillWidth: true
+        implicitHeight: 1
+        color: Tokens.hairline
+    }
+
+    component Choice: BarChip {
         id: choice
         property bool selected: false
         property string caption: ""
-        property string glyph: ""
-        property color tint: Theme.accent
+        property string iconName: ""
+        property bool chevron: false
 
         Layout.fillWidth: true
-        implicitHeight: 44
+        implicitHeight: 46
+        padding: 10
+        cornerRadius: 10
         highlighted: selected
-        cornerRadius: Theme.controlRadius
 
-        Text {
-            text: choice.glyph
-            font.family: Theme.icons
-            font.pixelSize: 17
-            color: choice.selected ? Theme.accent : choice.tint
+        Icon {
+            name: choice.iconName
+            size: 16
+            color: choice.selected ? Tokens.accent : Tokens.fg
+            Layout.preferredWidth: 16
+            Layout.preferredHeight: 16
             Layout.alignment: Qt.AlignVCenter
+            Layout.rightMargin: 5
         }
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
-            Label { text: choice.text; font.family: Theme.headingFont; font.bold: choice.selected; Layout.fillWidth: true }
-            Label { text: choice.caption; color: Theme.secondary; font.pixelSize: Theme.fontSize - 3; Layout.fillWidth: true }
+            Layout.alignment: Qt.AlignVCenter
+            spacing: 1
+            Text {
+                Layout.fillWidth: true
+                text: choice.text
+                textFormat: Text.PlainText
+                color: choice.selected ? Tokens.accent : Tokens.fg
+                font.family: "Adwaita Sans"
+                font.pixelSize: 13
+                font.weight: choice.selected ? Font.Medium : Font.Normal
+                elide: Text.ElideRight
+            }
+            Text {
+                Layout.fillWidth: true
+                text: choice.caption
+                textFormat: Text.PlainText
+                color: Tokens.inkDim
+                font.family: "Adwaita Sans"
+                font.pixelSize: 11
+                elide: Text.ElideRight
+            }
+        }
+
+        Icon {
+            visible: choice.chevron
+            name: "chev"
+            size: 14
+            color: Tokens.inkDim
+            Layout.preferredWidth: 14
+            Layout.preferredHeight: 14
+            Layout.alignment: Qt.AlignVCenter
         }
     }
 
@@ -62,11 +104,12 @@ BarMenu {
         Qt.callLater(() => Prefs.setEdge(edge));
     }
 
-    // Between pill, full and rail the bar stays and just reshapes. Entering
-    // or leaving the island swaps the window this menu hangs from (the bar's
-    // Hud, or the island's hand-off Hud), so close the menu first and switch
-    // once the click has finished: destroying the Hud from inside its own
-    // click handler would pull the window out from under it.
+    // Between pill, full and rail the bar stays and just reshapes (its
+    // anchored panel, where this page shows, closes as it does). Entering or
+    // leaving the island swaps the window this menu hangs from (the bar's
+    // AnchoredHost, or the island's hand-off Hud), so close the menu first
+    // and switch once the click has finished: destroying the window from
+    // inside its own click handler would pull it out from under the click.
     function switchMode(mode: string): void {
         if (mode !== "island" && Prefs.barMode !== "island") {
             Prefs.setBarMode(mode);
@@ -79,38 +122,42 @@ BarMenu {
     SectionTitle { text: "BAR LAYOUT" }
 
     Choice {
+        objectName: "modePill"
         text: "Pill"
-        glyph: "\u{f0356}"
+        iconName: "barPill"
         caption: "Compact and floating"
         selected: Prefs.barMode === "pill"
         onClicked: menu.switchMode("pill")
     }
 
     Choice {
+        objectName: "modeFull"
         text: "Full bar"
-        glyph: "\u{f0a71}"
-        caption: "Spans the entire screen edge"
+        iconName: "barFull"
+        caption: "Edge to edge, along the top or the bottom"
         selected: Prefs.barMode === "full"
         onClicked: menu.switchMode("full")
     }
 
     Choice {
+        objectName: "modeRail"
         text: "Rail"
-        glyph: "\u{f0356}"
-        caption: "Long and floating, on any edge"
+        iconName: "barRail"
+        caption: "Full height, down the left or the right"
         selected: Prefs.barMode === "rail"
         onClicked: menu.switchMode("rail")
     }
 
     Choice {
+        objectName: "modeIsland"
         text: "Island"
-        glyph: "\u{f104f}"
+        iconName: "sparkle"
         caption: "Top centre, grows into what you open"
         selected: Prefs.barMode === "island"
         onClicked: menu.switchMode("island")
     }
 
-    MenuRule {}
+    Rule {}
 
     SectionTitle { text: "SCREEN EDGE" }
 
@@ -127,33 +174,45 @@ BarMenu {
             ]
 
             // The island always sits at the top; the edge it remembers is
-            // where the bar goes back to.
-            BarModule {
+            // where the bar goes back to. The full bar takes the top or the
+            // bottom and the rail the left or the right: picking a side for
+            // the full bar makes it the rail, and the top or the bottom for
+            // the rail makes it the full bar (Prefs.setEdge).
+            BarChip {
+                id: edgeButton
                 required property var modelData
                 Layout.fillWidth: true
+                implicitHeight: 32
+                cornerRadius: 8
                 enabled: Prefs.barMode !== "island"
-                opacity: enabled ? 1 : 0.45
                 text: modelData.label
-                highlighted: Prefs.storedEdge === modelData.edge
-                cornerRadius: Theme.controlRadius
+                readonly property bool current: (Prefs.barMode === "island" ? Prefs.storedEdge : Prefs.edge) === modelData.edge
+                highlighted: current
                 onClicked: menu.switchEdge(modelData.edge)
 
-                Label {
-                    text: modelData.label
-                    color: Prefs.storedEdge === modelData.edge ? Theme.accent : Theme.fg
+                Text {
+                    text: edgeButton.modelData.label
+                    textFormat: Text.PlainText
+                    color: edgeButton.current ? Tokens.accent : Tokens.fg
+                    font.family: "Adwaita Sans"
+                    font.pixelSize: 12
+                    font.weight: edgeButton.current ? Font.Medium : Font.Normal
                     horizontalAlignment: Text.AlignHCenter
                     Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
                 }
             }
         }
     }
 
-    MenuRule {}
+    Rule {}
 
     Choice {
+        objectName: "themePacks"
         text: "Theme packs"
-        glyph: "\u{f0e0c}"
+        iconName: "palette"
         caption: Theme.name || "Choose the active color palette"
+        chevron: true
         selected: false
         onClicked: menu.navigate("theme")
     }

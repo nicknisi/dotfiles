@@ -51,6 +51,21 @@ ShellRoot {
         test.check(Prefs.edge === "top" && !Prefs.translucent, "the old keys are untouched");
     }
 
+    function legacy() {
+        // services.sh wrote a pre-M4 file: the old rail on the top.
+        test.check(Prefs.barMode === "full" && Prefs.edge === "top" && Prefs.storedEdge === "top", "the old rail on the top is the full strip on the top: " + Prefs.barMode + " " + Prefs.edge);
+        test.check(Prefs.translucent && Prefs.dnd, "the other keys are kept");
+    }
+
+    function kept() {
+        // An M4 file (layout 1) with the rail chosen while the top is remembered.
+        test.check(Prefs.barMode === "rail" && Prefs.edge === "left" && Prefs.storedEdge === "top", "M4's rail stays the rail down the left: " + Prefs.barMode + " " + Prefs.edge);
+    }
+
+    function legacyside() {
+        test.check(Prefs.barMode === "rail" && Prefs.edge === "right" && Prefs.storedEdge === "right", "the old full strip on the right is the rail there: " + Prefs.barMode + " " + Prefs.edge);
+    }
+
     function fixture() {
         test.check(Fixture.sandbox, "SHELL_SANDBOX=1 is seen");
         test.check(Object.keys(Fixture.data).length === 0 && Fixture.name === "", "nothing is loaded at start");
@@ -80,12 +95,18 @@ ShellRoot {
         repeat: true
         property int tries: 0
         onTriggered: {
-            if (test.phase === "stale" && !Prefs.dnd && ++tries < 30) return;
-            if (test.phase !== "stale" && ++tries < 3) return;
+            // The conversions wait for their file the same way: the seeded
+            // barMode differs from the pill default once it has loaded.
+            const loads = { stale: () => Prefs.dnd, legacy: () => Prefs.barMode !== "pill", kept: () => Prefs.barMode !== "pill", legacyside: () => Prefs.barMode !== "pill" };
+            if (loads[test.phase] && !loads[test.phase]() && ++tries < 30) return;
+            if (!loads[test.phase] && ++tries < 3) return;
             stop();
             try {
                 if (test.phase === "first") test.first();
                 else if (test.phase === "stale") test.stale();
+                else if (test.phase === "legacy") test.legacy();
+                else if (test.phase === "kept") test.kept();
+                else if (test.phase === "legacyside") test.legacyside();
                 else if (test.phase === "fixture") test.fixture();
                 else if (test.phase === "inert") test.inert();
                 else throw new Error("unknown phase " + test.phase);

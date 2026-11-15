@@ -10,6 +10,7 @@
 import Quickshell
 import Quickshell.Io
 import qs.Island
+import qs.Hosts
 
 ShellRoot {
     id: root
@@ -36,8 +37,10 @@ ShellRoot {
             required property var modelData
             readonly property var reserve: reserveWindow
             readonly property var island: islandLoader.item
+            readonly property var classicBar: barLoader.item
 
             LazyLoader {
+                id: barLoader
                 active: Prefs.barMode !== "island"
                 Bar {
                     modelData: screenScope.modelData
@@ -78,6 +81,10 @@ ShellRoot {
         islands: screens.instances.map(s => s.island).filter(i => i)
         launcher: launcher
     }
+    // `qs ipc call bar ...`: the classic bars' anchored panels (M4).
+    BarIpc {
+        bars: screens.instances.map(s => s.classicBar).filter(b => b)
+    }
 
     // Global rather than per-monitor: one D-Bus notification server for the
     // session (NotificationServer.qml), whatever the bar mode. The classic
@@ -97,6 +104,7 @@ ShellRoot {
     Launcher {
         id: launcher
         islands: screens.instances.map(s => s.island).filter(i => i)
+        classicBars: screens.instances.map(s => s.classicBar).filter(b => b)
     }
     // Dictation from the daemon (the Copilot key): this bottom popup in the
     // classic modes, the island's dict state in island mode.

@@ -19,6 +19,8 @@ Singleton {
     readonly property bool micMuted: source?.audio?.muted ?? false
     readonly property bool ready: sink?.ready ?? false
     readonly property string outputIcon: AudioOutput.icon(sink, muted)
+    // The Lucide name for the same output (the bar, M4).
+    readonly property string outputIconName: AudioOutput.iconName(sink, muted)
 
     // ---- everything the audio menu picks from -----------------------------
     // Devices are matched on media.class, not on isSink. PipeWire's graph also

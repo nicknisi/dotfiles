@@ -3,6 +3,7 @@ import Quickshell
 import QtQuick
 import qs.Kit
 import qs.Island
+import qs.Hosts
 import "launcher/ui" as LauncherUi
 import "MenuAnchor.js" as MenuAnchor
 import "BarGeometry.js" as BarGeometry
@@ -10,6 +11,7 @@ import "lib/WorkspaceOrder.js" as WorkspaceOrder
 import "lib/CrewModel.js" as CrewModel
 import "lib/IslandMachine.js" as IslandMachine
 import "lib/Calendar.js" as Calendar
+import "lib/Anchored.js" as Anchored
 import "launcher/core/Match.js" as Match
 import "launcher/core/Glyphs.js" as Glyphs
 
@@ -699,7 +701,7 @@ ShellRoot {
                     test.check(runner.visible && runner.running && !greeting.visible, "drag overrides menu costumes");
                 } else {
                     // The crew check's eleven beats outlast this timer's two: wait a round.
-                    if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running || mergeCheck.running) return;
+                    if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running || mergeCheck.running || barCheck.running || !barCheck.finished) return;
                     test.check(avatarFrames.changes > 0, "running frames actually advance");
                     avatar.visible = false;
                     test.check(!runner.running, "hidden runner stops animating");
@@ -714,6 +716,7 @@ ShellRoot {
                     test.check(launcherCheck.finished, "the launcher check ran to the end");
                     test.check(m6Check.finished, "the M6 check ran to the end");
                     test.check(mergeCheck.finished, "the launcher and control center check ran to the end");
+                    test.check(barCheck.finished, "the M4 bar check ran to the end");
                     test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
                     console.log("CAPSULE_TEST_PASS");
                     Qt.quit();
@@ -738,16 +741,23 @@ ShellRoot {
                 const modes = ["pill", "full", "rail", "island"];
                 const edges = ["top", "bottom", "left", "right"];
                 if (step > 0) {
-                    const expectedMode = modes[Math.floor((step - 1) / 4)];
+                    // Each step asks for a mode, then an edge. The full bar
+                    // moved to a side becomes the rail, the rail moved to the
+                    // top or the bottom becomes the full bar (M4).
+                    const askedMode = modes[Math.floor((step - 1) / 4)];
                     const expectedEdge = edges[(step - 1) % 4];
+                    const side = expectedEdge === "left" || expectedEdge === "right";
+                    const expectedMode = askedMode === "full" && side ? "rail" : askedMode === "rail" && !side ? "full" : askedMode;
                     const island = expectedMode === "island";
-                    test.check(Prefs.barMode === expectedMode, "layout preference settles: " + expectedMode);
+                    test.check(Prefs.barMode === expectedMode, "layout preference settles: " + askedMode + "/" + expectedEdge + " -> " + expectedMode);
                     test.check(Theme.controlRadius === 12 && Theme.panelRadius === 28, "controls stay rounded in every layout");
-                    test.check(Theme.barExtent === (island ? 46 : expectedMode === "full" ? 40 : 56), "reservation matches layout geometry: " + expectedMode);
+                    test.check(Theme.barExtent === (island ? 46 : expectedMode === "pill" ? 56 : 40), "reservation matches layout geometry: " + expectedMode + " " + Theme.barExtent);
+                    test.check(Theme.barInset === (expectedMode === "pill" || island ? 8 : 0), "the pill floats 8 in; the full bar and the rail are flush");
                     // The island always sits at the top and keeps the stored edge for later.
                     const shownEdge = island ? "top" : expectedEdge;
                     test.check(Prefs.edge === shownEdge && Prefs.storedEdge === expectedEdge
                         && Prefs.vertical === ["left", "right"].includes(shownEdge), "edge preference settles: " + expectedMode + "/" + expectedEdge);
+                    test.check(BarGeometry.edgeFor(expectedMode, expectedEdge) === Prefs.edge, "Prefs reads BarGeometry's edge rule");
                     test.check(Theme.barExtent >= Theme.barHeight, "reservation includes bar inset");
                     test.check(Theme.contrast(Theme.accent, Theme.accentText) >= Math.max(Theme.contrast(Theme.accent, Theme.bg), Theme.contrast(Theme.accent, Theme.fg)), "accent text uses the contrasting palette color");
                 }
@@ -756,7 +766,16 @@ ShellRoot {
                     test.check(Prefs.barMode === "island" && Prefs.edge === "top" && Prefs.storedEdge === "right", "invalid preferences are rejected");
                     Prefs.setBarMode("pill");
                     test.check(Prefs.edge === "right", "leaving the island restores the stored edge");
-                    Prefs.setBarMode(oldMode); Prefs.setEdge(oldEdge);
+                    // A mode switch reads its own edge and keeps the stored one.
+                    Prefs.setBarMode("full");
+                    test.check(Prefs.edge === "top" && Prefs.storedEdge === "right" && Theme.barExtent === 40, "the full bar on a remembered side edge reads the top");
+                    Prefs.setBarMode("rail");
+                    test.check(Prefs.edge === "right" && Theme.barExtent === 40, "the rail goes back to the remembered right edge");
+                    Prefs.setEdge("bottom");
+                    test.check(Prefs.barMode === "full" && Prefs.edge === "bottom", "the rail moved to the bottom is the full bar");
+                    Prefs.setBarMode("pill");
+                    test.check(Prefs.edge === "bottom", "and the pill follows the remembered edge");
+                    Prefs.setBarMode(oldMode); Prefs.setEdge(oldEdge); Prefs.setBarMode(oldMode);
                     finished = true; stop(); return;
                 }
                 Prefs.setBarMode(modes[Math.floor(step / 4)]);
@@ -1366,7 +1385,7 @@ ShellRoot {
                     const system = Qt.createComponent(Qt.resolvedUrl("launcher/providers/System.qml"));
                     const provider = system.createObject(mergeView, { host: null });
                     const row = provider.catalog({ settings: {} }).find(r => r.id === "control-center");
-                    test.check(!!row === (Prefs.barMode === "island"), "Open Control center is listed in island mode only (" + Prefs.barMode + ")");
+                    test.check(!!row, "Open Control center is listed in every bar mode (" + Prefs.barMode + ")");
                     const any = row ?? provider.commandRow(provider.commands.find(c => c.id === "control-center"), {}, 0);
                     test.check(JSON.stringify(provider.activate(any)) === JSON.stringify({ type: "island", state: "cc" }), "it asks for the island's cc state");
                     test.check(Glyphs.forRow(Object.assign({ providerKey: "system" }, any)) === "sliders", "its tile draws sliders, as the voice board does");
@@ -1391,6 +1410,183 @@ ShellRoot {
                     test.check(v.islandState === "notif" && v.machine.item?.id === -7 && !v.raised, "and it comes back after the power menu and the palette, the island lowered");
                     v.apply(IslandMachine.drop(v.machine, -7));
                     test.check(v.islandState === "rest", "back to rest");
+                    finished = true;
+                    stop();
+                }
+                step++;
+            } catch (error) {
+                console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
+            }
+        }
+    }
+
+    // The classic bars in the new material (PLAN M4): BarView and the
+    // anchored panel host (Hosts/AnchoredView, AnchoredHost's content; its
+    // PanelWindow has no offscreen backend) in a 1920 x 1200 window, on the
+    // real singletons. Beats 600 ms apart, so each spatial motion (400) has
+    // settled; it starts once the checks that read Prefs.barMode are done.
+    FloatingWindow {
+        visible: true
+        implicitWidth: 1920
+        implicitHeight: 1200
+        color: "transparent"
+        BarView {
+            id: m4Bar
+            screen: ({ width: 1920, height: 1200 })
+            workspaces: [{ name: "W", urgent: false, activate: () => {} }, { name: "D", urgent: false, activate: () => {} }]
+            focusedName: "D"
+            trayItems: []
+            seamFrom: m4Host.seamFrom
+            seamTo: m4Host.seamTo
+            seamStartLine: m4Host.seamStartLine
+            seamEndLine: m4Host.seamEndLine
+        }
+        AnchoredView {
+            id: m4Host
+            anchors.fill: parent
+            view: m4Bar
+            monitor: ({ name: "check-m4", width: 1920, height: 1200 })
+        }
+    }
+    Timer {
+        id: barCheck
+        interval: 600
+        repeat: true
+        running: true
+        property int step: 0
+        property bool finished: false
+        property string oldMode: "pill"
+        property string oldEdge: "top"
+        function texts(item) {
+            let out = item.visible !== false && typeof item.text === "string" && item.text !== "" ? [item.text] : [];
+            for (const c of (item.children ?? []))
+                out = out.concat(texts(c));
+            return out;
+        }
+        onTriggered: {
+            try {
+                const h = m4Host, b = m4Bar;
+                const settled = () => h.progress === 1 && !h.closing;
+                if (step === 0) {
+                    if (!styleCheck.finished || !launcherCheck.finished || !m6Check.finished || !mergeCheck.finished) return;
+                    oldMode = Prefs.barMode;
+                    oldEdge = Prefs.storedEdge;
+                    Prefs.setBarMode("pill");
+                    Prefs.setEdge("top");
+                } else if (step === 1) {
+                    // The pill: 518 x 40, 8 down, radius 20, ring and shadow; 56 reserved.
+                    test.check(Theme.barExtent === 56 && b.body.x === 701 && b.body.y === 8 && b.body.width === 518 && b.body.height === 40, "the pill sits 8 down, centred: " + JSON.stringify(b.surfaceRect()));
+                    test.check(b.surface.radius === 20 && b.surface.border.width === 1 && String(b.surface.border.color) === String(Tokens.hairline) && String(b.surface.color) === String(Tokens.surface), "the pill: radius 20, the hairline ring, opaque");
+                    test.check(!b.innerLine.visible, "no inner-edge line on the pill");
+                    test.check(h.open("cc") === "ok", "bar open cc");
+                    test.check(h.kind === "cc" && h.shown && b.openMenu === "home" && b.menuAnchor === b.systemButton && h.byKey, "cc from the status module, by key: " + JSON.stringify({ kind: h.kind, shown: h.shown, menu: b.openMenu, anchor: b.menuAnchor === b.systemButton, byKey: h.byKey }));
+                    const m = h.moduleRect();
+                    test.check(h.shape.y === 56 && h.shape.x + 760 === Math.min(1912, m.x + m.width) && h.shape.width === 760 && h.shape.height === 560, "8 under the pill, right edges aligned: " + JSON.stringify(h.shape) + " " + JSON.stringify(m));
+                    test.check(JSON.stringify(h.shape.radii) === JSON.stringify({ topLeft: 28, topRight: 28, bottomRight: 28, bottomLeft: 28 }) && h.shape.seam === "" && h.shape.motion === "grow" && h.shape.origin === "topRight", "the pill's panel: four round corners, grows from the module's top-right");
+                    test.check(h.progress < 1 && h.drawnWidth < 760, "it grows rather than jumping");
+                    test.check(b.systemButton.highlighted && b.systemButton.ringed, "the status module wears accentTint and the accent ring");
+                    test.check(h.seamFrom === 0 && h.seamTo === 0, "no seam on the pill");
+                } else if (step === 2) {
+                    test.check(settled() && h.drawnWidth === 760 && h.drawnHeight === 560, "cc grew to 760 x 560: " + h.progress);
+                    test.check(h.ccLayer.current && h.ccLayer.visible && h.ccLayer.content.shown, "the control center shows");
+                    test.check(JSON.stringify(h.frame.drawn.radii) === JSON.stringify(h.shape.radii) && JSON.stringify(h.frame.drawn.hairline) === JSON.stringify(h.shape.hairline), "the frame draws the shape's corners and sides");
+                    test.check(h.hitItem.width === 760 && h.hitItem.x === h.shape.x, "the input region is the panel");
+                    test.check(h.open("cc/wifi") === "ok" && h.ccLayer.content.sheet === "wifi", "bar open cc/wifi opens the sheet");
+                    test.check(h.open("cc/nope").indexOf("error") === 0 && h.open("hover").indexOf("error") === 0, "unknown panels are errors");
+                    const info = h.inspect();
+                    test.check(info.kind === "cc" && info.sheet === "wifi" && info.mode === "pill" && info.anchor.name === "barStatus", "inspect says what is open: " + JSON.stringify(info.anchor));
+                    // The clock: its calendar, centred under it (a morph).
+                    b.toggleMenu("clock", b.clockButton, "center");
+                    test.check(h.kind === "cal" && b.menuAlignment === "center", "the clock asks for the calendar");
+                    const c = h.moduleRect();
+                    test.check(Math.abs(h.shape.x + 200 - (c.x + c.width / 2)) <= 0.5 && h.shape.x === Math.round(h.shape.x) && h.shape.y === 56 && h.shape.width === 400 && h.shape.height === 368 && h.shape.origin === "top", "centred under the clock: " + JSON.stringify(h.shape));
+                } else if (step === 3) {
+                    test.check(settled() && h.calLayer.current && !h.ccLayer.current, "the calendar replaced the control center");
+                    test.check(h.calLayer.closable && h.calLayer.closeButton.visible && !h.calLayer.backChevron.visible, "no level to go back to: no chevron, a trailing close");
+                    // The cells: built once for the day, not on the clock's tick.
+                    const noon = new Date(h.now.getFullYear(), h.now.getMonth(), h.now.getDate(), 12, 0, 0);
+                    h.now = noon;
+                    const cells = h.calLayer.cells;
+                    h.now = new Date(noon.getTime() + 1000);
+                    test.check(h.calLayer.cells === cells, "a tick of the clock keeps the calendar's cells");
+                    test.check(b.clockButton.highlighted && !b.systemButton.highlighted, "the highlight moved to the clock");
+                    h.stepBack();
+                    test.check(b.openMenu === "" && !h.shown && h.closing, "Esc closes the calendar");
+                } else if (step === 4) {
+                    test.check(h.kind === "" && h.progress === 0 && h.shape === null, "closed and gone");
+                    test.check(!b.clockButton.highlighted, "no highlight once closed");
+                    Prefs.setBarMode("full");
+                } else if (step === 5) {
+                    // The full strip: flush, 40, the inner hairline only.
+                    test.check(Prefs.edge === "top" && Theme.barExtent === 40 && b.body.x === 0 && b.body.y === 0 && b.body.width === 1920 && b.body.height === 40, "the full strip runs edge to edge, flush: " + JSON.stringify(b.surfaceRect()));
+                    test.check(b.surface.radius === 0 && b.surface.border.width === 0 && b.innerLine.visible && b.innerLine.y === 39 && b.innerLine.height === 1, "square, no ring, a 1 px hairline on the inner edge");
+                    test.check(h.open("cc") === "ok", "bar open cc on the full strip");
+                    test.check(h.shape.x === 1160 && h.shape.y === 40 && h.shape.seam === "top" && h.shape.motion === "drop", "flush under the strip, touching the right edge: " + JSON.stringify(h.shape));
+                    test.check(JSON.stringify(h.shape.radii) === JSON.stringify({ topLeft: 0, topRight: 0, bottomRight: 0, bottomLeft: 28 }), "round only on the free corner: " + JSON.stringify(h.shape.radii));
+                    test.check(JSON.stringify(h.shape.hairline) === JSON.stringify({ top: false, right: false, bottom: true, left: true }), "hairline on the left and the bottom only");
+                    test.check(h.fromRect.y === 40 - 560 && h.fromRect.x === 1160, "it drops from behind the strip");
+                    test.check(h.seamFrom === 1160 && h.seamTo === 1920 && h.seamAt === 40, "the seam: the panel's stretch of the strip: " + h.seamFrom + ".." + h.seamTo);
+                    test.check(h.seamStartLine && !h.seamEndLine, "the panel's left side draws its hairline, its right one is on the screen edge");
+                    test.check(test.child(b.innerLine, "barLineBefore").width === 1161 && !test.child(b.innerLine, "barLineAfter").visible, "the strip leaves its hairline out along the seam, but over the panel's left hairline, so the corner closes: " + test.child(b.innerLine, "barLineBefore").width);
+                    test.check(b.systemButton.highlighted && !b.systemButton.ringed && b.systemButton.background.border.width === 0, "accentTint, no ring, on the strip");
+                } else if (step === 6) {
+                    test.check(settled() && h.drawnY === 40, "it dropped into place");
+                    // The control center's Power button: the power menu over the
+                    // scrim, anchored like the control center (island-modes 3.2).
+                    h.ccLayer.power();
+                    test.check(b.openMenu === "power" && h.kind === "power", "cc's Power opens the power menu");
+                    test.check(h.shape.y === 40 && h.shape.x === 1320 && h.shape.seam === "top" && h.shape.width === 600 && h.shape.height === 156 && h.shape.motion === "drop", "anchored to the status module, flush under the strip at the right: " + JSON.stringify(h.shape));
+                    test.check(b.systemButton.highlighted, "the status module stays highlighted");
+                    // The outgoing control center stays where it was laid out
+                    // while it fades; only the power menu takes the new place.
+                    test.check(h.leaving === "cc" && Math.abs(h.ccLayer.mapToItem(h, 0, 0).x - 1160) < 0.01 && Math.abs(h.powerLayer.mapToItem(h, 0, 0).x - h.drawnX) < 0.01, "the control center leaves from its own place: " + h.ccLayer.mapToItem(h, 0, 0).x);
+                    test.check(h.hitItem.x === 0 && h.hitItem.y === 40 && h.hitItem.width === 1920 && h.hitItem.height === 1160, "the scrim takes the screen's input below the strip: " + JSON.stringify(h.inspect().hit));
+                } else if (step === 7) {
+                    test.check(settled() && h.powerLayer.current && h.inspect().scrim === 1 && h.leaving === "", "the power menu over the scrim");
+                    test.check(h.inspect().scrimRect.y === 40 && h.inspect().scrimRect.height === 1160, "the scrim stops at the strip, one piece with the panel");
+                    test.check(String(Tokens.scrim) === String(Qt.rgba(Tokens.bg.r, Tokens.bg.g, Tokens.bg.b, 0.56)) || Tokens.scrim.a > 0.55, "the scrim is rgba(bg, .56)");
+                    test.check(h.runPower("lock") === "ok" && h.powerRan === "lock" && b.openMenu === "", "a power item runs (a dry run here) and closes");
+                    test.check(h.runPower("nope").indexOf("error") === 0, "no such item");
+                } else if (step === 8) {
+                    test.check(h.kind === "", "closed");
+                    Prefs.setBarMode("rail");
+                } else if (step === 9) {
+                    // The rail: flush, full height, down the left (the stored top reads left).
+                    test.check(Prefs.edge === "left" && Prefs.storedEdge === "top" && Theme.barExtent === 40 && b.body.x === 0 && b.body.y === 0 && b.body.width === 40 && b.body.height === 1200, "the rail is the flush full-height strip: " + JSON.stringify(b.surfaceRect()));
+                    test.check(b.innerLine.visible && b.innerLine.x === 39 && b.innerLine.width === 1, "its hairline on the right only");
+                    test.check(h.open("cc") === "ok", "bar open cc on the rail");
+                    test.check(h.shape.x === 40 && h.shape.y === 640 && h.shape.seam === "left" && h.shape.motion === "slide", "beside the status module, flush with the rail and the screen's bottom: " + JSON.stringify(h.shape));
+                    test.check(JSON.stringify(h.shape.radii) === JSON.stringify({ topLeft: 0, topRight: 28, bottomRight: 0, bottomLeft: 0 }) && JSON.stringify(h.shape.hairline) === JSON.stringify({ top: true, right: true, bottom: false, left: false }), "round top-right only, hairline top and right");
+                    test.check(h.fromRect.x === 40 - 760, "it slides from behind the rail");
+                } else if (step === 10) {
+                    test.check(settled() && h.drawnX === 40 && h.seamFrom === 640 && h.seamTo === 1200, "slid into place, the seam along the rail");
+                    // The battery hand-off: the old page, on the frame.
+                    h.ccLayer.handOff("battery");
+                    test.check(h.kind === "page" && h.page === "battery", "the battery page");
+                } else if (step === 11) {
+                    test.check(settled() && h.pageLayer.current && h.shape.width === 392 && h.shape.height === h.pageLayer.implicitHeight && h.shape.height > 100, "the page shows on the frame: " + h.shape.height);
+                    test.check(texts(h.pageLayer).filter(t => t === "Battery").length === 1, "titled Battery, once (the page's own header is hidden on the frame): " + texts(h.pageLayer).join("|"));
+                    test.check(test.child(h.pageLayer, "pageSubtitle").visible && test.child(h.pageLayer, "pageSubtitle").text.indexOf("%") > 0, "the page's subtitle in the frame's header: " + test.child(h.pageLayer, "pageSubtitle").text);
+                    test.check(h.open("appearance") === "ok" && h.page === "appearance", "bar open appearance");
+                } else if (step === 12) {
+                    const t = texts(h.pageLayer);
+                    test.check(["Pill", "Full bar", "Rail", "Island"].every(m => t.indexOf(m) >= 0), "AppearanceMenu lists the four modes: " + t.join("|"));
+                    test.check(t.filter(x => x === "Appearance").length === 1, "titled once");
+                    const icons = ["modePill", "modeFull", "modeRail", "modeIsland"].map(n => test.child(h.pageLayer, n)?.iconName ?? "");
+                    test.check(new Set(icons).size === 4 && icons.every(n => n !== ""), "one icon per mode: " + icons.join(" "));
+                    h.stepBack();
+                    test.check(b.openMenu === "", "Esc closes the page");
+                    // The bell, then a mode switch closes what is open.
+                    b.toggleMenu("notifications", b.notificationsButton);
+                    test.check(h.kind === "cc" && h.ccLayer.content.sheet === "notifications", "the bell opens the Notifications sheet");
+                    Prefs.setEdge("right");
+                    test.check(Prefs.barMode === "rail" && Prefs.edge === "right" && b.openMenu === "", "moving the bar closes its panel");
+                } else if (step === 13) {
+                    test.check(h.kind === "", "closed on the move");
+                    Prefs.setBarMode(oldMode);
+                    Prefs.setEdge(oldEdge);
+                    Prefs.setBarMode(oldMode);
                     finished = true;
                     stop();
                 }
@@ -1429,7 +1625,7 @@ ShellRoot {
                 for (const mode of ["pill", "full", "rail"]) {
                     for (const origin of ["top", "bottom", "left", "right"]) {
                         const vertical = origin === "left" || origin === "right";
-                        const extent = mode === "full" ? 40 : 56;
+                        const extent = mode === "pill" ? 56 : 40;
                         const w = vertical ? extent : 1920, h = vertical ? 1080 : extent;
                         const ox = origin === "right" ? 1920 - w : 0;
                         const oy = origin === "bottom" ? 1080 - h : 0;
