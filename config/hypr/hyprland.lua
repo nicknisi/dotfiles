@@ -95,7 +95,7 @@ end
 hl.config({
   input = {
     kb_layout = "us",
-    kb_options = "ctrl:nocaps,shift:both_capslock",
+    kb_options = "ctrl:nocaps",
     repeat_rate = 40,
     repeat_delay = 250,
     numlock_by_default = true,
