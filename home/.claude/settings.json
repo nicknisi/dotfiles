@@ -111,6 +111,15 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -120,6 +129,125 @@
             "type": "command",
             "command": "/bin/sh -c 'rex __internal session-start --agent claude --feature-session-naming=false 2>/dev/null || true'",
             "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/nicknisi/.local/share/sidepulse/venv/bin/python /Users/nicknisi/.local/share/sidepulse/venv/lib/python3.14/site-packages/sidepulse/hook_entry.py --provider claude --log /Users/nicknisi/.local/state/sidepulse/agent-monitor/claude.jsonl ; true"
           }
         ]
       }
@@ -333,7 +461,7 @@
       "Chasing a suspicious beacon",
       "Chasing that seven-figure exit during REM sleep",
       "Chasing the flag",
-      "Chat, it's cooked — rebuilding",
+      "Chat, it's cooked \u2014 rebuilding",
       "Chat, we're so back",
       "Cheating Kobayashi",
       "Checking for sus variables",
@@ -608,8 +736,8 @@
       "Healing at the Houses of the Dead",
       "Hearing the Lamentations",
       "Hemorrhaging",
-      "Here are 3 key takeaways 👇",
-      "Here's why that matters 🧵",
+      "Here are 3 key takeaways \ud83d\udc47",
+      "Here's why that matters \ud83e\uddf5",
       "Hidden path ahead",
       "High top lacing",
       "High-score-chasing",
@@ -627,7 +755,7 @@
       "Hoverboarding",
       "Hulk-smashing",
       "Humble brag incoming.",
-      "Humbled and honored to announce…",
+      "Humbled and honored to announce\u2026",
       "Hunting the APT",
       "Hunting threats in the noise",
       "Hydrate or diedrate",
@@ -637,7 +765,7 @@
       "I had to get uncomfortable to level up.",
       "I think therefore I refactor",
       "I woke up at 4 AM for this.",
-      "I'm thrilled to share…",
+      "I'm thrilled to share\u2026",
       "Identity Theft-ing",
       "If it works, it will be rewritten",
       "If it's not burning, it's not learning",
@@ -727,7 +855,7 @@
       "Macerating",
       "Macro-tracking",
       "Macros on point",
-      "Main character energy — refactor time",
+      "Main character energy \u2014 refactor time",
       "Main-charactering",
       "Making Chili",
       "Making a vision board and calling it product-market fit",
@@ -915,7 +1043,7 @@
       "Rack it up",
       "Rack-pulling",
       "Racking-up",
-      "Rakı-level focus engaged",
+      "Rak\u0131-level focus engaged",
       "Raptor-pack-hunting",
       "Ratatouille cooking",
       "Ratio-ing",
@@ -1166,7 +1294,7 @@
       "The grind is holy and caffeinated",
       "The halting problem mocks us",
       "The infinite loop, a mirror of eternity",
-      "The lesson I learned the hard way…",
+      "The lesson I learned the hard way\u2026",
       "The logs know more than we admit",
       "The math is mathing",
       "The null is patient; it waits everywhere",
@@ -1179,7 +1307,7 @@
       "The void returns nothing, as expected",
       "There is no done, only deployed",
       "This build boutta be bussin",
-      "This 👏 is 👏 everything.",
+      "This \ud83d\udc4f is \ud83d\udc4f everything.",
       "Thor-hammering",
       "Thought leadership loading.",
       "Thoughts?",

@@ -53,6 +53,11 @@
     "linear": {
       "url": "https://mcp.linear.app/mcp"
     },
+    "peec-ai": {
+      "type": "http",
+      "url": "https://api.peec.ai/mcp",
+      "description": "Peec AI: brand visibility and prompt tracking across AI search engines"
+    },
     "slack-workos": {
       "url": "https://mcp.slack.com/mcp",
       "oauth": {

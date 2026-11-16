@@ -3,79 +3,221 @@
     "cloudflare-ai-gateway": {
       "models": [
         {
-          "id": "grok-4.5",
-          "name": "Grok 4.5",
           "api": "openai-responses",
           "baseUrl": "https://gateway.ai.cloudflare.com/v1/{CLOUDFLARE_ACCOUNT_ID}/{CLOUDFLARE_GATEWAY_ID}/grok",
-          "reasoning": true,
-          "input": [
-            "text",
-            "image"
-          ],
-          "contextWindow": 266384,
-          "maxTokens": 500000,
-          "thinkingLevelMap": {
-            "off": null,
-            "minimal": null,
-            "low": "low",
-            "medium": "medium",
-            "high": "high",
-            "xhigh": null,
-            "max": null
+          "compat": {
+            "supportsLongCacheRetention": false
           },
+          "contextWindow": 266384,
           "cost": {
-            "input": 2,
-            "output": 6,
             "cacheRead": 0.3,
             "cacheWrite": 0,
+            "input": 2,
+            "output": 6,
             "tiers": [
               {
-                "inputTokensAbove": 200000,
-                "input": 4,
-                "output": 12,
                 "cacheRead": 0.6,
-                "cacheWrite": 0
+                "cacheWrite": 0,
+                "input": 4,
+                "inputTokensAbove": 200000,
+                "output": 12
               }
             ]
           },
-          "compat": {
-            "supportsLongCacheRetention": false
-          }
-        },
-        {
-          "id": "claude-fable-5-2",
-          "name": "Claude Fable 5.2",
-          "api": "anthropic-messages",
-          "baseUrl": "https://gateway.ai.cloudflare.com/v1/{CLOUDFLARE_ACCOUNT_ID}/{CLOUDFLARE_GATEWAY_ID}/anthropic",
-          "reasoning": true,
+          "id": "grok-4.5",
           "input": [
             "text",
             "image"
           ],
-          "contextWindow": 1000000,
-          "maxTokens": 128000,
-          "cost": {
-            "input": 8,
-            "output": 40,
-            "cacheRead": 0.2,
-            "cacheWrite": 10
-          },
+          "maxTokens": 500000,
+          "name": "Grok 4.5",
+          "reasoning": true,
+          "thinkingLevelMap": {
+            "high": "high",
+            "low": "low",
+            "max": null,
+            "medium": "medium",
+            "minimal": null,
+            "off": null,
+            "xhigh": null
+          }
+        },
+        {
+          "api": "anthropic-messages",
+          "baseUrl": "https://gateway.ai.cloudflare.com/v1/{CLOUDFLARE_ACCOUNT_ID}/{CLOUDFLARE_GATEWAY_ID}/anthropic",
           "compat": {
-            "sendSessionAffinityHeaders": true,
             "forceAdaptiveThinking": true,
+            "sendSessionAffinityHeaders": true,
             "supportsMidConvoEffort": true
           },
+          "contextWindow": 1000000,
+          "cost": {
+            "cacheRead": 0.2,
+            "cacheWrite": 10,
+            "input": 8,
+            "output": 40
+          },
+          "id": "claude-fable-5-2",
+          "input": [
+            "text",
+            "image"
+          ],
+          "maxTokens": 128000,
+          "name": "Claude Fable 5.2",
+          "reasoning": true,
           "thinkingLevelMap": {
+            "max": "max",
             "off": null,
-            "xhigh": "xhigh",
-            "max": "max"
+            "xhigh": "xhigh"
           }
+        },
+        {
+          "api": "anthropic-messages",
+          "baseUrl": "https://gateway.ai.cloudflare.com/v1/{CLOUDFLARE_ACCOUNT_ID}/{CLOUDFLARE_GATEWAY_ID}/custom-fireworks-ai",
+          "compat": {
+            "allowEmptySignature": true,
+            "forceAdaptiveThinking": true,
+            "sendSessionAffinityHeaders": true,
+            "supportsCacheControlOnTools": false,
+            "supportsEagerToolInputStreaming": false,
+            "supportsLongCacheRetention": false
+          },
+          "contextWindow": 1000000,
+          "cost": {
+            "cacheRead": 0.006,
+            "cacheWrite": 0,
+            "input": 0.3,
+            "output": 1.2
+          },
+          "id": "accounts/fireworks/routers/deepseek-v4p1-flash-1017-ultrafast",
+          "input": [
+            "text",
+            "image"
+          ],
+          "inputLimits": {
+            "images": {
+              "resize": {
+                "jpegQuality": 80,
+                "maxBytes": 4718592,
+                "maxHeight": 2000,
+                "maxWidth": 2000
+              }
+            }
+          },
+          "maxTokens": 384000,
+          "name": "DeepSeek V4.1 Flash 1017 Ultrafast",
+          "reasoning": true,
+          "thinkingLevelMap": {
+            "high": "high",
+            "low": "low",
+            "max": "max",
+            "medium": null,
+            "minimal": null,
+            "off": "none",
+            "xhigh": null
+          }
+        }
+      ]
+    },
+    "cloudflare-google": {
+      "api": "google-generative-ai",
+      "apiKey": "cf-gateway",
+      "baseUrl": "https://gateway.ai.cloudflare.com/v1/472017f2a442123c9f8f9da2bb39e5e8/workos/google-ai-studio/v1beta",
+      "headers": {
+        "cf-aig-authorization": "!printf 'Bearer %s' \"$(jq -r '.\"cloudflare-ai-gateway\".key' ~/.pi/agent/auth.json)\""
+      },
+      "models": [
+        {
+          "api": "google-generative-ai",
+          "contextWindow": 1048576,
+          "cost": {
+            "cacheRead": 0.1,
+            "cacheWrite": 0,
+            "input": 2,
+            "output": 10
+          },
+          "id": "gemini-4-carbon",
+          "input": [
+            "text",
+            "image"
+          ],
+          "inputLimits": {
+            "images": {
+              "maxPerRequest": 3600,
+              "resize": {
+                "jpegQuality": 80,
+                "maxBytes": 4718592,
+                "maxHeight": 2000,
+                "maxWidth": 2000
+              }
+            },
+            "maxRequestBytes": 20971520
+          },
+          "maxTokens": 32768,
+          "name": "Gemini 4 Carbon",
+          "reasoning": true,
+          "thinkingLevelMap": {
+            "high": "high",
+            "low": "low",
+            "max": null,
+            "medium": "medium",
+            "minimal": null,
+            "off": null,
+            "xhigh": null
+          }
+        }
+      ]
+    },
+    "ollama": {
+      "api": "openai-completions",
+      "apiKey": "ollama",
+      "baseUrl": "http://127.0.0.1:11434/v1",
+      "models": [
+        {
+          "_launch": true,
+          "contextWindow": 262144,
+          "id": "qwen3.8:27b",
+          "input": [
+            "text",
+            "image"
+          ],
+          "reasoning": true
+        },
+        {
+          "_launch": true,
+          "contextWindow": 1048576,
+          "id": "glm-5.3-flash:cloud",
+          "input": [
+            "text",
+            "image"
+          ],
+          "reasoning": true
+        },
+        {
+          "_launch": true,
+          "contextWindow": 1048576,
+          "id": "kimi-k3.1-pro:cloud",
+          "input": [
+            "text",
+            "image"
+          ],
+          "reasoning": true
+        },
+        {
+          "_launch": true,
+          "contextWindow": 1048576,
+          "id": "deepseek-v4.1-flash:cloud",
+          "input": [
+            "text",
+            "image"
+          ],
+          "reasoning": true
         }
       ]
     },
     "openai-codex": {
       "modelOverrides": {
-        "gpt-6-astra": {
+        "gpt-5.6-luna": {
           "contextWindow": 1050000
         },
         "gpt-5.6-sol": {
@@ -84,7 +226,7 @@
         "gpt-5.6-terra": {
           "contextWindow": 1050000
         },
-        "gpt-5.6-luna": {
+        "gpt-6-astra": {
           "contextWindow": 1050000
         }
       }

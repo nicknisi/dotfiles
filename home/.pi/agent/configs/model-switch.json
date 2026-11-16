@@ -16,7 +16,9 @@
       "cloudflare-ai-gateway/workers-ai/@cf/zai-org/glm-5.3-flash",
       "cloudflare-ai-gateway/grok-4.5",
       "cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-pro-0813",
-      "anthropic/claude-opus-5-5"
+      "anthropic/claude-opus-5-5",
+      "cloudflare-google/gemini-4-carbon",
+      "cloudflare-ai-gateway/accounts/fireworks/routers/deepseek-v4p1-flash-1017-ultrafast"
     ],
     "personal": [
       "openai-codex/gpt-6-astra",

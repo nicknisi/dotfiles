@@ -1,4 +1,4 @@
-profile = "liner"
+profile = "wayline"
 
 [profiles]
 
@@ -23,14 +23,19 @@ height = 40.0
 hoverPreviewsEnabled = true
 showFloatingWindows = true
 
+[profiles.liner]
+
+[profiles.liner.hiddenBar]
+enabled = true
+
 [profiles.wayline]
 center = []
 leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads", "active-window"]
-theme = "dotfiles"
+theme = "catppuccin"
 trailing = ["prairie", "agents", "status", "notifications", "fantastical", "control-center"]
 
 [profiles.wayline.island]
-displays = "notch"
+displays = "all"
 fullscreen = "hide"
 height = 260
 root = "notch-island"

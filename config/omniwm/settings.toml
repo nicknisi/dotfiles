@@ -1418,10 +1418,6 @@ id = "toggleShellWidget.notifications"
 
 [[hotkeys]]
 binding = "Unassigned"
-id = "toggleShellWidget.prairie"
-
-[[hotkeys]]
-binding = "Unassigned"
 id = "toggleShellWidget.status"
 
 [[hotkeys]]
@@ -1516,17 +1512,23 @@ monitorDisplayUUID = "886DE5B7-5CD6-41BC-80CF-5BAA92BA0E0F"
 monitorName = "Studio Display"
 singleWindowFit = "2130x1150"
 
+[[monitorDwindleOverrides]]
+id = "87B2D1A4-0C19-4435-8699-6A01BF5EC2FE"
+monitorDisplayUUID = "06751CCE-F6B3-4F3B-9585-8020351EB9DF"
+monitorName = "EPSON PJ"
+singleWindowFit = "1600x860"
+
 [[monitorGapOverrides]]
 id = "9C1E6F52-3B7A-4D8E-A1F0-5B2C7D9E4A11"
 monitorDisplayUUID = "2EBFAA40-3303-44D9-8466-01AAB4B286A5"
 monitorName = "Studio Display (1)"
-outerGapTop = 74.0
+outerGapTop = 12.0
 
 [[monitorGapOverrides]]
 id = "9C1E6F52-3B7A-4D8E-A1F0-5B2C7D9E4A12"
 monitorDisplayUUID = "5A4B5238-1F02-409B-B53C-A74391F61800"
 monitorName = "Studio Display (2)"
-outerGapTop = 74.0
+outerGapTop = 12.0
 
 [[monitorGapOverrides]]
 id = "5B8E28E9-11DB-41B7-BC08-6E3DE2D7FCC5"
