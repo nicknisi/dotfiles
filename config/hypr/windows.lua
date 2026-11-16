@@ -1,4 +1,6 @@
 -- windows.lua: moving and resizing the focused window, in-process.
+-- Dwindle follows OmniWM: move a singleton toward a tile to join it, or move
+-- an active tab out of its group. Scrolling keeps the normal tile-move helper.
 --
 -- Hyprland's movewindow only moves into an EXISTING neighbour. Given a column of
 -- two windows already against the screen edge -- one full-height window beside a
@@ -60,14 +62,25 @@ local function same_geom(x, y, w, h, win)
   return nx == x and ny == y and nw == w and nh == h
 end
 
--- Exposed globally so it can be exercised with
---   hyprctl dispatch '(function() hypr_move("r") return hl.dsp.no_op() end)()'
+-- Movement and focus helpers are global so hyprctl eval can exercise them.
 function hypr_move(dir)
   local win = hl.get_active_window()
   if not win then return end
 
   if win.floating then
     hl.dispatch(hl.dsp.window.move({ direction = dir }))
+    return
+  end
+
+  if win.workspace and win.workspace.tiled_layout == "dwindle" then
+    if win.group and win.group.size > 1 then
+      -- Without preselection, dwindle picks the split axis from the tile shape.
+      hl.dispatch(hl.dsp.layout("preselect " .. dir))
+      hl.dispatch(hl.dsp.window.move({ out_of_group = dir }))
+      hl.dispatch(hl.dsp.layout("preselect x"))
+    else
+      hl.dispatch(hl.dsp.window.move({ into_or_create_group = dir }))
+    end
     return
   end
 
@@ -98,8 +111,27 @@ function hypr_move(dir)
   end
 end
 
+function hypr_focus(dir)
+  local win = hl.get_active_window()
+  local group = win and not win.floating and win.workspace and win.workspace.tiled_layout == "dwindle" and win.group
+  if group and group.size > 1 and (dir == "d" or dir == "u") then
+    local next_tab = dir == "d"
+    if (next_tab and group.current_index < group.size) or (not next_tab and group.current_index > 1) then
+      hl.dispatch(next_tab and hl.dsp.group.next() or hl.dsp.group.prev())
+      return
+    end
+    hl.dispatch(hl.dsp.focus({ direction = dir }))
+    local active = hl.get_active_window()
+    if active and active.address == win.address then
+      hl.dispatch(next_tab and hl.dsp.group.next() or hl.dsp.group.prev())
+    end
+    return
+  end
+  hl.dispatch(hl.dsp.focus({ direction = dir }))
+end
+
 for key, dir in pairs({ H = "l", J = "d", K = "u", L = "r" }) do
-  hl.bind("SUPER + " .. key, hl.dsp.focus({ direction = dir }))
+  hl.bind("SUPER + " .. key, function() hypr_focus(dir) end)
   hl.bind("SUPER + SHIFT + " .. key, function() hypr_move(dir) end)
 end
 
