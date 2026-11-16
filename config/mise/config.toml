@@ -151,6 +151,37 @@ enabled = true
 state = "running"
 enabled = true
 
+# Root-owned files, copied from ./files (a relative source resolves from this
+# directory). The getty@tty1 drop-in replaces SDDM: tty1 logs in at boot and
+# config/zsh/.zprofile starts Hyprland through uwsm. The drop-in only runs when
+# the kernel cmdline unlocks a LUKS disk, the one gate before the desktop.
+# Nothing gets restarted, so it lands on the next boot. On a machine that had
+# SDDM, run `sudo systemctl disable sddm` once. mise can't do that part,
+# because a declared service defaults to state = "running" and would start SDDM
+# again.
+# mise won't create a file's missing parent, so declare the drop-in directory.
+[bootstrap.directories."/etc/systemd/system/getty@tty1.service.d"]
+os = "linux"
+owner = "root"
+group = "root"
+mode = "0755"
+
+[bootstrap.files."/etc/systemd/system/getty@tty1.service.d/autologin.conf"]
+os = "linux"
+source = "./files/etc/systemd/system/getty@tty1.service.d/autologin.conf"
+owner = "root"
+group = "root"
+mode = "0644"
+
+# The drop-in's ExecStart: autologin once per boot (a mark in /run), the stock
+# getty with a password prompt on every restart.
+[bootstrap.files."/usr/local/lib/tty1-getty"]
+os = "linux"
+source = "./files/usr/local/lib/tty1-getty"
+owner = "root"
+group = "root"
+mode = "0755"
+
 [bootstrap.repos]
 "~/Developer/pi-extensions" = { url = "git@github.com:nicknisi/pi-extensions.git" }
 "~/Developer/ideation" = { url = "git@github.com:nicknisi/ideation.git" }

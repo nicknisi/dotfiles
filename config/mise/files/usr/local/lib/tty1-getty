@@ -1,0 +1,17 @@
+#!/bin/sh
+# getty@tty1's ExecStart (the autologin.conf drop-in). It logs nicknisi in on
+# the unit's first start of each boot only. getty@ restarts on every exit
+# (Restart=always), so autologin on every start would turn a compositor crash
+# under the lock screen into a fresh, unlocked desktop. Every later start on
+# the same boot (a crash, a logout, logind's autovt@tty1, which is this unit)
+# runs the stock getty and asks for the password.
+#
+# The mark lives in /run: root's tmpfs, empty at every boot, writable by root
+# only. noclobber (set -C) makes the create fail when the mark exists, so the test and
+# the set are one step. If it can't be made, the login asks for the password.
+# Usage: tty1-getty TERM
+mark=/run/tty1-autologin.done
+if (set -C; : >"$mark") 2>/dev/null; then
+  exec /usr/bin/agetty -o '-p -f -- \u' --noreset --noclear --noissue --autologin nicknisi - "$1"
+fi
+exec /usr/bin/agetty --noreset --noclear - "$1"

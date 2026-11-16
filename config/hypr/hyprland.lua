@@ -4,6 +4,7 @@
 -- dotfiles' config/hypr at your own version. Nothing here is meant to last.
 --
 -- Start from the TTY:   uwsm start hyprland.desktop
+-- At boot, tty1 autologin and config/zsh/.zprofile run that for you.
 -- uwsm runs Hyprland as a user unit and activates graphical-session.target once
 -- `uwsm finalize` runs (below), which starts every enabled unit wanted by it:
 --   systemctl --user enable hyprpolkitagent hypridle hyprsunset batsignal
