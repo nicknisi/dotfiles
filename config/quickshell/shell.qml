@@ -24,6 +24,22 @@ ShellRoot {
         function reload(): void { Theme.reload() }
     }
 
+    // `qs ipc call look set <name>` (M9): the island's personal look, separate
+    // from the theme pack (Look.qml). crew (or none) is the plain island;
+    // phosphor, bridge, arcade, liner, outrun. bin/bar calls set and list on
+    // Linux. form sets the island's form, float or notch (Prefs.islandForm).
+    IpcHandler {
+        target: "look"
+        function set(name: string): string { return Look.set(name) }
+        function get(): string { return Look.name }
+        function list(): string { return Look.list() }
+        function form(name: string): string {
+            if (!Prefs.islandForms.includes(name)) return "error: unknown form \"" + name + "\" (forms: " + Prefs.islandForms.join(" ") + ")";
+            Prefs.setIslandForm(name);
+            return "ok";
+        }
+    }
+
     // Per connected monitor, created and destroyed as displays come and go:
     // the classic bar (pill, full, rail) or the island, whichever
     // Prefs.barMode names, and beside it the 1px window that holds the

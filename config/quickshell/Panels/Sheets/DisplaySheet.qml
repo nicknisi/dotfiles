@@ -3,6 +3,7 @@ import Quickshell.Io
 import QtQuick
 import qs
 import "../../lib/CcData.js" as CcData
+import "../../lib/LookModel.js" as LookModel
 
 // DisplaySheet.qml - brightness, the bar mode, and DisplayMenu's modes and
 // scales (control-lock 3.6, not drawn; PLAN 1.6 for the bar mode): the
@@ -14,7 +15,9 @@ import "../../lib/CcData.js" as CcData
 // (Prefs.setBarMode; the island closes first, since leaving island mode
 // takes it down). Mode and Scale: `display-mode json <output>` when the sheet
 // shows, applied with `display-mode set <output> <mode> <scale>`, exactly as
-// DisplayMenu does.
+// DisplayMenu does. Island form and Look (M9): the island's form (float or
+// notch, Prefs.setIslandForm) and its personal look (Look.set), applied in
+// place: the sheet stays open, and the island behind it changes.
 //
 // A fixture's `sheets.display` stands in, and then, as under Fixture.dryRun,
 // nothing runs.
@@ -35,6 +38,9 @@ SheetFrame {
             modes: sheet.display.modes ?? [],
             scales: sheet.display.scales ?? [],
             barMode: Prefs.barMode,
+            islandForm: Prefs.islandForm,
+            look: Prefs.look,
+            looks: LookModel.LOOKS.map(k => ({ key: k, title: LookModel.META[k].label, sub: LookModel.META[k].sub })),
             error: sheet.error
         })
 
@@ -82,6 +88,10 @@ SheetFrame {
             const mode = row.key;
             sheet.dismissed();
             Qt.callLater(() => Prefs.setBarMode(mode));
+        } else if (row.action === "form") {
+            Prefs.setIslandForm(row.key);
+        } else if (row.action === "look") {
+            Look.set(row.key);
         } else if (row.action === "mode") {
             sheet.apply(row.key, Number(cur.scale) || 1);
         } else if (row.action === "scale") {

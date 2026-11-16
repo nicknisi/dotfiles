@@ -39,4 +39,14 @@ assert.deepEqual(O.shown(live, 'special:scratch').map(w => w.name), ['W', 'C', '
 assert.deepEqual(O.shown([], 'A'), [], 'no records, nothing shown (focus alone is not a record)')
 assert.deepEqual(O.shown(undefined, ''), [])
 assert.deepEqual(O.shown([{ name: 3, windows: 1 }], '3'), [{ name: '3', focused: true, urgent: false }], 'names are strings')
+// The wheel: 120 a notch, down to the next letter, no wrap (M9: one rule for
+// Kit/WorkspaceStrip and the looks' bars).
+const names = ['W', 'C', 'D', 'S']
+assert.deepEqual(O.wheel(0, -120, names, 'D'), { acc: 0, name: 'S' }, 'a notch down: the next letter')
+assert.deepEqual(O.wheel(0, 120, names, 'D'), { acc: 0, name: 'C' }, 'a notch up: the one before')
+assert.deepEqual(O.wheel(0, 60, names, 'D'), { acc: 60, name: '' }, 'half a notch waits')
+assert.deepEqual(O.wheel(60, 60, names, 'D'), { acc: 0, name: 'C' }, 'two halves are a notch')
+assert.deepEqual(O.wheel(0, -120, names, 'S'), { acc: 0, name: '' }, 'no wrap past the last')
+assert.deepEqual(O.wheel(0, 120, names, 'W'), { acc: 0, name: '' }, 'or before the first')
+assert.deepEqual(O.wheel(0, -120, names, 'X'), { acc: 0, name: '' }, 'nothing focused, nowhere to step')
 console.log('WORKSPACE_ORDER_PASS')

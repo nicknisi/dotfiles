@@ -28,7 +28,7 @@ fi
 qs="$tmp/qs"
 mkdir -p "$qs/lib" "$qs/Kit" "$qs/tests"
 cp "$root/Motion.qml" "$qs/"
-cp "$root/lib/Spring.js" "$root/lib/Celestial.js" "$root/lib/CrewModel.js" "$qs/lib/"
+cp "$root/lib/Spring.js" "$root/lib/Celestial.js" "$root/lib/CrewModel.js" "$root/lib/WorkspaceOrder.js" "$qs/lib/"
 cp "$root"/Kit/*.qml "$root"/Kit/*.js "$qs/Kit/"
 cp "$root/tests/tst_spring.qml" "$root/tests/tst_kit.qml" "$root/tests/tst_workspace_strip.qml" \
     "$root/tests/tst_pixel_sprite.qml" "$qs/tests/"

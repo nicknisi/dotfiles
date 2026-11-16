@@ -6,6 +6,7 @@ import "../lib/IslandMachine.js" as IslandMachine
 import "../lib/CrewModel.js" as CrewModel
 import "../lib/Dictation.js" as Dictation
 import "../lib/CcData.js" as CcData
+import "../lib/LookModel.js" as LookModel
 import "../launcher/ui" as LauncherUi
 import qs.Panels
 
@@ -94,6 +95,17 @@ import qs.Panels
 // remainingFor: who expires what), voice (the launcher's
 // VoiceSession) and whatever IslandView reads itself through
 // `Fixture.data.<x> ?? live`.
+//
+// Looks and the notch (M9). A personal look (Look.qml, Prefs.look) swaps the
+// rest pill for its own bar (Island/LookLayer, Looks/<Name>.qml) and the
+// body's material for its cells (Look.material); the hail and vibes cards
+// take its type and inks where it has none of its own, and its moment line
+// peeks as the `moment` state: Phosphor's and Liner Notes' sign-off for 5 s
+// after a theme or look switch, Outrun's now playing when a new track
+// starts, Bridge's and Arcade's in place of the hail card. Hover, the
+// panels and the pickers stay plain. The plain look ("crew", the default)
+// changes nothing. The notch form (Prefs.islandForm) hangs the same body
+// flush from the top edge (y 0, rest 40 high, Island/IslandBody's notch).
 Item {
     id: view
 
@@ -171,9 +183,40 @@ Item {
 
     // What the hugging states measure. The Crew panel and hover take the rest
     // pill's (IslandMachine.size keeps them at least 460 and 720).
-    readonly property real hugWidth: machine.state === "hail" ? hailLayer.hugWidth : machine.state === "vibes" ? vibesLayer.hugWidth : machine.state === "flash" ? flashLayer.hugWidth : machine.state === "launcher" ? launcherLayer.hugWidth : machine.state === "themes" ? themesLayer.hugWidth : machine.state === "wallpapers" ? wallsLayer.hugWidth : restLayer.hugWidth
+    // With a look on, hover and the Crew panel grow from the look's bar.
+    readonly property real restHug: Look.active ? lookRest.hugWidth : restLayer.hugWidth
+    readonly property real hugWidth: (machine.state === "moment" && view.momentDrawable) || (machine.state === "hail" && view.lookHails && Look.active) ? lookMoment.hugWidth : machine.state === "hail" ? hailLayer.hugWidth : machine.state === "vibes" ? vibesLayer.hugWidth : machine.state === "flash" ? flashLayer.hugWidth : machine.state === "launcher" ? launcherLayer.hugWidth : machine.state === "themes" ? themesLayer.hugWidth : machine.state === "wallpapers" ? wallsLayer.hugWidth : view.restHug
     readonly property real hugHeight: machine.state === "launcher" ? launcherLayer.hugHeight : machine.state === "themes" ? themesLayer.hugHeight : machine.state === "wallpapers" ? wallsLayer.hugHeight : crewLayer.hugHeight
-    readonly property var targetSize: IslandMachine.size(machine, view.hugWidth, view.hugHeight)
+    // The notch form and a look's cell (M9).
+    readonly property bool notch: Prefs.islandForm === "notch"
+    readonly property real restHeight: view.notch ? IslandMachine.NOTCH_REST_HEIGHT : IslandMachine.REST_HEIGHT
+    readonly property real bodyTop: view.notch ? 0 : IslandMachine.TOP_INSET
+    // Whether the look draws the hail itself (Bridge, Arcade).
+    readonly property bool lookHails: Look.momentKind === "hail"
+    // Whether the look has a moment line to draw now: a sign-off with a
+    // tagline, or now playing with a track. A moment that loses it (the look
+    // changed under it, the player went away) closes (onMomentDrawableChanged).
+    readonly property bool momentDrawable: Look.active && (Look.momentKind === "signoff" ? view.tagline !== "" : Look.momentKind === "nowplaying" ? !!(view.media && view.media.title) : false)
+    // "rest", the look's moment kind, "card" (a Crew card in the look's skin), or "".
+    readonly property string lookCell: {
+        if (!Look.active) return "";
+        const s = machine.state;
+        if (s === "rest") return "rest";
+        if (s === "moment") return view.momentDrawable ? Look.momentKind : "";
+        if (s === "hail") return view.lookHails ? "hail" : "card";
+        if (s === "vibes") return "card";
+        return "";
+    }
+    readonly property var lookMaterial: view.lookCell !== "" ? Look.material(view.lookCell) : null
+    // A look's rest bar hugs its packed row with no 360 floor (the Looks board).
+    readonly property var stateSize: IslandMachine.size(machine, view.hugWidth, view.hugHeight, machine.state === "rest" && Look.active ? 0 : undefined)
+    readonly property var targetSize: {
+        const s = view.stateSize;
+        const m = view.lookMaterial;
+        if (m && m.height > 0) return [s[0], m.height];
+        if (machine.state === "rest" && view.notch) return [s[0], IslandMachine.NOTCH_REST_HEIGHT];
+        return s;
+    }
     readonly property string clock: Fixture.data.clock ?? Qt.formatDateTime(view.now, "HH:mm")
     readonly property string date: Fixture.data.date ?? Qt.formatDateTime(view.now, "dddd, MMMM d")
     // The Context lane (Context.lane). A fixture's `context` is a lane object,
@@ -246,6 +289,17 @@ Item {
         low: Battery.low
     })
     readonly property string tagline: Fixture.data.tagline ?? Tokens.tagline
+    // The looks' clock (Bridge's stardate): the fixture's day and clock in a
+    // sandbox shot, now otherwise.
+    readonly property date lookNow: {
+        const t = Fixture.data.today, c = Fixture.data.clock;
+        if (t === undefined || c === undefined) return view.now;
+        const [y, mo, d] = String(t).split("-").map(Number);
+        const [h, mi] = String(c).split(":").map(Number);
+        return new Date(y, (mo || 1) - 1, d || 1, h || 0, mi || 0);
+    }
+    // Arcade's hearts: the battery's percent, or null without one.
+    readonly property var lookBattery: Fixture.data.status ? (Fixture.data.status.battery ?? null) : Battery.present ? Battery.percent : null
     // The calendar's today: the fixture's "2026-11-14", else now.
     readonly property date today: {
         const f = String(Fixture.data.today ?? "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -283,6 +337,8 @@ Item {
 
     readonly property alias body: body
     readonly property alias rest: restLayer
+    readonly property alias lookRest: lookRest
+    readonly property alias lookMoment: lookMoment
     readonly property alias hover: hoverLayer
     readonly property alias crewPanel: crewLayer
     readonly property alias hailCard: hailLayer
@@ -422,7 +478,8 @@ Item {
 
     function pointerEntered() {
         graceTimer.stop();
-        if (machine.state === "rest") dwellTimer.restart();
+        // A look's moment line is the rest pill dressed up: the same dwell.
+        if (machine.state === "rest" || machine.state === "moment") dwellTimer.restart();
         // A peeking hail holds while you read it (held, not pinned: no
         // keyboard); a notification pauses with what it has left. Not while
         // the body is still growing: then the banner opened under a parked
@@ -448,6 +505,77 @@ Item {
     function clickCrew() {
         dwellTimer.stop();
         apply(IslandMachine.click(machine, "crew"));
+    }
+
+    // ---- a look's moment (M9) ------------------------------------------------------
+
+    // The look's moment line peeks (IslandMachine `moment`: 5 s, under every
+    // other moment, dropped behind anything open). Only a sign-off or
+    // now-playing look offers it: a hail look's line is its hail.
+    // why: "look" (one was picked), "theme" (a pack switch: the sign-off
+    // only) or "track" (a new one playing: now playing only).
+    function peekMoment(why: string): bool {
+        if (!Look.active) return false;
+        const kind = Look.momentKind;
+        if ((why === "theme" && kind !== "signoff") || (why === "track" && kind !== "nowplaying")) return false;
+        if (kind === "signoff" && view.tagline === "") return false;
+        if (kind === "nowplaying" && !(view.media && view.media.playing === true && view.media.title)) return false;
+        if (kind !== "signoff" && kind !== "nowplaying") return false;
+        const next = IslandMachine.offer(machine, "moment");
+        if (next === machine) return false;
+        apply(next);
+        return true;
+    }
+    // One event later, so the look's bar has its width first. A Timer, not
+    // Qt.callLater: that runs a function once per event however many islands
+    // queued it, so only one screen would peek.
+    Timer {
+        id: peekLater
+        property string why: ""
+        interval: 0
+        onTriggered: view.peekMoment(why)
+        function ask(reason: string) {
+            // A look switch wins over the rest: it shows whatever line the look has.
+            if (!running || reason === "look") why = reason;
+            restart();
+        }
+    }
+    // The sign-off follows a theme or look switch, as OmniWM's notch island
+    // peeks on a pack change. The committed pack (Theme.palette, colors.json),
+    // not Tokens: the picker's live preview changes Tokens' name on every
+    // move, and cancelling it must not peek. The first name after start-up
+    // (or after a palette without one) is not a switch.
+    readonly property string themeName: Theme.palette?.name ?? ""
+    property string lastThemeName: ""
+    onThemeNameChanged: {
+        const was = view.lastThemeName;
+        view.lastThemeName = view.themeName;
+        if (was !== "" && view.themeName !== "") peekLater.ask("theme");
+    }
+    // And picking a look shows its line once. peekMoment decides one event
+    // later: in this handler Look's other bindings may not have caught up.
+    // A moment up under the old look closes first (the new look draws its
+    // own, or none). The stored look arriving is not a pick: Prefs reads
+    // capsule.json after the view is built (every start and hot reload), so
+    // nothing peeks until Prefs.loaded, and the look it finds is only noted.
+    readonly property string lookName: Look.current
+    property string lastLookName: ""
+    onLookNameChanged: {
+        const was = view.lastLookName;
+        view.lastLookName = view.lookName;
+        if (machine.state === "moment") apply(IslandMachine.dismiss(machine));
+        if (Prefs.loaded && was !== view.lookName) peekLater.ask("look");
+    }
+    onMomentDrawableChanged: if (!view.momentDrawable && machine.state === "moment") apply(IslandMachine.dismiss(machine))
+    // Outrun's now playing: a new track, not the same one resumed. The last
+    // title and artist seen playing are kept through a pause, and the first
+    // seconds after start-up (the player binding) only note the track.
+    readonly property string mediaKey: view.media && view.media.playing === true ? (view.media.title ?? "") + "\n" + (view.media.artist ?? "") : ""
+    property string lastTrack: ""
+    onMediaKeyChanged: {
+        if (view.mediaKey === "" || view.mediaKey === view.lastTrack) return;
+        view.lastTrack = view.mediaKey;
+        if (view.flashArmed) peekLater.ask("track");
     }
 
     // ---- the Crew's moments ------------------------------------------------------
@@ -813,6 +941,14 @@ Item {
             apply(IslandMachine.go(machine, "vibes"));
             return "ok";
         }
+        if (state === "moment") {
+            if (!Look.active) return "error: the plain island has no moment line (pick a look: qs ipc call look set <name>)";
+            if (view.lookHails) return "error: the " + Look.current + " look's moment line is its hail (island open hail)";
+            if (Look.momentKind === "nowplaying" && !(view.media && view.media.title)) return "error: nothing is playing";
+            if (!view.momentDrawable) return "error: the pack has no tagline to sign off with";
+            apply(IslandMachine.go(machine, "moment"));
+            return "ok";
+        }
         if (state === "launcher") return "error: the launcher opens through Launcher.qml (`qs ipc call launcher open`, or `island open launcher`)";
         // The pickers open through ThemePicker, which hands them back here.
         if (state === "themes" || state === "wallpapers") {
@@ -911,7 +1047,17 @@ Item {
             launcher: { shown: view.launcherShown, focus: view.launcherFocus, windowActive: view.windowActive, loaded: launcherLayer.content !== null,
                 fieldFocus: launcherLayer.content ? launcherLayer.content.fieldItem.activeFocus : false },
             target: { width: targetSize[0], height: targetSize[1], radius: body.targetRadius },
-            body: { x: body.x, y: body.y, width: body.width, height: body.height, radius: body.radius },
+            body: { x: body.x, y: body.y, width: body.width, height: body.height, radius: body.radius, notch: body.notch,
+                fill: Tokens.hex(body.fill), ring: Tokens.hex(body.ring), ringWidth: body.border.width > 0 || body.notch ? body.ringWidth : 0 },
+            // The look (M9): asked for, on screen, the cell drawn and its material.
+            look: { name: Look.name, current: Look.current, active: Look.active, cell: view.lookCell, moment: Look.momentKind,
+                form: Prefs.islandForm, material: view.lookMaterial, fonts: Look.fonts,
+                rest: lookRest.content ? box(lookRest.content) : null, line: lookMoment.content ? box(lookMoment.content) : null,
+                // The look's Crew zone (the dwell there opens the Crew panel) and its live segment.
+                crewZone: lookRest.content && lookRest.current ? box(lookRest.content.crewZone) : null, crewHovered: lookRest.crewHovered,
+                segment: lookRest.content && lookRest.current ? box(lookRest.content.restRow.segment) : null,
+                // Bridge's clock, for the shots (80869.7 on the board's day).
+                stardate: lookRest.content?.stardate ?? "" },
             workspaces: (view.workspaces || []).map(w => w.name),
             focused: restLayer.strip.focusedName,
             shape: restLayer.strip.shapeName,
@@ -1053,7 +1199,7 @@ Item {
     Timer {
         id: dwellTimer
         interval: IslandMachine.DWELL
-        onTriggered: if (view.pointerInside) view.dwelled(restLayer.crewHovered)
+        onTriggered: if (view.pointerInside) view.dwelled(Look.active ? lookRest.crewHovered : restLayer.crewHovered)
     }
     Timer {
         id: graceTimer
@@ -1117,9 +1263,20 @@ Item {
     IslandBody {
         id: body
         x: Math.round((view.width - width) / 2)
-        y: IslandMachine.TOP_INSET
+        y: view.bodyTop
         targetWidth: view.targetSize[0]
         targetHeight: view.targetSize[1]
+        notch: view.notch
+        // A look's material for its cells (Look.material), the plain island's otherwise.
+        fill: view.lookMaterial ? view.lookMaterial.fill : Tokens.surface
+        ring: view.lookMaterial ? view.lookMaterial.ring : Tokens.hairline
+        ringWidth: view.lookMaterial ? view.lookMaterial.ringWidth : 1
+        fixedRadius: view.lookMaterial ? view.lookMaterial.radius : -1
+        shadowColor: !view.lookMaterial ? Tokens.shadow : view.lookMaterial.glow !== "" ? Tokens.alpha(view.lookMaterial.glow, view.lookMaterial.glowAlpha) : view.lookMaterial.shadow === "shadow2" ? Tokens.shadow2 : view.lookMaterial.shadow === "shadow" ? Tokens.shadow : "transparent"
+        // A glow sits at offset 0; the notch has its own drop shadow, 0 8 18
+        // (island-modes 8.1), the float form the one shadow, 0 10 28.
+        shadowBlur: view.lookMaterial && view.lookMaterial.glow !== "" ? view.lookMaterial.glowBlur : view.notch ? 18 : 28
+        shadowOffset: view.lookMaterial && view.lookMaterial.glow !== "" ? 0 : view.notch ? 8 : 10
         Accessible.role: Accessible.Grouping
         Accessible.name: "Island"
 
@@ -1132,7 +1289,10 @@ Item {
             id: restLayer
             anchors.horizontalCenter: parent.horizontalCenter
             y: 0
-            current: view.machine.state === "rest"
+            height: view.restHeight
+            current: view.machine.state === "rest" && !Look.active
+            // The notch's cells touch (island-modes 5.2, 8.2: gap 0).
+            cellGap: view.notch ? 0 : 2
             workspaces: view.workspaces
             clock: view.clock
             lane: view.lane
@@ -1149,12 +1309,69 @@ Item {
             onWorkspaceActivated: name => view.workspaceUsed(name)
         }
 
+        // A look's rest bar (M9), in place of the rest pill.
+        LookLayer {
+            id: lookRest
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 0
+            cell: "rest"
+            sizeState: "rest"
+            minWidth: 0
+            // Its own height while it fades out, not the next state's.
+            cellHeight: Look.material("rest").height || view.restHeight
+            current: view.machine.state === "rest" && Look.active
+            live: view.live
+            dotAnimated: Fixture.data.still !== true
+            workspaces: view.workspaces
+            clock: view.clock
+            now: view.lookNow
+            agents: view.crewAgents
+            total: view.crew?.total ?? 0
+            spend: view.crew?.spendToday ?? null
+            battery: view.lookBattery
+            media: view.media
+            tagline: view.tagline
+            dpr: view.dpr
+            animated: view.ambient
+            onPin: view.clickPill()
+            onPinCrew: view.clickCrew()
+            onActivated: name => view.workspaceUsed(name)
+            onStopRecording: view.stopRecording()
+        }
+
+        // A look's moment line (M9): the `moment` state, or the hail for a
+        // look that draws its own (Bridge, Arcade).
+        LookLayer {
+            id: lookMoment
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: 0
+            cell: "moment"
+            sizeState: view.lookHails ? "hail" : "moment"
+            cellHeight: view.lookHails ? (Look.material("hail").height || 52) : (Look.material(Look.momentKind).height || 40)
+            current: Look.active && ((view.machine.state === "moment" && view.momentDrawable) || (view.machine.state === "hail" && view.lookHails))
+            workspaces: view.workspaces
+            clock: view.clock
+            now: view.lookNow
+            agents: view.crewAgents
+            total: view.crew?.total ?? 0
+            spend: view.crew?.spendToday ?? null
+            battery: view.lookBattery
+            media: view.media
+            tagline: view.tagline
+            hailAgent: view.hailAgent
+            hailOthers: view.hailOthers
+            dpr: view.dpr
+            animated: view.ambient
+            onPin: view.clickPill()
+            onGo: if (view.hailAgent) view.jumpTo(view.hailAgent.id)
+        }
+
         HoverLayer {
             id: hoverLayer
             anchors.horizontalCenter: parent.horizontalCenter
             y: 0
             // 720, or the rest pill's width when that is wider.
-            width: IslandMachine.size({ state: "hover" }, restLayer.hugWidth)[0]
+            width: IslandMachine.size({ state: "hover" }, view.restHug)[0]
             current: view.machine.state === "hover"
             clock: view.clock
             date: view.date
@@ -1235,7 +1452,7 @@ Item {
             total: view.crew?.total ?? 0
             spendToday: view.crew?.spendToday ?? null
             dpr: view.dpr
-            restWidth: restLayer.width
+            restWidth: Look.active ? lookRest.width : restLayer.width
             animated: view.ambient
             onPin: view.clickPill()
             onJump: id => view.jumpTo(id)
@@ -1245,7 +1462,8 @@ Item {
             id: hailLayer
             anchors.horizontalCenter: parent.horizontalCenter
             y: 0
-            current: view.machine.state === "hail"
+            current: view.machine.state === "hail" && !(Look.active && view.lookHails)
+            skin: Look.active ? Look.skin : null
             agent: view.hailAgent
             others: view.hailOthers
             dpr: view.dpr
@@ -1259,6 +1477,8 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             y: 0
             current: view.machine.state === "vibes"
+            skin: Look.active ? Look.skin : null
+            line: LookModel.vibesLine(Look.current)
             dpr: view.dpr
             animated: view.ambient
         }
@@ -1376,12 +1596,15 @@ Item {
     Item {
         id: restAnchor
         x: Math.round((view.width - width) / 2)
-        y: IslandMachine.TOP_INSET
-        width: restLayer.hugWidth
-        height: IslandMachine.REST_HEIGHT
+        y: view.bodyTop
+        width: Look.active ? lookRest.width : restLayer.hugWidth
+        height: view.restHeight
     }
 
     Component.onCompleted: {
+        view.lastThemeName = view.themeName;
+        view.lastLookName = view.lookName;
+        view.lastTrack = view.mediaKey;
         Context.watch(view, view.drawsLane);
         Qt.callLater(adopt);
         // A polkit request already waiting when this island is built (a mode

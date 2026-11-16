@@ -27,6 +27,10 @@ import qs.Kit
 //
 // Hidden (no width) when nothing is live. Data comes in as plain values
 // (IslandView reads Capture, Audio, Caffeine and NotificationState).
+//
+// A personal look (M9) draws the same segment in its own bar, in its inks
+// (`inks`, lib/LookModel.js live(): text, dim, accent, dot, divider, button,
+// buttonPressed, buttonInk, ring, radius); null is the plain pill's tokens.
 Item {
     id: segment
 
@@ -40,6 +44,8 @@ Item {
     property bool dnd: false
     // The recording dot's opacity: RestLayer breathes it on a stepped clock.
     property real dotOpacity: 1
+    // A look's inks (LookModel live()), or null for the plain pill's.
+    property var inks: null
 
     signal stop
 
@@ -119,7 +125,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: 1
             height: 16
-            color: Tokens.hairline
+            color: segment.inks?.divider ?? Tokens.hairline
         }
 
         // ---- recording (6.1): dot, elapsed, Stop; 12 apart ----
@@ -135,13 +141,13 @@ Item {
                 width: 8
                 height: 8
                 radius: 4
-                color: Tokens.bad
+                color: segment.inks?.dot ?? Tokens.bad
                 opacity: segment.dotOpacity
             }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: segment.drawn.elapsed
-                color: Tokens.fg
+                color: segment.inks?.text ?? Tokens.fg
                 font.family: "Monaspace Argon"
                 font.pixelSize: 12
             }
@@ -150,8 +156,11 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 width: Math.ceil(stopLabel.implicitWidth) + 20
                 height: 26
-                radius: 13
-                color: stopArea.pressed ? Tokens.fillLow : Tokens.fillHigh
+                radius: segment.inks?.radius ?? 13
+                color: segment.inks ? (stopArea.pressed ? segment.inks.buttonPressed : segment.inks.button) : stopArea.pressed ? Tokens.fillLow : Tokens.fillHigh
+                // A Stop filled with a look's ground gets a ring in its ink.
+                border.width: segment.inks && segment.inks.ring ? 1 : 0
+                border.color: segment.inks?.ring || "transparent"
                 Accessible.role: Accessible.Button
                 Accessible.name: "Stop recording"
                 Accessible.onPressAction: segment.stop()
@@ -159,7 +168,7 @@ Item {
                     id: stopLabel
                     anchors.centerIn: parent
                     text: "Stop"
-                    color: Tokens.fg
+                    color: segment.inks?.buttonInk ?? Tokens.fg
                     font.family: "Adwaita Sans"
                     font.pixelSize: 12
                 }
@@ -182,7 +191,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 name: "mic"
                 size: 14
-                color: Tokens.accent
+                color: segment.inks?.accent ?? Tokens.accent
             }
             Text {
                 id: micLabel
@@ -190,7 +199,7 @@ Item {
                 // Whole pixels, so the coffee icon after it is not drawn between them.
                 width: Math.min(Math.ceil(implicitWidth), 120)
                 text: segment.drawn.micText
-                color: Tokens.inkDim
+                color: segment.inks?.dim ?? Tokens.inkDim
                 elide: Text.ElideRight
                 font.family: "Adwaita Sans"
                 font.pixelSize: 12
@@ -207,14 +216,14 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 name: "coffee"
                 size: 14
-                color: Tokens.fg
+                color: segment.inks?.text ?? Tokens.fg
             }
             Text {
                 id: awakeLabel
                 anchors.verticalCenter: parent.verticalCenter
                 visible: text !== ""
                 text: segment.drawn.awakeLeft
-                color: Tokens.inkDim
+                color: segment.inks?.dim ?? Tokens.inkDim
                 font.family: "Monaspace Argon"
                 font.pixelSize: 12
             }
@@ -226,7 +235,7 @@ Item {
             visible: segment.drawn.dnd
             name: "moon"
             size: 14
-            color: Tokens.inkDim
+            color: segment.inks?.dim ?? Tokens.inkDim
         }
     }
 }

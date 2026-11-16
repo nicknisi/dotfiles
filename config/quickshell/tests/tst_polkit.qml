@@ -129,6 +129,10 @@ Item {
             verify(pk.messageText.text.length < before && pk.messageText.text.endsWith("…"), "a narrower card cuts sooner: " + pk.messageText.text.length + " < " + before);
             verify(pk.messageText.contentHeight <= 54.5);
             pk.width = was;
+            // A cut message keeps the path in its own type (M9's case).
+            flow.message = "Authentication is needed to run /usr/bin/pacman as the super user. " + "More words here. ".repeat(30);
+            verify(pk.messageText.text.indexOf(">/usr/bin/pacman</span>") > 0 && pk.messageText.text.endsWith("…"), "the path keeps its type in a cut message");
+            verify(pk.messageText.contentHeight <= 54.5, "and that fits too: " + pk.messageText.contentHeight);
             flow.message = "Authentication is needed to run /usr/bin/pacman as the super user.";
             flow.inputPrompt = "Fingerprint or PIN:";
             compare(pk.label, "Fingerprint or PIN", "a prompt other than Password: is the label");

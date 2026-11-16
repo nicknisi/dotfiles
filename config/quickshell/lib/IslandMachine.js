@@ -34,9 +34,12 @@
 // M1 draws rest and hover, M2 the Crew's three (crew, hail, vibes), M3 the
 // island's own (cal, notif, osd, dict, flash), M5 the launcher, M6 cc and
 // power, M7 the pickers (themes, wallpapers); polkit is here so its size,
-// timer and priority have one home, and M8 fills in its layer.
+// timer and priority have one home, and M8 fills in its layer. M9 adds
+// `moment`: a look's own moment line peeking (lib/LookModel.js: Phosphor's
+// and Liner Notes' sign-off after a theme or look switch, Outrun's now
+// playing on a new track). Only a look offers it; the plain island never does.
 
-var STATES = ["rest", "hover", "launcher", "cc", "cal", "notif", "osd", "dict", "polkit", "power", "flash", "crew", "hail", "vibes", "themes", "wallpapers"];
+var STATES = ["rest", "hover", "launcher", "cc", "cal", "notif", "osd", "dict", "polkit", "power", "flash", "crew", "hail", "vibes", "themes", "wallpapers", "moment"];
 
 // Target size per state, logical px (Main `dims`). Rest hugs its content with
 // this minimum (restWidth below); flash hugs its content too, with no minimum
@@ -67,7 +70,10 @@ var DIMS = {
     // Panels/WallpapersPanel (3 columns, at most 2 rows in view, so as tall as
     // its wallpapers: 252 for one row, 444 with 2 rows or more).
     themes: [1240, 600],
-    wallpapers: [780, 444]
+    wallpapers: [780, 444],
+    // M9: a look's moment line, as tall as the look draws it (IslandView
+    // takes the height from LookModel.material) and as wide as its line.
+    moment: [360, 40]
 };
 
 // Which side of each hugging state follows its content, and its minimum.
@@ -75,7 +81,7 @@ var DIMS = {
 // picker (`launcher select`) its requested width and only as tall as its rows.
 // So are the theme and wallpaper pickers (M7): the themes panel narrower on a
 // narrow screen, the wallpapers panel as tall as a theme's wallpapers.
-var HUGS = { rest: "width", hover: "width", flash: "width", hail: "width", vibes: "width", crew: "both", launcher: "both", themes: "both", wallpapers: "both" };
+var HUGS = { rest: "width", hover: "width", flash: "width", hail: "width", vibes: "width", moment: "width", crew: "both", launcher: "both", themes: "both", wallpapers: "both" };
 var MINS = { rest: 360, hover: 720, crew: 460 };
 
 // The tallest state, the themes picker (M7; cc's 560 until then), sets the
@@ -83,6 +89,12 @@ var MINS = { rest: 360, hover: 720, crew: 460 };
 // offset, rounded up). The window is transparent and its input mask is the
 // body, so the room costs nothing at rest.
 var TOP_INSET = 8;
+// The notch form (island-modes 8, M9): flush with the top edge, its rest
+// body 40 high (the Island board's 444 x 40 notch, 420 between the
+// shoulders), its bottom corners clamp(0.45 h, 18, 28), and 12 px concave
+// shoulders where it meets the edge. Reserve holds 40 for it, not 46.
+var NOTCH_REST_HEIGHT = 40;
+var NOTCH_SHOULDER = 12;
 var TALLEST = 600;
 var SHADOW_ROOM = 40;
 var WINDOW_HEIGHT = TOP_INSET + TALLEST + SHADOW_ROOM;
@@ -118,15 +130,16 @@ var HOVERS = ["hover", "crew"];
 // indicator. A hail waits behind an open panel (personal-looks 3.6) and vibes,
 // an easter egg, behind anything that is not rest. M3 arbitrates the rest of
 // the list; M2 uses it through offer().
-var PRIORITY = ["polkit", "panel", "dict", "osd", "notif", "hail", "flash", "vibes", "live", "rest"];
+var PRIORITY = ["polkit", "panel", "dict", "osd", "notif", "hail", "flash", "vibes", "moment", "live", "rest"];
 
 // Self-closing states, ms (Main: notif 4200, osd 1400; flash per 6.3 [GUESS];
-// hail peeks for OmniWM's PEEK = 5 s and vibes shows for its 4 s). A notif
-// takes its own timeout (notifTimeout) when it has one.
-var TIMERS = { notif: 4200, osd: 1400, flash: 1400, hail: 5000, vibes: 4000 };
+// hail peeks for OmniWM's PEEK = 5 s and vibes shows for its 4 s; a look's
+// moment peeks for the same 5 s, as OmniWM's notch island does on a theme
+// switch). A notif takes its own timeout (notifTimeout) when it has one.
+var TIMERS = { notif: 4200, osd: 1400, flash: 1400, hail: 5000, vibes: 4000, moment: 5000 };
 
 // What an interruption is never resumed from (see `back` above).
-var DROPS = ["rest", "osd", "flash", "vibes"];
+var DROPS = ["rest", "osd", "flash", "vibes", "moment"];
 
 // How long a notification stays (DECISION 2, island-modes 9.1): the sender's
 // timeout when it sets one (expireTimeout, ms: -1 for the server's default,
@@ -238,7 +251,9 @@ function freeze(m) {
 // The host calls this for a notif only when the pointer moves onto it, so
 // one that opens under a parked pointer runs its course.
 function enter(m, target, left) {
-    if (m.state === "rest") {
+    // A look's moment line peeking (M9) is the rest pill in another dress:
+    // the pointer resting on it opens hover the same way.
+    if (m.state === "rest" || m.state === "moment") {
         var next = go(m, HOVERS.indexOf(target) >= 0 ? target : "hover");
         next.pinned = false;
         return next;
@@ -273,7 +288,7 @@ function leave(m) {
 // A click on the island's own background: rest opens `target` (hover, or
 // crew from the bots) pinned; unpinned hover, crew or hail (peeking or held) pins.
 function click(m, target) {
-    if (m.state === "rest") return go(m, HOVERS.indexOf(target) >= 0 ? target : "hover");
+    if (m.state === "rest" || m.state === "moment") return go(m, HOVERS.indexOf(target) >= 0 ? target : "hover");
     if ((HOVERS.indexOf(m.state) >= 0 || m.state === "hail") && !m.pinned) return pin(m);
     return m;
 }
@@ -457,6 +472,56 @@ function radiusFor(h) {
     return Math.min(MAX_RADIUS, h / 2);
 }
 
+// The notch body's bottom corner radius for a height (island-modes 8.1
+// [GUESS]: 18 at rest, toward 28 for the tall states).
+function notchRadius(h) {
+    return Math.max(18, Math.min(MAX_RADIUS, 0.45 * (Number(h) || 0)));
+}
+
+// The notch silhouette for a body w x h: the body from x 0 to w, flush at
+// y 0, with the shoulders reaching NOTCH_SHOULDER outside it on either side
+// (so the path runs from -12 to w + 12), quadratic corners as the board
+// draws them. `r` is the bottom radius (notchRadius). SVG path data.
+function notchPath(w, h, r) {
+    var s = NOTCH_SHOULDER, W = num(w), H = num(h), R = Math.min(num(r), H - s, W / 2);
+    if (!(R > 0)) R = 0;
+    return "M " + f(-s) + " 0 L " + f(W + s) + " 0 Q " + f(W) + " 0 " + f(W) + " " + f(s)
+        + " L " + f(W) + " " + f(H - R) + " Q " + f(W) + " " + f(H) + " " + f(W - R) + " " + f(H)
+        + " L " + f(R) + " " + f(H) + " Q 0 " + f(H) + " 0 " + f(H - R)
+        + " L 0 " + f(s) + " Q 0 0 " + f(-s) + " 0 Z";
+}
+// The body alone (no shoulders), for the content mask.
+function notchBodyPath(w, h, r) {
+    var W = num(w), H = num(h), R = Math.min(num(r), H, W / 2);
+    if (!(R > 0)) R = 0;
+    return "M 0 0 L " + f(W) + " 0 L " + f(W) + " " + f(H - R) + " Q " + f(W) + " " + f(H) + " " + f(W - R) + " " + f(H)
+        + " L " + f(R) + " " + f(H) + " Q 0 " + f(H) + " 0 " + f(H - R) + " Z";
+}
+// The hairline: down the sides from the shoulders and along the bottom, none
+// along the screen edge, inset half the stroke so all of it is inside. Its
+// bottom corners are circular arcs of radius r, centred where the body's own
+// corners are (Island/IslandBody's ClippingRectangle rounds them as circles):
+// the board's quadratics sit about a pixel outside that circle at mid-arc,
+// where the body's fill ends, so a quadratic ring went missing along both
+// corners (M9 review). A corner of r <= half the stroke is square.
+function notchRingPath(w, h, r, width) {
+    var s = NOTCH_SHOULDER, W = num(w), H = num(h), R = Math.min(num(r), H - s, W / 2), i = num(width) / 2;
+    if (!(R > 0)) R = 0;
+    var start = "M " + f(W - i) + " " + f(s) + " L " + f(W - i) + " " + f(H - R);
+    if (R <= i)
+        return "M " + f(W - i) + " " + f(s) + " L " + f(W - i) + " " + f(H - i) + " L " + f(i) + " " + f(H - i) + " L " + f(i) + " " + f(s);
+    var a = " A " + f(R - i) + " " + f(R - i) + " 0 0 1 ";
+    return start + a + f(W - R) + " " + f(H - i)
+        + " L " + f(R) + " " + f(H - i) + a + f(i) + " " + f(H - R) + " L " + f(i) + " " + f(s);
+}
+function num(v) {
+    var n = Number(v);
+    return isFinite(n) ? n : 0;
+}
+function f(v) {
+    return String(Math.round(v * 100) / 100);
+}
+
 // Rest width from its content widths (px): at least REST_MIN, and wide enough
 // that the clock can sit on the centre line with REST_CLOCK_GAP to the wider
 // side zone. A live segment (segW > 0) starts SEGMENT_GAP right of the clock
@@ -476,18 +541,23 @@ function restWidth(clockW, leftW, rightW, segW) {
 // hover the width given is the rest pill's (IslandView), so neither is ever
 // narrower than the pill it grew from.
 //
+// `min` replaces the state's minimum width when given: a personal look's rest
+// bar hugs its own row with none (M9: the Looks board packs each bar, so the
+// plain pill's 360 floor would leave gaps the board does not have).
+//
 // WIDTH_STEP is 4, not 2, for scale 1.5: the island is centred, so its x is
 // half the screen minus half its width, and only an even x is a whole device
 // pixel (x 765 is 1147.5 px). The body clips through a texture, and one drawn
 // half a device pixel off blurs every vertical edge inside it, the bots' cells
 // included (M2, seen on the physical shot). Every DIMS width is already a
 // multiple of 4.
-function size(m, hugWidth, hugHeight) {
+function size(m, hugWidth, hugHeight, min) {
     var d = DIMS[m.state] || DIMS.rest;
     var side = HUGS[m.state];
     var w = d[0], h = d[1];
+    var floor = typeof min === "number" && min >= 0 ? min : (MINS[m.state] || 0);
     if ((side === "width" || side === "both") && hugWidth > 0)
-        w = Math.max(MINS[m.state] || 0, WIDTH_STEP * Math.ceil(hugWidth / WIDTH_STEP));
+        w = Math.max(floor, WIDTH_STEP * Math.ceil(hugWidth / WIDTH_STEP));
     if ((side === "height" || side === "both") && hugHeight > 0)
         h = Math.min(TALLEST, Math.ceil(hugHeight));
     return [w, h];
@@ -499,6 +569,8 @@ if (typeof module !== "undefined")
         DROPS: DROPS, DWELL: DWELL, LEAVE_GRACE: LEAVE_GRACE, MAX_RADIUS: MAX_RADIUS, WIDTH_STEP: WIDTH_STEP, REST_MIN: REST_MIN,
         REST_HEIGHT: REST_HEIGHT, REST_PADDING: REST_PADDING, REST_CLOCK_GAP: REST_CLOCK_GAP, SEGMENT_GAP: SEGMENT_GAP, ZONE_GAP: ZONE_GAP,
         TOP_INSET: TOP_INSET, TALLEST: TALLEST, SHADOW_ROOM: SHADOW_ROOM, WINDOW_HEIGHT: WINDOW_HEIGHT,
+        NOTCH_REST_HEIGHT: NOTCH_REST_HEIGHT, NOTCH_SHOULDER: NOTCH_SHOULDER, notchRadius: notchRadius, notchPath: notchPath,
+        notchBodyPath: notchBodyPath, notchRingPath: notchRingPath,
         initial: initial, isState: isState, go: go, cover: cover, pin: pin, hold: hold, pause: pause, unpause: unpause, RESUME_MIN: RESUME_MIN,
         freeze: freeze, enter: enter, leave: leave, closesOnLeave: closesOnLeave, resumesOnLeave: resumesOnLeave,
         watchesLeave: watchesLeave, click: click, finish: finish,

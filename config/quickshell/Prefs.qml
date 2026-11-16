@@ -46,7 +46,9 @@ Singleton {
 
     // "float" sits 8 px under the top edge; "notch" is flush with it.
     readonly property string islandForm: root.islandForms.includes(store.islandForm) ? store.islandForm : "float"
-    // The personal look, separate from the theme pack.
+    // The personal look, separate from the theme pack (Look.qml, M9). "crew"
+    // is the plain island and the default, so nothing changes until a look
+    // is picked; setLook("none") stores it too.
     readonly property string look: root.looks.includes(store.look) ? store.look : "crew"
     // Motion profile: spring (default), current (today's 160 ms ease-out),
     // slow (spring at quarter speed, for review), off (no animation).
@@ -60,6 +62,11 @@ Singleton {
     // switch-over disables hyprpolkitagent: only one agent can own the
     // session, and both would fight for it.
     readonly property bool polkitAgent: store.polkitAgent
+    // capsule.json has been read (or found missing) once. Until then every
+    // value above is its default: the island waits for this before a look
+    // change counts as a pick (M9 review: the stored look arriving after the
+    // view was built peeked the sign-off on every start and hot reload).
+    readonly property bool loaded: file.settled
 
     // Moves the bar to `edge`. The full strip on a side edge becomes the rail
     // and the rail on the top or the bottom becomes the full strip
@@ -92,8 +99,9 @@ Singleton {
     }
 
     function setLook(name: string): void {
-        if (!root.looks.includes(name)) return;
-        store.look = name;
+        const n = name === "none" ? "crew" : name;
+        if (!root.looks.includes(n)) return;
+        store.look = n;
     }
 
     function setMotion(profile: string): void {
@@ -147,7 +155,13 @@ Singleton {
         // would put the file's older value back over it.
         onFileChanged: if (!save.running) reload()
         onAdapterUpdated: save.restart()
-        onLoaded: root.upgradeLayout()
+        // Set after the adapter holds the file's values (JsonAdapter fills
+        // them before loaded fires), so `loaded` never runs ahead of them.
+        property bool settled: false
+        onLoaded: {
+            root.upgradeLayout();
+            file.settled = true;
+        }
 
         // First run on a machine: nothing saved yet. Writing the defaults out
         // is what makes every later load quiet (at the current layout: there
@@ -155,6 +169,7 @@ Singleton {
         onLoadFailed: {
             store.layout = BarGeometry.LAYOUT;
             writeAdapter();
+            file.settled = true;
         }
 
         adapter: JsonAdapter {

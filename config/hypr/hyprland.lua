@@ -168,6 +168,14 @@ hl.config({
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace", scale = 0.5 })
 hl.gesture({ fingers = 4, direction = "horizontal", action = "scroll_move" })
 
+-- The shell's spatial spring (PLAN M9, main-tokens 1.10): the island's own
+-- morph curve, mass 1, stiffness 600, damping 49 (critically damped at
+-- 2 * sqrt(600) = 49). Defined, not yet used: how `speed` scales a spring is
+-- unsettled, so windows stay on the beziers below until it is tried on the
+-- live session (SWITCHOVER.md, "M9": swap bezier = "default" on the global
+-- leaf for spring = "shellSpatial").
+hl.curve("shellSpatial", { type = "spring", mass = 1, stiffness = 600, damping = 49 })
+
 -- The 8ds default takes 800ms. Keep the motion, but get it out of the way.
 hl.animation({ leaf = "global", enabled = true, speed = 2.5, bezier = "default" })
 hl.curve("workspaceSettle", { type = "bezier", points = { { 0.5, 0.5 }, { 0.75, 1 } } })

@@ -40,6 +40,15 @@ Item {
         animated: false
     }
 
+    // A player with a data: cover (MPRIS trackArtUrl): the well shows it (M9).
+    CcMedia {
+        id: covered
+        y: 600
+        width: 360
+        animated: true
+        media: CcData.mediaCard({ title: "Neon Grid", artist: "Night Rider", playing: true, art: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEX/AAAZ4gk3AAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg==" })
+    }
+
     SignalSpy {
         id: actions
         target: cc
@@ -111,6 +120,15 @@ Item {
             compare(String(cc.media.playButton.ink), String(Tokens.bg), "the play icon is bg on fg");
             compare(cc.media.titleText.text, "Neon Grid");
             verify(!cc.media.eqClock.running, "no eq loop while not animated");
+            verify(!cc.media.coverShown, "no cover: the eq bars");
+        }
+
+        function test_cover() {
+            tryCompare(covered, "coverShown", true, 3000, "the player's cover loads into the well");
+            compare(covered.cover.fillMode, Image.PreserveAspectCrop);
+            verify(!covered.eqClock.running, "and the bars' clock stops under it");
+            covered.media = CcData.mediaCard({ title: "Neon Grid", art: "javascript:void(0)" });
+            verify(!covered.coverShown, "only file, http(s) and data URLs reach the well");
         }
 
         // The player's cover fills the well (M10, the old MediaCard's), and

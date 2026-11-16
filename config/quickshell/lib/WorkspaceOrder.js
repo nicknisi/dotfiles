@@ -55,5 +55,20 @@ function shown(list, focused) {
     return out.sort(function (a, b) { return compare(a.name, b.name); });
 }
 
+// The wheel over the letters (Bar.qml's rule, Kit/WorkspaceStrip and the
+// looks' bars, M9): deltas add up in `acc` until a notch, 120 units, so
+// touchpad deltas make one step; down (a negative delta) steps to the next
+// shown name, up to the one before, with no wrap. Returns { acc, name }: the
+// new sum and the name to activate ("" for none).
+var WHEEL_NOTCH = 120;
+function wheel(acc, delta, names, focused) {
+    var sum = (Number(acc) || 0) + (Number(delta) || 0);
+    if (Math.abs(sum) < WHEEL_NOTCH) return { acc: sum, name: "" };
+    var list = names || [];
+    var at = list.indexOf(focused);
+    var next = at + (sum < 0 ? 1 : -1);
+    return { acc: 0, name: at >= 0 && next >= 0 && next < list.length ? String(list[next]) : "" };
+}
+
 if (typeof module !== "undefined")
-    module.exports = { LETTERS: LETTERS, rank: rank, compare: compare, sort: sort, shown: shown };
+    module.exports = { LETTERS: LETTERS, WHEEL_NOTCH: WHEEL_NOTCH, rank: rank, compare: compare, sort: sort, shown: shown, wheel: wheel };

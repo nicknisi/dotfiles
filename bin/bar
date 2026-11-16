@@ -7,8 +7,40 @@
 #
 # Each look is an OmniWM profile under config/omniwm/shell/<profile>/ sharing the widgets in
 # config/omniwm/shell/widgets/; crew is the Wayline profile.
+#
+# On Linux the look is the Quickshell island's (config/quickshell/Look.qml), set over its
+# `look` IPC: crew (or none, the plain island), phosphor, bridge, arcade, liner, outrun.
 
 set -euo pipefail
+
+# Linux: the island in Quickshell. BAR_QS and BAR_OS are for bin/tests/bar.sh.
+if [ "${BAR_OS:-$(uname -s)}" = Linux ]; then
+  qs_look() { "${BAR_QS:-qs}" ipc call look "$@"; }
+  case "${1:-}" in
+    "") qs_look list; exit ;;
+    -h | --help) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    next | prev)
+      listing="$(qs_look list)"
+      names=()
+      now=0
+      while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        name="$(printf '%s\n' "$line" | sed 's/^[* ]*//' | cut -f1)"
+        case "$line" in "*"*) now=${#names[@]} ;; esac
+        names+=("$name")
+      done <<EOF2
+$listing
+EOF2
+      [ "${#names[@]}" -gt 0 ] || { echo "bar: the island listed no looks" >&2; exit 1; }
+      step=1; [ "$1" = prev ] && step=$((${#names[@]} - 1))
+      look="${names[$(((now + step) % ${#names[@]}))]}" ;;
+    *) look="$1" ;;
+  esac
+  out="$(qs_look set "$look")"
+  case "$out" in ok*) ;; *) echo "bar: $out" >&2; exit 1 ;; esac
+  echo "bar: $look${out#ok}"
+  exit 0
+fi
 
 CTL=/Applications/OmniWM.app/Contents/MacOS/omniwmctl
 SHELL_TOML="$HOME/.config/omniwm/shell/shell.toml"

@@ -120,6 +120,9 @@ assert.ok(bat.groups[1].rows.some(r => r.key === 'error' && r.bad && r.sub === '
 assert.equal(C.battery({ present: false }).groups[0].rows[0].title, 'No battery')
 assert.equal(C.sheetName('battery'), 'battery')
 assert.equal(C.sheetName('charge'), 'battery')
+// Only file, http(s) and data URLs reach the well (M9).
+assert.equal(C.mediaCard({ title: 't', art: 'https://i.scdn.co/image/ab67' }).art, 'https://i.scdn.co/image/ab67', 'an http(s) cover')
+assert.equal(C.mediaCard({ title: 't', art: 'javascript:alert(1)' }).art, '', 'only file, http(s) and data URLs')
 
 // ---- sheets: Wi-Fi ----
 let wifi = C.wifi({ present: true, radioOn: true, portal: false, networks: [
@@ -250,6 +253,19 @@ assert.equal(disp.groups[0].rows[0].trail, '48')
 assert.deepEqual(disp.groups[1].rows.map(r => r.key), ['island', 'pill', 'full', 'rail'])
 assert.ok(disp.groups[1].rows[0].on)
 assert.equal(disp.status, '2880×1800 · 120 Hz · 1.5×')
+// M9: with Look.qml's looks, the island's form and look after the Bar.
+const L = require('../lib/LookModel.js')
+const looks = L.LOOKS.map(k => ({ key: k, title: L.META[k].label, sub: L.META[k].sub }))
+const disp9 = C.display({ brightness: { value: 0.48 }, barMode: 'island', islandForm: 'notch', look: 'arcade', looks })
+assert.deepEqual(disp9.groups.map(g => g.label), ['Brightness', 'Bar', 'Island form', 'Look'])
+assert.deepEqual(disp9.groups[2].rows.map(r => [r.key, r.on, r.action]), [['float', false, 'form'], ['notch', true, 'form']])
+assert.deepEqual(disp9.groups[3].rows.map(r => r.key), ['crew', 'phosphor', 'bridge', 'arcade', 'liner', 'outrun'])
+assert.deepEqual(disp9.groups[3].rows.filter(r => r.on).map(r => r.key), ['arcade'])
+assert.ok(disp9.groups[3].rows.every(r => r.action === 'look' && r.title !== '' && r.sub !== ''))
+assert.equal(disp9.groups[3].rows[0].title, 'Crew', 'the plain island is Crew')
+const dispDefault = C.display({ barMode: 'island', looks })
+const group = (d, label) => d.groups.find(g => g.label === label)
+assert.deepEqual([group(dispDefault, 'Island form').rows.find(r => r.on).key, group(dispDefault, 'Look').rows.find(r => r.on).key], ['float', 'crew'], 'defaults: float, crew')
 assert.ok(!disp.hasSwitch)
 const awake = C.awake({ active: true, selected: 60, status: 'On for 1 hour', options: [{ minutes: 30, label: '30 minutes' }, { minutes: 60, label: '1 hour' }, { minutes: -1, label: 'Until turned off' }] })
 assert.deepEqual(awake.groups[0].rows.map(r => r.on), [false, true, false])

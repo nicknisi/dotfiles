@@ -91,8 +91,21 @@ bash "$root/tests/lock.sh"
 bash "$root/tests/notif-host.sh"
 bash "$root/tests/retired.sh"
 
+# Looks, the notch form and the compositor spring (PLAN M9): the Bridge
+# stardate (every minute of two years against the Lua formula, and format()
+# against printf's %.1f on every tie minute plus every 997th) with the looks'
+# small pure pieces (hearts, faces, status lines, stars), the per-look
+# contrast audit over all 37 packs, bin/bar's Linux branch against a fake qs
+# (the macOS path still stops without OmniWM), and Hyprland's own check of
+# hyprland.lua with the shellSpatial spring, when Hyprland is installed. The
+# looks and the notch on the island run in check.qml below.
+node "$root/tests/stardate.cjs"
+node "$root/tests/look-contrast.cjs"
+bash "$root/../../bin/tests/bar.sh"
+bash "$root/../hypr/tests/verify.sh"
+
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
-for file in "$root"/*.qml "$root"/Kit/*.qml "$root"/Island/*.qml "$root"/Lock/*.qml "$root"/Panels/*.qml "$root"/Panels/Sheets/*.qml "$root"/Hosts/*.qml; do
+for file in "$root"/*.qml "$root"/Kit/*.qml "$root"/Island/*.qml "$root"/Lock/*.qml "$root"/Panels/*.qml "$root"/Panels/Sheets/*.qml "$root"/Hosts/*.qml "$root"/Looks/*.qml; do
     "$formatter" "$file" >/dev/null
 done
 # Singletons may import a sibling .js, so those ride along with the .qml.
@@ -100,9 +113,10 @@ cp "$root"/*.qml "$tmp/"
 cp "$root/battery-top-up.py" "$tmp/"
 cp "$root"/*.js "$tmp/" 2>/dev/null || true
 # lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit,
-# Island/ is qs.Island, Lock/ is qs.Lock (M8), Panels/ is qs.Panels (M6) and
-# Hosts/ is qs.Hosts (M4).
-cp -R "$root/launcher" "$root/Commons" "$root/Ui" "$root/lib" "$root/Kit" "$root/Island" "$root/Lock" "$root/Panels" "$root/Hosts" "$tmp/"
+# Island/ is qs.Island, Lock/ is qs.Lock (M8), Panels/ is qs.Panels (M6),
+# Hosts/ is qs.Hosts (M4), Looks/ holds the personal looks and assets/ their
+# fonts (M9).
+cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$root/lib" "$root/Kit" "$root/Island" "$root/Lock" "$root/Panels" "$root/Hosts" "$root/Looks" "$tmp/"
 cp "$root/tests/check.qml" "$tmp/shell.qml"
 # SHELL_CREW=off: the Crew singleton polls no fleet or /proc and runs no jump.
 # SHELL_DRY_RUN=1: the control center, its sheets and the power menu read the

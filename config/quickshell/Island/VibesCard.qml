@@ -13,6 +13,10 @@ import "../lib/IslandMachine.js" as IslandMachine
 // at 800 ms, and the line in Monaspace Radon italic 16 `fg`, breathing .65 to
 // 1 over 1.6 s. The view shows it for 4 s. Reduced motion holds both still,
 // the words at full opacity.
+//
+// In a look (M9: no look draws vibes) the card takes the look's voice and
+// inks (`skin`) and its line (LookModel.vibesLine: "engage" on the Bridge,
+// "STAGE CLEAR" in the Arcade); null is the plain island's.
 Layer {
     id: card
 
@@ -20,6 +24,7 @@ Layer {
     // The host's gate on the bot's loop (the session not idle).
     property bool animated: true
     property string line: "vibes: immaculate"
+    property var skin: null
 
     readonly property real hugWidth: 22 + 16 + 10 + Math.ceil(words.implicitWidth) + 22
 
@@ -35,7 +40,7 @@ Layer {
         x: 22 + Math.floor((card.width - card.hugWidth) / 2)
         anchors.verticalCenter: parent.verticalCenter
         mood: "working"
-        tint: Tokens.accent
+        tint: card.skin?.accent ?? Tokens.accent
         period: CrewModel.VIBES_PERIOD
         dpr: card.dpr
         animated: card.current && card.animated
@@ -47,10 +52,12 @@ Layer {
         anchors.leftMargin: 10
         anchors.verticalCenter: parent.verticalCenter
         text: card.line
-        color: Tokens.fg
-        font.family: "Monaspace Radon"
-        font.italic: true
-        font.pixelSize: 16
+        color: card.skin?.ink ?? Tokens.fg
+        font.family: card.skin?.voice ?? "Monaspace Radon"
+        font.italic: card.skin ? card.skin.voice === "Monaspace Radon" : true
+        font.capitalization: card.skin?.upper === true ? Font.AllUppercase : Font.MixedCase
+        font.letterSpacing: card.skin?.spacing ?? 0
+        font.pixelSize: Math.round(16 * (card.skin?.scale ?? 1))
         opacity: breathe.running ? breathe.level : 1
         Accessible.ignored: true
 

@@ -77,7 +77,8 @@ PanelWindow {
 
     mask: Region {
         item: view.body
-        radius: view.body.radius
+        // The notch's top corners are square on the screen edge (M9).
+        radius: view.body.notch ? 0 : view.body.radius
     }
 
     // The strip's records: fixture workspaces in the sandbox, Hyprland's otherwise.
