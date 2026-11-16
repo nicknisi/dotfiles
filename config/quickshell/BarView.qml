@@ -41,6 +41,7 @@ import QtQuick.Layouts
 import qs
 import qs.Kit
 import "BarGeometry.js" as BarGeometry
+import "lib/CcData.js" as CcData
 
 Item {
     id: view
@@ -97,8 +98,14 @@ Item {
     // Centred on whole device pixels: the media module's text makes the
     // pill's length odd, and a half-pixel bar blurs its 1 px ring (and the
     // module edges the anchored panels line up with).
-    readonly property real bodyX: vertical ? inset : view.snap((width - bodyLength) / 2)
-    readonly property real bodyY: vertical ? view.snap((height - bodyLength) / 2) : inset
+    readonly property real bodyX: vertical ? (edge === "right" ? shadowRoom + inset : inset) : view.snap((width - bodyLength) / 2)
+    readonly property real bodyY: vertical ? view.snap((height - bodyLength) / 2) : (edge === "bottom" ? shadowRoom + inset : inset)
+    // Room for the pill's shadow (0 10 28) on its inner side, the island's
+    // SHADOW_ROOM (lib/IslandMachine.js): without it the window cut the shadow
+    // off 8 px under the pill, a hard line on light packs. Transparent and
+    // outside the input mask (Bar.qml's Region is the body); the reserve stays
+    // Theme.barExtent (Reserve.qml). The strips draw no shadow and take none.
+    readonly property int shadowRoom: flush ? 0 : BarGeometry.SHADOW_ROOM
     // How much the pill's surface grows while it is picked up (the strips
     // never move). It no longer grows while a panel is open: the anchored
     // panel sits 8 from it (lib/Anchored.js), as the launcher's free panel
@@ -107,8 +114,8 @@ Item {
     // The pill's radius: half its thickness.
     readonly property real radius: flush ? 0 : thick / 2
 
-    implicitWidth: vertical ? thick + 2 * inset : (screen?.width ?? 0)
-    implicitHeight: vertical ? (screen?.height ?? 0) : thick + 2 * inset
+    implicitWidth: vertical ? thick + 2 * inset + shadowRoom : (screen?.width ?? 0)
+    implicitHeight: vertical ? (screen?.height ?? 0) : thick + 2 * inset + shadowRoom
 
     // ---- state -----------------------------------------------------------------
     property bool suppressClicks: false
@@ -214,6 +221,9 @@ Item {
     readonly property int batteryPercent: view.status ? (view.status.battery ?? 0) : Battery.percent
     readonly property bool batteryLow: view.status ? (view.status.low ?? view.batteryPercent <= 20) : Battery.low
     readonly property bool charging: view.status ? view.status.charging === true : Battery.charging
+    // The status module's mark: the control center footer's rule
+    // (CcData.batteryIcon), so the bar, hover and the footer agree.
+    readonly property string batteryIconName: !view.batteryPresent ? "sliders" : CcData.batteryIcon({ percent: view.batteryPercent, charging: view.charging, low: view.batteryLow })
     readonly property bool muted: view.status ? view.status.muted === true : Audio.muted
 
     Item {
@@ -627,7 +637,7 @@ Item {
                         Layout.alignment: Qt.AlignCenter
                         spacing: 5
                         Icon {
-                            name: !view.batteryPresent ? "sliders" : view.charging ? "batteryCharging" : view.batteryLow ? "batteryLow" : view.batteryPercent >= 80 ? "batteryFull" : view.batteryPercent >= 40 ? "batteryMedium" : "battery"
+                            name: view.batteryIconName
                             size: 16
                             color: view.batteryLow ? Tokens.bad : Tokens.fg
                             Layout.preferredWidth: 16

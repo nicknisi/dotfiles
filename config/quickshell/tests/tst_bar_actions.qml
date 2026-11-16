@@ -166,6 +166,14 @@ TestCase {
         bar.status = { wifi: true, battery: 25, muted: false };
         compare(bar.batteryPercent, 25);
         verify(bar.batteryPresent && bar.wifiOn);
+        // The control center footer's rule (CcData.batteryIcon): 25 % on
+        // battery carries the one-bar mark, not the empty one.
+        compare(bar.batteryIconName, "batteryLow");
+        bar.status = { wifi: true, battery: 75, muted: false };
+        compare(bar.batteryIconName, "batteryFull");
+        bar.status = { wifi: true, battery: 50, muted: false, charging: true };
+        compare(bar.batteryIconName, "batteryCharging");
+        bar.status = { wifi: true, battery: 25, muted: false };
         compare(bar.networkButton.iconName, "wifi");
         bar.status = { wifi: false, battery: 25, muted: true };
         compare(bar.networkButton.iconName, "wifiOff");

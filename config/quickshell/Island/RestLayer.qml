@@ -15,9 +15,9 @@ import "../lib/IslandMachine.js" as IslandMachine
 // While something is live (a recording, the microphone, keep awake, DND), the
 // live segment (Island/LiveSegment) sits 12 right of the clock and the pill
 // grows around it (M3; it replaces M2's privacy dot).
-// The pill hugs its content with a 360 minimum: hugWidth is the rest width rule
-// in lib/IslandMachine.js, which widens both sides together so the clock never
-// leaves the centre.
+// The pill hugs its content with a 360 minimum (420 in the notch, minWidth):
+// hugWidth is the rest width rule in lib/IslandMachine.js, which widens both
+// sides together so the clock never leaves the centre.
 //
 // One button covers the whole layer ("Open the island", Main): a click on empty
 // pill space pins hover at once. The letters sit above it and take their own
@@ -52,6 +52,8 @@ Layer {
     // The gap between the letters' cells: 2, or 0 in the notch form, whose
     // cells touch (island-modes 5.2 and 8.2, the Island board's notch).
     property real cellGap: 2
+    // The pill's floor: 360, or the notch's 420 (IslandMachine.NOTCH_REST_MIN).
+    property real minWidth: IslandMachine.REST_MIN
 
     signal workspaceActivated(string name)
     signal pin
@@ -87,7 +89,7 @@ Layer {
     // As wide as the island it sits in (hugWidth rounded the way the body
     // rounds it), so the centred layer starts on the body's own pixel: a 390
     // layer in a 392 body would sit 1 px in, half a device pixel at 1.5.
-    width: IslandMachine.size({ state: "rest" }, hugWidth)[0]
+    width: IslandMachine.size({ state: "rest" }, hugWidth, 0, minWidth)[0]
     height: IslandMachine.REST_HEIGHT
 
     MouseArea {

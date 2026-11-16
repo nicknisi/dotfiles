@@ -260,6 +260,7 @@ ShellRoot {
                     test.check(v.body.notch && v.body.y === 0 && v.targetSize[1] === 40 && v.body.targetRadius === 18, "the notch: flush at y 0, 40 high, bottom corners 18");
                     test.check(v.body.topLeftRadius === 0 && v.body.topRightRadius === 0 && v.body.border.width === 0 && v.body.shoulders.visible && v.body.notchRing.visible, "square top corners, the shoulders, and the ring on the sides and bottom only");
                     test.check(v.restAnchor.y === 0 && v.restAnchor.height === 40 && v.rest.height === 40, "the rest anchor and the rest layer follow it");
+                    test.check(v.targetSize[0] === 420 && v.rest.width === 420 && v.restAnchor.width === 420, "the notch is 420 between its shoulders (the Island board), not the float's 360: " + v.targetSize[0] + ", layer " + v.rest.width);
                     test.check(v.rest.strip.gap === 0 && v.body.shadowOffset === 8 && v.body.shadowBlur === 18, "the notch's cells touch, and its shadow is 0 8 18");
                     test.check(v.body.notchRing.parent === v.body && /A /.test(IslandMachine.notchRingPath(v.body.width, v.body.height, v.body.shownRadius, 1)), "its ring is outside the content's mask, with arc corners");
                     v.open("hover");

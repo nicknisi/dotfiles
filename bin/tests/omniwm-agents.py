@@ -13,10 +13,12 @@ shells out to ps or lsof.
 
 macOS: fake `ps` and `lsof` output for the same tree with comm "tmux". The
 script's output must equal what it printed before the Linux work (the golden
-below, captured from the pre-M2 script), plus the four new fields, with fleet
-answering and with fleet knowing no pane (where stays "" there).
+below, captured from the pre-M2 script), field for field: the jump fields
+(pid, pane, session, windowId) are Linux only. With fleet answering and with
+fleet knowing no pane (where stays "" there).
 
-spend(): its cache and backoff in a temp dir, with Popen recorded, not run.
+spend(): its cache and, on Linux, its backoff in a temp dir, with Popen
+recorded, not run. On macOS it runs the pre-M2 refresh: no backoff.
 
 No real process, tmux or fleet is touched: every command goes through a fake
 run(), and spend() and claude_usage() are stubbed so nothing writes ~/.cache.
@@ -248,7 +250,7 @@ MAC_GOLDEN = {
     ],
     "spend": {"today": 4.37, "sessions": 3, "tools": [], "models": []}, "claude5h": None,
 }
-NEW_FIELDS = {"pid", "pane", "session", "windowId"}
+JUMP_FIELDS = {"pid", "pane", "session", "windowId"}
 
 
 def mac_collect(path, fleet=None):
@@ -279,10 +281,6 @@ MAC_GOLDEN_NO_FLEET = {
 }
 
 
-def strip_new(out):
-    return dict(out, agents=[{k: v for k, v in a.items() if k not in NEW_FIELDS} for a in out["agents"]])
-
-
 def test_macos(golden_from=None):
     if golden_from:
         old, _ = mac_collect(golden_from)
@@ -291,16 +289,13 @@ def test_macos(golden_from=None):
         print(json.dumps(old, indent=1))
         return
     out, calls = mac_collect(SCRIPT)
-    stripped = strip_new(out)
-    check(stripped == MAC_GOLDEN, "macOS output is unchanged apart from the new fields:\n%s" % json.dumps(stripped, indent=1))
+    check(out == MAC_GOLDEN, "macOS output is unchanged:\n%s" % json.dumps(out, indent=1))
+    # Key order too: the widget gets the same JSON text.
+    check([list(a) for a in out["agents"]] == [list(a) for a in MAC_GOLDEN["agents"]], "macOS agents keep their key order")
     empty, _ = mac_collect(SCRIPT, fleet='{"agents": []}')
-    check(strip_new(empty) == MAC_GOLDEN_NO_FLEET,
-          "macOS with fleet knowing no pane is unchanged (where stays \"\"):\n%s" % json.dumps(strip_new(empty), indent=1))
-    pids = [a.get("pid") for a in out["agents"]]
-    check(pids == [11818, 5000, 6010, 3157], "macOS agents carry their pid: %r" % pids)
-    tmux = [a for a in out["agents"] if a["host"] == "tmux"]
-    check(all(a["pane"] and a["session"] == "projects" and a["windowId"].startswith("@") for a in tmux),
-          "macOS tmux agents carry pane, session and windowId")
+    check(empty == MAC_GOLDEN_NO_FLEET,
+          "macOS with fleet knowing no pane is unchanged (where stays \"\"):\n%s" % json.dumps(empty, indent=1))
+    check(not any(JUMP_FIELDS & set(a) for a in out["agents"] + empty["agents"]), "macOS agents carry no jump fields")
     tools = sorted({c[0] for c in calls})
     check("ps" in tools and "lsof" in tools, "macOS keeps ps and lsof: %r" % tools)
 
@@ -309,6 +304,7 @@ def test_macos(golden_from=None):
 
 def test_spend():
     m = load(SCRIPT)
+    m.LINUX = True
     spend = m.real_spend
     spawned = []
 
@@ -343,6 +339,19 @@ def test_spend():
         m.SPEND.write_text("{}")
         spend()
         check(sorted(p.name for p in cache.iterdir()) == ["spend.json"], "a fresh cache writes nothing")
+    # macOS: the pre-M2 spend(). The dir is made on every scan, a failed
+    # refresh leaves no mark and the next stale scan tries again.
+    m.LINUX = False
+    spawned[:] = []
+    with tempfile.TemporaryDirectory() as tmp:
+        cache = Path(tmp) / "omniwm-agents"
+        m.CACHE, m.SPEND = cache, cache / "spend.json"
+        check(spend() is None and len(spawned) == 1 and cache.is_dir(), "macOS: no cache, one refresh, the dir is made")
+        check(spawned[0] == ["sh", "-c", 'sessions report --today --stdout > "$1.tmp" && mv "$1.tmp" "$1"; rm -f "$2"',
+                             "sh", str(m.SPEND), str(cache / "spend.lock")], "macOS: the pre-M2 refresh, unchanged: %r" % spawned[0])
+        (cache / "spend.lock").unlink()
+        (cache / "spend.failed").touch()  # as a Linux run would leave it: ignored
+        check(spend() is None and len(spawned) == 2, "macOS: no backoff, the next stale scan tries again")
 
 
 if __name__ == "__main__":

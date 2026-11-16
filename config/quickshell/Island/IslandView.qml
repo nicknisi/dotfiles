@@ -190,6 +190,9 @@ Item {
     // The notch form and a look's cell (M9).
     readonly property bool notch: Prefs.islandForm === "notch"
     readonly property real restHeight: view.notch ? IslandMachine.NOTCH_REST_HEIGHT : IslandMachine.REST_HEIGHT
+    // The plain rest pill's floor: 360 floating, 420 in the notch (the Island
+    // board's notch body between its shoulders).
+    readonly property real restMin: view.notch ? IslandMachine.NOTCH_REST_MIN : IslandMachine.REST_MIN
     readonly property real bodyTop: view.notch ? 0 : IslandMachine.TOP_INSET
     // Whether the look draws the hail itself (Bridge, Arcade).
     readonly property bool lookHails: Look.momentKind === "hail"
@@ -208,8 +211,9 @@ Item {
         return "";
     }
     readonly property var lookMaterial: view.lookCell !== "" ? Look.material(view.lookCell) : null
-    // A look's rest bar hugs its packed row with no 360 floor (the Looks board).
-    readonly property var stateSize: IslandMachine.size(machine, view.hugWidth, view.hugHeight, machine.state === "rest" && Look.active ? 0 : undefined)
+    // A look's rest bar hugs its packed row with no 360 floor (the Looks
+    // board); the plain pill keeps restMin.
+    readonly property var stateSize: IslandMachine.size(machine, view.hugWidth, view.hugHeight, machine.state === "rest" ? (Look.active ? 0 : view.restMin) : undefined)
     readonly property var targetSize: {
         const s = view.stateSize;
         const m = view.lookMaterial;
@@ -1293,6 +1297,7 @@ Item {
             current: view.machine.state === "rest" && !Look.active
             // The notch's cells touch (island-modes 5.2, 8.2: gap 0).
             cellGap: view.notch ? 0 : 2
+            minWidth: view.restMin
             workspaces: view.workspaces
             clock: view.clock
             lane: view.lane
@@ -1597,7 +1602,7 @@ Item {
         id: restAnchor
         x: Math.round((view.width - width) / 2)
         y: view.bodyTop
-        width: Look.active ? lookRest.width : restLayer.hugWidth
+        width: Look.active ? lookRest.width : Math.max(view.restMin, restLayer.hugWidth)
         height: view.restHeight
     }
 

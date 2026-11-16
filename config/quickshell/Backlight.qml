@@ -6,10 +6,15 @@ pragma Singleton
 // power daemon, a lid event, brightnessctl typed by hand) still moves the OSD.
 // That keeps hypr/media-keys.lua untouched.
 //
-// The loop only echoes when the value actually changes, so QML wakes up on real
-// events rather than 7 times a second.
+// sysfs sends no inotify event when the level moves, so it polls: a Timer
+// re-reads `brightness` every 150 ms through a FileView (the read runs off the
+// GUI thread), and `value` only changes on a real change, so QML wakes up on
+// real events. No process: the `sh` loop this replaced forked `sleep` and
+// `cat` about 7 times a second, the only spawns left at rest (final audit).
+// Without a backlight (no max_brightness) nothing polls.
 import Quickshell
 import Quickshell.Io
+import QtQuick
 
 Singleton {
     id: root
@@ -23,30 +28,42 @@ Singleton {
 
     signal changed()
 
-    Process {
-        running: true
-        command: ["sh", "-c",
-            "d=/sys/class/backlight/intel_backlight; " +
-            "m=$(cat $d/max_brightness); " +
-            "prev=''; " +
-            "while :; do " +
-            "  v=$(cat $d/brightness); " +
-            "  if [ \"$v\" != \"$prev\" ]; then echo \"$v $m\"; prev=$v; fi; " +
-            "  sleep 0.15; " +
-            "done"
-        ]
+    readonly property string dir: "/sys/class/backlight/intel_backlight"
 
-        stdout: SplitParser {
-            onRead: line => {
-                const parts = line.trim().split(/\s+/);
-                if (parts.length !== 2) return;
-
-                root.value = parseInt(parts[0]);
-                root.max = parseInt(parts[1]);
-
-                if (root.primed) root.changed();
-                else root.primed = true;
-            }
+    FileView {
+        id: maxFile
+        path: root.dir + "/max_brightness"
+        printErrors: false
+        onLoaded: {
+            const m = parseInt(maxFile.text());
+            if (!(m > 0)) return;
+            root.max = m;
+            poll.running = true;
         }
+    }
+
+    FileView {
+        id: levelFile
+        path: root.dir + "/brightness"
+        printErrors: false
+        onLoaded: {
+            const v = parseInt(levelFile.text());
+            if (isNaN(v)) return;
+            if (!root.primed) {
+                root.value = v;
+                root.primed = true;
+                return;
+            }
+            if (v === root.value) return;
+            root.value = v;
+            root.changed();
+        }
+    }
+
+    Timer {
+        id: poll
+        interval: 150
+        repeat: true
+        onTriggered: levelFile.reload()
     }
 }

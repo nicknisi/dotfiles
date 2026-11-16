@@ -204,11 +204,11 @@ theme                 # pick a theme and wallpaper with fzf
 theme nord 2          # switch; 2 = second wallpaper
 theme next            # cycle (SUPER+0 under Hyprland)
 theme bg next         # only the wallpaper (SUPER+CTRL+0)
-theme picker          # the carousel overlay; "Theme" and "Wallpaper" in wofi open it
+theme picker          # the grid picker; "Theme" and "Wallpaper" in wofi open it
 theme list            # every pack with its swatches and tagline
 ```
 
-The overlay is `config/quickshell/ThemePicker.qml`: the chosen wallpaper expanded in the middle, the rest as skewed slices, type to filter, Enter to apply. `bin/theme` feeds it rows over `qs ipc` and caches thumbnails under `~/.cache/theme/thumbs`.
+The picker is `config/quickshell/ThemePicker.qml`: a grid of packs (Tab switches to the current pack's wallpapers), type to filter, the arrows move, Enter applies. The focused pack previews live: the island, the bars and the panels take its palette until you press Enter or back out, and nothing is written before Enter. In island mode the island grows into the picker; in the classic bars it is a panel under the bar. `bin/theme _rows` feeds it each pack's rows (mode, background, foreground and palette) as JSON, and `theme thumbs` caches thumbnails under `~/.cache/theme/thumbs`.
 
 A pack is `themes/<name>/colors.toml` plus `backgrounds/`; a theme repo laid out that way drops in unchanged. On a switch, `bin/theme` renders `themes/templates/*.tpl` from the palette into `~/.local/state/theme/current/theme/` and every app reads from there: ghostty, kitty, wezterm, tmux, nvim (aether), btop, LazyGit, Delta, fzf, Starship, Pi, and Claude Code on both platforms; Hyprland borders, hyprlock, wofi, the Quickshell bar, and GTK dark/light on Linux; the system appearance and Slack on macOS. A pack may ship a file under a template's name to hand-tune that one app. `bin/theme-color` resolves a `colors.toml` into the full palette (`--all`, `--json`) and is the renderer. Run `theme <name>` once on a fresh machine: hyprlock and hyprpaper read the state dir and have nothing until then.
 

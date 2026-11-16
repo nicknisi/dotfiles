@@ -97,15 +97,18 @@ Item {
                 names.push(t.objectName);
                 compare(t.width, 174);
                 compare(t.height, 70);
-                compare(t.labelText.width, 75, "the text column is what is left, 75");
+                compare(t.subText.width, 75, "the text column is what is left, 75");
+                compare(t.labelText.width, 91, "the label runs on to the chevron's glyph, 91");
             }
             compare(names.join(" "), "ccTile-wifi ccTile-bt ccTile-ts ccTile-dnd");
             compare(at(cc.tiles.itemAt(1)).x, 16 + 174 + 8);
             compare(at(cc.tiles.itemAt(2)).y, 16 + 70 + 8);
             const dnd = cc.tiles.itemAt(3);
             compare(dnd.label, "Do not disturb");
-            verify(dnd.labelText.implicitWidth > 75, "Do not disturb is wider than its column: " + dnd.labelText.implicitWidth);
-            verify(dnd.labelText.truncated, "so it elides");
+            verify(dnd.labelText.implicitWidth > 75, "Do not disturb is wider than the sub's column: " + dnd.labelText.implicitWidth);
+            verify(!dnd.labelText.truncated, "and reads whole, as on the Main board (no \"Do not dis…\"): " + dnd.labelText.implicitWidth);
+            verify(dnd.labelText.x + dnd.labelText.parent.x + dnd.labelText.implicitWidth <= dnd.chevron.x + 6, "clear of the chevron's glyph");
+            verify(dnd.labelText.parent.z > dnd.chevron.z, "above the chevron's hover fill");
             verify(!cc.tiles.itemAt(0).labelText.truncated, "Wi-Fi fits");
             compare(cc.tiles.itemAt(0).sub, "home-5g");
             verify(dnd.checked, "DND on");

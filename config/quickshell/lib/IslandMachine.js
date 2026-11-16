@@ -90,10 +90,12 @@ var MINS = { rest: 360, hover: 720, crew: 460 };
 // body, so the room costs nothing at rest.
 var TOP_INSET = 8;
 // The notch form (island-modes 8, M9): flush with the top edge, its rest
-// body 40 high (the Island board's 444 x 40 notch, 420 between the
-// shoulders), its bottom corners clamp(0.45 h, 18, 28), and 12 px concave
-// shoulders where it meets the edge. Reserve holds 40 for it, not 46.
+// body 40 high and at least 420 wide (the Island board's 444 x 40 notch, 420
+// between the shoulders: NOTCH_REST_MIN replaces the float's 360 floor), its
+// bottom corners clamp(0.45 h, 18, 28), and 12 px concave shoulders where it
+// meets the edge. Reserve holds 40 for it, not 46.
 var NOTCH_REST_HEIGHT = 40;
+var NOTCH_REST_MIN = 420;
 var NOTCH_SHOULDER = 12;
 var TALLEST = 600;
 var SHADOW_ROOM = 40;
@@ -543,7 +545,8 @@ function restWidth(clockW, leftW, rightW, segW) {
 //
 // `min` replaces the state's minimum width when given: a personal look's rest
 // bar hugs its own row with none (M9: the Looks board packs each bar, so the
-// plain pill's 360 floor would leave gaps the board does not have).
+// plain pill's 360 floor would leave gaps the board does not have), and the
+// plain notch's rest body takes NOTCH_REST_MIN (the Island board's 420).
 //
 // WIDTH_STEP is 4, not 2, for scale 1.5: the island is centred, so its x is
 // half the screen minus half its width, and only an even x is a whole device
@@ -569,7 +572,7 @@ if (typeof module !== "undefined")
         DROPS: DROPS, DWELL: DWELL, LEAVE_GRACE: LEAVE_GRACE, MAX_RADIUS: MAX_RADIUS, WIDTH_STEP: WIDTH_STEP, REST_MIN: REST_MIN,
         REST_HEIGHT: REST_HEIGHT, REST_PADDING: REST_PADDING, REST_CLOCK_GAP: REST_CLOCK_GAP, SEGMENT_GAP: SEGMENT_GAP, ZONE_GAP: ZONE_GAP,
         TOP_INSET: TOP_INSET, TALLEST: TALLEST, SHADOW_ROOM: SHADOW_ROOM, WINDOW_HEIGHT: WINDOW_HEIGHT,
-        NOTCH_REST_HEIGHT: NOTCH_REST_HEIGHT, NOTCH_SHOULDER: NOTCH_SHOULDER, notchRadius: notchRadius, notchPath: notchPath,
+        NOTCH_REST_HEIGHT: NOTCH_REST_HEIGHT, NOTCH_REST_MIN: NOTCH_REST_MIN, NOTCH_SHOULDER: NOTCH_SHOULDER, notchRadius: notchRadius, notchPath: notchPath,
         notchBodyPath: notchBodyPath, notchRingPath: notchRingPath,
         initial: initial, isState: isState, go: go, cover: cover, pin: pin, hold: hold, pause: pause, unpause: unpause, RESUME_MIN: RESUME_MIN,
         freeze: freeze, enter: enter, leave: leave, closesOnLeave: closesOnLeave, resumesOnLeave: resumesOnLeave,

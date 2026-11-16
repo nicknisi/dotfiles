@@ -1,6 +1,7 @@
 import QtQuick
 import qs
 import qs.Kit
+import "../lib/CcData.js" as CcData
 
 // HoverLayer.qml - the open island (island-modes 7, main-tokens 2.5.2,
 // Main board `hover`, 720 x 136; Personal board's tagline sign-off).
@@ -302,7 +303,9 @@ Layer {
                         spacing: 5
                         Icon {
                             anchors.verticalCenter: parent.verticalCenter
-                            name: hover.status.charging === true ? "batteryCharging" : hover.status.low === true ? "batteryLow" : "battery"
+                            // The control center footer's rule (CcData.batteryIcon):
+                            // the board's mark carries the level.
+                            name: CcData.batteryIcon({ percent: hover.status.battery, charging: hover.status.charging === true, low: hover.status.low === true })
                             size: 14
                             color: hover.status.low === true && hover.status.charging !== true ? Tokens.bad : Tokens.fg
                         }

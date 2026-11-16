@@ -452,4 +452,9 @@ assert.equal(M.notchRingPath(420, 40, 0, 2), 'M 419 12 L 419 39 L 1 39 L 1 12', 
 }
 assert.ok(!/NaN|undefined/.test(M.notchPath(undefined, null, 'x')), 'junk in, a path out')
 assert.equal(M.NOTCH_REST_HEIGHT, 40)
+// The plain notch's rest body is the board's 420 between the shoulders (the
+// view passes NOTCH_REST_MIN as `min`); wider content still widens it.
+assert.equal(M.NOTCH_REST_MIN, 420)
+assert.deepEqual(M.size(rest, 360, 0, M.NOTCH_REST_MIN), [420, 38], 'the notch at rest: 420, not the float\'s 360')
+assert.deepEqual(M.size(rest, 441, 0, M.NOTCH_REST_MIN), [444, 38], 'and hugs past it, to the step')
 console.log('ISLAND_MACHINE_PASS')

@@ -43,8 +43,10 @@ PanelWindow {
         bar.visible = false;
         Qt.callLater(() => bar.visible = true);
     }
-    implicitWidth: vertical ? Theme.barHeight + 2 * Theme.barInset : screen.width
-    implicitHeight: vertical ? screen.height : Theme.barHeight + 2 * Theme.barInset
+    // The pill's window also holds its shadow (BarView.shadowRoom); the
+    // reserve stays Theme.barExtent (Reserve.qml).
+    implicitWidth: vertical ? barView.implicitWidth : screen.width
+    implicitHeight: vertical ? screen.height : barView.implicitHeight
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "quickshell-capsule"

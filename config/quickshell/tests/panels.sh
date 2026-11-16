@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The control center's leaf components (PLAN M6) under qmltestrunner:
-# tst_cc_layout (552 of 560, the tile label eliding, the parts' sizes),
+# tst_cc_layout (552 of 560, the tile label reaching the chevron, the parts' sizes),
 # tst_sheet_nav (the sheet stack, its keys and the frame), tst_power_keys
 # (the power menu's letters, arrows, Enter and Esc) and tst_cc_live (drags,
 # keys and focus while the model changes under them, the arrow keys), plus

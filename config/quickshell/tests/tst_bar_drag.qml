@@ -56,7 +56,8 @@ TestCase {
         return cases;
     }
     // Any remembered edge: full reads top or bottom, the rail left or right,
-    // the pill keeps it; the window is 56 deep for the pill, 40 for the strips.
+    // the pill keeps it; the window is 56 deep for the pill plus 40 for its
+    // shadow on the inner side (the reserve stays 56), 40 for the strips.
     function test_layout(data) {
         place(data.mode, data.edge);
         const edge = BarGeometry.edgeFor(data.mode, data.edge);
@@ -67,9 +68,17 @@ TestCase {
         const length = data.mode === "pill" ? 518 : along;
         compare(vertical ? bar.body.height : bar.body.width, length);
         compare(vertical ? bar.body.width : bar.body.height, 40);
-        compare(vertical ? bar.width : bar.height, data.mode === "pill" ? 56 : 40);
+        compare(vertical ? bar.width : bar.height, data.mode === "pill" ? 56 + 40 : 40);
+        compare(bar.shadowRoom, data.mode === "pill" ? 40 : 0, "room for the pill's shadow only");
         compare(vertical ? bar.body.y : bar.body.x, Math.round((along - length) / 2), "centred, on a whole pixel");
-        compare(vertical ? bar.body.x : bar.body.y, data.mode === "pill" ? 8 : 0, "8 in for the pill, flush for the strips");
+        // From the window's edge on the screen's edge: the top and left start
+        // there, the bottom and right end there.
+        const depth = vertical ? bar.width : bar.height;
+        const near = vertical ? bar.body.x : bar.body.y;
+        const fromEdge = edge === "top" || edge === "left" ? near : depth - near - 40;
+        compare(fromEdge, data.mode === "pill" ? 8 : 0, "8 in for the pill, flush for the strips");
+        if (data.mode === "pill")
+            compare(edge === "top" || edge === "left" ? depth - near - 40 : near, 8 + 40, "the shadow's room is on the inner side");
     }
 
     function test_mediaExpansion_data() {

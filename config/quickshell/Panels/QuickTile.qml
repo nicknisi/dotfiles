@@ -10,9 +10,12 @@ import qs.Kit
 //
 // The disc is 36 round: `accent` with the icon in `onAccent` when on,
 // `fillHigh` with `fg` when off, cross-faded over Motion.effects; at half
-// opacity while `busy`. The text column is what is left, 75 px: the label
-// (13 / 500) elides, so "Do not disturb" (88 px) ends in an ellipsis before
-// the chevron [DEVIATION, control-lock 2.3: the board lets it run under].
+// opacity while `busy`. The text column is what is left, 75 px, and the sub
+// elides there. The label (13 / 500) runs on to the chevron's glyph (91 px,
+// into the chevron's box but clear of its stroke), so "Do not disturb"
+// (88 px) reads whole, as the Main board draws it running under the chevron;
+// a longer label still elides there. It draws above the chevron, so the
+// chevron's hover fill never covers its last letter.
 // The chevron (26 square, radius 8, `chev` 14 `inkDim`) opens the tile's sheet.
 //
 // Controlled: the disc asks with toggled(on) and leaves `checked` alone.
@@ -115,12 +118,14 @@ Rectangle {
     Column {
         id: textColumn
         x: disc.x + disc.width + 10
+        z: 1
         anchors.verticalCenter: parent.verticalCenter
         width: chevron.x - 10 - x
         spacing: 2
         Text {
             id: labelText
-            width: parent.width
+            // To the chevron glyph's box (14 centred in 26).
+            width: chevron.x + (chevron.width - 14) / 2 - textColumn.x
             text: tile.label
             color: Tokens.fg
             elide: Text.ElideRight

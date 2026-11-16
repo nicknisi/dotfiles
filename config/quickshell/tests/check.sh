@@ -28,6 +28,8 @@ node "$root/tests/token-parity.cjs"
 # QS_TESTS_OFFLINE=1 lets it pass with a SKIP line when neither is available.
 bash "$root/tests/kit.sh" ${QS_TESTS_OFFLINE:+--offline-ok}
 bash "$root/tests/services.sh"
+# Backlight (final audit): sysfs through FileView polling, no process.
+bash "$root/tests/backlight.sh"
 # Island capsule (PLAN M1): the focus shapes, the state machine, the workspace
 # order, and lib/Celestial.js still matching its generator and shapes.luau.
 # tst_workspace_strip runs inside kit.sh above.

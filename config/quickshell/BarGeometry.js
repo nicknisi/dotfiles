@@ -12,6 +12,9 @@
 var EDGES = ["top", "bottom", "left", "right"];
 var THICK = 40;
 var INSET = 8;
+// The pill window's room for its shadow on the side away from its edge (28
+// blur + 10 offset, rounded up; IslandMachine's SHADOW_ROOM). Not reserved.
+var SHADOW_ROOM = 40;
 var PILL_LENGTH = 518;
 
 function side(edge) {

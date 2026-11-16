@@ -25,13 +25,16 @@ On Linux (the Quickshell island's Crew polls `--print`) the process scan reads
 tmux's server is `tmux: server` there, so hosts match on the `tmux` prefix.
 Each agent carries pid, plus pane, session and windowId for tmux agents (from
 `tmux list-panes`), so a click can jump to it (bin/crew-jump). A tmux agent
-fleet does not know takes the pane's path as `where` on Linux only; macOS
-keeps "" there, as the OmniWM widget expects.
+fleet does not know takes the pane's path as `where`.
+
+Everything in the paragraph above, and the spend backoff below, is Linux
+only: on macOS the payload the OmniWM widget gets is what it was before the
+Linux work (no jump fields, `where` "" for a pane fleet does not know).
 
 Spend: `sessions report` refreshes ~/.cache/omniwm-agents/spend.json in the
-background at most every 10 min; a failed refresh backs off for 10 min too
-(spend.failed) instead of retrying on every scan, and the cache dir is only
-created when a refresh starts.
+background at most every 10 min. On Linux a failed refresh backs off for
+10 min too (spend.failed) instead of retrying on every scan, and the cache
+dir is only created when a refresh starts.
 """
 
 import json
@@ -148,7 +151,7 @@ def ancestors(pid, procs):
 def host_of(pid, procs):
     for anc in ancestors(pid, procs):
         _, _, comm, command = procs[anc]
-        if comm.startswith("tmux"):  # "tmux" on macOS, "tmux: server" on Linux
+        if comm == "tmux" or (LINUX and comm.startswith("tmux")):  # "tmux: server" on Linux
             return "tmux"
         if comm == "rex" or "Rex Server" in command:
             return "rex"
@@ -194,7 +197,7 @@ def tmux_panes():
     panes = {}
     fmt = "#{pane_pid}\t#{pane_id}\t#{session_name}\t#{window_id}\t#{pane_current_path}"
     for line in run("tmux", "list-panes", "-a", "-F", fmt).splitlines():
-        parts = line.split("\t")
+        parts = line.split("\t", 4)  # a tab in the path stays in the path
         if len(parts) == 5 and parts[0].isdigit():
             panes[int(parts[0])] = {"pane": parts[1], "session": parts[2], "windowId": parts[3], "path": parts[4]}
     return panes
@@ -232,12 +235,18 @@ def spend():
     A refresh that fails leaves spend.failed, which holds off the next try for
     SPEND_TTL, so a broken `sessions` is not re-run on every scan."""
     lock, failed = CACHE / "spend.lock", CACHE / "spend.failed"
-    if not fresh(SPEND, SPEND_TTL) and not fresh(lock, 120) and not fresh(failed, SPEND_TTL):
+    if not LINUX:  # macOS: as before the Linux work, the dir every scan and no backoff
+        CACHE.mkdir(parents=True, exist_ok=True)
+    if not fresh(SPEND, SPEND_TTL) and not fresh(lock, 120) and not (LINUX and fresh(failed, SPEND_TTL)):
         CACHE.mkdir(parents=True, exist_ok=True)
         lock.touch()
-        subprocess.Popen(["sh", "-c", 'if sessions report --today --stdout > "$1.tmp"; then mv "$1.tmp" "$1"; rm -f "$3";'
-                          ' else rm -f "$1.tmp"; touch "$3"; fi; rm -f "$2"',
-                          "sh", str(SPEND), str(lock), str(failed)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if LINUX:
+            argv = ["sh", "-c", 'if sessions report --today --stdout > "$1.tmp"; then mv "$1.tmp" "$1"; rm -f "$3";'
+                    ' else rm -f "$1.tmp"; touch "$3"; fi; rm -f "$2"', "sh", str(SPEND), str(lock), str(failed)]
+        else:
+            argv = ["sh", "-c", 'sessions report --today --stdout > "$1.tmp" && mv "$1.tmp" "$1"; rm -f "$2"',
+                    "sh", str(SPEND), str(lock)]
+        subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         report = json.loads(SPEND.read_text())
     except (OSError, ValueError):
@@ -277,7 +286,9 @@ def collect(crew=False):
     for pid in top:
         host = host_of(pid, procs)
         agent = {"kind": found[pid], "host": host, "age": age(procs[pid][1]), "state": "running", "label": "",
-                 "where": "", "pid": pid, "pane": "", "session": "", "windowId": ""}
+                 "where": ""}
+        if LINUX:  # the Crew's jump fields (bin/crew-jump); the OmniWM widget never had them
+            agent.update(pid=pid, pane="", session="", windowId="")
         if host == "tmux":
             tp = next((panes[p] for p in [pid, *ancestors(pid, procs)] if p in panes), None) or {}
             pane = tp.get("pane")
@@ -285,9 +296,10 @@ def collect(crew=False):
             info = fleet.get(pane, {})
             agent.update(label=info.get("label") or info.get("window") or "",
                          where=info.get("project") or (short(tp.get("path", "")) if LINUX else ""),
-                         state=(info.get("status") or "running").lower(), attention=bool(info.get("needsAttention")),
-                         pane=pane or "", session=tp.get("session") or info.get("session") or "",
-                         windowId=tp.get("windowId") or info.get("windowId") or "")
+                         state=(info.get("status") or "running").lower(), attention=bool(info.get("needsAttention")))
+            if LINUX:
+                agent.update(pane=pane or "", session=tp.get("session") or info.get("session") or "",
+                             windowId=tp.get("windowId") or info.get("windowId") or "")
         else:
             path = cwd(pid)
             job = re.search(r"/\.riker/worktrees/(\d+)", path)
