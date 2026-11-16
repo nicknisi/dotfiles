@@ -27,7 +27,8 @@
 //
 // Modules (BarChip): workspaces, the clock, then privacy (microphone, screen
 // recording), the tray, keep awake, media, network, notifications, sound and
-// the status module (battery). Each is a capsule (radius h/2) in every mode,
+// the status module (battery, and the night light's moon while it is on:
+// beside the battery, above it on the rail). Each is a capsule (radius h/2) in every mode,
 // as the board draws the status group and the workspace marks. The module
 // whose panel is open wears `accentTint`, and in the pill a 1 px `accent`
 // inset ring.
@@ -58,7 +59,7 @@ Item {
     property var trayItem: null
     property date now: new Date()
     // A fixture's `status` (sandbox shots): { wifi, battery, charging, low,
-    // muted }; null reads the services.
+    // muted, nightlight }; null reads the services.
     property var status: null
     property var player: Media.player
     // Where an open panel joins a flush strip, along the bar (px from its
@@ -225,6 +226,8 @@ Item {
     // (CcData.batteryIcon), so the bar, hover and the footer agree.
     readonly property string batteryIconName: !view.batteryPresent ? "sliders" : CcData.batteryIcon({ percent: view.batteryPercent, charging: view.charging, low: view.batteryLow })
     readonly property bool muted: view.status ? view.status.muted === true : Audio.muted
+    // The night light holds the screen (NightLight.active).
+    readonly property bool nightOn: view.status ? view.status.nightlight === true : NightLight.active
 
     Item {
         id: body
@@ -624,7 +627,8 @@ Item {
                     // Whole device pixels: the percentage's text made it
                     // 61.33 px wide, and its right ring sat on a half pixel.
                     Layout.preferredWidth: view.vertical ? 32 : view.snapUp(systemContent.implicitWidth + 16)
-                    Layout.preferredHeight: 32
+                    // The rail stacks the moon over the battery.
+                    Layout.preferredHeight: view.vertical && view.nightOn ? view.snapUp(systemContent.implicitHeight + 16) : 32
                     padding: 3
                     cornerRadius: 16
                     ringed: !view.flush
@@ -632,10 +636,22 @@ Item {
                     Accessible.description: "Left-click for the control center; right-click for the bar's appearance"
                     highlighted: (view.openMenu === "home" || view.openMenu === "appearance" || view.openMenu === "battery" || view.openMenu === "theme" || view.openMenu === "power") && view.menuAnchor === systemButton
                     onClicked: view.toggleMenu("home", systemButton)
-                    RowLayout {
+                    GridLayout {
                         id: systemContent
                         Layout.alignment: Qt.AlignCenter
-                        spacing: 5
+                        flow: view.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+                        rowSpacing: 5
+                        columnSpacing: 5
+                        Icon {
+                            objectName: "barNightLight"
+                            visible: view.nightOn
+                            name: "moon"
+                            size: 16
+                            color: Tokens.fg
+                            Layout.preferredWidth: 16
+                            Layout.preferredHeight: 16
+                            Layout.alignment: Qt.AlignCenter
+                        }
                         Icon {
                             name: view.batteryIconName
                             size: 16

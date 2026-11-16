@@ -20,6 +20,8 @@ import "../lib/CcData.js" as CcData
 //   level light    brightnessctl set N% (N >= 1), 80 ms debounce (HudHome)
 //   media          Media.player previous / togglePlaying / next, seek, cycle
 //   mini awake     Caffeine.start(selected) / stop()
+//   mini night     NightLight.toggle() (while hyprsunset answers; else the
+//                  press opens its sheet, ControlCenter)
 //   mini theme     the host's openThemes() when it has one (the island: the
 //                  themes picker in place, M7); else closes, then
 //                  `theme picker themes`
@@ -101,7 +103,11 @@ Item {
 
     // The panel's rate and scale, from `display-mode json` each time it opens.
     property var display: ({})
-    onActiveChanged: if (active && !model.fixture) displayQuery.refresh()
+    onActiveChanged: if (active && !model.fixture) {
+        displayQuery.refresh();
+        // One more call to hyprsunset if it was not answering.
+        NightLight.refresh();
+    }
     Process {
         id: displayQuery
         stdout: StdioCollector { id: displayOut }
@@ -143,6 +149,7 @@ Item {
             scale: Number(model.display.current?.scale) || 0,
             theme: Theme.name,
             recording: Capture.recording,
+            nightlight: { available: NightLight.available, reason: NightLight.reason, on: NightLight.on, temperature: NightLight.temperature, until: NightLight.until },
             notifications: history,
             count: NotificationState.count,
             user: Quickshell.env("USER") || "",
@@ -257,6 +264,8 @@ Item {
     function miniAction(key: string): string {
         if (key === "awake") {
             if (!model.dryRun) Caffeine.active ? Caffeine.stop() : Caffeine.start(Caffeine.selectedMinutes);
+        } else if (key === "nightlight") {
+            if (!model.dryRun) return NightLight.toggle();
         } else if (key === "theme") {
             // Only the island changes (the picker writes nothing until Enter).
             if (typeof model.openThemes === "function" && model.openThemes()) return "ok";

@@ -7,7 +7,7 @@ import "../../lib/LookModel.js" as LookModel
 
 // DisplaySheet.qml - brightness, the bar mode, and DisplayMenu's modes and
 // scales (control-lock 3.6, not drawn; PLAN 1.6 for the bar mode): the
-// Display and Power mode minis and the brightness row's device button, and
+// Display mini and the brightness row's device button, and
 // the launcher's System > Displays page in place of DisplayMenu.qml.
 //
 // Brightness: Backlight's fraction, set with `brightnessctl set N%` (N >= 1)

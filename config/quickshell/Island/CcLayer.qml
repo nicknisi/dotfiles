@@ -34,7 +34,7 @@ Layer {
 
     readonly property alias content: cc
     readonly property alias model: ccModel
-    readonly property var files: ({ wifi: "WifiSheet", sound: "SoundSheet", tailscale: "TailscaleSheet", bt: "BluetoothSheet", notifications: "NotificationsSheet", display: "DisplaySheet", awake: "KeepAwakeSheet", tray: "TraySheet", battery: "BatterySheet" })
+    readonly property var files: ({ wifi: "WifiSheet", sound: "SoundSheet", tailscale: "TailscaleSheet", bt: "BluetoothSheet", notifications: "NotificationsSheet", display: "DisplaySheet", awake: "KeepAwakeSheet", tray: "TraySheet", battery: "BatterySheet", nightlight: "NightLightSheet" })
 
     width: 760
     height: 560

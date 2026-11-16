@@ -110,9 +110,24 @@ Scope {
         check(Desktop.Prefs.screenCorners && testHost.statusMessage === "Rounded corners on", "a second run turns them back on")
         Desktop.Prefs.setScreenCorners(oldCorners)
         check(desktop.query({ scope: "", query: "reboot", settings: {} }).some(function(row) { return row.id === "action-reboot" && row.confirm }), "root session search retains confirmation")
+        // The night light: its sheet as a System page, and a toggle at the root.
+        var nightMenu = desktop.menus.find(function(m) { return m.id === "nightlight" })
+        equal(nightMenu && desktop.navRow(nightMenu, 0).action, { type: "system-view", page: "nightlight" }, "Night Light opens its sheet as a System page")
+        var nightRows = desktop.query({ scope: "", query: "night light", settings: {} }).map(function(row) { return row.id })
+        check(nightRows.indexOf("nightlight") >= 0 && nightRows.indexOf("nightlight-toggle") >= 0, "night light finds the page and the toggle: " + nightRows.join(" "))
+        check(desktop.query({ scope: "", query: "hyprsunset", settings: {} }).some(function(row) { return row.id === "nightlight-toggle" }), "hyprsunset finds the toggle")
+        var nightToggle = desktop.commandRow(desktop.commands.find(function(c) { return c.id === "nightlight-toggle" }), {}, 0)
+        equal(nightToggle.action, { type: "system-preference", value: "nightlight:toggle" }, "the toggle is a preference row")
+        check(nightToggle.parent === "root" && nightToggle.intentFamily === "toggle" && nightToggle.verb === "Run", "at the root, a toggle")
+        equal(desktop.routeFor("night").scope, "system/nightlight", "night routes to the page")
+        // No Hyprland session here (native.sh unsets the signature): refused,
+        // said so, and no hyprctl runs (native.sh fails on one).
+        testHost.statusMessage = ""
+        equal(desktop.activate(nightToggle), { type: "noop" }, "the toggle stays in the launcher")
+        check(testHost.statusMessage === "Night light: no Hyprland session" && !Desktop.NightLight.on, "and says why it did nothing: " + testHost.statusMessage)
         // The System view's pages are the control center's sheets (M6); the
         // old menus are gone (M10), and the theme page is the picker (M7).
-        for (var name of ["SoundSheet", "WifiSheet", "BluetoothSheet", "DisplaySheet", "TailscaleSheet"]) {
+        for (var name of ["SoundSheet", "WifiSheet", "BluetoothSheet", "DisplaySheet", "TailscaleSheet", "NightLightSheet"]) {
             var component = Qt.createComponent(Qt.resolvedUrl("../../Panels/Sheets/" + name + ".qml"))
             check(component.status === Component.Ready, name + " compiles: " + component.errorString())
         }

@@ -10,6 +10,9 @@ trap 'rm -rf -- "$tmp"' EXIT
 mkdir -p "$tmp/cfg/tests/fixtures" "$tmp/state"
 cp "$root"/{Prefs,Fixture}.qml "$tmp/cfg/"
 cp "$root/BarGeometry.js" "$tmp/cfg/"
+# Prefs keeps the night light's choices by lib/NightLight.js's rules.
+mkdir -p "$tmp/cfg/lib"
+cp "$root/lib/NightLight.js" "$tmp/cfg/lib/"
 cp "$root/tests/services.qml" "$tmp/cfg/shell.qml"
 fx=$tmp/cfg/tests/fixtures
 printf '{"value": 1}\n' >"$fx/alpha.json"
@@ -37,11 +40,14 @@ python3 -I - "$store" <<'PY'
 import json, sys
 path = sys.argv[1]
 d = json.load(open(path))
-want = {"islandForm": "notch", "look": "arcade", "motion": "off", "reducedMotion": True, "dnd": True, "barMode": "pill"}
+want = {"islandForm": "notch", "look": "arcade", "motion": "off", "reducedMotion": True, "dnd": True, "barMode": "pill",
+        "nightLightTemperature": 3300, "nightLightSchedule": "custom", "nightLightFrom": "21:30", "nightLightTo": "06:30",
+        "nightLightOn": True, "nightLightOverride": "on", "nightLightUntil": 1794700000000}
 bad = {k: d.get(k) for k, v in want.items() if d.get(k) != v}
 if bad:
     sys.exit(f"SERVICES_TEST_FAIL: capsule.json has {bad}")
 d.update(islandForm="bubble", look="vaporwave", motion="warp")
+d.update(nightLightTemperature=12, nightLightSchedule="sunset", nightLightFrom="99:99", nightLightOverride="bogus", nightLightUntil=-5)
 json.dump(d, open(path, "w"))
 PY
 run stale

@@ -35,6 +35,8 @@ Item {
     { id: "bt", title: "Bluetooth", keywords: "bluetooth pair devices headphones", subtitle: "Pair and manage Bluetooth devices", view: true },
     { id: "display", title: "Displays", keywords: "monitor resolution scale screen brightness", subtitle: "Display modes, scaling and brightness", view: true },
     { id: "tailscale", title: "Tailscale", keywords: "vpn tailnet exit node machines files", subtitle: "Machines, exit nodes and file transfers", view: true },
+    // The control center's Night light sheet (NightLight.qml, on hyprsunset).
+    { id: "nightlight", title: "Night Light", keywords: "night light warm warmth blue light filter hyprsunset color temperature schedule evening", subtitle: "Warmth and schedule", view: true },
     { id: "bar", title: "Bar Preferences", keywords: "capsule panel edge position minimal transparency", subtitle: "Position, size and transparency" }
   ]
   readonly property var commands: [
@@ -43,6 +45,8 @@ Item {
     // bar's anchored panel (Hosts/AnchoredHost.qml, M4) in pill, full and
     // rail, where the row's subtitle reads "Bar" (commandRow).
     { id: "control-center", parent: "root", title: "Open Control center", subtitle: "Island", keywords: "control center quick settings toggles wifi bluetooth sound volume brightness do not disturb", island: "cc", everyMode: true },
+    // NightLight.toggle(): against a schedule, until its next edge.
+    { id: "nightlight-toggle", parent: "root", title: "Toggle Night Light", subtitle: "Warmer colours on the screen", keywords: "night light warm blue light filter hyprsunset evening", preference: "nightlight:toggle", intentFamily: "toggle" },
     { id: "action-lock", parent: "session", title: "Lock", subtitle: "Lock the current session", keywords: "screen secure", argv: ["loginctl", "lock-session"] },
     { id: "action-suspend", parent: "session", title: "Suspend", subtitle: "Suspend the computer", keywords: "sleep", argv: ["systemctl", "suspend"] },
     { id: "action-logout", parent: "session", title: "Log out", subtitle: "End the current session", keywords: "exit session uwsm", argv: ["uwsm", "stop"], dangerous: true },
@@ -165,7 +169,11 @@ Item {
     if (action.type === "system-island") return { type: "island", state: action.state }
     if (action.type === "system-preference") {
       var status = "Bar preference updated"
-      if (action.value === "cycle") Desktop.Prefs.cycleBarMode()
+      if (action.value === "nightlight:toggle") {
+        var night = Desktop.NightLight.toggle()
+        status = night === "ok" ? (Desktop.NightLight.on ? "Night light on" : "Night light off") : "Night light: " + night.replace(/^error: /, "")
+      }
+      else if (action.value === "cycle") Desktop.Prefs.cycleBarMode()
       else if (action.value === "translucent") Desktop.Prefs.toggleTranslucent()
       else if (action.value === "corners") {
         Desktop.Prefs.toggleScreenCorners()
@@ -188,7 +196,7 @@ Item {
   function routeFor(input) {
     var name = String(input || "").trim().toLowerCase().replace(/^system[\/.]/, "")
     if (name === "apps" || name === "applications") return { kind: "apps", scope: "applications", label: "Applications" }
-    var aliases = { themes: "theme", wallpaper: "backgrounds", wallpapers: "backgrounds", background: "backgrounds", network: "net", bluetooth: "bt", displays: "display", desktop: "root", system: "root", power: "session" }
+    var aliases = { themes: "theme", wallpaper: "backgrounds", wallpapers: "backgrounds", background: "backgrounds", network: "net", bluetooth: "bt", displays: "display", desktop: "root", system: "root", power: "session", night: "nightlight", "night-light": "nightlight", hyprsunset: "nightlight" }
     name = aliases[name] || name
     for (var i = 0; i < root.menus.length; i++) {
       var menu = root.menus[i]
@@ -290,7 +298,7 @@ Item {
             // menus' interface (shown, monitor, dismissed(), navigate()) plus
             // back(). M7: no theme page; Theme Picker runs `theme picker themes`.
             source: {
-              var sheets = { audio: "SoundSheet", net: "WifiSheet", bt: "BluetoothSheet", display: "DisplaySheet", tailscale: "TailscaleSheet" }
+              var sheets = { audio: "SoundSheet", net: "WifiSheet", bt: "BluetoothSheet", display: "DisplaySheet", tailscale: "TailscaleSheet", nightlight: "NightLightSheet" }
               return sheets[root.activePage] ? Qt.resolvedUrl("../../Panels/Sheets/" + sheets[root.activePage] + ".qml") : ""
             }
             onLoaded: {

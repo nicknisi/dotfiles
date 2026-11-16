@@ -36,7 +36,7 @@ cp "$root"/Panels/{ControlCenter,QuickTile,CcMedia,LevelsCard,MiniTile,NotifCard
 cp "$root/Panels/Sheets/SheetFrame.qml" "$qs/Panels/Sheets/"
 cp "$root/Island/PowerLayer.qml" "$qs/Island/"
 cp "$root/tests/tst_cc_layout.qml" "$root/tests/tst_sheet_nav.qml" "$root/tests/tst_power_keys.qml" "$root/tests/tst_cc_live.qml" \
-    "$root/tests/SheetStub.qml" "$qs/tests/"
+    "$root/tests/SheetStub.qml" "$root/tests/StepStub.qml" "$qs/tests/"
 # A 4 x 4 red PNG: the media card's cover (tst_cc_layout, M10).
 python3 -c 'import base64,sys; sys.stdout.buffer.write(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAEElEQVR4nGP4z8AARwzEcQCukw/x0F8jngAAAABJRU5ErkJggg=="))' > "$qs/tests/cover.png"
 

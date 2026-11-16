@@ -13,6 +13,8 @@
 //          tailscale: { installed, running, needsLogin, busy, state },
 //          dnd, volume: { value, muted, device }, brightness: { value, present },
 //          awake: { active, label }, hz, scale, theme, recording,
+//          nightlight: { available, reason, on, temperature, schedule, from,
+//                        to, until, overridden, message } (NightLight.qml),
 //          notifications: [{ id, summary, appName, body, created, critical }],
 //          count, user, battery: { present, percent, charging, pluggedIn, low },
 //          tray: [{ id, title, icon, glyph, passive }] }
@@ -135,18 +137,28 @@ function levels(src) {
     ];
 }
 
+// The night light mini's line: when it next changes, else its warmth or Off.
+function nightSub(n) {
+    if (n.available !== true) return "Unavailable";
+    if (n.on === true) return text(n.until) !== "" ? "Until " + text(n.until) : num(n.temperature, NIGHT_DEFAULT_K) + " K";
+    return text(n.until) !== "" ? "From " + text(n.until) : "Off";
+}
+
+// `sheet`: the sheet the mini also opens (its chevron, a right click, a long
+// press, Alt+Right); `opens`: a press opens it too, instead of the toggle.
 function minis(src) {
     var awake = src.awake || {};
     var hz = num(src.hz, 0);
     var scale = scaleText(src.scale);
     var recording = src.recording === true;
+    var night = src.nightlight || {};
+    // The Display mini carries the panel's rate (panel-hz switches it on the
+    // charger) since the night light took the Power mode mini's place.
+    var display = scale !== "" ? (hz > 0 ? scale + " · " + Math.round(hz) + " Hz" : scale + " scale") : (hz > 0 ? Math.round(hz) + " Hz" : "Built-in");
     return [
-        { key: "awake", icon: "coffee", label: "Keep awake", sub: awake.active ? (text(awake.label) || "On") : "Off", on: awake.active === true },
-        // [NEEDS CHECK] control-lock 2.6: the board's "60 Hz" reads as the
-        // panel's rate (panel-hz switches it on the charger); pressing it
-        // opens the Display sheet [GUESS].
-        { key: "power", icon: "zap", label: "Power mode", sub: hz > 0 ? Math.round(hz) + " Hz" : "Auto", on: false },
-        { key: "display", icon: "monitor", label: "Display", sub: scale !== "" ? scale + " scale" : "Built-in", on: false },
+        { key: "awake", icon: "coffee", label: "Keep awake", sub: awake.active ? (text(awake.label) || "On") : "Off", on: awake.active === true, sheet: "awake" },
+        { key: "nightlight", icon: "sunset", label: "Night light", sub: nightSub(night), on: night.available === true && night.on === true, sheet: "nightlight", opens: night.available !== true },
+        { key: "display", icon: "monitor", label: "Display", sub: display, on: false },
         { key: "theme", icon: "palette", label: "Theme", sub: text(src.theme) || "Theme", on: false },
         { key: "record", icon: "record", label: "Record", sub: recording ? "Stop" : "Region", on: recording },
         { key: "clipboard", icon: "clip", label: "Clipboard", sub: "History", on: false }
@@ -694,10 +706,66 @@ function battery(src) {
     return sheet({ status: status, hasSwitch: false, groups: groups, footer: "" });
 }
 
+// The night light's warmth range (lib/NightLight.js MIN_K and MAX_K;
+// tests/cc-data.cjs checks they agree). The slider runs neutral at the left,
+// warmest at the right.
+var NIGHT_MIN_K = 2500;
+var NIGHT_MAX_K = 6000;
+var NIGHT_DEFAULT_K = 4000;
+function nightFraction(k) {
+    var v = Math.max(NIGHT_MIN_K, Math.min(NIGHT_MAX_K, num(k, NIGHT_DEFAULT_K)));
+    return (NIGHT_MAX_K - v) / (NIGHT_MAX_K - NIGHT_MIN_K);
+}
+
+// src: NightLight.qml's { available, reason, message, on, temperature,
+// schedule, from, to, until, overridden }.
+// Its state ("On until 07:00", "Off until 20:00", "Unavailable"), the switch
+// (refused while hyprsunset is not answering), then why it is unavailable
+// with the one way the shell starts hyprsunset (`start`, only when it is
+// simply not running), the warmth (a slider, 100 K a key step) and the
+// schedule: Off, or From and To on 30-minute steppers. No sunset to sunrise:
+// nothing on the machine stores a location (NightLight.qml).
+function nightlight(src) {
+    var s = src || {};
+    var available = s.available === true;
+    var on = s.on === true;
+    var until = text(s.until);
+    var k = Math.round(Math.max(NIGHT_MIN_K, Math.min(NIGHT_MAX_K, num(s.temperature, NIGHT_DEFAULT_K))) / 100) * 100;
+    var custom = s.schedule === "custom";
+    var from = text(s.from) || "20:00";
+    var to = text(s.to) || "07:00";
+    var groups = [];
+    if (!available) {
+        var reason = text(s.reason);
+        groups.push({ label: "", rows: [
+            reason === "stopped" ? { key: "start", title: "Start hyprsunset", sub: text(s.message) || "hyprsunset is not running", icon: "power", action: "start" }
+                : note(reason || "unavailable", reason === "dry" ? "Dry run" : reason === "session" ? "No Hyprland session" : reason === "checking" ? "Asking hyprsunset" : "hyprsunset",
+                    reason === "dry" ? "The screen is left alone here" : reason === "session" ? "hyprctl has no session to talk to" : reason === "checking" ? "Waiting for its answer" : text(s.message) || "No answer")
+        ] });
+    }
+    groups.push({ label: "Warmth", rows: [{ key: "warmth", title: "Temperature", sub: "Warmer to the right", icon: "thermometer", slider: nightFraction(k), step: 100 / (NIGHT_MAX_K - NIGHT_MIN_K), trail: k + " K", action: "" }] });
+    var rows = [
+        { key: "off", title: "Off", sub: "On and off by hand", icon: "timerOff", on: !custom, action: "schedule" },
+        { key: "custom", title: "Custom times", sub: "From " + from + " to " + to, icon: "clock", on: custom, action: "schedule" }
+    ];
+    if (custom) {
+        rows.push({ key: "from", title: "From", icon: "sunset", trail: from, stepper: true, action: "" });
+        rows.push({ key: "to", title: "To", icon: "sunrise", trail: to, stepper: true, action: "" });
+    }
+    groups.push({ label: "Schedule", rows: rows });
+    return sheet({
+        status: !available ? "Unavailable" : (on ? "On" : "Off") + (until !== "" ? " until " + until : ""),
+        switchOn: available && on,
+        switchEnabled: available,
+        groups: groups,
+        footer: ""
+    });
+}
+
 // What a sheet name is called when it opens (control-lock 3; the launcher's
 // System pages use audio and net for sound and wifi).
-var SHEETS = ["wifi", "sound", "tailscale", "bt", "notifications", "display", "awake", "tray", "battery"];
-var ALIASES = { net: "wifi", audio: "sound", bluetooth: "bt", ts: "tailscale", dnd: "notifications", caffeine: "awake", brightness: "display", volume: "sound", power: "display", charge: "battery" };
+var SHEETS = ["wifi", "sound", "tailscale", "bt", "notifications", "display", "awake", "tray", "battery", "nightlight"];
+var ALIASES = { net: "wifi", audio: "sound", bluetooth: "bt", ts: "tailscale", dnd: "notifications", caffeine: "awake", brightness: "display", volume: "sound", power: "display", charge: "battery", night: "nightlight", sunset: "nightlight", hyprsunset: "nightlight" };
 function sheetName(name) {
     var n = text(name);
     if (ALIASES[n]) n = ALIASES[n];
@@ -717,7 +785,8 @@ var POWER_COMMANDS = {
 if (typeof module !== "undefined")
     module.exports = {
         home: home, tiles: tiles, levels: levels, minis: minis, notes: notes, footer: footer, mediaCard: mediaCard,
-        wifi: wifi, sound: sound, tailscale: tailscale, bluetooth: bluetooth, notifications: notifications, display: display, awake: awake, battery: battery,
+        wifi: wifi, sound: sound, tailscale: tailscale, bluetooth: bluetooth, notifications: notifications, display: display, awake: awake, battery: battery, nightlight: nightlight,
+        nightSub: nightSub, nightFraction: nightFraction, NIGHT_MIN_K: NIGHT_MIN_K, NIGHT_MAX_K: NIGHT_MAX_K,
         batteryIcon: batteryIcon, outputKind: outputKind, outputName: outputName, ago: ago, plain: plain, clock: clock, scaleText: scaleText, transport: transport, appIcon: appIcon, osIcon: osIcon, btIcon: btIcon,
         lastSeen: lastSeen, wifiIcon: wifiIcon, sheetName: sheetName, SHEETS: SHEETS, ALIASES: ALIASES, BAR_MODES: BAR_MODES, ISLAND_FORMS: ISLAND_FORMS, POWER_COMMANDS: POWER_COMMANDS
     };
