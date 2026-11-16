@@ -228,11 +228,18 @@ echo "$inspect" | grep -q '"config":"hyprlock"' || fail "outside the sandbox PAM
 echo "$inspect" | grep -q '"sandboxDir":false' || fail "outside the sandbox PAM reads /etc/pam.d"
 echo "$inspect" | grep -q '"typed":-1' || fail "inspect reports no typing outside the sandbox"
 echo "$inspect" | grep -q '"parts":null' || fail "inspect reports no part geometry (with the bullet count) outside the sandbox"
+echo "$inspect" | grep -q '"barMode":""' || fail "no main shell prefs: no bar mode (the island's spring): $inspect"
 if ipc qs ipc -p "$qml" call lockpose pose '{}' 2>&1 | grep -q '^ok'; then fail "lockpose answers outside the sandbox"; fi
 stop
 grep -q 'Cannot start session lock' "$tmp/plain.log" || fail "offscreen, the session lock should refuse to start"
 if grep -E "$errors" "$tmp/plain.log"; then fail "lock.qml logged errors"; fi
 
+# The main shell's Prefs, where Quickshell keeps them for <cfg>/shell.qml:
+# in pill mode the capsule fades in place rather than springing from the
+# island's 360 (M10).
+prefs="$tmp/state/quickshell/by-shell/$(printf '%s' "$cfg/shell.qml" | md5sum | cut -d' ' -f1)"
+mkdir -p "$prefs"
+printf '{"barMode": "pill", "edge": "top"}\n' >"$prefs/capsule.json"
 # Inside the sandbox guard: the overrides apply, and lockpose draws only.
 start sandbox SHELL_SANDBOX=1 SBX_RUNTIME="$rt" SHELL_LOCK_PAM_DIR="$pam" SHELL_LOCK_PAM_CONFIG=t-pass
 ipc qs ipc -p "$qml" show >"$tmp/show2.txt"
@@ -241,6 +248,7 @@ if grep -qi 'unlock' "$tmp/show2.txt"; then fail "no IPC verb unlocks, even in t
 inspect=$(ipc qs ipc -p "$qml" call lock inspect)
 echo "$inspect" | grep -q '"sandbox":true' || fail "the sandbox guard: $inspect"
 echo "$inspect" | grep -q '"config":"t-pass"' && echo "$inspect" | grep -q '"sandboxDir":true' || fail "the test PAM stack in the sandbox: $inspect"
+echo "$inspect" | grep -q '"barMode":"pill"' || fail "lock.qml reads the main shell's bar mode: $inspect"
 [ "$(ipc qs ipc -p "$qml" call lockpose pose '{"auth":{"phase":"unlocking"}}')" = ok ] || fail "lockpose pose"
 sleep 0.5
 inspect=$(ipc qs ipc -p "$qml" call lock inspect)

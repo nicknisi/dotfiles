@@ -14,8 +14,8 @@ import "../lib/CcData.js" as CcData
 //   tile wifi      Networking.wifiEnabled
 //   tile bt        Bt.adapter.enabled (not while it settles)
 //   tile ts        Tailscale.toggle() (opens the login page when it needs one)
-//   tile dnd       NotificationState.dnd, the flag the toasts, the server and
-//                  the island read (persisted through Prefs.dnd)
+//   tile dnd       NotificationState.dnd, the flag the classic cards, the
+//                  server and the island read (persisted through Prefs.dnd)
 //   level volume   Audio.setVolume(Audio.sink, v); its icon mutes
 //   level light    brightnessctl set N% (N >= 1), 80 ms debounce (HudHome)
 //   media          Media.player previous / togglePlaying / next, seek, cycle
@@ -30,8 +30,7 @@ import "../lib/CcData.js" as CcData
 //                  Super+V does)
 //   notes          NotificationState.clear(); a row focuses its sender and
 //                  closes when that worked
-//   battery        hands off to the old Hud's battery page (the charge-limit
-//                  top-up has nowhere else to live until M10)
+//   battery        the Battery sheet (the charge-limit top-up, M10)
 //   lock           closes, then `loginctl lock-session`
 //   power          the island's power state
 //   tray           left: activate (or the menu of a menu-only item), right:
@@ -41,8 +40,8 @@ import "../lib/CcData.js" as CcData
 // press from reaching a service or a process: the press is logged in `last`
 // and only what happens to the island (close, power, a sheet) goes ahead.
 //
-// Signals for the host: close() (back to rest), power(), handOff(page) (an
-// old Hud page) and sheet(name, props).
+// Signals for the host: close() (back to rest), power() and sheet(name,
+// props).
 //
 // Only while the cc state shows (`active`) does any of this follow the
 // services: closed, `live`, `media` and `home` read nothing, and `home` keeps
@@ -67,7 +66,6 @@ Item {
 
     signal close
     signal power
-    signal handOff(string page)
     signal sheet(string name, var props)
 
     readonly property string screenName: String(model.monitor?.name ?? "")
@@ -96,7 +94,8 @@ Item {
             canNext: p.canGoNext !== false,
             canSeek: p.canSeek === true && p.positionSupported === true,
             position: p.positionSupported ? p.position : 0,
-            length: p.lengthSupported ? p.length : 0
+            length: p.lengthSupported ? p.length : 0,
+            art: p.trackArtUrl || ""
         };
     }
 
@@ -192,7 +191,7 @@ Item {
             return "ok";
         }
         case "battery":
-            model.handOff("battery");
+            model.sheet("battery", null);
             return "ok";
         case "lock":
             model.close();

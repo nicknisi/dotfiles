@@ -187,6 +187,8 @@ Singleton {
     // click into it clears the island's focus grab, the control center closes
     // and its sheet goes with it. The sheet closes its host first and the
     // send still lands. False when that machine cannot take files now.
+    // `filePicker` is that dialog (tests/tailscale.qml drives it).
+    readonly property alias filePicker: taildropFiles
     function chooseFiles(peerId, title) {
         const peer = peers.find(p => p.id === peerId);
         if (busy || !peer?.canSend) return false;

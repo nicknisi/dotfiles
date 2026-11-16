@@ -21,8 +21,9 @@ if grep -nE '^\s*import\s+Quickshell' "${leaves[@]}"; then
     echo "PANELS_TEST_FAIL: leaf panels must not import Quickshell" >&2
     exit 1
 fi
-if grep -nE 'NickAvatar|assets/nick|SpringAnimation' "$root"/Panels/*.qml "$root"/Panels/Sheets/*.qml "$root"/lib/CcData.js; then
-    echo "PANELS_TEST_FAIL: no avatar, no SpringAnimation" >&2
+# The retired avatar is tests/retired.sh's (the whole tree).
+if grep -nE 'SpringAnimation' "$root"/Panels/*.qml "$root"/Panels/Sheets/*.qml "$root"/lib/CcData.js; then
+    echo "PANELS_TEST_FAIL: no SpringAnimation" >&2
     exit 1
 fi
 
@@ -36,6 +37,8 @@ cp "$root/Panels/Sheets/SheetFrame.qml" "$qs/Panels/Sheets/"
 cp "$root/Island/PowerLayer.qml" "$qs/Island/"
 cp "$root/tests/tst_cc_layout.qml" "$root/tests/tst_sheet_nav.qml" "$root/tests/tst_power_keys.qml" "$root/tests/tst_cc_live.qml" \
     "$root/tests/SheetStub.qml" "$qs/tests/"
+# A 4 x 4 red PNG: the media card's cover (tst_cc_layout, M10).
+python3 -c 'import base64,sys; sys.stdout.buffer.write(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAEElEQVR4nGP4z8AARwzEcQCukw/x0F8jngAAAABJRU5ErkJggg=="))' > "$qs/tests/cover.png"
 
 cat > "$qs/qmldir" <<'EOF'
 module qs

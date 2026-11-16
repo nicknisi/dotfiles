@@ -244,6 +244,28 @@ Item {
             compare(s.wall.opacity, 1);
         }
 
+        // In pill, full and rail (M10): no island pill to spring from, so the
+        // capsule stays at its width and fades in after the stagger, and
+        // fades out in place on the way out.
+        function test_lock_in_without_island() {
+            const s = createTemporaryObject(arriving, root, { focus: false, fromIsland: false });
+            wait(50);
+            verify(Math.abs(s.capsule.width - 96) <= 2, "the capsule is at its own width from the start: " + s.capsule.width);
+            compare(s.capsule.opacity, 0, "and not in yet");
+            s.shown = true;
+            wait(40);
+            verify(s.capsule.opacity < 0.2, "it waits out the stagger: " + s.capsule.opacity);
+            wait(600);
+            compare(s.capsule.opacity, 1);
+            verify(Math.abs(s.capsule.width - 96) <= 2, "no spring: " + s.capsule.width);
+            s.shown = false;
+            wait(60);
+            verify(s.capsule.opacity > 0 && s.capsule.opacity < 1, "it fades out on the leave rule: " + s.capsule.opacity);
+            wait(200);
+            compare(s.capsule.opacity, 0);
+            verify(Math.abs(s.capsule.width - 96) <= 2, "in place, never back to 360: " + s.capsule.width);
+        }
+
         // An output added while locked: its surface is built with shown true.
         function test_built_shown() {
             const s = createTemporaryObject(arriving, root, { focus: false, shown: true });

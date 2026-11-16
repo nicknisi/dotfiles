@@ -19,10 +19,7 @@ if grep -nE '^\s*import\s+Quickshell' "$root"/Kit/*.qml; then
     echo "KIT_TEST_FAIL: Kit components must not import Quickshell" >&2
     exit 1
 fi
-if grep -nE 'NickAvatar|assets/nick' "$root"/Kit/* "$root/Motion.qml" "$root"/lib/* "$root"/Island/* "$root"/tools/* "$root/tests/gallery/shell.qml"; then
-    echo "KIT_TEST_FAIL: NickAvatar is retired" >&2
-    exit 1
-fi
+# The retired avatar is tests/retired.sh's (the whole tree).
 if grep -rn 'SpringAnimation' "$root"/Kit "$root"/Island "$root/Motion.qml" "$root"/lib "$root/tests/gallery" | grep -v '^\S*:\s*//'; then
     echo "KIT_TEST_FAIL: no SpringAnimation (lib/Spring.js says why)" >&2
     exit 1

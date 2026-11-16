@@ -106,6 +106,29 @@ Item {
             flow.message = "word ".repeat(200);
             compare(pk.messageLines, 3, "at most three lines");
             compare(pk.messageText.height, 54);
+            // Past three lines it ends in an ellipsis (M10), on the last line.
+            const cut = pk.messageText.text;
+            verify(cut.endsWith("word…"), "cut after a word, then the ellipsis: " + cut.slice(-24));
+            verify(pk.messageText.contentHeight <= 54.5, "the cut text fits in three lines: " + pk.messageText.contentHeight);
+            verify(cut.length > 120 && cut.length < 1000, "about three lines of it: " + cut.length);
+            // A cut inside the path keeps the shown part monospaced, the
+            // ellipsis outside the span.
+            flow.message = "Run " + "/usr/lib/" + "very-long-directory-name/".repeat(12) + "bin";
+            const p = pk.messageText.text;
+            verify(p.endsWith("</span>…"), "the ellipsis follows the path's span: " + p.slice(-24));
+            verify(pk.messageText.contentHeight <= 54.5);
+            // Three lines exactly: no ellipsis.
+            flow.message = "Authentication is needed to run /usr/bin/pacman as the super user.";
+            verify(!pk.messageText.text.endsWith("…"), "a message that fits is whole");
+            // A narrower card refits.
+            const was = pk.width;
+            flow.message = "word ".repeat(60);
+            const before = pk.messageText.text.length;
+            pk.width = was - 120;
+            wait(0);
+            verify(pk.messageText.text.length < before && pk.messageText.text.endsWith("…"), "a narrower card cuts sooner: " + pk.messageText.text.length + " < " + before);
+            verify(pk.messageText.contentHeight <= 54.5);
+            pk.width = was;
             flow.message = "Authentication is needed to run /usr/bin/pacman as the super user.";
             flow.inputPrompt = "Fingerprint or PIN:";
             compare(pk.label, "Fingerprint or PIN", "a prompt other than Password: is the label");

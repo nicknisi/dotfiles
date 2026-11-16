@@ -1,12 +1,12 @@
 // BarChip.qml - one module of the classic bar (pill, full, rail) in the
 // island's material (PLAN M4, island-modes 12.2 and 12.4).
 //
-// BarModule.qml's API (highlighted, cornerRadius, stacked, the `scrolled`
-// signal, a GridLayout content) on Tokens: transparent at rest, `fillLow`
-// under the pointer, `accentTint` while its panel is open, plus a 1 px
-// `accent` inset ring when `ringed` (the pill; full and rail have no ring).
-// The keyboard focus ring is the Kit one. BarModule.qml stays as it is for
-// the old menus (tests/menu-keys.sh).
+// The old BarModule's API (highlighted, cornerRadius, stacked, the
+// `scrolled` signal, a GridLayout content; BarModule went with the old menus
+// in M10) on Tokens: transparent at rest, `fillLow` under the pointer,
+// `accentTint` while its panel is open, plus a 1 px `accent` inset ring when
+// `ringed` (the pill; full and rail have no ring). The keyboard focus ring is
+// the Kit one.
 //
 // QtQuick only: no Quickshell import, so tests/bar-drag.sh loads it under
 // qmltestrunner.

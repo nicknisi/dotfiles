@@ -107,7 +107,7 @@ BarMenu {
     // Between pill, full and rail the bar stays and just reshapes (its
     // anchored panel, where this page shows, closes as it does). Entering or
     // leaving the island swaps the window this menu hangs from (the bar's
-    // AnchoredHost, or the island's hand-off Hud), so close the menu first
+    // AnchoredHost goes with the bar), so close the menu first
     // and switch once the click has finished: destroying the window from
     // inside its own click handler would pull it out from under the click.
     function switchMode(mode: string): void {

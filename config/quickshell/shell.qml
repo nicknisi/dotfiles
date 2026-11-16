@@ -126,20 +126,23 @@ ShellRoot {
     // `qs ipc call bar ...`: the classic bars' anchored panels (M4).
     BarIpc {
         bars: screens.instances.map(s => s.classicBar).filter(b => b)
+        notifs: notifHost
     }
 
     // Global rather than per-monitor: one D-Bus notification server for the
-    // session (NotificationServer.qml), whatever the bar mode. The classic
-    // modes draw its toasts (Notifications.qml); the island draws banners.
-    // The OSD that used to live beside it is gone; volume, brightness and the
-    // mic are messages the bar or the island delivers itself, through Interrupt.
+    // session (NotificationServer.qml), whatever the bar mode. The island
+    // shows its banners; the classic modes show the same banner on cards of
+    // their own (Hosts/NotifHost.qml, M10). The history is the control
+    // center's Notifications sheet in every mode. The OSD that used to live
+    // beside it is gone; volume, brightness and the mic are messages the bar
+    // or the island delivers itself, through Interrupt.
     NotificationServer {
         id: notificationServer
     }
-    Notifications {
+    NotifHost {
+        id: notifHost
         source: notificationServer
     }
-    NotificationCenter {}
     // The theme and wallpaper pickers: the island's themes and wallpapers
     // states in island mode, a free panel in the classic modes (M7).
     ThemePicker {

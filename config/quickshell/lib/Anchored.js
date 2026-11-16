@@ -44,9 +44,10 @@
 // What each of the bar's menus opens (BarView.openMenu): the control center
 // (on a sheet, "" for home), the calendar, the power menu (anchored like the
 // others, island-modes 3.2: to the module the control center hangs from), or
-// one of the old Hud pages that has no sheet yet (the battery hand-off and
-// Appearance; M10 retires them). `theme` is no page any more: the host hands
-// it to the theme picker (M7, Hosts/AnchoredView.openThemes).
+// Appearance, the one page left on the host's page frame (the bar's mode,
+// edge and translucency have no sheet). The battery is the control center's
+// Battery sheet since M10. `theme` is no page any more: the host hands it to
+// the theme picker (M7, Hosts/AnchoredView.openThemes).
 var MENUS = {
     home: { panel: "cc", sheet: "" },
     media: { panel: "cc", sheet: "" },
@@ -57,7 +58,7 @@ var MENUS = {
     tray: { panel: "cc", sheet: "tray" },
     clock: { panel: "cal", sheet: "" },
     power: { panel: "power", sheet: "" },
-    battery: { panel: "page", sheet: "", page: "battery" },
+    battery: { panel: "cc", sheet: "battery" },
     appearance: { panel: "page", sheet: "", page: "appearance" },
     theme: { panel: "page", sheet: "", page: "theme" }
 };

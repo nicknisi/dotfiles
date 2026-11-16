@@ -51,13 +51,37 @@ import QtQuick.Effects
 import qs
 import qs.Kit
 import qs.Panels
+import "lib/FindBin.js" as FindBin
 
 Scope {
     id: root
 
-    // ~/.config/quickshell is a symlink into the dotfiles checkout; .. walks the
-    // real parent, so this lands on dotfiles/bin/theme without hard-coding it.
-    readonly property string themeBin: Quickshell.shellDir + "/../../bin/theme"
+    // bin/theme. ~/.config/quickshell is a link into the dotfiles checkout,
+    // and .. walks the link's target, so this path finds the checkout's own
+    // (a worktree run by path finds its own too). Only while it is that link,
+    // though: a link farm in its place has no ../../bin. lib/FindBin.js
+    // settles it once at startup: that path, then for the session's own
+    // config alone $DOTFILES/bin/theme and `theme` on PATH, through realpath
+    // (M10). A copy (the sandbox's, a test's) gets its own or nothing, so a
+    // stray Enter there can never theme the live desktop.
+    readonly property string localThemeBin: Quickshell.shellDir + "/../../bin/theme"
+    readonly property bool themeFallbacks: FindBin.fallbacksFor(Quickshell.shellDir, Quickshell.env("HOME"), Quickshell.env("XDG_CONFIG_HOME"), Fixture.dryRun)
+    property string themeBin: root.localThemeBin
+    Process {
+        id: findTheme
+        running: true
+        command: FindBin.command("theme", root.localThemeBin, root.themeFallbacks)
+        stdout: StdioCollector {
+            waitForEnd: true
+            onStreamFinished: {
+                const found = text.trim();
+                if (found !== "") root.themeBin = found;
+            }
+        }
+        onExited: code => {
+            if (code !== 0) console.warn("picker: no bin/theme at " + root.localThemeBin + (root.themeFallbacks ? ", in $DOTFILES/bin or on PATH" : " (not the session's config: no $DOTFILES or PATH fallback)"));
+        }
+    }
 
     // Island.qml instances (shell.qml), one per screen; empty outside island mode.
     property var islands: []

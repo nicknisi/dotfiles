@@ -419,12 +419,16 @@ hl.config({
 -- it, and a layer surface asks through a rule. The capsule's window spans the
 -- whole edge with the pill drawn in the middle, so ignore_alpha keeps the
 -- fully transparent rest of it (and the shadow's faint edge) from smearing
--- the desktop; blur_popups covers the HUD menus, which are popups of that
+-- the desktop; blur_popups covers the volume feedback, a popup of that
 -- layer. Opaque surfaces are unaffected: this only shows once the capsule's
 -- translucent mode is on (double-click the pill, or "Toggle Bar Transparency").
+-- The island's surfaces (the island, the launcher, the theme picker, the
+-- classic modes' notification banners) are opaque with one shadow and no blur
+-- (Tokens board), so their namespaces stay out of this rule: a shadow pixel
+-- above ignore_alpha would blur (M10).
 hl.layer_rule({
   name = "shell-blur",
-  match = { namespace = "^(quickshell|quickshell-capsule|launcher|clipboard-history|theme-picker|quickshell-voxtype-osd)$" },
+  match = { namespace = "^(quickshell-capsule|quickshell-voxtype-osd)$" },
   blur = true,
   blur_popups = true,
   ignore_alpha = 0.3,

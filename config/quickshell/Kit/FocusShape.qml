@@ -28,7 +28,9 @@ Item {
     readonly property string previousShapeName: morphState.previous
     readonly property real progress: morphState.progress
     readonly property bool morphing: morph.running
-    readonly property string path: morphState.to === null ? Celestial.path(root.shapeName)
+    // Settled, it is the target's own path: from + (to - from) * 1 can miss
+    // `to` in the last bit and print a coordinate a tenth off.
+    readonly property string path: morphState.to === null || morphState.progress >= 1 ? Celestial.path(root.shapeName)
         : Celestial.pathFromRadii(Celestial.lerpRadii(morphState.from, morphState.to, morphState.progress))
 
     implicitWidth: size

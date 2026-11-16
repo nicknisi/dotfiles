@@ -77,6 +77,49 @@ media = C.mediaCard(null)
 assert.equal(media.title, 'Ready when you are', 'MediaCard.qml\'s empty copy')
 assert.ok(!media.canNext && !media.canPrevious)
 assert.equal(C.mediaCard({ title: 't', position: 5 }).total, '', 'no length, no times')
+// The cover (M10, MediaCard's): MPRIS trackArtUrl through, "" without one.
+assert.equal(C.mediaCard({ title: 't', art: 'file:///tmp/cover.png' }).art, 'file:///tmp/cover.png')
+assert.equal(C.mediaCard({ title: 't' }).art, '')
+assert.equal(C.mediaCard(null).art, '')
+
+// ---- sheets: Battery (M10, BatteryMenu.qml's charge limit) ----
+const care = { supported: true, mode: 'Custom', start: 50, end: 80, target: 0, recovery: false }
+let bat = C.battery({ present: true, percent: 62, statusText: 'Charging', timeText: '1h 10m', pluggedIn: true, busy: false, error: '', care })
+assert.equal(bat.status, 'Charging · 62% · 1h 10m', 'BatteryMenu\'s subtitle')
+assert.equal(bat.hasSwitch, false)
+assert.equal(bat.footer, '')
+assert.deepEqual(bat.groups[0].rows.map(r => [r.key, r.title, r.action]), [['80', 'Top up to 80%', 'topUp'], ['100', 'Charge to 100%', 'topUp']])
+assert.deepEqual(bat.groups[1].rows.map(r => r.key), ['care', 'how'])
+assert.equal(bat.groups[1].rows[0].sub, 'Battery care: start below 50%, stop at 80%.')
+assert.ok(bat.groups[1].rows.every(r => r.inert && r.wrap), 'the hints are inert and wrap')
+// Battery.topUp's rules: 80 % needs the 80 % cap and under 75 %, the raw level counts.
+const can = src => C.battery(Object.assign({ present: true, percent: 62, pluggedIn: true, care }, src)).groups[0].rows.map(r => r.action === 'topUp')
+assert.deepEqual(can({ percent: 76 }), [false, true], 'no 80 % top-up from 75 %')
+assert.deepEqual(can({ percent: 79.6, care: Object.assign({}, care, { end: 100 }) }), [false, true], 'no 80 % top-up without the 80 % cap')
+assert.deepEqual(can({ percent: 99.6 }), [false, true], 'the raw level, not the rounded one')
+assert.deepEqual(can({ pluggedIn: false }), [false, false], 'unplugged')
+assert.deepEqual(can({ busy: true }), [false, false], 'busy')
+assert.deepEqual(can({ care: Object.assign({}, care, { mode: 'Standard' }) }), [false, false], 'not in Custom mode')
+assert.deepEqual(can({ care: { supported: false } }), [false, false], 'unsupported')
+assert.ok(C.battery({ present: true, percent: 62, pluggedIn: true, care }).groups[0].rows.every(r => r.action !== '' || (r.inert && r.dim)), 'what cannot run is dim and inert')
+assert.equal(C.battery({ present: true, percent: 62, pluggedIn: true, care: { supported: true, mode: 'Standard' } }).groups[1].rows[1].sub,
+    'Select Custom charging mode in BIOS to enable battery care.')
+assert.equal(C.battery({ present: true, percent: 62, pluggedIn: false, care }).groups[1].rows[1].sub, 'Connect a charger to top up.')
+// A top-up running: Cancel; interrupted: Restore; busy: inert.
+bat = C.battery({ present: true, percent: 70, pluggedIn: true, care: Object.assign({}, care, { target: 100 }) })
+assert.deepEqual(bat.groups[0].rows.map(r => [r.key, r.title, r.action]), [['stop', 'Cancel top-up', 'stop']])
+assert.equal(bat.groups[1].rows.map(r => r.key).join(), 'how', 'no care hint while one runs')
+bat = C.battery({ present: true, percent: 70, pluggedIn: true, care: Object.assign({}, care, { target: 100, recovery: true }) })
+assert.equal(bat.groups[0].rows[0].title, 'Restore battery care')
+assert.equal(bat.groups[0].rows[0].sub, 'Top-up was interrupted. Restore battery care below.')
+bat = C.battery({ present: true, percent: 70, pluggedIn: true, busy: true, care: Object.assign({}, care, { target: 100 }) })
+assert.ok(bat.groups[0].rows[0].inert && bat.groups[0].rows[0].action === '', 'busy: nothing to press')
+assert.equal(bat.groups[1].rows[0].title, 'Waiting for authorization')
+bat = C.battery({ present: true, percent: 70, error: 'pkexec failed', care })
+assert.ok(bat.groups[1].rows.some(r => r.key === 'error' && r.bad && r.sub === 'pkexec failed'), 'the error in bad')
+assert.equal(C.battery({ present: false }).groups[0].rows[0].title, 'No battery')
+assert.equal(C.sheetName('battery'), 'battery')
+assert.equal(C.sheetName('charge'), 'battery')
 
 // ---- sheets: Wi-Fi ----
 let wifi = C.wifi({ present: true, radioOn: true, portal: false, networks: [
@@ -195,6 +238,8 @@ const ns = C.notifications({ dnd: true, items: [{ summary: 'a', appName: 'Claude
 assert.equal(ns.status, 'Do not disturb')
 assert.ok(ns.switchOn)
 assert.equal(ns.groups[0].rows[0].trail, '5m')
+// The history keeps a long body readable: six wrapped lines (M10 review).
+assert.ok(ns.groups[0].rows[0].wrap === true && ns.groups[0].rows[0].lines === 6)
 assert.equal(ns.footer, 'Clear all')
 assert.equal(C.notifications({ items: [] }, now).groups[0].rows[0].title, 'No notifications')
 assert.equal(C.notifications({ items: [] }, now).footer, '')

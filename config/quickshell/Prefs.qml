@@ -134,6 +134,15 @@ Singleton {
         id: file
         path: Quickshell.statePath("capsule.json")
         watchChanges: true
+        // Reads and writes run to the end before anything else (the file is
+        // a few hundred bytes). Asynchronous, the change event of one write
+        // can start a reload while the next write is still on its way, and
+        // that reload reads the older file. Suspected, never reproduced,
+        // behind check.qml's one "edge preference settles: pill/bottom"
+        // failure (M10: 24 stressed runs and 8 from a seeded state passed
+        // before this change too).
+        blockWrites: true
+        blockAllReads: true
         // An edit made after our last write is still unsaved; reloading now
         // would put the file's older value back over it.
         onFileChanged: if (!save.running) reload()

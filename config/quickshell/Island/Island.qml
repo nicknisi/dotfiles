@@ -16,9 +16,8 @@ import "../lib/WorkspaceOrder.js" as WorkspaceOrder
 // through to the windows under it, and the mask follows the body as it morphs.
 //
 // While a panel is open (pinned hover, the calendar, the control center, the
-// power menu), or a Hud hand-off opened from IPC, a Hyprland focus grab takes
-// the pointer and the keyboard: a click anywhere outside the island (and that
-// Hud) clears the grab, which dismisses it. The power menu shows over a
+// power menu), a Hyprland focus grab takes the pointer and the keyboard: a
+// click anywhere outside the island clears the grab, which dismisses it. The power menu shows over a
 // full-screen scrim (Scrim.qml), with the island raised to Overlay above it.
 // Namespace quickshell-island is outside hyprland.lua's shell-blur rule on
 // purpose (island-modes C6); so is quickshell-island-scrim (no blur).
@@ -129,12 +128,11 @@ PanelWindow {
         held: view.raised
     }
 
-    // The pinned panel, or a Hud opened from IPC without its own popup grab
-    // (IslandView.hudNeedsGrab): either way an outside click clears the grab.
+    // The pinned panel: an outside click clears the grab.
     HyprlandFocusGrab {
         id: grab
-        windows: view.hudNeedsGrab ? [island, view.hud] : [island]
-        active: (view.panelOpen || view.hudNeedsGrab) && !island.regrabbing
+        windows: [island]
+        active: view.panelOpen && !island.regrabbing
         onCleared: if (!island.regrabbing) view.dismiss()
     }
 

@@ -4,8 +4,9 @@ root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 cp "$root"/*.qml "$root"/*.js "$tmp/"
-# lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit.
-cp -R "$root/lib" "$root/Kit" "$tmp/"
+# lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit;
+# Panels/Sheets holds the Tailscale sheet (qs.Panels.Sheets) the test drives.
+cp -R "$root/lib" "$root/Kit" "$root/Panels" "$tmp/"
 cp "$root/tests/tailscale.qml" "$tmp/shell.qml"
 mkdir "$tmp/bin"
 printf 'test transfer\n' >"$tmp/pick-me.txt"
@@ -77,36 +78,19 @@ if [[ ${1:-} == --preview ]]; then
     cat >"$tmp/shell.qml" <<'QML'
 import Quickshell
 import QtQuick
-import QtQuick.Layouts
+import qs
+import qs.Panels.Sheets
 ShellRoot {
     FloatingWindow {
-        id: window
         title: "Tailscale test window"
         visible: true
-        implicitWidth: 420
+        implicitWidth: 728
         implicitHeight: 720
-        color: Theme.surface
-        property bool tailscale: false
-        ColumnLayout {
+        color: Tokens.surface
+        TailscaleSheet {
             anchors.fill: parent
-            anchors.margins: 14
-            BarModule {
-                text: "Back to network"
-                visible: window.tailscale
-                onClicked: window.tailscale = false
-                Text { text: "‹ Network"; color: Theme.accent; font.family: Theme.font }
-            }
-            NetMenu {
-                Layout.fillWidth: true
-                visible: !window.tailscale
-                onNavigate: window.tailscale = true
-            }
-            TailscaleMenu {
-                Layout.fillWidth: true
-                visible: window.tailscale
-                shown: visible
-            }
-            Item { Layout.fillHeight: true }
+            anchors.margins: 16
+            shown: true
         }
     }
 }
@@ -115,9 +99,12 @@ QML
     exit
 fi
 # All Tailscale/Taildrop commands resolve to mocks, never the live daemon/inbox.
-env -u WAYLAND_DISPLAY PATH="$tmp/bin:$PATH" TAILSCALE_TEST_DIR="$tmp" QT_QPA_PLATFORM=offscreen \
+# XDG_STATE_HOME: Prefs' capsule.json stays in $tmp (not $tmp/state, the
+# fake tailscale's own file).
+mkdir -p "$tmp/xdg-state"
+env -u WAYLAND_DISPLAY PATH="$tmp/bin:$PATH" TAILSCALE_TEST_DIR="$tmp" QT_QPA_PLATFORM=offscreen XDG_STATE_HOME="$tmp/xdg-state" \
     timeout 20 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
 grep -q TAILSCALE_UI_PASS "$tmp/result"
 # The isolated Prefs store creates its defaults on first load.
-! grep -E 'TAILSCALE_UI_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|WARN scene:' "$tmp/result" \
+! grep -E 'TAILSCALE_UI_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|is not a type|WARN scene:' "$tmp/result" \
     | grep -qv 'QML FileView.*capsule.json failed: File does not exist'

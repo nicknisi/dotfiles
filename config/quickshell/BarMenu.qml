@@ -1,5 +1,11 @@
-// One HUD page. The single popup in Hud.qml owns focus and dismissal, so
-// changing pages never releases the Wayland popup grab between controls.
+// BarMenu.qml - the base of the one old page left, AppearanceMenu (the
+// classic bars' anchored host shows it on its page frame, Hosts/AnchoredView).
+// The other pages went in M10: their content lives on in the control
+// center's sheets (Panels/Sheets).
+//
+// A column of controls under an optional header (the title 15 / 500, the
+// subtitle 12 `inkDim`, the island's type). On the host's frame (`framed`)
+// the frame's header carries the title and the subtitle, so this one hides.
 import QtQuick
 import QtQuick.Layouts
 
@@ -11,8 +17,6 @@ Item {
     property string subtitle: ""
     property Component accessory: null
     property bool shown: false
-    // On the classic bars' panel frame (Hosts/AnchoredView): the frame's
-    // header carries the title and the subtitle, so this one hides.
     property bool framed: false
     default property alias menuContent: content.data
     signal dismissed()
@@ -32,21 +36,25 @@ Item {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 3
+                spacing: 2
 
                 Text {
+                    Layout.fillWidth: true
                     text: menu.title
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize + 5
-                    font.bold: true
-                    color: Theme.fg
+                    textFormat: Text.PlainText
+                    elide: Text.ElideRight
+                    font.family: "Adwaita Sans"
+                    font.pixelSize: 15
+                    font.weight: Font.Medium
+                    color: Tokens.fg
                 }
                 Text {
                     Layout.fillWidth: true
                     text: menu.subtitle
-                    font.family: Theme.font
-                    font.pixelSize: Theme.fontSize - 2
-                    color: Theme.secondary
+                    textFormat: Text.PlainText
+                    font.family: "Adwaita Sans"
+                    font.pixelSize: 12
+                    color: Tokens.inkDim
                     elide: Text.ElideRight
                     visible: text !== ""
                 }

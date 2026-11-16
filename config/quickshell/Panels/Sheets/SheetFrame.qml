@@ -21,7 +21,9 @@ import qs.Kit
 // Rows: at least 46 high (the text column's own 6 px padding top and bottom
 // counts once), padding 0 10, 10 apart, radius 10; `accentTint` when on,
 // `fillLow` on hover; the icon `accent` when on, `inkDim` when dim; title 13,
-// sub 11 `inkDim` (in `bad` for an error row); an optional 110 x 6 slider;
+// sub 11 `inkDim` (in `bad` for an error row; for a `wrap` row up to
+// `lines` lines, four when it names none, else one); an optional 110 x 6
+// slider;
 // the trail (Monaspace 11 `inkDim`, at least 18 wide). A row that can be
 // forgotten shows a trash button on hover or keyboard focus [GUESS]. The
 // footer button is 38 high, radius 12, hairline, no fill, 13 `fg` then chev
@@ -472,8 +474,11 @@ FocusScope {
                     visible: (rowItem.row.sub ?? "") !== ""
                     text: rowItem.row.sub ?? ""
                     color: rowItem.row.bad ? Tokens.bad : Tokens.inkDim
+                    // `wrap` (the battery sheet's hints, a notification's
+                    // body): up to `lines`, else four.
+                    wrapMode: rowItem.row.wrap === true ? Text.Wrap : Text.NoWrap
                     elide: Text.ElideRight
-                    maximumLineCount: 1
+                    maximumLineCount: rowItem.row.wrap === true ? (rowItem.row.lines > 0 ? rowItem.row.lines : 4) : 1
                     textFormat: Text.PlainText
                     font.family: "Adwaita Sans"
                     font.pixelSize: 11

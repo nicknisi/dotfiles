@@ -1,12 +1,13 @@
 // NotificationServer.qml - the session's org.freedesktop.Notifications server
-// (PLAN M3: split out of Notifications.qml, which keeps only the toasts).
+// (PLAN M3: split out of the old toasts, Notifications.qml, gone in M10).
 //
 // Nothing else on this machine owns that bus name, so without it every
 // notification is dropped, batsignal's low-battery warnings included. One
 // instance for the session, in shell.qml, whatever the bar mode: the island
-// shows its banners from `arrived`, the classic modes' toasts read
-// `server.trackedNotifications`, and NotificationState keeps the history,
-// DND and the `notifications` IPC target, unchanged.
+// shows its banners from `arrived`, the classic modes' banner cards
+// (Hosts/NotifHost.qml) read `server.trackedNotifications`, and
+// NotificationState keeps the history, DND and the `notifications` IPC
+// target, unchanged.
 //
 // A notification is discarded the moment the callback returns unless
 // something marks it `tracked`, which onNotification does below. It stays
@@ -14,7 +15,7 @@
 // never for a critical one), is dismissed or opened, or the sender closes it.
 //
 // Who expires it (M3 review):
-//   - the classic modes: its toast's timer (Notifications.qml);
+//   - the classic modes: its card's timer (Hosts/NotifHost.qml);
 //   - island mode: the islands. Each IslandView tells hold() every id its
 //     machine refers to (shown, interrupted, queued). One shows the banner
 //     on every screen, each with its own timer, and it expires once the last
@@ -49,7 +50,7 @@ Scope {
     function critical(notification): bool {
         return notification?.urgency === Dbus.NotificationUrgency.Critical;
     }
-    // ms on the island or a toast; 0 is never (critical).
+    // ms on the island or a classic card; 0 is never (critical).
     function timeoutFor(notification): int {
         return IslandMachine.notifTimeout(notification?.expireTimeout ?? -1, root.critical(notification));
     }
@@ -84,7 +85,7 @@ Scope {
             root.find(id)?.expire();
     }
     // An island going away (a mode switch, a screen unplugged) lets go
-    // without expiring anything: the classic toasts, or the deadline, take over.
+    // without expiring anything: the classic cards, or the deadline, take over.
     function forget(owner): void {
         root.holders = root.holders.filter(h => h.owner !== owner);
     }
@@ -127,7 +128,7 @@ Scope {
         Component.onCompleted: NotificationState.server = server
 
         // Advertised capabilities. Senders check these, so only claim what the
-        // toasts and the island banner render.
+        // classic cards and the island banner render.
         keepOnReload: false
         bodySupported: true
         bodyMarkupSupported: true

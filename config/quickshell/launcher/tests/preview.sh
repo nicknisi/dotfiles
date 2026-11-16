@@ -4,6 +4,11 @@ root=$(cd -- "$(dirname -- "$0")/../.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 cp "$root"/{Theme,Prefs}.qml "$root/BarGeometry.js" "$tmp/"
+# Commons/ShellColor reads Tokens' surface (M10): Tokens, the Motion its
+# Behaviors use, and the scripts both import.
+cp "$root"/{Tokens,Motion}.qml "$tmp/"
+mkdir -p "$tmp/lib"
+cp "$root"/lib/{TokenMath,Spring}.js "$tmp/lib/"
 cp -R "$root/Commons" "$tmp/"
 cp "$root/launcher/ui/PreviewPane.qml" "$tmp/"
 cp "$root/launcher/tests/preview.qml" "$tmp/shell.qml"
