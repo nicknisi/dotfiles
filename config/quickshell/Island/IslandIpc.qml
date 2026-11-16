@@ -14,14 +14,12 @@ import qs
 //   open STATE    rest | hover | crew | hail | vibes | cal | notif | osd | dict | flash | cc | cc/<sheet> | power | battery | launcher | themes | wallpapers;
 //                 cc is the control center (M6), cc/<sheet> opens it on a
 //                 sheet (wifi, sound, tailscale, bt, notifications, display,
-//                 awake), power the power menu over its scrim, and battery the
-//                 old Hud's battery page under the rest pill (the one hand-off
-//                 left, PLAN 1.7). launcher opens the palette (Launcher.qml),
-//                 which in island mode is the island's own launcher state
-//                 (M5); from cc it morphs straight there. IPC has no input
-//                 serial for a popup grab, so the Hud opens without one and
-//                 the island's focus grab closes it on an outside click
-//                 (IslandView.hudNeedsGrab). M2 adds crew
+//                 awake, battery), power the power menu over its scrim, and
+//                 battery the control center's Battery sheet (cc/battery,
+//                 M10; the old Hud's battery page before). launcher opens the
+//                 palette (Launcher.qml), which in island mode is the
+//                 island's own launcher state (M5); from cc it morphs
+//                 straight there. M2 adds crew
 //                 (the Crew panel, pinned), hail (the first agent that needs
 //                 you; an error when none does) and vibes. M3 adds cal (the
 //                 calendar, a panel), notif (the newest waiting notification,
@@ -30,7 +28,7 @@ import qs
 //                 unless dictation is running). M7 adds themes and
 //                 wallpapers: the pickers (ThemePicker.qml, the `picker`
 //                 IPC's own), as island states on the focused screen
-//   close         back to rest, closing any hand-off
+//   close         back to rest
 //   toggle STATE  open, or close when that state is already showing
 //   hold          stop the state's timer, so an OSD, flash or notification
 //                 stays up (sandbox shots); the next change starts afresh

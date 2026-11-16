@@ -56,6 +56,9 @@ bash "$root/tests/clipboard-store.sh"
 # row runs in net.sh above, the states themselves in check.qml below.
 node "$root/tests/tailscale-model.cjs"
 bash "$root/tests/panels.sh"
+# The Tailscale service through the sheet (M10: TailscaleMenu, which this
+# drove, is gone), on mock tailscale and taildrop executables.
+bash "$root/tests/tailscale.sh"
 # The theme and wallpaper pickers (PLAN M7): `theme _rows` (mode, bg, fg and
 # the preview palette for every pack, agreeing with bin/theme-color), the
 # wallpaper paths it keeps working with, and the panels' keys and grid under
@@ -65,6 +68,9 @@ bash "$root/tests/panels.sh"
 bash "$root/../../bin/tests/theme-rows.sh"
 bash "$root/../../bin/tests/theme-wallpapers.sh"
 bash "$root/tests/pickers.sh"
+# Where ThemePicker finds bin/theme (M10, lib/FindBin.js): the checkout it
+# runs from, then, for the session's own config only, $DOTFILES/bin and PATH.
+node "$root/tests/find-bin.cjs"
 
 # The lock screen and the polkit prompt (PLAN M8): lib/LockMachine.js with a
 # fake PamContext, the source rules (one unlock, nothing logged, no capture,
@@ -75,6 +81,15 @@ bash "$root/tests/pickers.sh"
 # bin/shell-lock against fakes (its watcher and two runs at once included).
 # The polkit state on the island runs in check.qml below.
 bash "$root/tests/lock.sh"
+
+# Retiring the leftovers (PLAN M10): the classic modes' notification cards
+# (Hosts/NotifStack, the toasts' replacement) on a fake server, and the gate
+# that keeps the retired pieces gone (no avatar anywhere, no old Hud, menus,
+# media card, toasts or notification center, no old Theme surface colours,
+# none of the island's namespaces in the shell-blur rule). The battery sheet
+# runs in cc-data.cjs (panels.sh above) and check.qml below.
+bash "$root/tests/notif-host.sh"
+bash "$root/tests/retired.sh"
 
 formatter=$(command -v qmlformat || printf /usr/lib/qt6/bin/qmlformat)
 for file in "$root"/*.qml "$root"/Kit/*.qml "$root"/Island/*.qml "$root"/Lock/*.qml "$root"/Panels/*.qml "$root"/Panels/Sheets/*.qml "$root"/Hosts/*.qml; do
@@ -87,7 +102,7 @@ cp "$root"/*.js "$tmp/" 2>/dev/null || true
 # lib/ holds the scripts Motion.qml and Tokens.qml import; Kit/ is qs.Kit,
 # Island/ is qs.Island, Lock/ is qs.Lock (M8), Panels/ is qs.Panels (M6) and
 # Hosts/ is qs.Hosts (M4).
-cp -R "$root/assets" "$root/launcher" "$root/Commons" "$root/Ui" "$root/lib" "$root/Kit" "$root/Island" "$root/Lock" "$root/Panels" "$root/Hosts" "$tmp/"
+cp -R "$root/launcher" "$root/Commons" "$root/Ui" "$root/lib" "$root/Kit" "$root/Island" "$root/Lock" "$root/Panels" "$root/Hosts" "$tmp/"
 cp "$root/tests/check.qml" "$tmp/shell.qml"
 # SHELL_CREW=off: the Crew singleton polls no fleet or /proc and runs no jump.
 # SHELL_DRY_RUN=1: the control center, its sheets and the power menu read the

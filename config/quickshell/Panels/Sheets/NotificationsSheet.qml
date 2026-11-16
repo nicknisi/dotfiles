@@ -5,7 +5,7 @@ import "../../lib/CcData.js" as CcData
 // NotificationsSheet.qml - the whole notification history (control-lock 3.6;
 // not drawn): the Do not disturb tile's chevron and the notifications card's
 // header. The switch is Do not disturb (NotificationState.dnd, the flag the
-// toasts and the island read); a row focuses its sender (and the host closes
+// classic cards and the island read); a row focuses its sender (the host closes
 // when that worked); the footer clears the history.
 //
 // A fixture's `sheets.notifications` ({ dnd, items: [{ summary, appName,

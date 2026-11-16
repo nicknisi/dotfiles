@@ -113,6 +113,28 @@ Item {
             verify(!cc.media.eqClock.running, "no eq loop while not animated");
         }
 
+        // The player's cover fills the well (M10, the old MediaCard's), and
+        // the bars and their clock rest; a broken one leaves the bars.
+        function test_media_cover() {
+            const m = CcData.mediaCard({ title: "Neon Grid", artist: "Night Rider", playing: true, position: 102, length: 271, art: Qt.resolvedUrl("cover.png") });
+            const card = coverCard.createObject(root, { media: m });
+            tryCompare(card.cover, "status", Image.Ready);
+            verify(card.coverShown, "the cover shows once it loads");
+            verify(!card.eqClock.running, "the bars' clock rests under a cover");
+            card.media = CcData.mediaCard({ title: "t", playing: true, length: 10, art: Qt.resolvedUrl("missing.png") });
+            tryCompare(card.cover, "status", Image.Error);
+            verify(!card.coverShown && card.eqClock.running, "a cover that fails leaves the bars, running");
+            card.media = CcData.mediaCard({ title: "t", playing: true, length: 10 });
+            verify(!card.coverShown && String(card.cover.source) === "", "no cover, no image");
+            card.destroy();
+        }
+        Component {
+            id: coverCard
+            CcMedia {
+                width: 360
+            }
+        }
+
         function test_minis() {
             compare(cc.minis.count, 6);
             const names = [];

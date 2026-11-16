@@ -131,7 +131,8 @@ var DROPS = ["rest", "osd", "flash", "vibes"];
 // How long a notification stays (DECISION 2, island-modes 9.1): the sender's
 // timeout when it sets one (expireTimeout, ms: -1 for the server's default,
 // 0 for never), else the Main board's 4200; a critical one stays until
-// handled (0, no timer). The toasts in the classic modes use the same rule.
+// handled (0, no timer). The classic modes' cards (Hosts/NotifStack.qml) use
+// the same rule.
 function notifTimeout(expireTimeout, critical) {
     if (critical) return 0;
     var t = Number(expireTimeout);
@@ -232,8 +233,8 @@ function freeze(m) {
 // unpinned; a peeking hail holds, so it stays while you read it and closes
 // when you leave (personal-looks 3.6 says "pins"; M2 holds instead, see
 // PANELS). A notif with a timer pauses with `left` ms to go and runs on
-// when the pointer leaves (M3 review [GUESS]: the Main board's notif and
-// today's toasts ignore the pointer); a critical one has no timer to stop.
+// when the pointer leaves (M3 review [GUESS]: the Main board's notif and the
+// old toasts ignored the pointer); a critical one has no timer to stop.
 // The host calls this for a notif only when the pointer moves onto it, so
 // one that opens under a parked pointer runs its course.
 function enter(m, target, left) {
@@ -408,8 +409,9 @@ function notifIds(m) {
 //   dict     dictation is running (voxtype listening or transcribing). The
 //            dict state shows while it holds and ranks first among the
 //            transients; when it ends, dict finishes.
-//   blocked  an old surface has the island's place (a Hud hand-off): nothing
-//            opens by itself, and queued notifications wait.
+//   blocked  an old surface has the island's place: nothing opens by itself,
+//            and queued notifications wait. The old Hud's hand-offs set it;
+//            nothing in the shell does since M10 (tests still drive it).
 // Then the newest queued notification shows once nothing outranks a notif.
 function settle(m, ctx) {
     var c = ctx || {};

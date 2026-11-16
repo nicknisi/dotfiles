@@ -6,8 +6,9 @@ import qs
 
 // AnchoredHost.qml - the window around Hosts/AnchoredView.qml, the classic
 // bars' panel host (PLAN M4, island-modes 12.4): the control center, its
-// sheets, the power menu, the calendar and the old Hud's last pages, against
-// the clicked module. One per bar (Bar.qml).
+// sheets, the power menu, the calendar and the Appearance page (the last old
+// page; M10 moved the battery's to a sheet), against the clicked module. One
+// per bar (Bar.qml).
 //
 // A full-screen Overlay layer, mapped while a panel shows, whose input region
 // is the panel alone (the whole screen under the power menu's scrim), so the

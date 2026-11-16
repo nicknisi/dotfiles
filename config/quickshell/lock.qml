@@ -82,6 +82,30 @@ ShellRoot {
     property string host: ""
     readonly property string sub: root.host !== "" ? root.user + " on " + root.host : root.user
 
+    // ---- the main shell's bar --------------------------------------------------
+    // The capsule springs from the island's rest pill only when the main shell
+    // shows one (LockSurface.fromIsland, M10). Its Prefs keep the bar mode in
+    // capsule.json, in the state dir Quickshell names after the shell's path:
+    // the md5 of <this dir>/shell.qml, beside this instance's own. Read once,
+    // before the first frame (blockLoading), so the capsule starts where it
+    // will move from. No file, or no mode in it: the island's spring, as
+    // before M10.
+    readonly property string shellPrefs: Quickshell.stateDir.replace(/[^\/]*$/, Qt.md5(Quickshell.shellDir + "/shell.qml")) + "/capsule.json"
+    FileView {
+        id: shellPrefsFile
+        path: root.shellPrefs
+        blockLoading: true
+        printErrors: false
+    }
+    readonly property string barMode: {
+        try {
+            const mode = JSON.parse(shellPrefsFile.text() || "{}").barMode;
+            return typeof mode === "string" ? mode : "";
+        } catch (e) {
+            return "";
+        }
+    }
+
     FileView {
         path: "/etc/passwd"
         onLoaded: {
@@ -263,6 +287,7 @@ ShellRoot {
                 media: root.media
                 status: root.status
                 shown: root.shown
+                fromIsland: root.barMode === "island" || root.barMode === ""
                 shakeHold: root.pose?.shakeHold !== undefined ? Number(root.pose.shakeHold) : -1
 
                 onWindowActiveChanged: if (windowActive && screenName !== "") root.focusedName = screenName
@@ -358,7 +383,10 @@ ShellRoot {
                 // Where the parts sit on the primary screen, logical px, for
                 // the sandbox shots only: they include the bullet count.
                 parts: root.sandbox ? root.parts() : null,
-                surfaces: root.views.map(v => ({ screen: v.screenName, primary: v.primary, width: v.width, height: v.height }))
+                // The main shell's bar mode (M10: the capsule springs from
+                // the island only in island mode).
+                barMode: root.barMode,
+                surfaces: root.views.map(v => ({ screen: v.screenName, primary: v.primary, width: v.width, height: v.height, fromIsland: v.fromIsland }))
             });
         }
     }
@@ -392,7 +420,9 @@ ShellRoot {
             // The lock-in motion, for the sandbox test's samples.
             shown: v.shown,
             cardOpacity: v.card.parent.opacity,
-            wallOpacity: v.wall.opacity
+            wallOpacity: v.wall.opacity,
+            // M10: outside island mode the capsule fades in place.
+            capsuleOpacity: v.capsule.opacity
         };
     }
 

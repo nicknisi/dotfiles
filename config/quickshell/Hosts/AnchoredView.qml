@@ -22,11 +22,11 @@ import "../lib/CcData.js" as CcData
 //          others (island-modes 3.2: to the module the control center hangs
 //          from), over the scrim, rgba(bg, .56); on a strip the scrim stops
 //          at the strip, which is one piece with the panel;
-//   page   the old Hud pages the control center still hands off to: the
-//          battery page and Appearance (the bar's mode and edge), on the
-//          same frame under one header (the page's title and its subtitle;
-//          the page's own header is hidden: BarMenu.framed), M10 retires
-//          them.
+//   page   Appearance (the bar's mode, edge and translucency), the one old
+//          page left (it has no sheet), on the same frame under one header
+//          (its title and subtitle; the page's own header is hidden:
+//          BarMenu.framed). The battery is the control center's Battery
+//          sheet (M10).
 //
 // The theme picker (M7) replaced ThemeMenu's page (PLAN 1.3): Appearance's
 // Theme packs, the control center's Theme mini and `bar open theme` close
@@ -72,7 +72,7 @@ Item {
     // The panel on screen ("" for none): cc | cal | power | page. Kept through
     // the close, so the panel can leave.
     property string kind: ""
-    // battery | appearance, while kind is "page".
+    // appearance, while kind is "page".
     property string page: ""
     // Opened by `bar open` (IPC): the first control takes the focus ring.
     property bool byKey: false
@@ -324,7 +324,8 @@ Item {
     }
 
     // ---- IPC (Hosts/BarIpc.qml) -------------------------------------------------
-    // state: cc | cc/<sheet> | cal | power | battery | appearance | theme.
+    // state: cc | cc/<sheet> | cal | power | battery (cc/battery) |
+    // appearance | theme.
     function open(state: string): string {
         const m = Anchored.menuFor(state);
         if (!m)
@@ -468,10 +469,6 @@ Item {
                 openThemes: host.pickerHost ? host.openThemes : null
                 onClose: host.close()
                 onPower: host.view.openMenu = "power"
-                onHandOff: page => {
-                    if (Anchored.target(page))
-                        host.view.openMenu = page;
-                }
             }
 
             CalendarLayer {
@@ -496,8 +493,8 @@ Item {
                 onCancel: host.close()
             }
 
-            // The old Hud pages, on the frame: a header (back, title and
-            // subtitle, close) over the page, whose own header is hidden.
+            // Appearance, on the frame: a header (title and subtitle, close)
+            // over the page, whose own header is hidden.
             Layer {
                 id: pageLayer
                 x: host.layerX("page")
@@ -523,31 +520,13 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        BarChip {
-                            objectName: "pageBack"
-                            visible: host.page === "battery"
-                            text: "Back to controls"
-                            cornerRadius: 8
-                            implicitWidth: 32
-                            implicitHeight: 32
-                            padding: 0
-                            onClicked: host.view.openMenu = "home"
-                            Icon {
-                                name: "chevL"
-                                size: 16
-                                color: Tokens.inkDim
-                                Layout.alignment: Qt.AlignCenter
-                                Layout.preferredWidth: 16
-                                Layout.preferredHeight: 16
-                            }
-                        }
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 2
                             Text {
                                 objectName: "pageTitle"
                                 Layout.fillWidth: true
-                                text: ({ battery: "Battery", appearance: "Appearance" })[host.page] ?? ""
+                                text: host.page === "appearance" ? "Appearance" : ""
                                 color: Tokens.fg
                                 font.family: "Adwaita Sans"
                                 font.pixelSize: 15
@@ -587,12 +566,7 @@ Item {
                         id: pages
                         Layout.fillWidth: true
                         Layout.preferredHeight: children[currentIndex]?.implicitHeight ?? 0
-                        currentIndex: Math.max(0, ["battery", "appearance"].indexOf(host.page))
-                        BatteryMenu {
-                            framed: true
-                            shown: host.shown && host.page === "battery"
-                            onDismissed: host.close()
-                        }
+                        currentIndex: 0
                         AppearanceMenu {
                             objectName: "appearancePage"
                             framed: true

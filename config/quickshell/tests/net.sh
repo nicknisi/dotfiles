@@ -3,10 +3,6 @@ set -euo pipefail
 root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
-cp "$root"/{Net,NetMenu,BarMenu,BarModule,MenuAction,MenuHint,Theme,Prefs,TailscaleIcon}.qml "$tmp/"
-# Prefs and Theme read the bar's edge and inset rules from BarGeometry.js.
-cp "$root/BarGeometry.js" "$tmp/"
-cp "$root/tests/net.qml" "$tmp/shell.qml"
 # No live Wi-Fi changes, Tailscale processes, or browser launches in this test.
 cat >"$tmp/Tailscale.qml" <<'QML'
 pragma Singleton
@@ -21,7 +17,6 @@ QtObject {
 QML
 # The built-in module takes precedence over QML_IMPORT_PATH. Redirect only its
 # import in these temporary copies, leaving the service and UI logic unchanged.
-sed -i 's/^import Quickshell.Networking$/import "network"/' "$tmp"/{Net,NetMenu,shell}.qml
 module="$tmp/network"
 mkdir -p "$module"
 printf 'singleton Networking 1.0 Networking.qml\n' >"$module/qmldir"
@@ -64,28 +59,18 @@ QtObject {
     }
 }
 QML
-# Qt's offscreen platform refuses URL opens, allowing the error path to be checked safely.
-# Quickshell's state (Prefs' capsule.json) stays in $tmp, not ~/.local/state.
-env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen XDG_STATE_HOME="$tmp/state" \
-    timeout 10 qs -p "$tmp" --no-color 2>&1 | tee "$tmp/result"
-grep -q NETWORK_TEST_PASS "$tmp/result"
-# Three automatic attempts (startup, new detection, reconnect) and three manual
-# retries. Connectivity flaps and late detection after manual sign-in add none.
-[[ $(grep -Fc "QPlatformServices::openUrl() for 'http://neverssl.com/'" "$tmp/result") == 6 ]]
-# The isolated Prefs store creates its defaults on first load.
-! grep -E 'NETWORK_TEST_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|WARN scene:' "$tmp/result" \
-    | grep -qv 'QML FileView.*capsule.json failed: File does not exist'
-
-# The control center's Wi-Fi sheet (PLAN M6) on the same mock: the whole
-# shell's files (Tokens and the Kit it draws with), the sheet and its frame.
+# The control center's Wi-Fi sheet (PLAN M6) on the mock: the whole shell's
+# files (Tokens and the Kit it draws with), the sheet and its frame. Net.qml's
+# own rules (net.qml) run through the same sheet since NetMenu went (M10).
 sheet=$tmp/sheet
 mkdir -p "$sheet/Panels/Sheets"
 cp "$root"/*.qml "$root"/*.js "$sheet/"
-cp -R "$root/lib" "$root/Kit" "$root/assets" "$sheet/"
+cp -R "$root/lib" "$root/Kit" "$sheet/"
 cp "$root/Panels/Sheets/SheetFrame.qml" "$root/Panels/Sheets/WifiSheet.qml" "$sheet/Panels/Sheets/"
 cp "$tmp/Tailscale.qml" "$sheet/"
 cp -R "$module" "$sheet/network"
 cp "$root/tests/net-sheet.qml" "$sheet/shell.qml"
+cp "$root/tests/net.qml" "$sheet/net.qml"
 grep -lx 'import Quickshell.Networking' "$sheet"/*.qml | xargs sed -i 's/^import Quickshell.Networking$/import "network"/'
 sed -i 's/^import Quickshell.Networking$/import "..\/..\/network"/' "$sheet/Panels/Sheets/WifiSheet.qml"
 env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen XDG_STATE_HOME="$tmp/state" \
@@ -94,4 +79,16 @@ grep -q NETWORK_SHEET_TEST_PASS "$tmp/sheet-result"
 # One automatic attempt at startup and the one press on the connected row.
 [[ $(grep -Fc "QPlatformServices::openUrl() for 'http://neverssl.com/'" "$tmp/sheet-result") == 2 ]]
 ! grep -E 'NETWORK_SHEET_TEST_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|is not a type|WARN scene:' "$tmp/sheet-result" \
+    | grep -qv 'QML FileView.*capsule.json failed: File does not exist'
+
+# Net.qml's captive-portal rules (net.qml) through the same sheet, in its own run.
+cp "$sheet/net.qml" "$sheet/shell.qml"
+env -u WAYLAND_DISPLAY QT_QPA_PLATFORM=offscreen XDG_STATE_HOME="$tmp/state2" \
+    timeout 10 qs -p "$sheet" --no-color 2>&1 | tee "$tmp/result"
+grep -q NETWORK_TEST_PASS "$tmp/result"
+# Three automatic attempts (startup, new detection, reconnect) and three manual
+# retries. Connectivity flaps and late detection after manual sign-in add none.
+[[ $(grep -Fc "QPlatformServices::openUrl() for 'http://neverssl.com/'" "$tmp/result") == 6 ]]
+# The isolated Prefs store creates its defaults on first load.
+! grep -E 'NETWORK_TEST_FAIL|ReferenceError|TypeError|Failed to load|Binding loop|Required property|is not a type|WARN scene:' "$tmp/result" \
     | grep -qv 'QML FileView.*capsule.json failed: File does not exist'

@@ -212,13 +212,14 @@ TestCase {
     }
 
     function test_menus() {
-        const want = { home: ["cc", ""], media: ["cc", ""], net: ["cc", "wifi"], audio: ["cc", "sound"], caffeine: ["cc", "awake"], notifications: ["cc", "notifications"], tray: ["cc", "tray"], clock: ["cal", ""], power: ["power", ""], battery: ["page", ""], appearance: ["page", ""], theme: ["page", ""] };
+        const want = { home: ["cc", ""], media: ["cc", ""], net: ["cc", "wifi"], audio: ["cc", "sound"], caffeine: ["cc", "awake"], notifications: ["cc", "notifications"], tray: ["cc", "tray"], clock: ["cal", ""], power: ["power", ""], battery: ["cc", "battery"], appearance: ["page", ""], theme: ["page", ""] };
         for (const name in want) {
             const t = Anchored.target(name);
             verify(t, name);
             compare([t.panel, t.sheet], want[name], name);
         }
-        compare(Anchored.target("battery").page, "battery");
+        compare(Anchored.target("appearance").page, "appearance");
+        compare(Anchored.menuFor("battery"), { menu: "battery", sheet: "" }, "bar open battery: the Battery sheet (M10)");
         compare(Anchored.target(""), null, "nothing open");
         compare(Anchored.target("nope"), null);
         compare(Anchored.menuFor("cc"), { menu: "home", sheet: "" });

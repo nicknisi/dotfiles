@@ -21,9 +21,11 @@
 //
 // Sheets: each returns { status, switchOn, switchEnabled, hasSwitch, groups,
 // footer, footerEnabled }. A group is { label, rows }; a row is
-// { key, title, sub, icon, on, dim, bad, slider, trail, forget, inert, action }
-// (Panels/Sheets/SheetFrame.qml draws them; `action` says what a press does,
-// and the sheet runs it against the live object behind `key`).
+// { key, title, sub, icon, on, dim, bad, slider, trail, forget, inert, action,
+// wrap, lines } (Panels/Sheets/SheetFrame.qml draws them; `action` says what
+// a press does, and the sheet runs it against the live object behind `key`;
+// `wrap` lets the sub run to `lines` lines, four when unset, instead of
+// eliding on one).
 
 var DAY = 86400000;
 
@@ -199,7 +201,7 @@ function footer(src) {
 }
 
 function mediaCard(media) {
-    if (!media) return { present: false, title: "Ready when you are", artist: "Start something in your favourite player.", playing: false, progress: 0, elapsed: "", total: "", canPrevious: false, canNext: false, canSeek: false, length: 0 };
+    if (!media) return { present: false, title: "Ready when you are", artist: "Start something in your favourite player.", playing: false, progress: 0, elapsed: "", total: "", canPrevious: false, canNext: false, canSeek: false, length: 0, art: "" };
     var length = num(media.length, 0);
     var position = Math.max(0, Math.min(length > 0 ? length : Infinity, num(media.position, 0)));
     return {
@@ -213,7 +215,9 @@ function mediaCard(media) {
         canPrevious: media.canPrevious !== false,
         canNext: media.canNext !== false,
         canSeek: media.canSeek === true && length > 0,
-        length: length
+        length: length,
+        // The player's cover (MPRIS trackArtUrl), "" for none (M10).
+        art: text(media.art)
     };
 }
 
@@ -540,13 +544,15 @@ function bluetooth(src) {
 }
 
 // src: { dnd, items: [{ summary, appName, body, created, critical }] }.
+// The body wraps to six lines, as the old NotificationCenter showed it (the
+// classic cards cut it at four, the island at one).
 function notifications(src, now) {
     var s = src || {};
     var items = Array.isArray(s.items) ? s.items : [];
     var rows = items.map(function (n, i) {
         var app = text(n.appName);
         var body = plain(n.body);
-        return { key: String(i), index: i, title: text(n.summary) || app || "Notification", sub: app !== "" && body !== "" ? app + " · " + body : app || body, icon: noteIcon(app), trail: ago(n.created, now), bad: false, critical: n.critical === true, action: "open" };
+        return { key: String(i), index: i, title: text(n.summary) || app || "Notification", sub: app !== "" && body !== "" ? app + " · " + body : app || body, icon: noteIcon(app), trail: ago(n.created, now), bad: false, critical: n.critical === true, action: "open", wrap: true, lines: 6 };
     });
     return sheet({
         status: s.dnd ? "Do not disturb" : items.length + (items.length === 1 ? " notification" : " notifications"),
@@ -614,10 +620,57 @@ function awake(src) {
     });
 }
 
+// src: { present, percent, statusText, timeText, pluggedIn, busy, error,
+// care: { supported, mode, start, end, target, recovery } } (Battery.qml's).
+// The charge limit's top-up (M10: BatteryMenu.qml's page, now a sheet, the
+// control center footer's battery). The two top-ups can run only when
+// Battery.topUp would run them (Custom charging mode, plugged in, below the
+// target, nothing running; the 80 % one also needs the 80 % cap and under
+// 75 %); while one runs, Cancel or Restore takes their place. Then
+// BatteryMenu's hints as dim rows and its error in `bad`. A row that cannot
+// run is dim and inert. No switch, no footer.
+function battery(src) {
+    var s = src || {};
+    var care = s.care || {};
+    // Battery.topUp compares the raw level; the status shows it rounded.
+    var level = num(s.percent, 0);
+    var pct = Math.round(level);
+    var target = num(care.target, 0);
+    var custom = care.supported === true && care.mode === "Custom";
+    var busy = s.busy === true;
+    var status = (text(s.statusText) || "Battery") + " · " + pct + "%" + (text(s.timeText) !== "" ? " · " + text(s.timeText) : "");
+    var hint = target > 0
+        ? (care.recovery ? "Top-up was interrupted. Restore battery care below." : "Topping up to " + target + "%. Your usual limits return at the target or when you unplug.")
+        : care.supported === true ? "Battery care: start below " + num(care.start, 0) + "%, stop at " + num(care.end, 0) + "%."
+            : "Top-up controls are not supported on this battery.";
+    var rows = [];
+    if (target > 0) {
+        var restore = care.recovery === true;
+        rows.push({ key: "stop", title: restore ? "Restore battery care" : "Cancel top-up", sub: hint, icon: restore ? "shield" : "x", action: busy ? "" : "stop", inert: busy, dim: busy });
+    } else {
+        [80, 100].forEach(function (t) {
+            var ok = custom && s.pluggedIn === true && level < t && !busy && (t !== 80 || (num(care.end, 0) === 80 && level < 75));
+            rows.push({ key: String(t), title: t === 80 ? "Top up to 80%" : "Charge to 100%", sub: "Then back to your usual limits", icon: t === 80 ? "batteryMedium" : "batteryFull", action: ok ? "topUp" : "", inert: !ok, dim: !ok });
+        });
+    }
+    // BatteryMenu's hints wrap (a row's sub is one line otherwise).
+    var notes = [];
+    if (target === 0) notes.push({ key: "care", title: "Battery care", sub: hint, icon: "", dim: true, inert: true, wrap: true });
+    notes.push({ key: "how", title: busy ? "Waiting for authorization" : "Top-up", icon: "", dim: true, inert: true, wrap: true,
+        sub: busy ? "Authorize in the system dialog…"
+            : s.pluggedIn !== true ? "Connect a charger to top up."
+                : care.supported === true && care.mode !== "Custom" && target === 0 ? "Select Custom charging mode in BIOS to enable battery care."
+                    : "Requires administrator authorization. Usual settings return automatically. The 80% top-up is available below 75% with an 80% cap." });
+    if (text(s.error) !== "") notes.push({ key: "error", title: "Battery", sub: text(s.error), icon: "shield", bad: true, inert: true, wrap: true });
+    var groups = s.present === false ? [{ label: "", rows: [note("missing", "No battery")] }]
+        : [{ label: "Charge limit", rows: rows }, { label: "", rows: notes }];
+    return sheet({ status: status, hasSwitch: false, groups: groups, footer: "" });
+}
+
 // What a sheet name is called when it opens (control-lock 3; the launcher's
 // System pages use audio and net for sound and wifi).
-var SHEETS = ["wifi", "sound", "tailscale", "bt", "notifications", "display", "awake", "tray"];
-var ALIASES = { net: "wifi", audio: "sound", bluetooth: "bt", ts: "tailscale", dnd: "notifications", caffeine: "awake", brightness: "display", volume: "sound", power: "display" };
+var SHEETS = ["wifi", "sound", "tailscale", "bt", "notifications", "display", "awake", "tray", "battery"];
+var ALIASES = { net: "wifi", audio: "sound", bluetooth: "bt", ts: "tailscale", dnd: "notifications", caffeine: "awake", brightness: "display", volume: "sound", power: "display", charge: "battery" };
 function sheetName(name) {
     var n = text(name);
     if (ALIASES[n]) n = ALIASES[n];
@@ -637,7 +690,7 @@ var POWER_COMMANDS = {
 if (typeof module !== "undefined")
     module.exports = {
         home: home, tiles: tiles, levels: levels, minis: minis, notes: notes, footer: footer, mediaCard: mediaCard,
-        wifi: wifi, sound: sound, tailscale: tailscale, bluetooth: bluetooth, notifications: notifications, display: display, awake: awake,
+        wifi: wifi, sound: sound, tailscale: tailscale, bluetooth: bluetooth, notifications: notifications, display: display, awake: awake, battery: battery,
         batteryIcon: batteryIcon, outputKind: outputKind, outputName: outputName, ago: ago, plain: plain, clock: clock, scaleText: scaleText, transport: transport, appIcon: appIcon, osIcon: osIcon, btIcon: btIcon,
         lastSeen: lastSeen, wifiIcon: wifiIcon, sheetName: sheetName, SHEETS: SHEETS, ALIASES: ALIASES, BAR_MODES: BAR_MODES, POWER_COMMANDS: POWER_COMMANDS
     };

@@ -20,8 +20,9 @@ if grep -nE '^\s*import\s+Quickshell' "${leaves[@]}" "$root/lib/PickerNav.js"; t
     echo "PICKERS_TEST_FAIL: picker leaves must not import Quickshell" >&2
     exit 1
 fi
-if grep -nE 'NickAvatar|assets/nick|SpringAnimation' "${leaves[@]}" "$root/Panels/PickerThumb.qml" "$root/ThemePicker.qml"; then
-    echo "PICKERS_TEST_FAIL: no avatar, no SpringAnimation" >&2
+# The retired avatar is tests/retired.sh's (the whole tree).
+if grep -nE 'SpringAnimation' "${leaves[@]}" "$root/Panels/PickerThumb.qml" "$root/ThemePicker.qml"; then
+    echo "PICKERS_TEST_FAIL: no SpringAnimation" >&2
     exit 1
 fi
 

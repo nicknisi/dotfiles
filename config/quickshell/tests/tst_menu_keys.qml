@@ -1,5 +1,13 @@
 import QtQuick
+import QtQuick.Controls
 import QtTest
+
+// MenuNavigation over a BarMenu of plain Qt controls (M10: the old BarModule,
+// MenuAction and MenuSlider went with the old menus): Down and Up (Ctrl+J
+// and Ctrl+K) walk the focus chain, skipping hidden and disabled controls,
+// a slider keeps Left and Right, a text input keeps plain letters, focused
+// controls scroll into view, a ListView is walked through its model, and the
+// walk wraps inside the menu.
 
 TestCase {
     id: test
@@ -18,18 +26,18 @@ TestCase {
         BarMenu {
             id: page
             width: 320
-            BarModule { id: first; text: "First"; onClicked: test.clicks++ }
-            BarModule { visible: false; text: "Hidden" }
-            BarModule { enabled: false; text: "Disabled" }
-            MenuAction { id: legacy; width: 200; height: 30; Accessible.name: "Legacy action"; onClicked: test.clicks++ }
-            MenuSlider { id: level; width: 200; label: "Volume"; value: 0.5 }
+            Button { id: first; text: "First"; onClicked: test.clicks++ }
+            Button { visible: false; text: "Hidden" }
+            Button { enabled: false; text: "Disabled" }
+            Button { id: legacy; width: 200; height: 30; text: "Second action"; onClicked: test.clicks++ }
+            Slider { id: level; width: 200; from: 0; to: 1; value: 0.5; stepSize: 0.05 }
             TextInput { id: input; width: 200; height: 28; activeFocusOnTab: true; text: "" }
             Flickable {
                 id: scroll
                 width: 280; height: 55
                 contentWidth: width; contentHeight: 220
                 clip: true
-                BarModule { id: offscreen; y: 170; text: "Offscreen action"; onClicked: test.clicks++ }
+                Button { id: offscreen; y: 170; text: "Offscreen action"; onClicked: test.clicks++ }
             }
             ListView {
                 id: list
@@ -38,7 +46,7 @@ TestCase {
                 model: 20
                 delegate: Item { width: 280; height: 25 }
             }
-            BarModule { id: last; text: "Last" }
+            Button { id: last; text: "Last" }
         }
     }
     function init() {
@@ -61,7 +69,7 @@ TestCase {
     function test_sliderAndTextInput() {
         legacy.forceActiveFocus(Qt.TabFocusReason);
         keyClick(Qt.Key_Down);
-        const slider = level.children[0];
+        const slider = level;
         verify(slider.activeFocus, "slider participates in navigation");
         const before = slider.value;
         keyClick(Qt.Key_Right);

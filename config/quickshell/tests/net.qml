@@ -1,27 +1,41 @@
-// Real Net service and menu with a mock Networking module supplied by net.sh.
+// The real Net service's captive-portal rules, with a mock Networking module
+// supplied by net.sh, through the control center's Wi-Fi sheet (M10: NetMenu
+// is gone, the sheet is the one surface left). `portalRow()` stands for the
+// old menu's sign-in button: the connected row while a portal is reported
+// (its sub "Sign-in required", the prominent case), or the manual "Open Wi-Fi
+// sign-in page" row on Limited or Unknown connectivity. Activating either
+// runs Net.openPortal().
 import Quickshell
 import Quickshell.Networking
 import QtQuick
+import qs
+import qs.Panels.Sheets
 
 ShellRoot {
     id: test
     property int dismissals: 0
     FloatingWindow {
         visible: true
-        implicitWidth: 392
-        implicitHeight: 400
-        NetMenu { id: menu; width: 392; onDismissed: test.dismissals++ }
+        implicitWidth: 728
+        implicitHeight: 528
+        WifiSheet { id: menu; width: 728; height: 528; onDismissed: test.dismissals++ }
     }
     function check(condition, message) {
         if (!condition) throw new Error(message);
     }
-    function child(item, name) {
-        if (item.objectName === name) return item;
-        for (const c of (item.children ?? [])) {
-            const found = child(c, name);
-            if (found) return found;
-        }
-        return null;
+    // The row that opens the sign-in page, as { visible, enabled,
+    // highlighted, text, click() }; visible false when there is none.
+    function portalRow() {
+        const rows = [];
+        for (const g of menu.sheetData.groups) for (const r of g.rows) rows.push(r);
+        const r = rows.find(x => x.action === "portal") ?? null;
+        return {
+            visible: r !== null,
+            enabled: r !== null && !r.inert,
+            highlighted: r !== null && r.key !== "sign-in",
+            text: r === null ? "" : r.key === "sign-in" ? r.title : r.sub,
+            click: () => { if (r) menu.activate(r); }
+        };
     }
     Timer {
         id: autoCheck
@@ -30,7 +44,7 @@ ShellRoot {
         property int step: 0
         onTriggered: {
             try {
-                const button = test.child(menu, "wifiPortal");
+                const button = test.portalRow();
                 switch (step++) {
                 case 0:
                     test.check(!Net.portalAttempted, "radio off resets automatic sign-in");
@@ -90,11 +104,11 @@ ShellRoot {
         onTriggered: {
             try {
                 test.check(Networking.mock === true, "never run against the real network");
-                const button = test.child(menu, "wifiPortal");
+                let button = test.portalRow();
                 test.check(Net.connected && Net.portal, "Wi-Fi association is distinct from internet access");
                 test.check(Net.portalAttempted, "portal present on shell startup opens once");
                 test.check(button.visible && button.enabled && button.highlighted, "portal action is prominent");
-                test.check(button.text === "Sign in to Wi-Fi" && menu.subtitle.includes("sign-in required"), "portal is labelled");
+                test.check(button.text === "Sign-in required" && Net.statusText === "sign-in required", "portal is labelled");
                 test.check(Networking.checks > 0, "connection triggers a connectivity check");
                 const checks = Networking.checks;
                 menu.shown = true;
@@ -109,15 +123,17 @@ ShellRoot {
                     [NetworkConnectivity.Unknown, "internet access not checked"]
                 ]) {
                     Networking.connectivity = state;
+                    button = test.portalRow();
                     test.check(!Net.portal && Net.statusText === label, "status: " + label);
                     const available = state !== NetworkConnectivity.Full;
                     test.check(button.visible === available && button.enabled === available && !button.highlighted, "manual sign-in follows incomplete internet access");
-                    test.check(button.text === "Open Wi-Fi sign-in page", "manual action is labelled");
+                    test.check(!available || button.text === "Open Wi-Fi sign-in page", "manual action is labelled");
                 }
                 Networking.connectivity = NetworkConnectivity.Portal;
                 Networking.connectivityCheckEnabled = false;
                 const disabledChecks = Networking.checks;
                 Net.checkConnectivity();
+                button = test.portalRow();
                 test.check(Networking.checks === disabledChecks && !Net.portal, "disabled checks are respected");
                 test.check(button.visible && Net.statusText === "internet access not checked", "disabled detection keeps fallback");
                 Networking.connectivityCheckEnabled = true;
@@ -127,6 +143,7 @@ ShellRoot {
                 Networking.canCheckConnectivity = true;
 
                 Networking.hotel.connected = false;
+                button = test.portalRow();
                 test.check(!Net.portal && !button.visible && !button.enabled, "disconnect clears portal and disables sign-in");
                 test.check(Net.statusText === "not connected" && !Net.openPortal(), "disconnected network cannot open browser");
                 Net.checkConnectivity();
@@ -134,6 +151,7 @@ ShellRoot {
                 Networking.hotel.connected = true;
                 test.check(Networking.checks === disabledChecks + 1 && Net.portal, "reconnect checks again");
                 Networking.wifiEnabled = false;
+                button = test.portalRow();
                 test.check(!Net.portal && !button.visible && !button.enabled && !Net.openPortal(), "radio off cannot open sign-in");
                 test.check(Net.statusText === "wifi off", "radio off label");
                 autoCheck.start();

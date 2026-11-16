@@ -44,6 +44,13 @@ import "../lib/LockMachine.js" as LockMachine
 // `shown` away runs the leave rule and springs the capsule back to 360, the
 // island's rest width; lock.qml unlocks after that.
 //
+// That spring is a hand-over from the island's rest pill and back to it, so
+// it runs only with `fromIsland` (lock.qml: the main shell is in island
+// mode). In pill, full and rail there is no 360 pill there to spring from,
+// so the capsule arrives at its own width on the enter rule's fade
+// (Motion.effects on the spring, after Motion.stagger) and leaves on the
+// leave rule's (Motion.exitFade, linear) instead (M10).
+//
 // QtQuick only (qmltestrunner loads it).
 Item {
     id: root
@@ -60,6 +67,8 @@ Item {
     // StatusPill's `status`.
     property var status: ({})
     property bool shown: false
+    // The island's rest pill is where the capsule comes from and goes back to.
+    property bool fromIsland: true
     // Sandbox shots only (lock.qml): hold the shake at this keyframe.
     property int shakeHold: -1
     property bool powerOpen: false
@@ -91,8 +100,49 @@ Item {
 
     focus: true
 
-    onShownChanged: if (shown) wallIn = true
-    Component.onCompleted: if (shown) wallIn = true
+    onShownChanged: {
+        if (shown) wallIn = true;
+        if (root.fromIsland) return;
+        if (shown) {
+            capsuleOut.stop();
+            capsuleIn.restart();
+        } else {
+            capsuleIn.stop();
+            capsuleOut.restart();
+        }
+    }
+    onFromIslandChanged: {
+        capsuleIn.stop();
+        capsuleOut.stop();
+        capsule.opacity = root.fromIsland || root.shown ? 1 : 0;
+    }
+    Component.onCompleted: {
+        if (shown) wallIn = true;
+        capsule.opacity = root.fromIsland || root.shown ? 1 : 0;
+    }
+    // The capsule's own fade outside island mode: the enter rule's (after the
+    // stagger, Motion.effects on the spring) and the leave rule's.
+    SequentialAnimation {
+        id: capsuleIn
+        PauseAnimation {
+            duration: Motion.stagger
+        }
+        NumberAnimation {
+            target: capsule
+            property: "opacity"
+            to: 1
+            duration: Motion.effects
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Motion.spring
+        }
+    }
+    NumberAnimation {
+        id: capsuleOut
+        target: capsule
+        property: "opacity"
+        to: 0
+        duration: Motion.exitFade
+    }
 
     // The card moving off this screen: the keys stay on the surface, which
     // still routes them to the one buffer.
@@ -272,8 +322,11 @@ Item {
         id: capsule
         anchors.horizontalCenter: parent.horizontalCenter
         y: 8
-        width: root.powerOpen ? powerMenu.width : root.shown ? root.capsuleRestWidth : 360
+        width: root.powerOpen ? powerMenu.width : root.shown || !root.fromIsland ? root.capsuleRestWidth : 360
         height: root.powerOpen ? 156 : 38
+        // Without the island it fades in place (see the header): set at
+        // creation, then capsuleIn and capsuleOut.
+        opacity: 1
         radius: root.powerOpen ? 28 : 19
         Behavior on width {
             NumberAnimation {

@@ -15,8 +15,7 @@ import "../lib/CcData.js" as CcData
 //
 // The sheets are the live ones under Panels/Sheets; `island open cc/<name>`
 // reaches them through openSheet(). What the control center asks of the
-// island (close, the power state, an old Hud page) goes out as signals for
-// IslandView.
+// island (close, the power state) goes out as signals for IslandView.
 Layer {
     id: layer
 
@@ -32,11 +31,10 @@ Layer {
 
     signal close
     signal power
-    signal handOff(string page)
 
     readonly property alias content: cc
     readonly property alias model: ccModel
-    readonly property var files: ({ wifi: "WifiSheet", sound: "SoundSheet", tailscale: "TailscaleSheet", bt: "BluetoothSheet", notifications: "NotificationsSheet", display: "DisplaySheet", awake: "KeepAwakeSheet", tray: "TraySheet" })
+    readonly property var files: ({ wifi: "WifiSheet", sound: "SoundSheet", tailscale: "TailscaleSheet", bt: "BluetoothSheet", notifications: "NotificationsSheet", display: "DisplaySheet", awake: "KeepAwakeSheet", tray: "TraySheet", battery: "BatterySheet" })
 
     width: 760
     height: 560
@@ -76,7 +74,6 @@ Layer {
         openThemes: layer.openThemes
         onClose: layer.close()
         onPower: layer.power()
-        onHandOff: page => layer.handOff(page)
         onSheet: (name, props) => layer.openSheet(name, props, false)
     }
 

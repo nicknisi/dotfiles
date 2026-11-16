@@ -22,9 +22,9 @@ import "../../lib/CcData.js" as CcData
 // The file chooser is Tailscale's own (Tailscale.chooseFiles): the sheet
 // closes its host first, and the chooser outlives it.
 //
-// Not here (control-lock 3.7; TailscaleMenu stays until M10, reachable from
-// the classic bars): search, the IPv6 / DNS / name chips, the admin console
-// link, the Taildrop inbox and TailscaleMenu's letter keys.
+// Not here (control-lock 3.7; lost with TailscaleMenu in M10, SWITCHOVER.md
+// lists them): search, the IPv6 / DNS / name chips, the admin console link,
+// the Taildrop inbox and TailscaleMenu's letter keys.
 //
 // A fixture's `sheets.tailscale` stands in for Tailscale, and then, as under
 // Fixture.dryRun, nothing runs.

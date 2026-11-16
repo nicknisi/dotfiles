@@ -16,16 +16,29 @@ import qs.Kit
 // (18) or the notification's image; agents get the sparkle and anything
 // without an icon the bell, both `accent` [GUESS]. Meta 11 `inkDim` (app,
 // "now"), the summary 14 / 500, the body 12 `inkDim` on one line (markup
-// stripped). "Open" (30 high, `fillHigh`) runs NotificationState.open: focus
-// the sender, invoke its default action, dismiss. The x dismisses. Along the
-// bottom (24 in, 7 up, 2 high) a `faint` bar on `fillLow` shrinks from full
-// to empty over the timeout, linearly; a critical notification has none and
-// stays until handled.
+// stripped; `bodyLines` below). "Open" (30 high, `fillHigh`) runs
+// NotificationState.open: focus the sender, invoke its default action,
+// dismiss. The x dismisses. Along the bottom (24 in, 7 up, 2 high) a `faint`
+// bar on `fillLow` shrinks from full to empty over the timeout, linearly; a
+// critical notification has none and stays until handled.
+//
+// The classic modes' cards (Hosts/NotifStack.qml, which replaced the old
+// toasts in M10) ask for more than the board draws, as the toasts had it:
+//   - `bodyLines` above 1: the body wraps to that many lines (the toasts
+//     showed up to 6) and the card grows by the extra lines;
+//   - `actionsShown`: every labelled action but "default" (Open and a click
+//     run that one) as a pill (30 high, `fillLow`, 12, at most 120 wide,
+//     eliding) in a row under the body, wrapping, each invoking its action
+//     as the toast's buttons did; the card grows by the row.
+// The tile, Open and the x stay where the board puts them, centred in the
+// top 92, and the text column keeps its top. The island leaves both off and
+// draws the board, 92 high.
 //
 // Data comes in as plain values (IslandView reads the server, or a fixture):
-// { appName, summary, body, appIcon, image, critical }. `timeout` is ms, 0
-// for none; `timeLeft` the ms its timer has to run each time it (re)starts;
-// `running` is false while the card is paused under the pointer.
+// { appName, summary, body, appIcon, image, critical, actions: [{ identifier,
+// text, invoke() }] }. `timeout` is ms, 0 for none; `timeLeft` the ms its
+// timer has to run each time it (re)starts; `running` is false while the
+// card is paused under the pointer.
 Layer {
     id: card
 
@@ -39,13 +52,21 @@ Layer {
     property bool running: true
     // Bumped by the view for each notification shown, so the bar restarts.
     property int serial: 0
+    // The sender's other actions as pills (the classic modes' cards).
+    property bool actionsShown: false
+    // How many lines the body may wrap to (the classic modes' cards).
+    property int bodyLines: 1
+    // The board's height: the tile, Open and the x are centred in it.
+    readonly property int band: 92
 
     signal open
     signal dismiss
+    // A non-default action ran (its pill was pressed).
+    signal acted(string identifier)
 
     readonly property string appName: notification?.appName || "Notification"
     readonly property string summary: notification?.summary ?? ""
-    readonly property string body: card.plain(notification?.body ?? "")
+    readonly property string body: card.plain(notification?.body ?? "", card.bodyLines > 1)
     readonly property string iconSource: {
         const img = String(notification?.image ?? "");
         if (img !== "") return img;
@@ -54,19 +75,41 @@ Layer {
         return icon.startsWith("/") || icon.indexOf("://") > 0 ? icon : Quickshell.iconPath(icon, true);
     }
     readonly property bool agent: /^(claude|claude code|codex|pi|opencode)$/i.test(appName)
+    // The non-default actions with a label, all of them (the row wraps).
+    // Counted, not taken as an array, by the Repeater below (a fresh array
+    // per read rebuilt it).
+    readonly property var extraActions: {
+        if (!card.actionsShown) return [];
+        const list = notification?.actions ?? [];
+        const out = [];
+        for (let i = 0; i < list.length; i++) {
+            const a = list[i];
+            if (a && a.identifier !== "default" && String(a.text ?? "") !== "") out.push(a);
+        }
+        return out;
+    }
+    readonly property alias actionsRow: actionsRow
+    readonly property alias bodyText: bodyText
     readonly property alias progress: progress
     readonly property alias openButton: openButton
     readonly property alias dismissButton: dismissButton
     readonly property alias tile: tile
 
     // Notification bodies may carry a little markup (<b>, <i>, <a>) and
-    // entities; the banner's one line is plain text.
-    function plain(s: string): string {
-        return String(s).replace(/<[^>]*>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+    // entities; the banner's one line is plain text. With `breaks` (a body
+    // that wraps) a line break or <br> stays a break, and blank lines
+    // collapse into it.
+    function plain(s: string, breaks: bool): string {
+        let t = String(s);
+        if (breaks) t = t.replace(/<br\s*\/?>/gi, "\n");
+        t = t.replace(/<[^>]*>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, "&");
+        return (breaks ? t.replace(/[^\S\n]+/g, " ").replace(/ ?\n\s*/g, "\n") : t.replace(/\s+/g, " ")).trim();
     }
 
+    // The body's lines past the first, and the actions' row, add to the 92.
+    readonly property real bodyExtra: bodyText.visible && bodyText.lineCount > 1 ? bodyText.height - bodyText.height / bodyText.lineCount : 0
     width: 520
-    height: 92
+    height: Math.ceil(card.band + card.bodyExtra + (actionsRow.visible ? actionsRow.height + textColumn.spacing : 0))
 
     Accessible.role: Accessible.AlertMessage
     Accessible.name: appName + ": " + summary
@@ -75,7 +118,7 @@ Layer {
     Rectangle {
         id: tile
         x: 14
-        anchors.verticalCenter: parent.verticalCenter
+        y: (card.band - height) / 2
         width: 44
         height: 44
         radius: 12
@@ -111,6 +154,7 @@ Layer {
     }
 
     Column {
+        id: textColumn
         anchors.left: tile.right
         anchors.leftMargin: 14
         anchors.right: openButton.left
@@ -148,15 +192,66 @@ Layer {
             font.weight: Font.Medium
         }
         Text {
+            id: bodyText
             width: parent.width
             visible: text !== ""
             text: card.body
             color: Tokens.inkDim
             elide: Text.ElideRight
-            maximumLineCount: 1
+            // A long word (a URL, a path) breaks where the line fills.
+            wrapMode: card.bodyLines > 1 ? Text.Wrap : Text.NoWrap
+            maximumLineCount: Math.max(1, card.bodyLines)
             textFormat: Text.PlainText
             font.family: "Adwaita Sans"
             font.pixelSize: 12
+        }
+        // The sender's actions, under the body: 8 from it, 8 apart.
+        Flow {
+            id: actionsRow
+            width: parent.width
+            topPadding: 5
+            spacing: 8
+            visible: card.extraActions.length > 0
+            Repeater {
+                model: card.extraActions.length
+                Rectangle {
+                    id: actionPill
+                    required property int index
+                    readonly property var action: card.extraActions[index] ?? null
+                    objectName: "notifAction-" + index
+                    width: Math.min(120, Math.ceil(actionLabel.implicitWidth) + 28)
+                    height: 30
+                    radius: 15
+                    color: actionArea.pressed ? Tokens.fillHigh : Tokens.fillLow
+                    Accessible.role: Accessible.Button
+                    Accessible.name: String(actionPill.action?.text ?? "")
+                    Accessible.onPressAction: actionPill.run()
+                    function run() {
+                        const a = actionPill.action;
+                        if (!a) return;
+                        const id = String(a.identifier ?? "");
+                        if (typeof a.invoke === "function") a.invoke();
+                        card.acted(id);
+                    }
+                    Text {
+                        id: actionLabel
+                        anchors.centerIn: parent
+                        width: Math.min(implicitWidth, 120 - 28)
+                        text: String(actionPill.action?.text ?? "")
+                        elide: Text.ElideRight
+                        textFormat: Text.PlainText
+                        color: Tokens.fg
+                        font.family: "Adwaita Sans"
+                        font.pixelSize: 12
+                    }
+                    MouseArea {
+                        id: actionArea
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: actionPill.run()
+                    }
+                }
+            }
         }
     }
 
@@ -164,7 +259,7 @@ Layer {
         id: openButton
         anchors.right: dismissButton.left
         anchors.rightMargin: 14
-        anchors.verticalCenter: parent.verticalCenter
+        y: (card.band - height) / 2
         width: Math.ceil(openLabel.implicitWidth) + 28
         height: 30
         radius: 15
@@ -192,7 +287,7 @@ Layer {
         id: dismissButton
         anchors.right: parent.right
         anchors.rightMargin: 14
-        anchors.verticalCenter: parent.verticalCenter
+        y: (card.band - height) / 2
         width: 30
         height: 30
         radius: 15

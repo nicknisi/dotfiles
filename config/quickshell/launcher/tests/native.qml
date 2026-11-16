@@ -83,8 +83,10 @@ Scope {
         equal(desktop.query({ scope: "files", query: "", settings: {} }), [], "system scope isolation")
         check(desktop.query({ scope: "system/bar", sub: "bar", query: "", settings: {} }).length >= 6, "bar preferences searchable")
         check(desktop.query({ scope: "", query: "reboot", settings: {} }).some(function(row) { return row.id === "action-reboot" && row.confirm }), "root session search retains confirmation")
-        for (var name of ["AudioMenu", "NetMenu", "BtMenu", "DisplayMenu", "TailscaleMenu", "ThemeMenu"]) {
-            var component = Qt.createComponent(Qt.resolvedUrl("../../" + name + ".qml"))
+        // The System view's pages are the control center's sheets (M6); the
+        // old menus are gone (M10), and the theme page is the picker (M7).
+        for (var name of ["SoundSheet", "WifiSheet", "BluetoothSheet", "DisplaySheet", "TailscaleSheet"]) {
+            var component = Qt.createComponent(Qt.resolvedUrl("../../Panels/Sheets/" + name + ".qml"))
             check(component.status === Component.Ready, name + " compiles: " + component.errorString())
         }
         for (var providerName of ["Converter", "Files"]) {

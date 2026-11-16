@@ -23,8 +23,8 @@ import qs.Panels
 //     timer restarted on every go();
 //   - opens the Crew's moments (M2): a hail when an agent starts needing you
 //     (5 s peek, held while the pointer rests on it and closed when it leaves,
-//     pinned only by a click, queued behind an open panel or hand-off until
-//     the island is back at rest), and vibes when the last one is handled.
+//     pinned only by a click, queued behind an open panel until the island
+//     is back at rest), and vibes when the last one is handled.
 //     A hail raised under the pointer must not take the keyboard: only a
 //     pinned panel gets the focus grab and keys.forceActiveFocus(), so typing
 //     in the window under it carries on (M2 review);
@@ -82,19 +82,9 @@ import qs.Panels
 //     (pickerHost), so the IPC and the cc open it in place too. Leaving the
 //     two states any other way tells ThemePicker (pickerLeft), which closes
 //     the picker and ends its live preview;
-//   - hands off to the old surfaces where the island has nothing yet (PLAN
-//     1.7): the control center's battery opens the old Hud's battery page
-//     (the charge-limit top-up), anchored under the rest pill, and the
-//     notification center anchors to the rest pill. While one shows, nothing
-//     opens on the island by itself: the OSD and flashes are dropped and
-//     notifications wait.
-//
-// A hand-off from a click opens the Hud with its usual xdg_popup grab, which
-// needs the click's input serial. One from IPC (`island open battery`, a
-// keybind) has no serial, and Qt refuses a grabbing popup without one
-// ("Failed to create grabbing popup"), so the IPC path opens it without the
-// grab and Island.qml's HyprlandFocusGrab covers the Hud too (hudNeedsGrab):
-// an outside click still closes it.
+//   - has no hand-offs to the old surfaces left (PLAN 1.7, M10): the control
+//     center's battery is its Battery sheet (`island open battery` opens
+//     cc/battery), and the notification history is the Notifications sheet.
 //
 // Data in: monitor, workspaces (lib/WorkspaceOrder.js shown() records), crew
 // (the Crew singleton, or any object with its agents, total, spendToday,
@@ -147,12 +137,6 @@ Item {
     readonly property string islandState: machine.state
     readonly property bool pinned: machine.pinned
     readonly property bool panelOpen: IslandMachine.panelOpen(machine)
-    // The old Hud page showing in place of an unbuilt state, "" for none.
-    property string hudPage: ""
-    readonly property bool handedOff: hudPage !== "" || (NotificationState.centerOpen && NotificationState.centerAnchorItem === restAnchor)
-    // A Hud opened from IPC, without its own popup grab: the window's focus
-    // grab stands in, so an outside click still closes it.
-    readonly property bool hudNeedsGrab: hudPage !== "" && !hud.grabFocus
     readonly property bool pointerInside: hoverer.hovered
 
     // The launcher's engine (launcher/Keystroke.qml) once this island has shown
@@ -315,7 +299,6 @@ Item {
     readonly property alias wallpapersPanel: wallsLayer
     readonly property alias polkitCard: polkitLayer
     readonly property alias restAnchor: restAnchor
-    readonly property alias hud: hud
     readonly property alias dwell: dwellTimer
     readonly property alias grace: graceTimer
 
@@ -349,8 +332,8 @@ Item {
     // The notification ids the last record referred to (shown, interrupted,
     // waiting). The server hears each change (hold): one the machine lets go
     // of without its sender or the user closing it has run its course here,
-    // and the server expires it (it stays in the history), as an expired
-    // toast does, once no other screen's island still holds it.
+    // and the server expires it (it stays in the history), as a classic
+    // card's timer does, once no other screen's island still holds it.
     property var heldIds: []
     function holdNotifications(ids) {
         if (JSON.stringify(ids) === JSON.stringify(view.heldIds)) return;
@@ -423,15 +406,15 @@ Item {
         return stateTimer.running ? Math.max(0, stateTimer.interval - (Date.now() - stateTimer.startedAt)) : machine.timer;
     }
 
-    // The conditions outside the record (dictation, a hand-off covering the
-    // island): IslandMachine.settle after every change.
+    // The conditions outside the record (dictation): IslandMachine.settle
+    // after every change.
     function reconcile() {
         // A waiting polkit request holds the island: whatever moved it comes back.
         if (view.polkitPending && machine.state !== "polkit") {
             apply(IslandMachine.cover(machine, "polkit"));
             return;
         }
-        const next = IslandMachine.settle(machine, { dict: view.dictPhase !== "", blocked: view.handedOff });
+        const next = IslandMachine.settle(machine, { dict: view.dictPhase !== "" });
         // A notif that shows under a parked pointer runs its course: only the
         // pointer coming to it pauses it (pointerEntered).
         if (next !== machine) apply(next);
@@ -439,7 +422,7 @@ Item {
 
     function pointerEntered() {
         graceTimer.stop();
-        if (machine.state === "rest" && !handedOff) dwellTimer.restart();
+        if (machine.state === "rest") dwellTimer.restart();
         // A peeking hail holds while you read it (held, not pinned: no
         // keyboard); a notification pauses with what it has left. Not while
         // the body is still growing: then the banner opened under a parked
@@ -455,17 +438,15 @@ Item {
     // The dwell ran out with the pointer still inside: hover, or the Crew
     // panel when the pointer rests on the bots (DECISION 1).
     function dwelled(onCrew: bool) {
-        if (!handedOff) apply(IslandMachine.enter(machine, onCrew ? "crew" : "hover"));
+        apply(IslandMachine.enter(machine, onCrew ? "crew" : "hover"));
     }
     function clickPill() {
         dwellTimer.stop();
-        hudPage = "";
         apply(IslandMachine.click(machine));
     }
     // A click on the bots: the Crew panel, pinned.
     function clickCrew() {
         dwellTimer.stop();
-        hudPage = "";
         apply(IslandMachine.click(machine, "crew"));
     }
 
@@ -474,10 +455,8 @@ Item {
     // An agent started needing you. It takes the island when nothing outranks
     // a hail (IslandMachine.offer); otherwise it waits for rest.
     function hail(id: string) {
-        if (view.handedOff || !CrewModel.hailTarget({ agents: view.crewAgents }, id)) {
-            if (view.handedOff) view.pendingHail = id;
+        if (!CrewModel.hailTarget({ agents: view.crewAgents }, id))
             return;
-        }
         const next = IslandMachine.offer(machine, "hail");
         if (next === machine) {
             view.pendingHail = id;
@@ -492,22 +471,15 @@ Item {
         // so it holds now, and closes when the pointer leaves.
         if (view.pointerInside) apply(IslandMachine.enter(machine));
     }
-    // A hand-off closing leaves the machine at rest without a change, so the
-    // waiting hail is retried from here too, and waiting notifications shown.
-    onHandedOffChanged: {
-        if (!handedOff && pendingHail !== "") Qt.callLater(retryHail);
-        if (!handedOff) Qt.callLater(reconcile);
-    }
     function retryHail() {
         const id = view.pendingHail;
-        if (id === "" || machine.state !== "rest" || view.handedOff) return;
+        if (id === "" || machine.state !== "rest") return;
         view.pendingHail = "";
         const target = CrewModel.hailTarget({ agents: view.crewAgents }, id);
         if (target) view.hail(target.id);
     }
     // The last hail handled: vibes, in place of a showing hail or from rest.
     function vibe() {
-        if (view.handedOff) return;
         if (machine.state === "hail") {
             apply(IslandMachine.go(machine, "vibes"));
             return;
@@ -548,7 +520,6 @@ Item {
             return;
         }
         dwellTimer.stop();
-        if (hudNeedsGrab) hudPage = "";
         apply(IslandMachine.dismiss(machine));
     }
     // Esc steps back one level: the calendar to hover (its back button), a
@@ -572,8 +543,6 @@ Item {
         if (view.polkitPending) {
             dwellTimer.stop();
             graceTimer.stop();
-            hudPage = "";
-            NotificationState.closeCenter();
             if (machine.state !== "polkit") apply(IslandMachine.cover(machine, "polkit"));
         } else if (machine.state === "polkit") {
             apply(IslandMachine.dismiss(machine));
@@ -596,8 +565,6 @@ Item {
         view.ccByPointer = byPointer === true;
         dwellTimer.stop();
         graceTimer.stop();
-        hudPage = "";
-        NotificationState.closeCenter();
         if (machine.state !== "cc") apply(IslandMachine.cover(machine, "cc"));
         if (sheet === "") {
             if (ccLayer.content.sheet !== "") ccLayer.content.closeSheet(true);
@@ -609,7 +576,6 @@ Item {
         if (view.polkitPending) return;
         dwellTimer.stop();
         graceTimer.stop();
-        hudPage = "";
         apply(IslandMachine.cover(machine, "power"));
     }
     // The control center's Clipboard: the palette's clipboard scope on this
@@ -645,7 +611,7 @@ Item {
         // Raised under a parked pointer it runs its course (M3 review): no
         // enter event came, and holding it there would keep it up until the
         // pointer moved.
-        apply(view.handedOff ? IslandMachine.enqueue(machine, item) : IslandMachine.notify(machine, item));
+        apply(IslandMachine.notify(machine, item));
     }
     // A new island takes up what is still up that it never heard arrive
     // (it came in a classic mode, or while the islands were being rebuilt),
@@ -691,9 +657,8 @@ Item {
     }
 
     // Every Interrupt message (volume, brightness, mic): the OSD, its 1400 ms
-    // restarted. Dropped behind a hand-off or anything that outranks it.
+    // restarted. Dropped behind anything that outranks it.
     function osdShown() {
-        if (view.handedOff) return;
         const next = IslandMachine.offer(machine, "osd");
         if (next !== machine) apply(next);
     }
@@ -708,7 +673,7 @@ Item {
     }
     function flashMode(mode: string, on: bool, sub: string) {
         view.flashData = { mode: mode, on: on, sub: sub };
-        if (!view.flashArmed || view.handedOff) return;
+        if (!view.flashArmed) return;
         const next = IslandMachine.offer(machine, "flash");
         if (next !== machine) apply(next);
     }
@@ -796,7 +761,6 @@ Item {
         graceTimer.stop();
         if (state === "rest") return close();
         if (state === "hover") {
-            hudPage = "";
             apply(IslandMachine.go(machine, "hover"));
             return "ok";
         }
@@ -809,21 +773,19 @@ Item {
             openPower();
             return "ok";
         }
-        // The old Hud's battery page (the charge limit), the one hand-off left.
-        if (state === "battery") return handOff("battery", false);
+        // The charge limit (M10): the control center's Battery sheet, where
+        // the old Hud's battery page was.
+        if (state === "battery") return openCc("battery", false) ? "ok" : "error: the battery sheet could not load";
         if (state === "cal") {
-            hudPage = "";
             apply(IslandMachine.go(machine, "cal"));
             return "ok";
         }
         if (state === "osd" || state === "flash") {
-            hudPage = "";
             apply(IslandMachine.go(machine, state));
             return "ok";
         }
         if (state === "dict") {
             if (view.dictPhase === "") return "error: no dictation running (the Copilot key starts one)";
-            hudPage = "";
             apply(IslandMachine.go(machine, "dict"));
             return "ok";
         }
@@ -832,26 +794,22 @@ Item {
             const q = machine.queue ?? [];
             const item = Fixture.data.notif ? { id: -1, timeout: IslandMachine.notifTimeout(Fixture.data.notif.expireTimeout ?? -1, Fixture.data.notif.critical === true) } : q[q.length - 1];
             if (!item) return "error: no notification waiting (try notify-send)";
-            hudPage = "";
             const base = IslandMachine.drop(IslandMachine.go(machine, "rest"), item.id);
             apply(IslandMachine.notify(base, item));
             return "ok";
         }
         if (state === "crew") {
-            hudPage = "";
             apply(IslandMachine.go(machine, "crew"));
             return "ok";
         }
         if (state === "hail") {
             const target = CrewModel.hailTarget({ agents: view.crewAgents }, "");
             if (!target) return "error: no agent needs you";
-            hudPage = "";
             view.hailId = target.id;
             apply(IslandMachine.go(machine, "hail"));
             return "ok";
         }
         if (state === "vibes") {
-            hudPage = "";
             apply(IslandMachine.go(machine, "vibes"));
             return "ok";
         }
@@ -868,7 +826,6 @@ Item {
     function close(): string {
         dwellTimer.stop();
         graceTimer.stop();
-        hudPage = "";
         apply(IslandMachine.go(machine, "rest"));
         return "ok";
     }
@@ -882,8 +839,6 @@ Item {
         graceTimer.stop();
         launcherRelease.stop();
         keyboardRelease.stop();
-        hudPage = "";
-        NotificationState.closeCenter();
         view.launcherEngine = engine;
         if (machine.state !== "launcher") apply(IslandMachine.cover(machine, "launcher"));
         else view.focusLauncher();
@@ -910,8 +865,6 @@ Item {
         dwellTimer.stop();
         graceTimer.stop();
         keyboardRelease.stop();
-        hudPage = "";
-        NotificationState.closeCenter();
         view.pickerModel = model;
         if (machine.state !== state) apply(IslandMachine.cover(machine, state));
         else view.focusPicker();
@@ -941,25 +894,11 @@ Item {
     }
     function isOpen(state: string): bool {
         if (state.startsWith("cc/")) return machine.state === "cc" && ccLayer.content.sheet === CcData.sheetName(state.slice(3));
-        if (state === "battery") return hudPage === "battery";
+        if (state === "battery") return isOpen("cc/battery");
         return machine.state === state;
     }
     function toggle(state: string): string {
         return isOpen(state) && state !== "rest" ? close() : open(state);
-    }
-    // An old Hud page, for what the island has no state for yet: back to
-    // rest, and the old menu drops from the rest pill. The control center's
-    // battery opens "battery" (the charge-limit top-up); "cal" maps to the
-    // clock page and "cc" to the old home (kept for M4's classic hosts).
-    // `clicked` says whether a pointer press led here: only then can the Hud
-    // take its own popup grab. A Hud already showing just changes page and
-    // keeps the grab it opened with.
-    function handOff(state: string, clicked: bool): string {
-        apply(IslandMachine.go(machine, "rest"));
-        NotificationState.closeCenter();
-        if (hudPage === "") hud.grabFocus = clicked;
-        hudPage = state === "cal" ? "clock" : state === "cc" ? "home" : state;
-        return "ok";
     }
 
     function inspect() {
@@ -969,11 +908,8 @@ Item {
             pinned: machine.pinned,
             held: machine.held === true,
             panelOpen: view.panelOpen,
-            hud: view.hudPage,
             launcher: { shown: view.launcherShown, focus: view.launcherFocus, windowActive: view.windowActive, loaded: launcherLayer.content !== null,
                 fieldFocus: launcherLayer.content ? launcherLayer.content.fieldItem.activeFocus : false },
-            hudShown: view.hud.visible,
-            hudGrab: view.hud.grabFocus,
             target: { width: targetSize[0], height: targetSize[1], radius: body.targetRadius },
             body: { x: body.x, y: body.y, width: body.width, height: body.height, radius: body.radius },
             workspaces: (view.workspaces || []).map(w => w.name),
@@ -1014,6 +950,10 @@ Item {
                 here: view.polkitHere,
                 actionId: String(view.polkitFlow?.actionId ?? ""),
                 label: polkitLayer.label,
+                // The message's lines (three at most) and whether it ends in
+                // the "…" of a cut (M10).
+                messageLines: polkitLayer.messageLines,
+                messageCut: polkitLayer.shownMessage.endsWith("…") && polkitLayer.shownMessage !== polkitLayer.styled(polkitLayer.message),
                 error: polkitLayer.errorText,
                 typed: Fixture.sandbox ? polkitLayer.buffer.length : -1,
                 fieldFocus: polkitLayer.field.activeFocus,
@@ -1136,7 +1076,7 @@ Item {
         id: keyboardRelease
         interval: 150
         onTriggered: {
-            if (!view.windowActive || IslandMachine.panelOpen(view.machine) || view.hudPage !== "") return;
+            if (!view.windowActive || IslandMachine.panelOpen(view.machine)) return;
             view.keyboardDrop = true;
             keyboardRestore.restart();
         }
@@ -1357,7 +1297,6 @@ Item {
             animated: view.ambient
             onClose: view.dismiss()
             onPower: view.openPower()
-            onHandOff: page => view.handOff(page, true)
             openClipboard: view.paletteHost ? view.openClipboard : null
             openThemes: view.pickerHost ? view.openThemes : null
         }
@@ -1433,8 +1372,7 @@ Item {
         }
     }
 
-    // The rest pill's place, whatever the body is doing: what the old menus,
-    // the Interrupt popup and the notification center hang from.
+    // The rest pill's place, whatever the body is doing (tests, inspect).
     Item {
         id: restAnchor
         x: Math.round((view.width - width) / 2)
@@ -1443,41 +1381,14 @@ Item {
         height: IslandMachine.REST_HEIGHT
     }
 
-    // ---- hand-offs to the old surfaces (PLAN 1.7) ----------------------------------
-
-    Hud {
-        id: hud
-        anchorItem: restAnchor
-        alignment: "center"
-        edge: "top"
-        monitor: view.monitor ?? ({ width: 1920, height: 1200 })
-        now: view.now
-        page: view.hudPage
-        pickerHost: view.pickerHost
-        // The battery page's "Back to controls" is the control center now,
-        // not the old Hud home (M6 review).
-        onNavigate: page => {
-            if (page === "home") view.openCc("", true);
-            else view.hudPage = page;
-        }
-        onDismissed: view.hudPage = ""
-        // grabFocus is set by handOff() each time the Hud opens.
-    }
-
-    function registerBell() {
-        if (view.monitor) NotificationState.registerAnchor(view.monitor, restAnchor, "top");
-    }
     Component.onCompleted: {
-        registerBell();
         Context.watch(view, view.drawsLane);
         Qt.callLater(adopt);
         // A polkit request already waiting when this island is built (a mode
         // change, a new screen) takes it (reconcile).
         Qt.callLater(reconcile);
     }
-    onMonitorChanged: registerBell()
     Component.onDestruction: {
-        if (view.monitor) NotificationState.unregisterAnchor(view.monitor, restAnchor);
         if (view.notifications && view.notifications.forget) view.notifications.forget(view);
         Context.watch(view, false);
     }

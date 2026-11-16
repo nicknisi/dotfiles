@@ -20,12 +20,16 @@ import qs
 //   close         closes whatever is open
 //   toggle STATE  open, or close when that panel is already showing
 //   inspect       JSON: mode, edges, the reserve and every bar's host (the
-//                 panel, its place, corners, hairlines, seam, the module)
+//                 panel, its place, corners, hairlines, seam, the module),
+//                 and the notification cards (Hosts/NotifHost.qml: each
+//                 card's place on the screen, its body lines, its actions)
 Scope {
     id: root
 
     // Bar.qml instances, one per screen, empty in island mode.
     property var bars: []
+    // The classic modes' notification cards (shell.qml's NotifHost).
+    property var notifs: null
 
     function target() {
         const list = (root.bars || []).filter(b => b);
@@ -65,7 +69,8 @@ Scope {
                 edge: Prefs.edge,
                 storedEdge: Prefs.storedEdge,
                 reserve: Theme.barExtent,
-                bars: (root.bars || []).filter(b => b).map(b => b.host.inspect())
+                bars: (root.bars || []).filter(b => b).map(b => b.host.inspect()),
+                notifications: root.notifs ? root.notifs.inspect() : null
             });
         }
     }

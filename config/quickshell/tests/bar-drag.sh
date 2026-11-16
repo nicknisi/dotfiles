@@ -23,8 +23,9 @@ if grep -nE '^\s*import\s+Quickshell' "${leaves[@]}"; then
     echo "BAR_TEST_FAIL: the bar's leaves must not import Quickshell" >&2
     exit 1
 fi
-if grep -nE 'NickAvatar|assets/nick|SpringAnimation' "${leaves[@]}" "$root/Bar.qml" "$root/Hosts/"*.qml "$root/lib/Anchored.js"; then
-    echo "BAR_TEST_FAIL: no avatar, no SpringAnimation" >&2
+# The retired avatar is tests/retired.sh's (the whole tree).
+if grep -nE 'SpringAnimation' "${leaves[@]}" "$root/Bar.qml" "$root/Hosts/"*.qml "$root/lib/Anchored.js"; then
+    echo "BAR_TEST_FAIL: no SpringAnimation" >&2
     exit 1
 fi
 

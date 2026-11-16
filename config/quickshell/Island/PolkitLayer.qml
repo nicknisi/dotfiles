@@ -27,8 +27,10 @@ import qs.Kit
 // Monaspace `fg` [GUESS, main-tokens 2.5.9], as RichText: StyledText drops
 // a <font face>, so the path came out in Adwaita Sans and the message fit on
 // one line where the board wraps it to two (M8 review). RichText ignores
-// maximumLineCount and elide, so the item is cut to three 18 px lines
-// (`messageLines`). The label: the flow's own
+// maximumLineCount and elide, so a message past three 18 px lines is cut by
+// hand: the longest start of it that fits in three with a trailing "…",
+// at a word's end when one is near (`fitMessage`, a binary search on a
+// hidden probe laid out the same way, M10). The label: the flow's own
 // prompt when it is more than "Password:", else "Password for <user>".
 // Errors: supplementaryMessage in `bad` when supplementaryIsError, else
 // "Wrong password" after a failure.
@@ -122,11 +124,68 @@ Layer {
         return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
     function styled(text: string): string {
+        return polkit.styledCut(text, text.length);
+    }
+    // Only text's first `cut` characters (trailing spaces dropped) and a
+    // "…". The path is found in the whole text, so a cut inside it keeps the
+    // part shown in Monaspace and the "…" in Adwaita.
+    function styledCut(text: string, cut: int): string {
+        const n = Math.max(0, Math.min(cut, text.length));
+        const tail = n < text.length ? "…" : "";
+        const shown = tail ? text.slice(0, n).replace(/\s+$/, "") : text;
         const m = /(^|\s)(\/[^\s'"]+?)(?=[\s'".,;:!?)]*(\s|$))/.exec(text);
-        if (!m) return polkit.htmlEscape(text);
+        if (!m || m.index + m[1].length >= shown.length) return polkit.htmlEscape(shown) + tail;
         const start = m.index + m[1].length;
-        const end = start + m[2].length;
-        return polkit.htmlEscape(text.slice(0, start)) + "<span style=\"font-family: 'Monaspace Argon'; color: " + Tokens.fg + "\">" + polkit.htmlEscape(text.slice(start, end)) + "</span>" + polkit.htmlEscape(text.slice(end));
+        const end = Math.min(shown.length, start + m[2].length);
+        return polkit.htmlEscape(shown.slice(0, start)) + "<span style=\"font-family: 'Monaspace Argon'; color: " + Tokens.fg + "\">" + polkit.htmlEscape(shown.slice(start, end)) + "</span>" + polkit.htmlEscape(shown.slice(end)) + tail;
+    }
+    // The whole message, or its longest start that fits in three lines with
+    // a "…": the probe lays each try out (Text lays out as its text is set).
+    function fitMessage(text: string): string {
+        messageProbe.width = messageText.width;
+        messageProbe.text = polkit.styled(text);
+        if (messageProbe.contentHeight <= 3 * 18 + 0.5) return messageProbe.text;
+        let lo = 0, hi = text.length;
+        while (lo < hi) {
+            const mid = Math.ceil((lo + hi) / 2);
+            messageProbe.text = polkit.styledCut(text, mid);
+            if (messageProbe.contentHeight <= 3 * 18 + 0.5)
+                lo = mid;
+            else
+                hi = mid - 1;
+        }
+        // At a word's end when one is near (a long path has none, so it is
+        // cut where it fills the line).
+        if (lo < text.length && !/\s/.test(text[lo])) {
+            const space = text.slice(0, lo).search(/\s\S*$/);
+            if (space > 0 && lo - space <= 24) lo = space;
+        }
+        return polkit.styledCut(text, lo);
+    }
+    readonly property string message: String(polkit.flow?.message ?? "")
+    property string shownMessage: ""
+    function refit() {
+        polkit.shownMessage = polkit.fitMessage(polkit.message);
+    }
+    onMessageChanged: polkit.refit()
+    Component.onCompleted: polkit.refit()
+    // The path's colour is in the markup.
+    Connections {
+        target: Tokens
+        function onFgChanged() {
+            polkit.refit();
+        }
+    }
+    // messageText's twin, never drawn: fitMessage's trial layouts.
+    Text {
+        id: messageProbe
+        visible: false
+        wrapMode: Text.Wrap
+        textFormat: Text.RichText
+        font.family: "Adwaita Sans"
+        font.pixelSize: 12
+        lineHeightMode: Text.FixedHeight
+        lineHeight: 18
     }
     // The message's lines, at most three (RichText reports no lineCount).
     readonly property int messageLines: Math.max(1, Math.min(3, Math.round(messageText.contentHeight / 18)))
@@ -180,7 +239,8 @@ Layer {
                     // The board's 18 px line boxes, whole lines only.
                     height: polkit.messageLines * 18
                     clip: true
-                    text: polkit.styled(String(polkit.flow?.message ?? ""))
+                    text: polkit.shownMessage
+                    onWidthChanged: polkit.refit()
                     color: Tokens.inkDim
                     wrapMode: Text.Wrap
                     textFormat: Text.RichText

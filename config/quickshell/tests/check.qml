@@ -1,12 +1,15 @@
 // Run with ./config/quickshell/tests/check.sh. No real player is controlled.
+// Nothing here loads the pieces M10 retired (the old Hud and its pages, the
+// media card, the toasts, the notification center); tests/retired.sh keeps
+// them gone.
 import Quickshell
 import QtQuick
 import qs.Kit
 import qs.Island
 import qs.Hosts
 import qs.Panels
+import qs.Panels.Sheets
 import "launcher/ui" as LauncherUi
-import "MenuAnchor.js" as MenuAnchor
 import "BarGeometry.js" as BarGeometry
 import "lib/WorkspaceOrder.js" as WorkspaceOrder
 import "lib/CrewModel.js" as CrewModel
@@ -19,59 +22,21 @@ import "launcher/core/Glyphs.js" as Glyphs
 ShellRoot {
     id: test
 
-    QtObject {
-        id: player
-        property string dbusName: "test.player"
-        property string identity: "Test player"
-        property string trackTitle: "A small song"
-        property string trackArtist: "A small band"
-        property string trackArtUrl: ""
-        property bool isPlaying: false
-        property bool canTogglePlaying: true
-        property bool canGoPrevious: true
-        property bool canGoNext: true
-        property bool canSeek: true
-        property bool positionSupported: true
-        property bool lengthSupported: true
-        property real length: 240
-        property real position: 30
-        property int nextCalls: 0
-        property int previousCalls: 0
-        signal postTrackChanged()
-        function togglePlaying() { isPlaying = !isPlaying }
-        function next() { nextCalls++ }
-        function previous() { previousCalls++ }
-    }
-
     FloatingWindow {
         visible: true
-        implicitWidth: 392
-        implicitHeight: 300
-        MediaCard { id: card; width: 392; player: player }
-        HudHome { id: home; width: 392; visible: false }
-        CaffeineMenu { width: 320; visible: false }
-        BatteryMenu { id: batteryMenu; width: 360; visible: false }
-        Flip { id: flip; width: 80; height: 20; front: "19:57"; back: "Sat 5 Sep" }
-        NickAvatar { id: avatar; width: 30; height: 30 }
-        SurfaceShadow { id: outerShadow; surface: samplePanel }
-        Rectangle {
-            id: samplePanel
-            x: 100; y: 100; width: 120; height: 80
-            radius: Theme.panelRadius
-            color: Theme.surface
-            opacity: 0.5
-            SurfaceShadow { id: innerShadow; surface: samplePanel }
-        }
+        implicitWidth: 728
+        implicitHeight: 528
+        // The charge limit (M10: the old BatteryMenu's page is the control
+        // center's Battery sheet) on the live Battery; SHELL_DRY_RUN keeps a
+        // press from running anything. Not shown, so Battery polls nothing.
+        BatterySheet { id: batterySheet; width: 728; height: 528 }
+        // NotificationState's center anchors (its API outlived the old
+        // NotificationCenter): two stand-in bells.
+        Item { id: bellA; width: 30; height: 30 }
+        Item { id: bellB; width: 30; height: 30 }
         // The island Kit on the real Tokens, Motion and Prefs.
         Surface { id: kitSurface; x: 240; y: 100; width: 120; height: 38; radius: 19 }
         Icon { id: kitIcon; x: 240; y: 150; name: "wifi" }
-    }
-
-    Hud {
-        id: hud
-        anchorItem: avatar
-        now: new Date()
-        monitor: ({ width: 800, height: 600 })
     }
 
     // The island (PLAN M1) without its PanelWindow, which has no offscreen
@@ -327,10 +292,11 @@ ShellRoot {
                 const box = item => item.mapToItem(v, 0, 0);
                 if (step === 0) {
                     test.check(v.islandState === "rest" && !v.rest.segment.visible && v.rest.hugWidth === 360, "M3 island starts at rest with nothing live: " + JSON.stringify(v.machine));
-                    fakeNotifier.push({ id: 1, summary: "hi", body: "a <b>bold</b> &amp; plain body" });
+                    fakeNotifier.push({ id: 1, summary: "hi", body: "a <b>bold</b> &amp; plain body", actions: [{ identifier: "reply", text: "Reply", invoke: () => {} }] });
                     test.check(v.islandState === "notif" && v.machine.item.id === 1 && v.machine.timer === 4200, "a notification takes the island for 4200 ms: " + JSON.stringify(v.machine));
                     test.check(v.targetSize[0] === 520 && v.targetSize[1] === 92, "notif targets 520 x 92");
                     test.check(v.notification?.summary === "hi" && v.notifCard.body === "a bold & plain body", "the banner shows the summary and a plain body: " + v.notifCard.body);
+                    test.check(!v.notifCard.actionsShown && !v.notifCard.actionsRow.visible && v.notifCard.bodyLines === 1 && v.notifCard.height === 92, "the island's banner draws the board: no action pills, one body line, 92 high (the classic cards grow, M10)");
                     fakeNotifier.push({ id: 2, summary: "build failed", critical: true });
                     test.check(v.machine.item.id === 1 && JSON.stringify(v.machine.queue.map(i => i.id)) === "[2]", "a second one queues behind it");
                     fakeInterrupt.kind = "volume";
@@ -376,7 +342,7 @@ ShellRoot {
                     v.dismissNotification();
                     fakeNotifier.close(5, "expired");
                     test.check(v.islandState === "rest", "dismissed");
-                    test.check(v.open("cal") === "ok" && v.islandState === "cal" && v.panelOpen && v.hudPage === "", "cal is the island's own panel");
+                    test.check(v.open("cal") === "ok" && v.islandState === "cal" && v.panelOpen, "cal is the island's own panel");
                     test.check(v.targetSize[0] === 400 && v.targetSize[1] === 368, "cal targets 400 x 368");
                 } else if (step === 4) {
                     test.check(v.body.width === 400 && v.body.height === 368, "cal settles at 400 x 368");
@@ -627,15 +593,14 @@ ShellRoot {
                     fakeCrew.set(fakeCrew.four(false));
                     test.check(v.islandState === "vibes", "the attention clearing closes the hail, then vibes");
                     v.close();
-                    // A hail behind a hand-off (the old Hud's battery page, the
-                    // one left since M6) waits for it to close.
-                    v.open("battery");
+                    // A hail behind the battery sheet (M10: cc/battery, where
+                    // the old Hud's page, the last hand-off, went) waits for it.
+                    test.check(v.open("battery") === "ok" && v.islandState === "cc" && v.isOpen("cc/battery"), "battery is the control center's Battery sheet");
                     fakeCrew.set(fakeCrew.four(true));
-                    test.check(v.handedOff && v.islandState === "rest" && v.pendingHail === "%2", "a hail waits behind a hand-off");
-                    // The Hud closing by itself: no machine change, only handedOff.
-                    v.hudPage = "";
+                    test.check(v.islandState === "cc" && v.pendingHail === "%2", "a hail waits behind the battery sheet");
+                    v.close();
                 } else if (step === 7) {
-                    test.check(v.islandState === "hail" && v.pendingHail === "", "the hand-off closing lets the hail through");
+                    test.check(v.islandState === "hail" && v.pendingHail === "", "the sheet closing lets the hail through");
                     // A held hail closes when the pointer has gone (the grace runs out).
                     v.pointerEntered();
                     v.pointerLeft();
@@ -675,55 +640,30 @@ ShellRoot {
         }
     }
 
-    Connections {
-        id: avatarFrames
-        target: null
-        property int changes: 0
-        function onCurrentFrameChanged() { changes++ }
-    }
-
+    // The last word, once every other check has run to the end.
     Timer {
-        id: avatarCheck
+        id: finalCheck
         interval: 2300
         repeat: true
-        property int step: 0
         onTriggered: {
             try {
-                const greeting = test.child(avatar, "nickGreeting");
-                const runner = test.child(avatar, "nickRunning");
-                if (step++ === 0) {
-                    test.check(greeting.running && avatarFrames.changes > greeting.frameCount, "hover animation advances beyond its first loop");
-                    test.check(greeting.loops === AnimatedSprite.Infinite && greeting.frameRate === 4, "hover animation loops at a relaxed pace");
-                    avatar.page = "theme";
-                    test.check(!greeting.running, "menu stops the hidden hover animation");
-                    avatar.moving = true;
-                    avatarFrames.target = runner;
-                    avatarFrames.changes = 0;
-                    test.check(runner.visible && runner.running && !greeting.visible, "drag overrides menu costumes");
-                } else {
-                    // The crew check's eleven beats outlast this timer's two: wait a round.
-                    if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running || m8Check.running || mergeCheck.running || barCheck.running || !barCheck.finished || pickerCheck.running || !pickerCheck.finished) return;
-                    test.check(avatarFrames.changes > 0, "running frames actually advance");
-                    avatar.visible = false;
-                    test.check(!runner.running, "hidden runner stops animating");
-                    avatar.moving = false;
-                    avatar.hovered = false;
-                    avatar.page = "";
-                    test.check(!test.child(avatar, "nickFace").running, "hidden portrait stops animating");
-                    test.check(styleCheck.finished, "all sixteen layout and edge combinations settled");
-                    test.check(islandCheck.finished, "the island check ran to the end");
-                    test.check(crewCheck.finished, "the crew check ran to the end");
-                    test.check(m3Check.finished, "the M3 check ran to the end");
-                    test.check(launcherCheck.finished, "the launcher check ran to the end");
-                    test.check(m6Check.finished, "the M6 check ran to the end");
-                    test.check(m8Check.finished, "the M8 polkit check ran to the end");
-                    test.check(mergeCheck.finished, "the launcher and control center check ran to the end");
-                    test.check(barCheck.finished, "the M4 bar check ran to the end");
-                    test.check(pickerCheck.finished, "the picker check ran to the end");
-                    test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
-                    console.log("CAPSULE_TEST_PASS");
-                    Qt.quit();
-                }
+                // The bar check (about 25 s in, after the launcher and
+                // control center checks) and the picker check after it hold
+                // this one; the rest are done by then.
+                if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running || m8Check.running || mergeCheck.running || barCheck.running || !barCheck.finished || pickerCheck.running || !pickerCheck.finished) return;
+                test.check(styleCheck.finished, "all sixteen layout and edge combinations settled");
+                test.check(islandCheck.finished, "the island check ran to the end");
+                test.check(crewCheck.finished, "the crew check ran to the end");
+                test.check(m3Check.finished, "the M3 check ran to the end");
+                test.check(launcherCheck.finished, "the launcher check ran to the end");
+                test.check(m6Check.finished, "the M6 check ran to the end");
+                test.check(m8Check.finished, "the M8 polkit check ran to the end");
+                test.check(mergeCheck.finished, "the launcher and control center check ran to the end");
+                test.check(barCheck.finished, "the M4 bar check ran to the end");
+                test.check(pickerCheck.finished, "the picker check ran to the end");
+                test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
+                console.log("CAPSULE_TEST_PASS");
+                Qt.quit();
             } catch (error) {
                 console.error("CAPSULE_TEST_FAIL: " + error.message);
                 Qt.quit();
@@ -753,8 +693,10 @@ ShellRoot {
                     const expectedMode = askedMode === "full" && side ? "rail" : askedMode === "rail" && !side ? "full" : askedMode;
                     const island = expectedMode === "island";
                     test.check(Prefs.barMode === expectedMode, "layout preference settles: " + askedMode + "/" + expectedEdge + " -> " + expectedMode);
-                    test.check(Theme.controlRadius === 12 && Theme.panelRadius === 28, "controls stay rounded in every layout");
-                    test.check(Theme.barExtent === (island ? 46 : expectedMode === "pill" ? 56 : 40), "reservation matches layout geometry: " + expectedMode + " " + Theme.barExtent);
+                    // The reserve from the geometry's own numbers: the bar's
+                    // thickness and its inset on both sides, the island's extent.
+                    const extent = island ? Theme.islandExtent : BarGeometry.THICK + 2 * BarGeometry.inset(expectedMode);
+                    test.check(Theme.barExtent === extent, "reservation matches layout geometry: " + expectedMode + " " + Theme.barExtent + " for " + extent);
                     test.check(Theme.barInset === (expectedMode === "pill" || island ? 8 : 0), "the pill floats 8 in; the full bar and the rail are flush");
                     // The island always sits at the top and keeps the stored edge for later.
                     const shownEdge = island ? "top" : expectedEdge;
@@ -762,7 +704,6 @@ ShellRoot {
                         && Prefs.vertical === ["left", "right"].includes(shownEdge), "edge preference settles: " + expectedMode + "/" + expectedEdge);
                     test.check(BarGeometry.edgeFor(expectedMode, expectedEdge) === Prefs.edge, "Prefs reads BarGeometry's edge rule");
                     test.check(Theme.barExtent >= Theme.barHeight, "reservation includes bar inset");
-                    test.check(Theme.contrast(Theme.accent, Theme.accentText) >= Math.max(Theme.contrast(Theme.accent, Theme.bg), Theme.contrast(Theme.accent, Theme.fg)), "accent text uses the contrasting palette color");
                 }
                 if (step === 16) {
                     Prefs.setBarMode("invalid"); Prefs.setEdge("invalid");
@@ -771,9 +712,9 @@ ShellRoot {
                     test.check(Prefs.edge === "right", "leaving the island restores the stored edge");
                     // A mode switch reads its own edge and keeps the stored one.
                     Prefs.setBarMode("full");
-                    test.check(Prefs.edge === "top" && Prefs.storedEdge === "right" && Theme.barExtent === 40, "the full bar on a remembered side edge reads the top");
+                    test.check(Prefs.edge === "top" && Prefs.storedEdge === "right" && Theme.barExtent === BarGeometry.THICK, "the full bar on a remembered side edge reads the top");
                     Prefs.setBarMode("rail");
-                    test.check(Prefs.edge === "right" && Theme.barExtent === 40, "the rail goes back to the remembered right edge");
+                    test.check(Prefs.edge === "right" && Theme.barExtent === BarGeometry.THICK, "the rail goes back to the remembered right edge");
                     Prefs.setEdge("bottom");
                     test.check(Prefs.barMode === "full" && Prefs.edge === "bottom", "the rail moved to the bottom is the full bar");
                     Prefs.setBarMode("pill");
@@ -1058,8 +999,8 @@ ShellRoot {
                     test.check(JSON.stringify(strip.names) === JSON.stringify(["W", "C", "D", "S"]) && strip.focusedName === "D", "W C D S with D focused");
                     test.check(strip.shapeName === "Cookie6Sided" && String(strip.shape.color) === String(Tokens.accent), "the focused shape is the boards' cookie in accent");
                     test.check(v.rest.current && !v.hover.current, "the rest layer shows");
-                    test.check(v.restAnchor.width === 360 && v.restAnchor.x === 320, "the hand-off anchor is the rest pill");
-                    test.check(NotificationState.resolveAnchor(v.monitor)?.item === v.restAnchor, "the notification center hangs from the rest pill");
+                    test.check(v.restAnchor.width === 360 && v.restAnchor.x === 320, "the rest anchor is the rest pill");
+                    test.check(NotificationState.resolveAnchor(v.monitor) === null, "the island registers no notification center anchor (M10: the old center is gone)");
                     // Pointer: the dwell starts on enter and stops on leave.
                     v.pointerEntered();
                     test.check(v.dwell.running && v.dwell.interval === 250, "hover waits for a 250 ms dwell");
@@ -1089,30 +1030,19 @@ ShellRoot {
                     // The IPC verbs, minus the window lookup.
                     test.check(v.open("hover") === "ok" && v.pinned, "open hover pins it");
                     test.check(v.toggle("hover") === "ok" && v.islandState === "rest", "toggle closes what is open");
-                    // M6: cc is the island's own state; the battery page is the one hand-off left.
-                    test.check(v.open("cc") === "ok" && v.islandState === "cc" && v.panelOpen && v.hudPage === "" && !v.handedOff, "cc is the island's own state (M6)");
+                    // M6: cc is the island's own state; M10: so is the battery,
+                    // the last hand-off to the old Hud, as the cc/battery sheet.
+                    test.check(v.open("cc") === "ok" && v.islandState === "cc" && v.panelOpen, "cc is the island's own state (M6)");
                     test.check(v.toggle("cc") === "ok" && v.islandState === "rest", "toggle closes cc");
-                    test.check(v.open("battery") === "ok" && v.hudPage === "battery" && v.islandState === "rest", "the battery page hands off to the old Hud");
-                    // IPC has no input serial for a popup grab: the Hud opens
-                    // without one and the window's focus grab covers it.
-                    test.check(!v.hud.grabFocus && v.hudNeedsGrab, "an IPC hand-off opens the Hud without its own grab");
-                    test.check(v.hud.anchorItem === v.restAnchor && v.hud.alignment === "center" && v.hud.edge === "top", "the old Hud drops from the rest pill");
-                    test.check(v.handedOff, "no hover while a hand-off shows");
-                    v.pointerEntered();
-                    test.check(!v.dwell.running, "the dwell waits for the hand-off to close");
-                    test.check(v.toggle("battery") === "ok" && v.hudPage === "", "toggle closes the hand-off");
-                    test.check(v.open("cal") === "ok" && v.hudPage === "" && v.islandState === "cal", "cal is the island's own state (M3)");
-                    test.check(v.close() === "ok" && v.hudPage === "" && v.islandState === "rest", "close clears everything");
-                    test.check(!v.hudNeedsGrab, "no focus grab once the hand-off closes");
-                    // A click hand-off (the hover layer's calendar) keeps the popup grab.
-                    test.check(v.handOff("cal", true) === "ok" && v.hud.grabFocus && !v.hudNeedsGrab, "a click hand-off keeps the Hud's own grab");
-                    v.open("battery");
-                    test.check(v.hudPage === "battery" && v.hud.grabFocus, "a page change keeps the grab the Hud opened with");
-                    v.close();
-                    // The focus grab clearing closes an IPC-opened Hud.
+                    test.check(v.open("battery") === "ok" && v.islandState === "cc" && v.panelOpen && v.isOpen("cc/battery") && v.isOpen("battery"), "battery opens the control center's Battery sheet (M10)");
+                    test.check(v.ccPanel.content.sheetItem?.objectName === "ccSheet-battery", "the Battery sheet loads");
+                    test.check(v.toggle("battery") === "ok" && v.islandState === "rest", "toggle closes it");
+                    test.check(v.open("cal") === "ok" && v.islandState === "cal", "cal is the island's own state (M3)");
+                    test.check(v.close() === "ok" && v.islandState === "rest", "close clears everything");
+                    // The focus grab clearing closes the battery sheet like any panel.
                     v.open("battery");
                     v.dismiss();
-                    test.check(v.hudPage === "" && !v.hudNeedsGrab, "an outside click closes an IPC-opened Hud");
+                    test.check(v.islandState === "rest", "an outside click closes the battery sheet");
                     test.check(v.open("polkit").startsWith("error: no authentication request"), "polkit opens only for a waiting request (M8)");
                     test.check(v.open("notif").startsWith("error: no notification") && v.open("dict").startsWith("error: no dictation"), "notif and dict need something to show");
                     test.check(v.open("bogus").startsWith("error: unknown"), "unknown states are refused");
@@ -1166,7 +1096,7 @@ ShellRoot {
                 if (step === 0) {
                     if (crewCheck.running || m3Check.running) return;
                     test.check(model.dryRun && Fixture.dryRun, "SHELL_DRY_RUN keeps the control center from changing anything");
-                    test.check(v.open("cc") === "ok" && v.islandState === "cc" && v.panelOpen && !v.handedOff, "open cc is the island's cc state");
+                    test.check(v.open("cc") === "ok" && v.islandState === "cc" && v.panelOpen, "open cc is the island's cc state");
                     test.check(v.targetSize[0] === 760 && v.targetSize[1] === 560, "cc targets 760 x 560");
                     const tiles = [0, 1, 2, 3].map(i => cc.tiles.itemAt(i)?.objectName).join(" ");
                     test.check(tiles === "ccTile-wifi ccTile-bt ccTile-ts ccTile-dnd", "the four tiles, by objectName: " + tiles);
@@ -1183,7 +1113,7 @@ ShellRoot {
                     v.close();
                     v.open("hover");
                     v.hover.openControlCenter();
-                    test.check(v.islandState === "cc" && v.hudPage === "", "the status pill opens the cc state, not the old Hud");
+                    test.check(v.islandState === "cc", "the status pill opens the cc state");
                     test.check(v.ccByPointer, "by the pointer, so no focus ring lands on the Wi-Fi disc");
                     test.check(v.open("cc/bogus").startsWith("error: no sheet"), "an unknown sheet is refused");
                     test.check(v.open("cc/wifi") === "ok" && cc.sheet === "wifi" && cc.sheetItem?.objectName === "ccSheet-wifi", "open cc/wifi opens the Wi-Fi sheet");
@@ -1193,7 +1123,7 @@ ShellRoot {
                     test.check(v.inspect().cc.sheet === "wifi", "inspect reports the sheet");
                     v.stepBack();
                     test.check(cc.sheet === "" && v.islandState === "cc", "Esc steps back out of the sheet first");
-                    for (const name of ["wifi", "sound", "tailscale", "bt", "notifications", "display", "awake"]) {
+                    for (const name of ["wifi", "sound", "tailscale", "bt", "notifications", "display", "awake", "battery"]) {
                         test.check(v.open("cc/" + name) === "ok" && cc.sheetItem?.objectName === "ccSheet-" + name, "the " + name + " sheet loads");
                         test.check(cc.sheetItem.shown && cc.sheetItem.sheetData.groups.length > 0, "the " + name + " sheet shows groups");
                     }
@@ -1227,13 +1157,15 @@ ShellRoot {
                     v.open("power");
                     pm.cancel();
                     test.check(v.islandState === "rest", "Esc cancels the power menu");
-                    // The battery (charge limit) hands off to the old Hud.
+                    // The footer's battery (the charge limit) opens the Battery
+                    // sheet (M10: the old Hud's page); back is the control center.
                     v.open("cc");
                     model.run("battery", null);
-                    test.check(v.islandState === "rest" && v.hudPage === "battery" && v.handedOff, "the battery hands off to the old Hud's battery page");
-                    // Its "Back to controls" is the control center, not the old Hud home (M6 review).
-                    v.hud.navigate("home");
-                    test.check(v.islandState === "cc" && v.hudPage === "" && !v.handedOff && v.ccByPointer, "the battery page's back opens the control center");
+                    test.check(v.islandState === "cc" && cc.sheet === "battery" && cc.sheetItem?.objectName === "ccSheet-battery", "the battery opens the Battery sheet");
+                    const bs = cc.sheetItem;
+                    test.check(bs.title === "Battery" && bs.sheetData.hasSwitch === false && bs.sheetData.groups.some(g => g.label === "Charge limit"), "the charge limit, no switch: " + JSON.stringify(bs.sheetData.groups.map(g => g.label)));
+                    v.stepBack();
+                    test.check(cc.sheet === "" && v.islandState === "cc", "back from the battery sheet is the control center");
                     v.close();
                     v.open("cc");
                     model.run("lock", null);
@@ -1600,7 +1532,7 @@ ShellRoot {
                     Prefs.setEdge("top");
                 } else if (step === 1) {
                     // The pill: 518 x 40, 8 down, radius 20, ring and shadow; 56 reserved.
-                    test.check(Theme.barExtent === 56 && b.body.x === 701 && b.body.y === 8 && b.body.width === 518 && b.body.height === 40, "the pill sits 8 down, centred: " + JSON.stringify(b.surfaceRect()));
+                    test.check(Theme.barExtent === BarGeometry.THICK + 2 * BarGeometry.INSET && b.body.x === 701 && b.body.y === 8 && b.body.width === 518 && b.body.height === 40, "the pill sits 8 down, centred: " + JSON.stringify(b.surfaceRect()));
                     test.check(b.surface.radius === 20 && b.surface.border.width === 1 && String(b.surface.border.color) === String(Tokens.hairline) && String(b.surface.color) === String(Tokens.surface), "the pill: radius 20, the hairline ring, opaque");
                     test.check(!b.innerLine.visible, "no inner-edge line on the pill");
                     test.check(h.open("cc") === "ok", "bar open cc");
@@ -1643,7 +1575,7 @@ ShellRoot {
                     Prefs.setBarMode("full");
                 } else if (step === 5) {
                     // The full strip: flush, 40, the inner hairline only.
-                    test.check(Prefs.edge === "top" && Theme.barExtent === 40 && b.body.x === 0 && b.body.y === 0 && b.body.width === 1920 && b.body.height === 40, "the full strip runs edge to edge, flush: " + JSON.stringify(b.surfaceRect()));
+                    test.check(Prefs.edge === "top" && Theme.barExtent === BarGeometry.THICK && b.body.x === 0 && b.body.y === 0 && b.body.width === 1920 && b.body.height === 40, "the full strip runs edge to edge, flush: " + JSON.stringify(b.surfaceRect()));
                     test.check(b.surface.radius === 0 && b.surface.border.width === 0 && b.innerLine.visible && b.innerLine.y === 39 && b.innerLine.height === 1, "square, no ring, a 1 px hairline on the inner edge");
                     test.check(h.open("cc") === "ok", "bar open cc on the full strip");
                     test.check(h.shape.x === 1160 && h.shape.y === 40 && h.shape.seam === "top" && h.shape.motion === "drop", "flush under the strip, touching the right edge: " + JSON.stringify(h.shape));
@@ -1677,7 +1609,7 @@ ShellRoot {
                     Prefs.setBarMode("rail");
                 } else if (step === 9) {
                     // The rail: flush, full height, down the left (the stored top reads left).
-                    test.check(Prefs.edge === "left" && Prefs.storedEdge === "top" && Theme.barExtent === 40 && b.body.x === 0 && b.body.y === 0 && b.body.width === 40 && b.body.height === 1200, "the rail is the flush full-height strip: " + JSON.stringify(b.surfaceRect()));
+                    test.check(Prefs.edge === "left" && Prefs.storedEdge === "top" && Theme.barExtent === BarGeometry.THICK && b.body.x === 0 && b.body.y === 0 && b.body.width === 40 && b.body.height === 1200, "the rail is the flush full-height strip: " + JSON.stringify(b.surfaceRect()));
                     test.check(b.innerLine.visible && b.innerLine.x === 39 && b.innerLine.width === 1, "its hairline on the right only");
                     test.check(h.open("cc") === "ok", "bar open cc on the rail");
                     test.check(h.shape.x === 40 && h.shape.y === 640 && h.shape.seam === "left" && h.shape.motion === "slide", "beside the status module, flush with the rail and the screen's bottom: " + JSON.stringify(h.shape));
@@ -1685,15 +1617,17 @@ ShellRoot {
                     test.check(h.fromRect.x === 40 - 760, "it slides from behind the rail");
                 } else if (step === 10) {
                     test.check(settled() && h.drawnX === 40 && h.seamFrom === 640 && h.seamTo === 1200, "slid into place, the seam along the rail");
-                    // The battery hand-off: the old page, on the frame.
-                    h.ccLayer.handOff("battery");
-                    test.check(h.kind === "page" && h.page === "battery", "the battery page");
+                    // The battery (M10: the old page on the frame went): the
+                    // control center's Battery sheet, in the cc frame.
+                    test.check(h.open("battery") === "ok" && h.kind === "cc" && h.ccLayer.content.sheet === "battery", "bar open battery opens the Battery sheet");
+                    test.check(h.ccLayer.content.sheetItem?.objectName === "ccSheet-battery" && h.inspect().sheet === "battery", "the Battery sheet loads, and inspect says so");
                 } else if (step === 11) {
-                    test.check(settled() && h.pageLayer.current && h.shape.width === 392 && h.shape.height === h.pageLayer.implicitHeight && h.shape.height > 100, "the page shows on the frame: " + h.shape.height);
-                    test.check(texts(h.pageLayer).filter(t => t === "Battery").length === 1, "titled Battery, once (the page's own header is hidden on the frame): " + texts(h.pageLayer).join("|"));
-                    test.check(test.child(h.pageLayer, "pageSubtitle").visible && test.child(h.pageLayer, "pageSubtitle").text.indexOf("%") > 0, "the page's subtitle in the frame's header: " + test.child(h.pageLayer, "pageSubtitle").text);
+                    test.check(settled() && h.ccLayer.current && h.shape.width === 760 && h.shape.height === 560, "the battery sheet in the control center's 760 x 560: " + JSON.stringify(h.shape));
+                    test.check(h.toggle("battery") === "ok" && b.openMenu === "", "toggle closes it");
                     test.check(h.open("appearance") === "ok" && h.page === "appearance", "bar open appearance");
                 } else if (step === 12) {
+                    test.check(settled() && h.pageLayer.current && h.shape.width === 392 && h.shape.height === h.pageLayer.implicitHeight && h.shape.height > 100, "the page shows on the frame: " + h.shape.height);
+                    test.check(test.child(h.pageLayer, "pageSubtitle").visible && test.child(h.pageLayer, "pageSubtitle").text === "Bar layout, edge, and theme packs", "the page's subtitle in the frame's header: " + test.child(h.pageLayer, "pageSubtitle").text);
                     const t = texts(h.pageLayer);
                     test.check(["Pill", "Full bar", "Rail", "Island"].every(m => t.indexOf(m) >= 0), "AppearanceMenu lists the four modes: " + t.join("|"));
                     test.check(t.filter(x => x === "Appearance").length === 1, "titled once");
@@ -1846,6 +1780,7 @@ ShellRoot {
         running: true
         property int step: 0
         property bool finished: false
+        property bool activated: false
         property string base: ""
         function key(k, text) {
             return checkPicker.handleKey({ key: k, modifiers: 0, text: text ?? "", isAutoRepeat: false });
@@ -1859,6 +1794,17 @@ ShellRoot {
                     // And after the M4 bar check, which switches Prefs.barMode and moves the keys
                     // between its own windows: one check at a time keeps both deterministic.
                     if (!mergeCheck.finished || !m6Check.finished || !barCheck.finished) return;
+                    // The keys go to this island's window first, as the
+                    // compositor gives them to the island in a session. The
+                    // bar check moves them between its own windows; once
+                    // M10 turned its battery beat into a control center
+                    // sheet, this window came out of it with no active focus
+                    // item, and forceActiveFocus() gave the panel none.
+                    if (!activated) {
+                        v.Window.window.requestActivate();
+                        activated = true;
+                        return;
+                    }
                     base = Tokens.hex(Tokens.surface);
                     // Enter's runner, checked at the last beat: a failing run
                     // reports its code and last lines, a good one 0.
@@ -1993,7 +1939,7 @@ ShellRoot {
                 for (const mode of ["pill", "full", "rail"]) {
                     for (const origin of ["top", "bottom", "left", "right"]) {
                         const vertical = origin === "left" || origin === "right";
-                        const extent = mode === "pill" ? 56 : 40;
+                        const extent = BarGeometry.THICK + 2 * BarGeometry.inset(mode);
                         const w = vertical ? extent : 1920, h = vertical ? 1080 : extent;
                         const ox = origin === "right" ? 1920 - w : 0;
                         const oy = origin === "bottom" ? 1080 - h : 0;
@@ -2003,16 +1949,20 @@ ShellRoot {
                     }
                 }
 
-                test.check(test.child(batteryMenu, "topUp80").text === "Top up to 80%", "battery has an 80% action");
-                test.check(test.child(batteryMenu, "topUp100").text === "Charge to 100%", "battery has a full-charge action");
+                // The charge limit (M10: BatteryMenu's page is the Battery sheet).
                 const savedCare = Battery.care;
                 Battery.care = { supported: false, target: 0, recovery: false };
-                test.check(!test.child(batteryMenu, "topUp80").enabled && !test.child(batteryMenu, "topUp100").enabled, "unsupported battery controls are disabled");
+                let batteryRows = batterySheet.sheetData.groups[0].rows;
+                test.check(batteryRows.map(r => r.title).join() === "Top up to 80%,Charge to 100%", "battery has the 80% and full-charge actions: " + batteryRows.map(r => r.title));
+                test.check(batteryRows.every(r => r.inert && r.action === ""), "unsupported battery controls are inert");
                 Battery.topUp(80);
                 test.check(!Battery.busy, "unsupported battery action does not request authorization");
                 Battery.care = { supported: true, mode: "Custom", start: 50, end: 80, target: 100, recovery: true };
-                test.check(test.child(batteryMenu, "stopTopUp").text === "Restore battery care", "interrupted top-up exposes recovery");
-                test.check(!test.child(batteryMenu, "topUp80").enabled, "active top-up disables duplicate requests");
+                batteryRows = batterySheet.sheetData.groups[0].rows;
+                test.check(batteryRows.length === 1 && batteryRows[0].title === "Restore battery care", "interrupted top-up exposes recovery");
+                test.check(!batteryRows.some(r => r.action === "topUp"), "active top-up disables duplicate requests");
+                batterySheet.activated(batteryRows[0]);
+                test.check(batterySheet.ran === "stop" && !Battery.busy, "under a dry run the sheet's press runs nothing: " + batterySheet.ran);
                 Battery.care = savedCare;
 
                 test.check(!Caffeine.active && Caffeine.selectedMinutes === 60, "stay-awake defaults to a one-hour timer");
@@ -2043,110 +1993,20 @@ ShellRoot {
                 NotificationState.toggleDnd();
                 NotificationState.clear();
                 test.check(NotificationState.count === 0 && !NotificationState.dnd, "notification history clears without changing DND");
-                NotificationState.registerAnchor(notificationScreen, avatar, "right");
+                NotificationState.registerAnchor(notificationScreen, bellA, "right");
                 test.check(NotificationState.resolveAnchor({name: "other-screen"}) === null, "notifications never use another monitor's anchor");
                 NotificationState.toggleCenter(notificationScreen);
-                test.check(NotificationState.centerAnchorItem === avatar && NotificationState.centerEdge === "right", "notifications use the registered bell and edge");
-                NotificationState.registerAnchor(notificationScreen, flip, "left");
-                NotificationState.unregisterAnchor(notificationScreen, avatar);
-                test.check(NotificationState.centerAnchorItem === flip && NotificationState.centerEdge === "left", "replacing an anchor updates the open center safely");
-                NotificationState.unregisterAnchor(notificationScreen, flip);
+                test.check(NotificationState.centerAnchorItem === bellA && NotificationState.centerEdge === "right", "notifications use the registered bell and edge");
+                NotificationState.registerAnchor(notificationScreen, bellB, "left");
+                NotificationState.unregisterAnchor(notificationScreen, bellA);
+                test.check(NotificationState.centerAnchorItem === bellB && NotificationState.centerEdge === "left", "replacing an anchor updates the open center safely");
+                NotificationState.unregisterAnchor(notificationScreen, bellB);
                 test.check(!NotificationState.centerOpen && NotificationState.centerAnchorItem === null, "destroying the active bar closes its notification popup");
-
-                test.check(avatar.costume === 0 && !avatar.fullBody, "resting avatar shows Nick's portrait");
-                test.check(test.child(avatar, "nickFace").running, "visible portrait can blink");
-                for (const [page, costume] of [["home", 2], ["audio", 2], ["net", 3], ["bt", 3], ["display", 3], ["tailscale", 3], ["theme", 4], ["clock", 5], ["unknown", 0]]) {
-                    avatar.page = page;
-                    avatar.hovered = true;
-                    const portrait = test.child(avatar, "nickCostume");
-                    test.check(avatar.costume === costume && !avatar.fullBody, "menu costume takes priority over hover: " + page);
-                    test.check(portrait.status === Image.Ready && portrait.sourceClipRect.x === costume * 32, "costume atlas loads the correct cell: " + page);
-                }
-                for (const edge of ["top", "bottom", "left", "right"]) {
-                        hud.edge = edge;
-                        for (const alignment of ["start", "center", "end"]) {
-                            hud.alignment = alignment;
-                            const p = MenuAnchor.position(edge, alignment, 30, 28, 392, 300, 16, 8);
-                            if (edge === "top") test.check(p.y + 16 - 28 === 8, "top opens down with visible 8px gap");
-                            if (edge === "bottom") test.check(-p.y - 16 - 300 === 8, "bottom opens up with visible 8px gap");
-                            if (edge === "left") test.check(p.x + 16 - 30 === 8, "left opens right with visible 8px gap");
-                            if (edge === "right") test.check(-p.x - 16 - 392 === 8, "right opens left with visible 8px gap");
-                            if (alignment === "center") test.check(["left", "right"].includes(edge) ? p.y + 16 === (28 - 300) / 2 : p.x + 16 === (30 - 392) / 2, "calendar centers on its own trigger");
-                        }
-                }
-                avatar.page = "";
-                test.check(avatar.fullBody && test.child(avatar, "nickGreeting").running, "hover starts the full-body animation");
-                avatarFrames.target = test.child(avatar, "nickGreeting");
 
                 test.check(Media.choosePlayer([], "") === null, "empty player list");
                 test.check(Media.choosePlayer([paused, playing], "") === playing, "prefer playing app");
                 test.check(Media.choosePlayer([paused, playing], "paused") === paused, "retain chosen app");
                 test.check(Media.choosePlayer([playing], "paused") === playing, "removed player fallback");
-
-                const mediaPage = test.child(hud.contentItem, "mediaPage");
-                test.check(mediaPage !== null, "dedicated media popup exists");
-                mediaPage.player = player;
-                hud.page = "media";
-                test.check(mediaPage.active && mediaPage.parent.children[mediaPage.parent.currentIndex] === mediaPage, "media route selects playback controls, not system home");
-                const popupPlay = test.child(mediaPage, "playPause");
-                popupPlay.click();
-                test.check(player.isPlaying, "popup playback control works");
-                popupPlay.click();
-                hud.page = "";
-                test.check(!mediaPage.active, "closed media popup stops polling");
-
-                // The appearance page's Theme packs is the theme picker since
-                // M7 (ThemeMenu replaced, PLAN 1.3): it opens on the Hud's
-                // screen and the Hud closes.
-                const themeCalls = [];
-                let hudClosed = 0;
-                const countClose = () => hudClosed++;
-                hud.dismissed.connect(countClose);
-                hud.pickerHost = { openOn: (screen, kind) => themeCalls.push([screen?.width ?? 0, kind]) };
-                hud.page = "appearance";
-                const appearancePage = test.child(hud.contentItem, "appearancePage");
-                test.check(appearancePage !== null && appearancePage.parent.children[appearancePage.parent.currentIndex] === appearancePage, "the appearance route shows the appearance page");
-                appearancePage.navigate("theme");
-                test.check(JSON.stringify(themeCalls) === JSON.stringify([[800, "themes"]]) && hudClosed === 1, "Theme packs opens the theme picker on the Hud's screen and closes the Hud: " + JSON.stringify(themeCalls) + " " + hudClosed);
-                hud.dismissed.disconnect(countClose);
-                hud.pickerHost = null;
-                hud.page = "";
-
-                const play = test.child(card, "playPause");
-                const next = test.child(card, "next");
-                const previous = test.child(card, "previous");
-                const seek = test.child(card, "seek");
-                test.check(play && next && previous && seek, "media controls exist");
-                play.click();
-                test.check(player.isPlaying, "play invokes player");
-                play.click();
-                test.check(!player.isPlaying, "pause invokes player");
-                next.click();
-                previous.click();
-                test.check(player.nextCalls === 1 && player.previousCalls === 1, "track controls invoke player");
-                seek.moved(0.5);
-                test.check(player.position === 120, "seek uses seconds");
-                seek.moved(2);
-                test.check(player.position === 240, "seek clamps at track length");
-                player.canSeek = false;
-                seek.moved(0);
-                test.check(!seek.enabled && player.position === 240, "unsupported seeking is inert");
-                player.canGoNext = false;
-                next.click();
-                test.check(!next.enabled && player.nextCalls === 1, "unsupported next is inert");
-                test.check(card.formatTime(65) === "1:05", "timestamp formatting");
-
-                // A label only turns over when it has a second face. The
-                // battery's back is UPower's estimate, which is an empty string
-                // until it has worked out a rate, and flipping to nothing would
-                // read as the number vanishing under the pointer.
-                flip.flipped = true;
-                test.check(flip.turned, "a flip with both faces turns");
-                flip.back = "";
-                test.check(!flip.turned, "a flip with nothing to say stays put");
-                flip.back = "Sat 5 Sep";
-                flip.flipped = false;
-                test.check(!flip.turned, "a flip at rest shows its front");
 
                 // Nothing speaks before the shell has settled, otherwise
                 // PipeWire binding the sink at login reads as a volume change.
@@ -2169,8 +2029,7 @@ ShellRoot {
                 test.check(!Interrupt.active, "a cleared interrupt is silent");
 
                 // The context lane reads the focused window. These are the
-                // readings, driven directly so no compositor is needed. Not
-                // named `home`: that is the HudHome instance a few lines down.
+                // readings, driven directly so no compositor is needed.
                 const homeDir = Quickshell.env("HOME");
                 test.check(Context.classify("com.mitchellh.ghostty", false) === "terminal", "ghostty is a terminal");
                 test.check(Context.classify("com.mitchellh.ghostty", true) === "agent", "a terminal wearing an agent title is an agent");
@@ -2223,25 +2082,11 @@ ShellRoot {
                 test.check(webLane.icon === "globe" && webLane.text === "Brave Origin", "a browser shows its name, never the page");
                 test.check(Context.laneFor({ kind: "music", title: "Spotify", appName: "Spotify", track: "Neon Grid" }).text === "Neon Grid", "a player shows the track title");
                 test.check(Context.laneFor({ kind: "" }).text === "", "nothing focused, no lane");
-                test.check(card.implicitHeight < 200, "media card stays compact");
-                test.check(home.implicitHeight < 420, "HUD overview stays compact");
-                player.canSeek = true;
-                player.lengthSupported = false;
-                test.check(!seek.enabled, "unknown duration cannot seek");
-                player.lengthSupported = true;
-                player.length = 0;
-                test.check(!seek.enabled, "zero-duration track cannot seek");
-
-                test.check(innerShadow.radius === Theme.panelRadius && outerShadow.radius === samplePanel.radius, "shadows follow panel corners");
-                test.check(innerShadow.width === samplePanel.width && outerShadow.x === samplePanel.x, "child and sibling shadows follow surface geometry");
-                test.check(innerShadow.z < 0 && outerShadow.z === samplePanel.z, "shadows draw behind their surfaces without falling behind the scrim");
-                test.check(innerShadow.opacity === 1 && outerShadow.opacity === samplePanel.opacity, "surface opacity is applied once");
-                test.check(Theme.shadowPadding >= innerShadow.blur, "compact panels reserve the full shadow extent");
-                const shadowColor = String(innerShadow.color);
+                // A theme switch recolours the surfaces and leaves the
+                // shadow alone (one neutral shadow for every palette).
+                const shadowColor = Tokens.hex(Tokens.shadow);
                 Theme.palette = { accent: "#a53b62", foreground: "#202020", background: "#f7f3e8", lighter_background: "#e8e0d0", mode: "light" };
-                test.check(String(innerShadow.color) === shadowColor && String(samplePanel.color) === String(Theme.surface), "theme switches recolor surfaces without tinting shadows");
-                test.check(String(play.background.color) === String(Theme.accent), "controls follow changed theme");
-                test.check(String(card.color) === String(Theme.raised), "card follows changed theme");
+                test.check(Tokens.shadow.r === 0 && Tokens.shadow.g === 0 && Tokens.shadow.b === 0, "theme switches leave the shadow neutral: " + shadowColor + " -> " + Tokens.hex(Tokens.shadow));
 
                 // Island foundation (PLAN M0) on the real singletons: Tokens
                 // follows Theme.palette, Motion follows Prefs, Kit reads both.
@@ -2264,8 +2109,6 @@ ShellRoot {
                 test.check(Motion.reduced && Motion.spatial === 0 && Motion.effects === 0 && !Motion.loops, "reduced motion zeroes every duration");
                 Prefs.setMotion(oldMotion);
                 Prefs.setReducedMotion(oldReduced);
-                card.player = null;
-                test.check(!play.enabled && !seek.enabled && !next.enabled, "no-player controls disabled");
                 styleCheck.oldMode = Prefs.barMode;
                 styleCheck.oldEdge = Prefs.storedEdge;
                 styleCheck.start();
@@ -2273,7 +2116,7 @@ ShellRoot {
                 crewCheck.start();
                 m3Check.start();
                 launcherCheck.start();
-                avatarCheck.start();
+                finalCheck.start();
             } catch (error) {
                 console.error("CAPSULE_TEST_FAIL: " + error.message);
                 Qt.quit();
