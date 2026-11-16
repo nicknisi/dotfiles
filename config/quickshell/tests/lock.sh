@@ -11,8 +11,9 @@
 #      misc:allow_session_lock_restore (PLAN DECISION 4) and lock.qml marks a
 #      real unlock for bin/shell-lock's watcher; the lock content starts out
 #      (shown false) so the lock-in motion runs.
-#   3. qmltestrunner: tst_auth_card, tst_lock_surface, tst_polkit (the polkit
-#      prompt against Island/FixtureAuthFlow.qml).
+#   3. qmltestrunner: tst_auth_card, tst_lock_surface (the lock-in motion with
+#      each bad picture decoding under it, the sleep darkening), tst_polkit
+#      (the polkit prompt against Island/FixtureAuthFlow.qml).
 #   4. The real PamContext, offscreen, against test PAM stacks
 #      (tests/lock-pam.qml, tests/lock-pam-stacks.sh): never /etc/pam.d, never
 #      the real password, and the test password never in the log.
@@ -95,6 +96,10 @@ cp "$root"/Kit/*.qml "$root"/Kit/*.js "$qs/Kit/"
 cp "$root"/Island/{PowerLayer,PolkitLayer,FixtureAuthFlow}.qml "$qs/Island/"
 cp "$root"/Lock/{AuthCard,LockButton,MediaPill,StatusPill,LockSurface}.qml "$qs/Lock/"
 cp "$root"/tests/{tst_auth_card,tst_lock_surface,tst_polkit}.qml "$qs/tests/"
+# The profile picture's test images (generated: no photo of anyone), the
+# 50 MP one included: tst_lock_surface decodes each bad one under the
+# lock-in motion.
+python3 -B "$root/tests/face-images.py" "$qs/tests" --big
 cat > "$qs/qmldir" <<'EOF'
 module qs
 singleton Tokens 1.0 Tokens.qml
@@ -146,6 +151,7 @@ QtObject {
     }
     property color bad: "#ff6b6b"
     property color darker: "#06060c"
+    readonly property color night: "#000000"
     readonly property color scrim: Qt.rgba(11 / 255, 12 / 255, 22 / 255, 0.56)
     readonly property color shadow: Qt.rgba(0, 0, 0, 0.45)
 }
@@ -162,8 +168,11 @@ fi
 rt="$tmp/rt"
 mkdir -p "$rt"
 chmod 700 "$rt"
+# A fake gdbus (tests/fake-logind.sh) keeps lock.qml's sleep watch off the
+# system bus.
+bash "$root/tests/fake-logind.sh" "$tmp/bin"
 offscreen_env=(env -u WAYLAND_DISPLAY -u DISPLAY -u HYPRLAND_INSTANCE_SIGNATURE -u SHELL_SANDBOX -u SBX_RUNTIME
-    XDG_RUNTIME_DIR="$rt" XDG_STATE_HOME="$tmp/state" QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=generic)
+    PATH="$tmp/bin:$PATH" XDG_RUNTIME_DIR="$rt" XDG_STATE_HOME="$tmp/state" QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=generic)
 offscreen() { "${offscreen_env[@]}" "$@"; }
 errors='ReferenceError|TypeError|Failed to load|Binding loop|Required property|is not a type|Cannot assign|Unable to assign|insufficiently annotated'
 
@@ -231,6 +240,18 @@ echo "$inspect" | grep -q '"parts":null' || fail "inspect reports no part geomet
 echo "$inspect" | grep -q '"barMode":""' || fail "no main shell prefs: no bar mode (the island's spring): $inspect"
 echo "$inspect" | grep -q '"fromIsland":true,' || fail "no main shell prefs: the capsule springs from the island: $inspect"
 if ipc qs ipc -p "$qml" call lockpose pose '{}' 2>&1 | grep -q '^ok'; then fail "lockpose answers outside the sandbox"; fi
+# Awake (the fake logind's PreparingForSleep is false): the watch settles on
+# its first reading and the content comes in at the 1 s arrive timer (the
+# compositor never confirms offscreen), not held for a sleep.
+sleepstate=""
+for _ in $(seq 1 30); do
+    sleepstate=$(ipc qs ipc -p "$qml" call lock inspect | python3 -c 'import json,sys; print(json.dumps(json.load(sys.stdin)["sleep"]))')
+    grep -q '"shown": true' <<<"$sleepstate" && break
+    sleep 0.1
+done
+echo "awake: $sleepstate"
+grep -q '"preparing": false, "settled": true' <<<"$sleepstate" && grep -q '"shown": true, "due": false, "held": false' <<<"$sleepstate" ||
+    fail "awake, the watch settles and the content comes in: $sleepstate"
 stop
 grep -q 'Cannot start session lock' "$tmp/plain.log" || fail "offscreen, the session lock should refuse to start"
 if grep -E "$errors" "$tmp/plain.log"; then fail "lock.qml logged errors"; fi

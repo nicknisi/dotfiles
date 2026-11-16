@@ -28,6 +28,11 @@ import qs.Kit
 // keystroke. A second PAM question (a one-time code) shows as the field's
 // label.
 //
+// (N) is Kit/FacePicture, 44: the profile picture (`faceSources`, lock.qml
+// hands it Face.urls once the wallpaper has decoded) cropped to the circle,
+// or the initial as the board draws it. It decodes off the UI thread and
+// changes nothing else: no size, no focus, no timing.
+//
 // objectNames: lockField, lockUnlock.
 //
 // QtQuick only (qmltestrunner loads it).
@@ -37,6 +42,9 @@ Surface {
     property string name: ""
     property string sub: ""
     property string initial: name.length > 0 ? name.charAt(0).toUpperCase() : "?"
+    // The profile picture's file URLs, tried in order (Face.urls, through
+    // lock.qml); empty: the initial, as the board draws it.
+    property var faceSources: []
     // Characters in the buffer.
     property int length: 0
     // lib/LockMachine.js phase.
@@ -56,6 +64,7 @@ Surface {
     readonly property alias field: field
     readonly property alias unlockButton: unlock
     readonly property alias hintText: hintText
+    readonly property alias face: facePicture
     readonly property alias shakeAnimation: shake
     readonly property real shakeOffset: shift.x
 
@@ -139,20 +148,12 @@ Surface {
         Row {
             id: identity
             spacing: 12
-            Rectangle {
-                width: 44
-                height: 44
-                radius: 22
-                color: Tokens.fillHigh
-                Text {
-                    anchors.centerIn: parent
-                    text: card.initial
-                    color: Tokens.fg
-                    textFormat: Text.PlainText
-                    font.family: "Adwaita Sans"
-                    font.pixelSize: 16
-                    font.weight: Font.Medium
-                }
+            FacePicture {
+                id: facePicture
+                size: 44
+                fontSize: 16
+                initial: card.initial
+                sources: card.faceSources
             }
             Column {
                 anchors.verticalCenter: parent.verticalCenter

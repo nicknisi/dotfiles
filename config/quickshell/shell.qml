@@ -203,4 +203,7 @@ ShellRoot {
     ScreenCorners {
         id: screenCorners
     }
+    // Every screen fades to black before sleep and back up after, holding a
+    // logind delay inhibitor while awake (SleepFade.qml; the `sleep` IPC).
+    SleepFade {}
 }

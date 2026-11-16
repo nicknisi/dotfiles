@@ -35,6 +35,13 @@ import qs.Kit
 // Errors: supplementaryMessage in `bad` when supplementaryIsError, else
 // "Wrong password" after a failure.
 //
+// Whose password: the label row starts with the user's circle, 18 px
+// (Kit/FacePicture): the profile picture (`faceSources`, Face.urls from the
+// host) when the request is for the session's own user, else that user's
+// initial. It sits on the label's line, centred on it, overhanging the
+// 15 px line into the gaps around it, so nothing below it moves (the field
+// stays at the board's 114, 4 px under the circle).
+//
 // Keys: Enter authenticates, Esc cancels (main-tokens 2.5.9); a key typed
 // with focus on a button goes to the field.
 //
@@ -47,6 +54,8 @@ Layer {
     property var flow: null
     // The user the request is for, when the flow does not name one.
     property string user: ""
+    // The session user's profile picture, file URLs in order (Face.urls).
+    property var faceSources: []
     // The typed answer. Only here.
     property string buffer: ""
 
@@ -75,6 +84,20 @@ Layer {
     readonly property alias authButton: auth
     readonly property alias messageText: messageText
     readonly property alias errorLine: errorLine
+    readonly property alias face: facePicture
+    // The request is for the session's own user, so the picture is theirs:
+    // no identity named (the flow's default is the session's user), or one
+    // whose user name is it. A group or another user gets their initial.
+    readonly property bool ownIdentity: {
+        if (polkit.user === "") return false;
+        const id = polkit.flow?.selectedIdentity ?? null;
+        if (!id) return true;
+        if (id.isGroup === true) return false;
+        for (const k of ["username", "userName", "name", "user", "displayName"]) {
+            if (id[k] === polkit.user) return true;
+        }
+        return false;
+    }
 
     width: 480
     height: 272
@@ -255,15 +278,30 @@ Layer {
         Column {
             width: parent.width
             spacing: 6
-            Text {
-                id: labelText
+            Item {
                 width: parent.width
-                text: polkit.label
-                color: Tokens.inkDim
-                elide: Text.ElideRight
-                textFormat: Text.PlainText
-                font.family: "Adwaita Sans"
-                font.pixelSize: 12
+                height: labelText.height
+                FacePicture {
+                    id: facePicture
+                    objectName: "polkitFace"
+                    size: 18
+                    fontSize: 10
+                    // Centred on the label's line, on whole device pixels.
+                    y: Math.round((labelText.height - size) / 2)
+                    initial: (polkit.identityName || "?").charAt(0).toUpperCase()
+                    sources: polkit.ownIdentity ? polkit.faceSources : []
+                }
+                Text {
+                    id: labelText
+                    x: facePicture.width + 6
+                    width: parent.width - x
+                    text: polkit.label
+                    color: Tokens.inkDim
+                    elide: Text.ElideRight
+                    textFormat: Text.PlainText
+                    font.family: "Adwaita Sans"
+                    font.pixelSize: 12
+                }
             }
             SecretField {
                 id: field

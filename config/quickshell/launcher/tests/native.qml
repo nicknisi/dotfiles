@@ -127,7 +127,13 @@ Scope {
         check(testHost.statusMessage === "Night light: no Hyprland session" && !Desktop.NightLight.on, "and says why it did nothing: " + testHost.statusMessage)
         // The System view's pages are the control center's sheets (M6); the
         // old menus are gone (M10), and the theme page is the picker (M7).
-        for (var name of ["SoundSheet", "WifiSheet", "BluetoothSheet", "DisplaySheet", "TailscaleSheet", "NightLightSheet"]) {
+        // The profile picture (a System row, the control center's FaceSheet).
+        equal(desktop.routeFor("face").scope, "system/face", "the profile picture route")
+        equal(desktop.routeFor("profile picture").scope, "system/face", "by its name too")
+        var faceMenu = desktop.menus.find(function(m) { return m.id === "face" })
+        check(!!faceMenu && faceMenu.title === "Profile picture" && faceMenu.view === true, "Profile picture is a System row with a view")
+        check(desktop.query({ scope: "", query: "profile picture", settings: {} }).some(function(row) { return row.title === "Profile picture" }), "Profile picture is searchable from the root")
+        for (var name of ["SoundSheet", "WifiSheet", "BluetoothSheet", "DisplaySheet", "TailscaleSheet", "NightLightSheet", "FaceSheet"]) {
             var component = Qt.createComponent(Qt.resolvedUrl("../../Panels/Sheets/" + name + ".qml"))
             check(component.status === Component.Ready, name + " compiles: " + component.errorString())
         }

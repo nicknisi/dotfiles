@@ -38,7 +38,7 @@ fi
 # namespaces is in hyprland.lua's shell-blur rule.
 rule=$(grep -A2 'name = "shell-blur"' "$root/../hypr/hyprland.lua" | grep -o 'namespace = "[^"]*"')
 [[ -n "$rule" ]] || fail "the shell-blur rule is where this test looks for it"
-for ns in quickshell quickshell-island quickshell-island-scrim quickshell-anchored quickshell-notifications quickshell-polkit launcher theme-picker window-switcher; do
+for ns in quickshell quickshell-island quickshell-island-scrim quickshell-anchored quickshell-notifications quickshell-polkit quickshell-sleep launcher theme-picker window-switcher; do
     if grep -qE "[(|]${ns}[|)]" <<<"$rule"; then
         fail "shell-blur matches $ns: $rule"
     fi

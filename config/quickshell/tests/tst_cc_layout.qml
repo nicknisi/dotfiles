@@ -31,6 +31,7 @@ Item {
             ],
             count: 2,
             user: "nicknisi",
+            face: [String(Qt.resolvedUrl("cover.png"))],
             battery: { present: true, percent: 25 },
             tray: [{ id: "one", title: "One", glyph: "sparkle" }, { id: "two", title: "Two", glyph: "bell", passive: true }]
         })
@@ -201,6 +202,28 @@ Item {
             compare(cc.tray.count, 2, "the tray sits in the footer");
             verify(at(cc.tray.itemAt(1)).x < at(cc.lockButton).x, "between the battery and Lock");
             compare(at(cc.powerButton).x + 34, 16 + 728, "Power at the right edge");
+        }
+
+        // The footer's circle and name: the profile picture (or the letter),
+        // one button to the Profile picture sheet.
+        function test_footer_face() {
+            compare(cc.identity.objectName, "ccFace");
+            compare(cc.footerFace.size, 28);
+            compare(cc.footerFace.initialText.text, "N");
+            compare(cc.footerFace.initialText.font.pixelSize, 12);
+            compare(at(cc.footerFace).x, 16, "where the letter was");
+            compare(cc.identity.height, 28);
+            tryCompare(cc.footerFace, "pictureShown", true, 3000);
+            verify(cc.identity.activeFocusOnTab, "a Tab stop");
+            actions.clear();
+            mouseClick(cc.identity);
+            compare(actions.count, 1);
+            compare(actions.signalArguments[0][0], "face");
+            cc.identity.forceActiveFocus(Qt.TabFocusReason);
+            keyClick(Qt.Key_Return);
+            compare(actions.count, 2);
+            compare(actions.signalArguments[1][0], "face");
+            verify(at(cc.identity).x + cc.identity.width < at(findChild(cc, "ccBattery")).x, "before the battery");
         }
 
         function test_focus_by_key_and_by_pointer() {

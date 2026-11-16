@@ -37,6 +37,7 @@ Item {
     { id: "tailscale", title: "Tailscale", keywords: "vpn tailnet exit node machines files", subtitle: "Machines, exit nodes and file transfers", view: true },
     // The control center's Night light sheet (NightLight.qml, on hyprsunset).
     { id: "nightlight", title: "Night Light", keywords: "night light warm warmth blue light filter hyprsunset color temperature schedule evening", subtitle: "Warmth and schedule", view: true },
+    { id: "face", title: "Profile picture", keywords: "profile picture photo face user account lock screen icon", subtitle: "The picture on the lock screen and the control center", view: true },
     { id: "bar", title: "Bar Preferences", keywords: "capsule panel edge position minimal transparency", subtitle: "Position, size and transparency" }
   ]
   readonly property var commands: [
@@ -196,7 +197,7 @@ Item {
   function routeFor(input) {
     var name = String(input || "").trim().toLowerCase().replace(/^system[\/.]/, "")
     if (name === "apps" || name === "applications") return { kind: "apps", scope: "applications", label: "Applications" }
-    var aliases = { themes: "theme", wallpaper: "backgrounds", wallpapers: "backgrounds", background: "backgrounds", network: "net", bluetooth: "bt", displays: "display", desktop: "root", system: "root", power: "session", night: "nightlight", "night-light": "nightlight", hyprsunset: "nightlight" }
+    var aliases = { themes: "theme", wallpaper: "backgrounds", wallpapers: "backgrounds", background: "backgrounds", network: "net", bluetooth: "bt", displays: "display", desktop: "root", system: "root", power: "session", night: "nightlight", "night-light": "nightlight", hyprsunset: "nightlight", profile: "face", picture: "face", "profile picture": "face", "profile-picture": "face" }
     name = aliases[name] || name
     for (var i = 0; i < root.menus.length; i++) {
       var menu = root.menus[i]
@@ -298,7 +299,7 @@ Item {
             // menus' interface (shown, monitor, dismissed(), navigate()) plus
             // back(). M7: no theme page; Theme Picker runs `theme picker themes`.
             source: {
-              var sheets = { audio: "SoundSheet", net: "WifiSheet", bt: "BluetoothSheet", display: "DisplaySheet", tailscale: "TailscaleSheet", nightlight: "NightLightSheet" }
+              var sheets = { audio: "SoundSheet", net: "WifiSheet", bt: "BluetoothSheet", display: "DisplaySheet", tailscale: "TailscaleSheet", nightlight: "NightLightSheet", face: "FaceSheet" }
               return sheets[root.activePage] ? Qt.resolvedUrl("../../Panels/Sheets/" + sheets[root.activePage] + ".qml") : ""
             }
             onLoaded: {

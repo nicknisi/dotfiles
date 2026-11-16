@@ -200,6 +200,8 @@ function footer(src) {
     return {
         user: user,
         letter: user.charAt(0).toUpperCase(),
+        // The profile picture's file URLs, in order (Face.urls); none: the letter.
+        face: (Array.isArray(src.face) ? src.face : []).filter(function (u) { return typeof u === "string" && u !== ""; }),
         battery: {
             visible: b.present === true,
             text: Math.round(num(b.percent, 0)) + "% · " + state,
@@ -764,8 +766,8 @@ function nightlight(src) {
 
 // What a sheet name is called when it opens (control-lock 3; the launcher's
 // System pages use audio and net for sound and wifi).
-var SHEETS = ["wifi", "sound", "tailscale", "bt", "notifications", "display", "awake", "tray", "battery", "nightlight"];
-var ALIASES = { net: "wifi", audio: "sound", bluetooth: "bt", ts: "tailscale", dnd: "notifications", caffeine: "awake", brightness: "display", volume: "sound", power: "display", charge: "battery", night: "nightlight", sunset: "nightlight", hyprsunset: "nightlight" };
+var SHEETS = ["wifi", "sound", "tailscale", "bt", "notifications", "display", "awake", "tray", "battery", "nightlight", "face"];
+var ALIASES = { net: "wifi", audio: "sound", bluetooth: "bt", ts: "tailscale", dnd: "notifications", caffeine: "awake", brightness: "display", volume: "sound", power: "display", charge: "battery", night: "nightlight", sunset: "nightlight", hyprsunset: "nightlight", profile: "face", picture: "face" };
 function sheetName(name) {
     var n = text(name);
     if (ALIASES[n]) n = ALIASES[n];

@@ -1113,6 +1113,8 @@ Item {
                 here: view.polkitHere,
                 actionId: String(view.polkitFlow?.actionId ?? ""),
                 label: polkitLayer.label,
+                // The 18 px circle before the label: the picture or the initial.
+                face: { picture: polkitLayer.face.pictureShown, initial: polkitLayer.face.initialText.text, own: polkitLayer.ownIdentity },
                 // The message's lines (three at most) and whether it ends in
                 // the "…" of a cut (M10).
                 messageLines: polkitLayer.messageLines,
@@ -1200,6 +1202,7 @@ Item {
             powerHint: box(powerLayer.hint),
             polkit: box(polkitLayer),
             polkitField: box(polkitLayer.field),
+            polkitFace: box(polkitLayer.face),
             polkitCancel: box(polkitLayer.cancelButton),
             polkitAuth: box(polkitLayer.authButton)
         };
@@ -1607,6 +1610,7 @@ Item {
             current: view.machine.state === "polkit"
             flow: view.polkitFlow
             user: view.polkitUser
+            faceSources: Face.urls
         }
     }
 

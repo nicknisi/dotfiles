@@ -1337,6 +1337,15 @@ ShellRoot {
                         "cc/night is the Night light sheet, its switch waiting for hyprsunset: " + JSON.stringify(cc.sheetItem?.sheetData?.status));
                     const dryRows = cc.sheetItem.sheetData.groups[0].rows;
                     test.check(dryRows.length === 1 && dryRows[0].key === "dry" && dryRows[0].inert === true, "a dry run offers no Start: " + JSON.stringify(dryRows));
+                    // The Profile picture sheet (the footer's circle): its grid, the
+                    // header's source, and Remove asking Face (a dry run: nothing written).
+                    test.check(v.open("cc/face") === "ok" && cc.sheetItem?.objectName === "ccSheet-face" && cc.sheetItem.title === "Profile picture", "the Profile picture sheet loads");
+                    test.check(cc.sheetItem.contentItem !== null && cc.sheetItem.contentItem.columns === 6, "with the picker's grid");
+                    test.check(["Initial", "From ~/.face", "From AccountsService", "Saving…"].indexOf(cc.sheetItem.sheetData.status) >= 0, "the header says where the picture comes from: " + cc.sheetItem.sheetData.status);
+                    test.check(v.open("cc/profile") === "ok" && cc.sheet === "face", "cc/profile is the same sheet");
+                    test.check(Face.clear().indexOf("dry run") >= 0 && Face.lastRun === "clear", "under SHELL_DRY_RUN Face removes nothing");
+                    test.check(Face.set("/nonexistent/x.png").indexOf("dry run") >= 0 && !Face.busy, "nor writes");
+                    test.check(Face.set("relative.png").startsWith("error:"), "a relative path is refused");
                     test.check(v.open("cc") === "ok" && cc.sheet === "" && v.islandState === "cc", "open cc goes back to home");
                 } else if (step === 3) {
                     test.check(cc.sheetOffset === 760 && cc.sheetLoader.source.toString() === "" && cc.home.opacity === 1, "home is back and the sheet unloaded: " + cc.sheetOffset + " " + cc.home.opacity);

@@ -12,7 +12,7 @@ import qs.Kit
 //   levels (volume, brightness)                                           92
 //   six MiniTiles, 8 apart                                                64
 //   notifications                                                        132
-//   footer: letter, user, battery, the tray, Lock, Power                  36
+//   footer: face, user, battery, the tray, Lock, Power                    36
 // 16 + 148 + 12 + 92 + 12 + 64 + 12 + 132 + 12 + 36 + 16 = 552: the last 8 of
 // the 560 stay empty, so the sheet area is the same size as home [GUESS,
 // control-lock 2.2].
@@ -69,6 +69,8 @@ FocusScope {
     readonly property alias minis: miniRepeater
     readonly property alias notes: notesCard
     readonly property alias footer: footer
+    readonly property alias identity: identity
+    readonly property alias footerFace: footerFace
     readonly property alias tray: trayRepeater
     readonly property alias lockButton: lockButton
     readonly property alias powerButton: powerButton
@@ -445,29 +447,53 @@ FocusScope {
             Row {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 10
-                Rectangle {
+                // The circle and the name: one button, the Profile picture
+                // sheet (`face`), as the battery opens its sheet. Drawn as
+                // before; the press is the only addition.
+                Item {
+                    id: identity
+                    objectName: "ccFace"
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 28
+                    width: identityRow.implicitWidth
                     height: 28
-                    radius: 14
-                    color: Tokens.fillHigh
-                    Text {
-                        anchors.centerIn: parent
-                        text: cc.model?.footer?.letter ?? ""
-                        color: Tokens.fg
-                        textFormat: Text.PlainText
-                        font.family: "Adwaita Sans"
-                        font.pixelSize: 12
-                        font.weight: Font.Medium
+                    activeFocusOnTab: true
+                    readonly property real radius: 14
+                    Accessible.role: Accessible.Button
+                    Accessible.name: "Profile picture, " + (cc.model?.footer?.user ?? "")
+                    Accessible.onPressAction: cc.action("face", null)
+                    Keys.onPressed: event => {
+                        if (event.key === Qt.Key_Space || event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                            cc.action("face", null);
+                            event.accepted = true;
+                        }
                     }
-                }
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: cc.model?.footer?.user ?? ""
-                    color: Tokens.fg
-                    textFormat: Text.PlainText
-                    font.family: "Adwaita Sans"
-                    font.pixelSize: 13
+                    Row {
+                        id: identityRow
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 10
+                        FacePicture {
+                            id: footerFace
+                            anchors.verticalCenter: parent.verticalCenter
+                            size: 28
+                            fontSize: 12
+                            initial: cc.model?.footer?.letter ?? ""
+                            sources: cc.model?.footer?.face ?? []
+                        }
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: cc.model?.footer?.user ?? ""
+                            color: Tokens.fg
+                            textFormat: Text.PlainText
+                            font.family: "Adwaita Sans"
+                            font.pixelSize: 13
+                        }
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: cc.action("face", null)
+                    }
+                    FocusRing {}
                 }
                 Item {
                     id: battery

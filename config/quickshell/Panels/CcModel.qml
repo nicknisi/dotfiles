@@ -33,6 +33,7 @@ import "../lib/CcData.js" as CcData
 //   notes          NotificationState.clear(); a row focuses its sender and
 //                  closes when that worked
 //   battery        the Battery sheet (the charge-limit top-up, M10)
+//   face           the Profile picture sheet (the footer's circle and name)
 //   lock           closes, then `loginctl lock-session`
 //   power          the island's power state
 //   tray           left: activate (or the menu of a menu-only item), right:
@@ -103,10 +104,14 @@ Item {
 
     // The panel's rate and scale, from `display-mode json` each time it opens.
     property var display: ({})
-    onActiveChanged: if (active && !model.fixture) {
-        displayQuery.refresh();
-        // One more call to hyprsunset if it was not answering.
-        NightLight.refresh();
+    onActiveChanged: {
+        if (active && !model.fixture) {
+            displayQuery.refresh();
+            // One more call to hyprsunset if it was not answering.
+            NightLight.refresh();
+        }
+        // ~/.face may have changed some other way since the last look.
+        if (active) Face.refresh();
     }
     Process {
         id: displayQuery
@@ -153,6 +158,7 @@ Item {
             notifications: history,
             count: NotificationState.count,
             user: Quickshell.env("USER") || "",
+            face: Face.urls,
             battery: { present: Battery.present, percent: Battery.percent, charging: Battery.charging, pluggedIn: Battery.pluggedIn, low: Battery.low },
             tray: model.tray.map(t => ({ id: t.id, title: t.tooltipTitle || t.title || t.id, icon: t.icon, passive: t.status === Status.Passive }))
         };
@@ -161,7 +167,7 @@ Item {
     // notification times count from); the theme stays the pack being shot.
     // The last picture drawn, for while it is closed.
     property var lastHome: CcData.home({}, 0, null)
-    readonly property var home: model.active ? CcData.home(model.fixture ? Object.assign({ theme: Theme.name }, model.fixture) : model.live, Number(model.fixture?.now) || model.now.getTime(), model.media) : model.lastHome
+    readonly property var home: model.active ? CcData.home(model.fixture ? Object.assign({ theme: Theme.name, face: Face.urls }, model.fixture) : model.live, Number(model.fixture?.now) || model.now.getTime(), model.media) : model.lastHome
     onHomeChanged: if (model.active) model.lastHome = model.home
 
     // ---- actions ----------------------------------------------------------------
@@ -199,6 +205,9 @@ Item {
         }
         case "battery":
             model.sheet("battery", null);
+            return "ok";
+        case "face":
+            model.sheet("face", null);
             return "ok";
         case "lock":
             model.close();

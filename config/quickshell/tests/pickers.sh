@@ -3,7 +3,8 @@
 # tst_picker_nav (wrap, column moves, the filter's fallback, Tab between the
 # panels, the Esc order, the preview, the pointer gate and the layout) over
 # the real PickerModel, ThemesPanel, WallpapersPanel, PickerCard and
-# PickerFilter. The hosts (the island states, the free panel) and the live
+# PickerFilter; tst_face_grid (the Profile picture sheet's grid: cards,
+# circles, keys, the pointer, the empty states). The hosts (the island states, the free panel) and the live
 # preview through Tokens run in check.qml; `theme _rows` in
 # bin/tests/theme-rows.sh.
 #
@@ -15,7 +16,7 @@ root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 
-leaves=("$root"/Panels/{PickerModel,PickerCard,PickerFilter,ThemesPanel,WallpapersPanel}.qml)
+leaves=("$root"/Panels/{PickerModel,PickerCard,PickerFilter,ThemesPanel,WallpapersPanel,FaceGrid}.qml)
 if grep -nE '^\s*import\s+Quickshell' "${leaves[@]}" "$root/lib/PickerNav.js"; then
     echo "PICKERS_TEST_FAIL: picker leaves must not import Quickshell" >&2
     exit 1
@@ -32,7 +33,7 @@ cp "$root/Motion.qml" "$qs/"
 cp "$root/lib/Spring.js" "$root/lib/PickerNav.js" "$qs/lib/"
 cp "$root"/Kit/*.qml "$root"/Kit/*.js "$qs/Kit/"
 cp "${leaves[@]}" "$qs/Panels/"
-cp "$root/tests/tst_picker_nav.qml" "$qs/tests/"
+cp "$root/tests/tst_picker_nav.qml" "$root/tests/tst_face_grid.qml" "$qs/tests/"
 
 # PickerThumb without the ClippingRectangle: the same properties.
 cat > "$qs/Panels/PickerThumb.qml" <<'QML'

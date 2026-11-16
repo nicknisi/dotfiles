@@ -92,6 +92,7 @@ QtObject {
     }
     property color bad: "#ff6b6b"
     property color darker: "#06060c"
+    readonly property color night: "#000000"
     readonly property color scrim: Qt.rgba(11 / 255, 12 / 255, 22 / 255, 0.56)
     readonly property color shadow: Qt.rgba(0, 0, 0, 0.45)
 }

@@ -100,6 +100,25 @@ node "$root/tests/find-bin.cjs"
 # bin/shell-lock against fakes (its watcher and two runs at once included).
 # The polkit state on the island runs in check.qml below.
 bash "$root/tests/lock.sh"
+# The profile picture (Face.qml, lib/FaceModel.js, Kit/FacePicture): the file
+# check, the atomic copy and the picker's listing on real files
+# (face-model.cjs), then the file check and the config load of lock.qml
+# offscreen with every kind of bad ~/.face (0 bytes, not an image, 50 MP, a
+# symlink loop, a FIFO, a directory, unreadable, over 32 MiB): it loads as
+# fast, answers only `lock`, `secure` answers false. Offscreen it has no lock
+# surfaces, so nothing there decodes the file: the decode under the lock-in
+# motion is tst_lock_surface (lock.sh), the decode itself tst_face_picture
+# (kit.sh), the card, the polkit prompt and the sheet's grid tst_auth_card,
+# tst_polkit (lock.sh) and tst_face_grid (panels.sh).
+bash "$root/tests/face.sh"
+# The sleep fade (SleepFade.qml, SleepWatch.qml, lib/SleepFade.js): the
+# machine in node, then a real Quickshell against a fake logind: the delay
+# inhibitor held awake, released within 1 s of PrepareForSleep(true), taken
+# again on wake, a missed wake going stale and the next sleep fading and
+# releasing again, never stuck black, and gone with the shell on kill -9;
+# lock.qml started while logind is preparing for sleep (settled on the first
+# reading, its lock-in motion held for the wake, its own stale after 10 s).
+bash "$root/tests/sleep-fade.sh"
 
 # Retiring the leftovers (PLAN M10): the classic modes' notification cards
 # (Hosts/NotifStack, the toasts' replacement) on a fake server, and the gate

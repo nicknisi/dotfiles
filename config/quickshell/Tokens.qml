@@ -57,6 +57,10 @@ QtObject {
     property color onFg
     property color bad: p.bad ?? d.bad
     property color darker: p.darker ?? d.darker
+    // The screens going dark before sleep (SleepFade.qml, the lock's own
+    // fade): true black in every pack, light ones included, since `darker`
+    // is a light grey there.
+    readonly property color night: "#000000"
     property real shadowAlpha: Number(p.shadow_alpha ?? d.shadowAlpha)
 
     // ---- derived here, not in colors.json -------------------------------------
