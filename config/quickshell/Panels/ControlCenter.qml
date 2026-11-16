@@ -411,12 +411,16 @@ FocusScope {
                     sub: entry.sub ?? ""
                     icon: entry.icon ?? ""
                     checked: entry.on === true
+                    hasSheet: (entry.sheet ?? "") !== ""
+                    // `opens`: the press opens the sheet instead (the night
+                    // light while hyprsunset is not answering).
                     onClicked: byKey => {
                         if (key === "display" || key === "power") cc.openSheet("display", null, byKey);
+                        else if (entry.opens === true && hasSheet) cc.openSheet(entry.sheet, null, byKey);
                         else cc.action("mini", key);
                     }
                     onMore: byKey => {
-                        if (key === "awake") cc.openSheet("awake", null, byKey);
+                        if (hasSheet) cc.openSheet(entry.sheet, null, byKey);
                     }
                 }
             }

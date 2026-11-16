@@ -16,6 +16,9 @@
 //     and the `crew` target (Crew) for the same reason. Crew polls only in the
 //     island mode, so building it elsewhere costs nothing.
 //   - The refresh-rate policy (PowerMode).
+//   - The night light (NightLight): built at startup in every mode, so the
+//     stored state goes back on the screen when the shell starts and the
+//     `nightlight` IPC target exists before anything draws its tile.
 //   - Sandbox guards. Under SHELL_SANDBOX=1 (the screenshot sandbox) anything
 //     that would change the real machine is left unbuilt.
 //   - The polkit agent (PLAN M8): Quickshell's PolkitAgent, built only when
@@ -82,6 +85,8 @@ Scope {
     // The same for `crew`: tests and the sandbox drive the Crew by IPC even
     // when the island has not read it yet.
     readonly property int crewTotal: Crew.total
+    // And `nightlight`, which also re-applies the stored night light at start.
+    readonly property bool nightLightActive: NightLight.active
 
     IdleInhibitor {
         window: root.primaryReserve

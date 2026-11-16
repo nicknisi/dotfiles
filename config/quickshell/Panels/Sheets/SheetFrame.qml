@@ -24,7 +24,10 @@ import qs.Kit
 // sub 11 `inkDim` (in `bad` for an error row; for a `wrap` row up to
 // `lines` lines, four when it names none, else one); an optional 110 x 6
 // slider;
-// the trail (Monaspace 11 `inkDim`, at least 18 wide). A row that can be
+// the trail (Monaspace 11 `inkDim`, at least 18 wide). A `stepper` row puts
+// a minus and a plus (26 square, radius 8, the trash button's look, `minus`
+// and `plus` 14 `inkDim`) either side of its trail: stepped(row, -1 | 1). A
+// slider's key step is the row's `step` (5 % when it names none). A row that can be
 // forgotten shows a trash button on hover or keyboard focus [GUESS]. The
 // footer button is 38 high, radius 12, hairline, no fill, 13 `fg` then chev
 // 14 `inkDim`.
@@ -41,7 +44,8 @@ import qs.Kit
 //
 // Keys [GUESS, control-lock 3.2]: focus lands on the first row; Up and Down
 // (or Ctrl+K / Ctrl+J) walk the rows, Enter runs the current one, Delete forgets it, Esc, Backspace and
-// Alt+Left go back. One row at a time can ask for a passphrase
+// Alt+Left go back. Left and Right step a `stepper` row, and move a slider
+// row that names its `step` (the night light's warmth) by it. One row at a time can ask for a passphrase
 // (`expandedKey`): it grows 52 for a 40 px field; Enter submits, Esc folds it.
 // The field is cleared whenever the sheet hides, so a typed secret never
 // outlives it.
@@ -85,6 +89,7 @@ FocusScope {
     signal forgot(var row)
     signal footerClicked
     signal submitted(var row, string text)
+    signal stepped(var row, int delta)
 
     // Every row that does something, in order.
     readonly property var rows: {
@@ -140,6 +145,15 @@ FocusScope {
         frame.keyboard = false;
         frame.activate(row);
     }
+    // Left and Right reach this row: a stepper, or a slider with its own step.
+    function steps(row): bool {
+        return !!row && !row.inert && (row.stepper === true || (typeof row.slider === "number" && row.step > 0));
+    }
+    function step(row, delta: int) {
+        if (!frame.steps(row)) return;
+        if (row.stepper === true) frame.stepped(row, delta);
+        else frame.slid(row, Math.max(0, Math.min(1, row.slider + delta * row.step)));
+    }
     // The row item with this key, or null.
     function rowItem(key) {
         for (let g = 0; g < groupRepeater.count; g++) {
@@ -178,6 +192,9 @@ FocusScope {
         } else if (event.key === Qt.Key_Delete) {
             frame.keyboard = true;
             if (frame.currentRow?.forget) frame.forgot(frame.currentRow);
+        } else if ((event.key === Qt.Key_Left || event.key === Qt.Key_Right) && !(event.modifiers & (Qt.AltModifier | Qt.ControlModifier)) && frame.steps(frame.currentRow)) {
+            frame.keyboard = true;
+            frame.step(frame.currentRow, event.key === Qt.Key_Right ? 1 : -1);
         } else {
             return;
         }
@@ -395,6 +412,39 @@ FocusScope {
 
     // ---- one row ------------------------------------------------------------
 
+    // A stepper row's minus or plus, beside its trail (the night light's From
+    // and To: earlier and later).
+    component StepButton: Rectangle {
+        id: stepButton
+        property int delta: 1
+        property var row: ({})
+        anchors.verticalCenter: parent.verticalCenter
+        visible: row.stepper === true
+        width: 26
+        height: 26
+        radius: 8
+        color: stepArea.containsMouse ? Tokens.fillHigh : "transparent"
+        Accessible.role: Accessible.Button
+        Accessible.name: (delta < 0 ? "Earlier " : "Later ") + (row.title ?? "")
+        Accessible.onPressAction: frame.step(row, delta)
+        Icon {
+            anchors.centerIn: parent
+            name: stepButton.delta < 0 ? "minus" : "plus"
+            size: 14
+            color: stepArea.containsMouse ? Tokens.fg : Tokens.inkDim
+        }
+        MouseArea {
+            id: stepArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                frame.keyboard = false;
+                frame.step(stepButton.row, stepButton.delta);
+            }
+        }
+    }
+
     component SheetRow: Item {
         id: rowItem
         property var row: ({})
@@ -496,6 +546,7 @@ FocusScope {
                     width: 110
                     height: 24
                     value: typeof rowItem.row.slider === "number" ? rowItem.row.slider : 0
+                    stepSize: rowItem.row.step > 0 ? rowItem.row.step : 0.05
                     label: rowItem.row.title ?? ""
                     onMoved: v => frame.slid(rowItem.row, v)
                 }
@@ -525,16 +576,26 @@ FocusScope {
                         onClicked: frame.forgot(rowItem.row)
                     }
                 }
+                StepButton {
+                    objectName: "sheetStepDown"
+                    row: rowItem.row
+                    delta: -1
+                }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: (rowItem.row.trail ?? "") !== ""
                     width: Math.max(18, implicitWidth)
-                    horizontalAlignment: Text.AlignRight
+                    horizontalAlignment: rowItem.row.stepper === true ? Text.AlignHCenter : Text.AlignRight
                     text: rowItem.row.trail ?? ""
                     color: Tokens.inkDim
                     textFormat: Text.PlainText
                     font.family: "Monaspace Argon"
                     font.pixelSize: 11
+                }
+                StepButton {
+                    objectName: "sheetStepUp"
+                    row: rowItem.row
+                    delta: 1
                 }
             }
             MouseArea {

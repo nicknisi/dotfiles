@@ -38,7 +38,7 @@ cp "$root/Hosts/AnchoredFrame.qml" "$qs/Hosts/"
 cp "$root/tests/"{tst_bar_drag,tst_bar_actions,tst_anchored_corners}.qml "$qs/tests/"
 printf '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="teal"/></svg>' > "$qs/tests/art.svg"
 
-singletons=(Tokens Motion Prefs Theme NotificationState Media Audio Capture Caffeine Net Battery)
+singletons=(Tokens Motion Prefs Theme NotificationState Media Audio Capture Caffeine Net Battery NightLight)
 {
     echo "module qs"
     for n in "${singletons[@]}"; do echo "singleton $n 1.0 $n.qml"; done
@@ -180,6 +180,13 @@ QtObject {
     property bool connected: true
     property bool portal: false
     property var device: ({})
+}
+QML
+cat > "$qs/NightLight.qml" <<'QML'
+pragma Singleton
+import QtQuick
+QtObject {
+    property bool active: false
 }
 QML
 cat > "$qs/Battery.qml" <<'QML'

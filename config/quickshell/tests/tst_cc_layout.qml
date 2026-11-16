@@ -24,6 +24,7 @@ Item {
             scale: 1.5,
             theme: "catppuccin-latte",
             recording: false,
+            nightlight: { available: true, on: true, temperature: 4000, until: "07:00" },
             notifications: [
                 { summary: "Session finished", appName: "Claude Code", body: "Island mocks are ready for review", created: 1000 },
                 { summary: "Recording saved", appName: "capture", body: "Region recording, 0:42", created: 1000 }
@@ -160,14 +161,28 @@ Item {
             compare(cc.minis.count, 6);
             const names = [];
             for (let i = 0; i < 6; i++) names.push(cc.minis.itemAt(i).objectName);
-            compare(names.join(" "), "ccMini-awake ccMini-power ccMini-display ccMini-theme ccMini-record ccMini-clipboard");
+            compare(names.join(" "), "ccMini-awake ccMini-nightlight ccMini-display ccMini-theme ccMini-record ccMini-clipboard");
             fuzzyCompare(cc.minis.itemAt(0).width, (728 - 40) / 6, 0.01);
             compare(cc.minis.itemAt(0).sub, "1 hour");
             verify(cc.minis.itemAt(0).checked);
-            compare(cc.minis.itemAt(1).sub, "60 Hz");
-            compare(cc.minis.itemAt(2).sub, "1.5× scale");
+            compare(cc.minis.itemAt(1).label, "Night light");
+            compare(cc.minis.itemAt(1).sub, "Until 07:00");
+            verify(cc.minis.itemAt(1).checked, "lit while it holds the screen");
+            compare(cc.minis.itemAt(2).sub, "1.5× · 60 Hz", "the panel's rate moved to Display");
+            verify(cc.minis.itemAt(2).subText.implicitWidth <= 114.67 - 24, "and reads whole");
             compare(cc.minis.itemAt(3).sub, "catppuccin-latte");
             verify(cc.minis.itemAt(3).subText.width <= 114.67 - 24 + 0.01, "theme names elide inside the box");
+            // The chevron of a mini with a sheet: 24 square, radius 8, 6 in
+            // from the right, level with the icon, clear of the label.
+            const mini = cc.minis.itemAt(1);
+            const chev = mini.chevron;
+            verify(chev.visible);
+            compare([chev.width, chev.height, chev.radius], [24, 24, 8]);
+            fuzzyCompare(chev.x + chev.width, mini.width - 6, 0.01);
+            const icon = mini.labelText.parent.children[0].mapToItem(mini, 0, 0);
+            fuzzyCompare(chev.y + 12, icon.y + 8, 0.01);
+            verify(chev.y + chev.height <= mini.labelText.mapToItem(mini, 0, 0).y + 1, "above the label line");
+            verify(!cc.minis.itemAt(3).chevron.visible, "Theme has no sheet");
         }
 
         function test_levels_and_notes() {

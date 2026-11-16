@@ -58,6 +58,14 @@ bash "$root/tests/clipboard-store.sh"
 # row runs in net.sh above, the states themselves in check.qml below.
 node "$root/tests/tailscale-model.cjs"
 bash "$root/tests/panels.sh"
+# The night light (NightLight.qml on hyprsunset): lib/NightLight.js's rules
+# (schedule edges across midnight and daylight saving, the override, hyprctl's
+# answers, hyprsunset.conf's profiles), then the service against fake hyprctl,
+# journalctl and systemctl: one call per change, a restart re-applied, the
+# unavailable state, the `nightlight` IPC target. The tile, the sheet and the
+# moons run in panels.sh and bar-drag.sh above and check.qml below.
+node "$root/tests/nightlight.cjs"
+bash "$root/tests/nightlight.sh"
 # The Tailscale service through the sheet (M10: TailscaleMenu, which this
 # drove, is gone), on mock tailscale and taildrop executables.
 bash "$root/tests/tailscale.sh"

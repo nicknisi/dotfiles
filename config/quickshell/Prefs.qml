@@ -13,10 +13,15 @@ pragma Singleton
 // the whole object back out. A file saved before a key existed loads with that
 // key at its default. Quickshell.statePath keeps it under
 // $XDG_STATE_HOME/quickshell alongside its own state.
+//
+// The night light's choices live here too (NightLight.qml): its warmth, its
+// schedule (off, or From and To), the state the last toggle left without a
+// schedule, and an override against the schedule with the moment it runs out.
 import Quickshell
 import Quickshell.Io
 import QtQuick
 import "BarGeometry.js" as BarGeometry
+import "lib/NightLight.js" as NightLightRules
 
 Singleton {
     id: root
@@ -67,6 +72,20 @@ Singleton {
     // change counts as a pick (M9 review: the stored look arriving after the
     // view was built peeked the sign-off on every start and hot reload).
     readonly property bool loaded: file.settled
+
+    // The night light (NightLight.qml reads these; lib/NightLight.js has the
+    // rules). Warmth in kelvin, 2500 to 6000 on 100 (4000 by default);
+    // schedule "off" | "custom", with From and To as "HH:MM" (20:00 to 07:00);
+    // nightLightManual is on or off without a schedule; nightLightOverride
+    // ("" | "on" | "off") holds against the schedule until nightLightUntil
+    // (epoch ms, the next schedule edge when it was set).
+    readonly property int nightLightTemperature: NightLightRules.kelvin(store.nightLightTemperature)
+    readonly property string nightLightSchedule: NightLightRules.schedule(store.nightLightSchedule)
+    readonly property string nightLightFrom: NightLightRules.time(store.nightLightFrom, NightLightRules.DEFAULT_FROM)
+    readonly property string nightLightTo: NightLightRules.time(store.nightLightTo, NightLightRules.DEFAULT_TO)
+    readonly property bool nightLightManual: store.nightLightOn
+    readonly property string nightLightOverride: store.nightLightOverride === "on" || store.nightLightOverride === "off" ? store.nightLightOverride : ""
+    readonly property real nightLightUntil: Number(store.nightLightUntil) > 0 ? Number(store.nightLightUntil) : 0
 
     // Moves the bar to `edge`. The full strip on a side edge becomes the rail
     // and the rail on the top or the bottom becomes the full strip
@@ -128,6 +147,20 @@ Singleton {
     function setDnd(on: bool): void { store.dnd = on }
     function setPolkitAgent(on: bool): void { store.polkitAgent = on }
 
+    // The night light's keys from one patch: { temperature, schedule, from,
+    // to, manual, override, until }, any subset (NightLight.qml builds them
+    // with lib/NightLight.js). Junk is refused key by key.
+    function setNightLight(patch): void {
+        const p = patch || {};
+        if (p.temperature !== undefined && isFinite(Number(p.temperature))) store.nightLightTemperature = NightLightRules.kelvin(p.temperature);
+        if (NightLightRules.SCHEDULES.indexOf(p.schedule) >= 0) store.nightLightSchedule = p.schedule;
+        if (p.from !== undefined && NightLightRules.parseTime(p.from) >= 0) store.nightLightFrom = NightLightRules.time(p.from, NightLightRules.DEFAULT_FROM);
+        if (p.to !== undefined && NightLightRules.parseTime(p.to) >= 0) store.nightLightTo = NightLightRules.time(p.to, NightLightRules.DEFAULT_TO);
+        if (typeof p.manual === "boolean") store.nightLightOn = p.manual;
+        if (p.override === "" || p.override === "on" || p.override === "off") store.nightLightOverride = p.override;
+        if (p.until !== undefined && isFinite(Number(p.until))) store.nightLightUntil = Math.max(0, Number(p.until));
+    }
+
     // Writes wait for the end of the current event. Writing from inside
     // adapterUpdated lost every change after the first in the same call:
     // setLook("arcade") straight after setIslandForm("notch") read back "crew",
@@ -185,6 +218,14 @@ Singleton {
             // The bar rules the file follows (BarGeometry.LAYOUT); 0 before M4.
             property int layout: 0
             property bool polkitAgent: false
+            // The night light (NightLight.qml).
+            property int nightLightTemperature: 4000
+            property string nightLightSchedule: "off"
+            property string nightLightFrom: "20:00"
+            property string nightLightTo: "07:00"
+            property bool nightLightOn: false
+            property string nightLightOverride: ""
+            property real nightLightUntil: 0
         }
     }
 }

@@ -290,7 +290,8 @@ Item {
         muted: Audio.muted,
         battery: Battery.percent,
         charging: Battery.charging,
-        low: Battery.low
+        low: Battery.low,
+        nightlight: NightLight.active
     })
     readonly property string tagline: Fixture.data.tagline ?? Tokens.tagline
     // The looks' clock (Bridge's stardate): the fixture's day and clock in a

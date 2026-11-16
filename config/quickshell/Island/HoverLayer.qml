@@ -22,9 +22,9 @@ import "../lib/CcData.js" as CcData
 // 28 px round buttons (prev and next `inkDim`, play/pause `fg`). Nothing
 // playing [GUESS]: the bars lie still in `inkDim` and the title says so.
 // Clock: Monaspace 40 / 500 on a 44 line, the date 12 `inkDim` below.
-// Status: a 32 high `fillLow` pill (Wi-Fi, Bluetooth, Tailscale, volume,
-// battery and its percent); off or disconnected icons go `inkDim`, a low
-// battery `bad` [GUESS]. The Context line under it: the lane's icon (the
+// Status: a 32 high `fillLow` pill (the night light's moon while it is on,
+// Wi-Fi, Bluetooth, Tailscale, volume, battery and its percent); off or
+// disconnected icons go `inkDim`, a low battery `bad` [GUESS]. The Context line under it: the lane's icon (the
 // sparkle breathes in `accent` while an agent works), who in `fg`, where in
 // `inkDim`, the branch icon and "main +2" in Monaspace.
 //
@@ -42,7 +42,7 @@ Layer {
     property string date: ""
     // { title, artist, playing, canPrevious, canNext } or null when nothing plays.
     property var media: null
-    // { wifi, bt, tailscale, muted, battery, charging, low }
+    // { wifi, bt, tailscale, muted, battery, charging, low, nightlight }
     property var status: ({})
     // Context.lane: { kind, icon, working, who, where, detail }
     property var lane: ({})
@@ -274,6 +274,14 @@ Layer {
                     id: statusRow
                     anchors.centerIn: parent
                     spacing: 11
+                    Icon {
+                        objectName: "statusNightLight"
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: hover.status.nightlight === true
+                        name: "moon"
+                        size: 14
+                        color: Tokens.fg
+                    }
                     Icon {
                         anchors.verticalCenter: parent.verticalCenter
                         name: hover.status.wifi === false ? "wifiOff" : "wifi"

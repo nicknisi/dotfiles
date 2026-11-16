@@ -35,7 +35,7 @@
 //
 // Some of them (search, x, the chevrons, lock, log-out, monitor, moon, music,
 // headphones, power, server, smartphone, terminal, type, link, plus, check,
-// arrow-right, clipboard, smile, command, trash-2) are on Lucide's list of icons derived from Feather,
+// arrow-right, clipboard, smile, command, trash-2, minus, clock) are on Lucide's list of icons derived from Feather,
 // which carries this notice as well:
 //
 // The MIT License (MIT) (for the icons listed above)
@@ -146,7 +146,13 @@ var ICONS = {
     "user": {"lucide": "user", "d": "M19 21v-2a4 4 0 0 0 -4 -4H9a4 4 0 0 0 -4 4v2M8 7A4 4 0 1 0 16 7A4 4 0 1 0 8 7Z"},
     "barPill": {"lucide": "rectangle-ellipsis", "d": "M4 6H20A2 2 0 0 1 22 8V16A2 2 0 0 1 20 18H4A2 2 0 0 1 2 16V8A2 2 0 0 1 4 6ZM12 12h0.01M17 12h0.01M7 12h0.01"},
     "barFull": {"lucide": "panel-top", "d": "M5 3H19A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3ZM3 9h18"},
-    "barRail": {"lucide": "panel-left", "d": "M5 3H19A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3ZM9 3v18"}
+    "barRail": {"lucide": "panel-left", "d": "M5 3H19A2 2 0 0 1 21 5V19A2 2 0 0 1 19 21H5A2 2 0 0 1 3 19V5A2 2 0 0 1 5 3ZM9 3v18"},
+    "minus": {"lucide": "minus", "d": "M5 12h14"},
+    "sunset": {"lucide": "sunset", "d": "M12 10V2M4.93 10.93l1.41 1.41M2 18h2M20 18h2M19.07 10.93l-1.41 1.41M22 22H2M16 6l-4 4l-4 -4M16 18a4 4 0 0 0 -8 0"},
+    "sunrise": {"lucide": "sunrise", "d": "M12 2v8M4.93 10.93l1.41 1.41M2 18h2M20 18h2M19.07 10.93l-1.41 1.41M22 22H2M8 6l4 -4l4 4M16 18a4 4 0 0 0 -8 0"},
+    "clock": {"lucide": "clock", "d": "M2 12A10 10 0 1 0 22 12A10 10 0 1 0 2 12ZM12 6v6l4 2"},
+    "timerOff": {"lucide": "timer-off", "d": "M10 2h4M4.6 11a8 8 0 0 0 1.7 8.7a8 8 0 0 0 8.7 1.7M7.4 7.4a8 8 0 0 1 10.3 1a8 8 0 0 1 0.9 10.2M2 2l20 20M12 12v-2"},
+    "thermometer": {"lucide": "thermometer", "d": "M14 4v10.54a4 4 0 1 1 -4 0V4a2 2 0 0 1 4 0Z"}
 };
 // END ICONS
 

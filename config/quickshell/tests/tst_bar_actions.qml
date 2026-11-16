@@ -91,6 +91,7 @@ TestCase {
         Capture.recording = false;
         Capture.stops = 0;
         Caffeine.active = false;
+        NightLight.active = false;
         Battery.present = true;
         Battery.percent = 64;
         Battery.charging = false;
@@ -178,6 +179,36 @@ TestCase {
         bar.status = { wifi: false, battery: 25, muted: true };
         compare(bar.networkButton.iconName, "wifiOff");
         compare(bar.audioButton.iconName, "volMute");
+    }
+    // The night light's moon in the status module, while it holds the screen:
+    // beside the battery, above it on the rail (the module grows along it).
+    function test_nightLight() {
+        const moon = findChild(bar.systemButton, "barNightLight");
+        verify(moon, "a moon in the status module");
+        waitForRendering(bar);
+        verify(!moon.visible, "hidden while the night light is off");
+        const narrow = bar.systemButton.width;
+        NightLight.active = true;
+        waitForRendering(bar);
+        verify(moon.visible, "shown while it is on");
+        compare(moon.name, "moon");
+        verify(bar.systemButton.width >= narrow + 21 && bar.systemButton.width < narrow + 23, "the module grows by the moon and a gap: " + narrow + " to " + bar.systemButton.width);
+        compare(bar.systemButton.height, 32);
+        Prefs.barMode = "rail";
+        Prefs.storedEdge = "left";
+        waitForRendering(bar);
+        compare(bar.systemButton.width, 32, "the rail keeps its width");
+        verify(bar.systemButton.height >= 53 && bar.systemButton.height < 54, "and stacks the moon over the battery: " + bar.systemButton.height);
+        const m = moon.mapToItem(bar.systemButton, 0, 0);
+        verify(m.y < bar.systemButton.height / 2 && Math.abs(m.x + 8 - 16) < 1, "the moon on top, centred: " + m.x + "," + m.y);
+        NightLight.active = false;
+        waitForRendering(bar);
+        compare(bar.systemButton.height, 32, "back to a square without it");
+        // A fixture's status says it for a sandbox shot.
+        bar.status = { wifi: true, battery: 64, muted: false, nightlight: true };
+        verify(bar.nightOn && moon.visible);
+        bar.status = { wifi: true, battery: 64, muted: false };
+        verify(!bar.nightOn && !moon.visible);
     }
     function test_network() {
         compare(bar.networkButton.iconName, "wifi");

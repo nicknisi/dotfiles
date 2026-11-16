@@ -8,7 +8,8 @@ cp "$root"/{Theme,Prefs}.qml "$root/BarGeometry.js" "$tmp/"
 # Behaviors use, and the scripts both import.
 cp "$root"/{Tokens,Motion}.qml "$tmp/"
 mkdir -p "$tmp/lib"
-cp "$root"/lib/{TokenMath,Spring}.js "$tmp/lib/"
+# Prefs keeps the night light's choices by lib/NightLight.js's rules.
+cp "$root"/lib/{TokenMath,Spring,NightLight}.js "$tmp/lib/"
 cp -R "$root/Commons" "$tmp/"
 cp "$root/launcher/ui/PreviewPane.qml" "$tmp/"
 cp "$root/launcher/tests/preview.qml" "$tmp/shell.qml"

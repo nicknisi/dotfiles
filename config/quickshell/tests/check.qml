@@ -1289,7 +1289,13 @@ ShellRoot {
                     const tiles = [0, 1, 2, 3].map(i => cc.tiles.itemAt(i)?.objectName).join(" ");
                     test.check(tiles === "ccTile-wifi ccTile-bt ccTile-ts ccTile-dnd", "the four tiles, by objectName: " + tiles);
                     const minis = [0, 1, 2, 3, 4, 5].map(i => cc.minis.itemAt(i)?.objectName).join(" ");
-                    test.check(minis === "ccMini-awake ccMini-power ccMini-display ccMini-theme ccMini-record ccMini-clipboard", "the six minis: " + minis);
+                    test.check(minis === "ccMini-awake ccMini-nightlight ccMini-display ccMini-theme ccMini-record ccMini-clipboard", "the six minis: " + minis);
+                    // The night light under SHELL_DRY_RUN: never live, so no
+                    // hyprctl reaches the session's hyprsunset; the mini says so
+                    // and its press opens the sheet.
+                    test.check(!NightLight.live && NightLight.reason === "dry" && NightLight.calls === 0 && !NightLight.active, "the night light stays off the session's hyprsunset: " + NightLight.inspect());
+                    test.check(cc.minis.itemAt(1).sub === "Unavailable" && cc.minis.itemAt(1).hasSheet && model.home.minis[1].opens === true, "its mini: unavailable, opening its sheet");
+                    test.check(NightLight.toggle().startsWith("error: dry run") && model.run("mini", "nightlight") === "ok" && NightLight.calls === 0, "a dry toggle runs nothing");
                     test.check(String(cc.media.playButton.ink) === String(Tokens.bg) && String(cc.media.playButton.fill) === String(Tokens.fg), "play is bg on fg, never onAccent");
                 } else if (step === 1) {
                     test.check(v.body.width === 760 && v.body.height === 560 && v.body.radius === 28, "cc settles at 760 x 560, radius 28: " + v.body.width + " x " + v.body.height + " r " + v.body.radius);
@@ -1300,6 +1306,17 @@ ShellRoot {
                     // The hover's status pill opens it too (the M1 hand-off is gone).
                     v.close();
                     v.open("hover");
+                    // The night light's moon leads the status pill while it is on.
+                    const moon = test.child(v.hover, "statusNightLight");
+                    test.check(moon !== null && !moon.visible && v.status.nightlight === false, "no moon while the night light is off");
+                    const shownData = Fixture.data;
+                    Fixture.data = ({ status: { wifi: true, bt: true, tailscale: true, muted: false, battery: 64, nightlight: true } });
+                    // The Row lays out on its next polish; now, for the check.
+                    moon.parent.forceLayout();
+                    const next = moon.parent.children[1];
+                    test.check(moon.visible && moon.name === "moon" && moon.size === 14 && moon.x === 0 && next.x === 14 + 11, "the moon leads the status pill: " + moon.x + " " + next.x);
+                    Fixture.data = shownData;
+                    test.check(!moon.visible, "and goes with it");
                     v.hover.openControlCenter();
                     test.check(v.islandState === "cc", "the status pill opens the cc state");
                     test.check(v.ccByPointer, "by the pointer, so no focus ring lands on the Wi-Fi disc");
@@ -1311,11 +1328,15 @@ ShellRoot {
                     test.check(v.inspect().cc.sheet === "wifi", "inspect reports the sheet");
                     v.stepBack();
                     test.check(cc.sheet === "" && v.islandState === "cc", "Esc steps back out of the sheet first");
-                    for (const name of ["wifi", "sound", "tailscale", "bt", "notifications", "display", "awake", "battery"]) {
+                    for (const name of ["wifi", "sound", "tailscale", "bt", "notifications", "display", "awake", "battery", "nightlight"]) {
                         test.check(v.open("cc/" + name) === "ok" && cc.sheetItem?.objectName === "ccSheet-" + name, "the " + name + " sheet loads");
                         test.check(cc.sheetItem.shown && cc.sheetItem.sheetData.groups.length > 0, "the " + name + " sheet shows groups");
                     }
                     test.check(v.open("cc/net") === "ok" && cc.sheet === "wifi" && v.open("cc/audio") === "ok" && cc.sheet === "sound", "the launcher's page names reach the same sheets");
+                    test.check(v.open("cc/night") === "ok" && cc.sheet === "nightlight" && cc.sheetItem.title === "Night light" && cc.sheetItem.sheetData.status === "Unavailable" && !cc.sheetItem.sheetData.switchEnabled,
+                        "cc/night is the Night light sheet, its switch waiting for hyprsunset: " + JSON.stringify(cc.sheetItem?.sheetData?.status));
+                    const dryRows = cc.sheetItem.sheetData.groups[0].rows;
+                    test.check(dryRows.length === 1 && dryRows[0].key === "dry" && dryRows[0].inert === true, "a dry run offers no Start: " + JSON.stringify(dryRows));
                     test.check(v.open("cc") === "ok" && cc.sheet === "" && v.islandState === "cc", "open cc goes back to home");
                 } else if (step === 3) {
                     test.check(cc.sheetOffset === 760 && cc.sheetLoader.source.toString() === "" && cc.home.opacity === 1, "home is back and the sheet unloaded: " + cc.sheetOffset + " " + cc.home.opacity);
@@ -1368,7 +1389,7 @@ ShellRoot {
                     let backs = 0;
                     const host = { goBack() { backs++; }, cancel() {} };
                     const provider = system.createObject(m6View, { host: host });
-                    const pages = { audio: "ccSheet-sound", net: "ccSheet-wifi", bt: "ccSheet-bt", display: "ccSheet-display", tailscale: "ccSheet-tailscale" };
+                    const pages = { audio: "ccSheet-sound", net: "ccSheet-wifi", bt: "ccSheet-bt", display: "ccSheet-display", tailscale: "ccSheet-tailscale", nightlight: "ccSheet-nightlight" };
                     for (const page in pages) {
                         provider.activePage = page;
                         const view = provider.view.createObject(m6View, { host: host });

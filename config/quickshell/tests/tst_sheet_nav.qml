@@ -21,8 +21,15 @@ Item {
         model: CcData.home({ dnd: false }, 0, null)
         animated: false
         sheetUrl: function (name) {
+            if (name === "nightlight" || name === "awake") return Qt.resolvedUrl("StepStub.qml");
             return ["wifi", "sound", "tailscale", "bt", "notifications"].indexOf(name) >= 0 ? Qt.resolvedUrl("SheetStub.qml") : "";
         }
+    }
+
+    SignalSpy {
+        id: asks
+        target: cc
+        signalName: "action"
     }
 
     SignalSpy {
@@ -39,7 +46,9 @@ Item {
         function init() {
             cc.closeSheet(true);
             cc.shown = true;
+            cc.model = CcData.home({ dnd: false }, 0, null);
             closes.clear();
+            asks.clear();
             tryCompare(cc, "sheetOffset", 760);
         }
 
@@ -146,6 +155,83 @@ Item {
             tryVerify(() => cc.sheetItem.activeFocus, 500, "the keys go to the sheet, not the hidden Wi-Fi disc");
             verify(!cc.tiles.itemAt(0).disc.activeFocus);
             verify(cc.sheetItem.keyboard, "and by key, so its ring shows");
+        }
+
+        // A stepper row (the night light's From and To) and a slider naming its
+        // `step` (its warmth): Left and Right reach them, and the pointer has
+        // a minus and a plus either side of the trail. A plain slider row and
+        // Alt+Left keep what they did.
+        function test_steps() {
+            verify(cc.openSheet("nightlight", null, true));
+            const sheet = cc.sheetItem;
+            tryVerify(() => sheet.activeFocus, 500, "focus lands in the sheet");
+            compare(sheet.rows.map(r => r.key).join(" "), "warmth from plain", "the inert stepper is no stop");
+            compare(findChild(sheet.rowItem("warmth"), "sheetRowSlider").stepSize, 0.1, "the row's step");
+            compare(findChild(sheet.rowItem("plain"), "sheetRowSlider").stepSize, 0.05, "5 % when it names none");
+            keyClick(Qt.Key_Right);
+            keyClick(Qt.Key_Left);
+            compare(sheet.log.join("|"), "slid warmth 0.60|slid warmth 0.40", "the warmth moves by its step");
+            keyClick(Qt.Key_Down);
+            keyClick(Qt.Key_Right);
+            keyClick(Qt.Key_Left);
+            compare(sheet.log.slice(2).join("|"), "step from 1|step from -1", "From steps later and earlier");
+            keyClick(Qt.Key_Down);
+            keyClick(Qt.Key_Right);
+            compare(sheet.log.length, 4, "a plain slider row ignores the arrows, as before");
+            // The pointer: minus, the trail, plus.
+            const from = sheet.rowItem("from");
+            const down = findChild(from, "sheetStepDown"), up = findChild(from, "sheetStepUp");
+            verify(down.visible && up.visible, "a stepper row has both buttons");
+            compare([down.width, down.height, down.radius, up.width], [26, 26, 8, 26]);
+            const dx = down.mapToItem(from, 0, 0).x, ux = up.mapToItem(from, 0, 0).x;
+            verify(dx < ux && ux + 26 <= from.width - 10 + 0.01, "minus, then plus at the row's right padding: " + dx + " " + ux);
+            mouseClick(up);
+            mouseClick(down);
+            compare(sheet.log.slice(4).join("|"), "step from 1|step from -1", "the buttons step");
+            verify(!findChild(sheet.rowItem("plain"), "sheetStepUp").visible && !findChild(sheet.rowItem("warmth"), "sheetStepDown").visible, "only stepper rows have them");
+            mouseClick(findChild(sheet.rowItem("dead"), "sheetStepUp"));
+            compare(sheet.log.length, 6, "an inert stepper does nothing");
+            keyClick(Qt.Key_Left, Qt.AltModifier);
+            compare(cc.sheet, "", "Alt+Left still goes back");
+        }
+
+        // The night light's mini: a press toggles while hyprsunset answers and
+        // opens the sheet while it does not; the chevron, a right click and
+        // Alt+Right open it either way. Keep awake keeps its toggle.
+        function test_night_light_mini() {
+            const night = cc.minis.itemAt(1);
+            compare(night.objectName, "ccMini-nightlight");
+            verify(night.hasSheet && night.chevron.visible, "a chevron: it has a sheet");
+            verify(cc.minis.itemAt(0).chevron.visible && !cc.minis.itemAt(2).chevron.visible, "Keep awake has one, Display none");
+            compare(night.sub, "Unavailable");
+            mouseClick(night);
+            compare(cc.sheet, "nightlight", "unavailable: the press opens the sheet");
+            compare(asks.count, 0, "and asks for no toggle");
+            cc.closeSheet(true);
+            tryCompare(cc, "sheetOffset", 760);
+            cc.model = CcData.home({ dnd: false, nightlight: { available: true, on: false, temperature: 4000, until: "20:00" } }, 0, null);
+            compare(night.sub, "From 20:00");
+            mouseClick(night);
+            compare(cc.sheet, "", "available: the press toggles");
+            compare(asks.count, 1);
+            compare(asks.signalArguments[0][0], "mini");
+            compare(asks.signalArguments[0][1], "nightlight");
+            mouseClick(night.chevron);
+            compare(cc.sheet, "nightlight", "the chevron opens the sheet");
+            cc.closeSheet(true);
+            tryCompare(cc, "sheetOffset", 760);
+            mouseClick(night, 20, 40, Qt.RightButton);
+            compare(cc.sheet, "nightlight", "so does a right click");
+            cc.closeSheet(true);
+            tryCompare(cc, "sheetOffset", 760);
+            night.forceActiveFocus();
+            keyClick(Qt.Key_Right, Qt.AltModifier);
+            compare(cc.sheet, "nightlight", "and Alt+Right");
+            compare(asks.count, 1, "none of them toggled");
+            cc.closeSheet(true);
+            tryCompare(cc, "sheetOffset", 760);
+            mouseClick(cc.minis.itemAt(0).chevron);
+            compare(cc.sheet, "awake", "Keep awake's chevron opens its durations");
         }
 
         function test_keys() {

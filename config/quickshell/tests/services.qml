@@ -42,6 +42,19 @@ ShellRoot {
         test.check(Prefs.islandForm === "notch" && Prefs.look === "arcade" && Prefs.motion === "off", "valid values are stored");
         test.check(Prefs.reducedMotion && Prefs.dnd, "booleans are stored");
         test.check(Prefs.looks.length === 6 && Prefs.motions.length === 4 && Prefs.islandForms.length === 2, "allowed lists");
+        // The night light's keys (NightLight.qml): defaults, then one patch
+        // at a time, junk refused key by key.
+        test.check(Prefs.nightLightTemperature === 4000 && Prefs.nightLightSchedule === "off" && Prefs.nightLightFrom === "20:00" && Prefs.nightLightTo === "07:00", "night light defaults: 4000 K, no schedule, 20:00 to 07:00");
+        test.check(!Prefs.nightLightManual && Prefs.nightLightOverride === "" && Prefs.nightLightUntil === 0, "off, no override");
+        Prefs.setNightLight({ temperature: 3333 });
+        test.check(Prefs.nightLightTemperature === 3300, "warmth on 100 K: " + Prefs.nightLightTemperature);
+        Prefs.setNightLight({ temperature: 99999 });
+        test.check(Prefs.nightLightTemperature === 6000, "clamped to neutral");
+        Prefs.setNightLight({ temperature: "junk", schedule: "sunset", from: "25:00", to: "x", override: "maybe", until: "soon" });
+        test.check(Prefs.nightLightTemperature === 6000 && Prefs.nightLightSchedule === "off" && Prefs.nightLightFrom === "20:00" && Prefs.nightLightTo === "07:00" && Prefs.nightLightOverride === "" && Prefs.nightLightUntil === 0, "junk changes nothing");
+        Prefs.setNightLight({ temperature: 3300, schedule: "custom", from: "21:30", to: "6:30", manual: true, override: "on", until: 1794700000000 });
+        test.check(Prefs.nightLightSchedule === "custom" && Prefs.nightLightFrom === "21:30" && Prefs.nightLightTo === "06:30", "a schedule, the time written HH:MM: " + Prefs.nightLightTo);
+        test.check(Prefs.nightLightManual && Prefs.nightLightOverride === "on" && Prefs.nightLightUntil === 1794700000000, "the manual state and an override");
     }
 
     function stale() {
@@ -49,6 +62,9 @@ ShellRoot {
         test.check(Prefs.islandForm === "float" && Prefs.look === "crew" && Prefs.motion === "spring", "junk in the file reads as the defaults");
         test.check(Prefs.reducedMotion && Prefs.dnd, "the other keys survive a reload");
         test.check(Prefs.edge === "top" && !Prefs.translucent, "the old keys are untouched");
+        // services.sh wrote junk night light keys too.
+        test.check(Prefs.nightLightTemperature === 2500 && Prefs.nightLightSchedule === "off" && Prefs.nightLightFrom === "20:00" && Prefs.nightLightTo === "06:30", "junk night light keys read as the nearest good value: " + Prefs.nightLightTemperature + " " + Prefs.nightLightSchedule + " " + Prefs.nightLightFrom);
+        test.check(Prefs.nightLightOverride === "" && Prefs.nightLightUntil === 0 && Prefs.nightLightManual, "no override from junk; the manual state kept");
     }
 
     function legacy() {

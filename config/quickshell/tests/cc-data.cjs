@@ -29,14 +29,30 @@ const levels = C.levels({ volume: { value: 1.4, muted: true, device: 'Speakers' 
 assert.equal(levels[0].value, 1, 'clamped')
 assert.equal(levels[0].icon, 'volMute')
 assert.equal(levels[1].device, 'Built-in')
-let minis = C.minis({ awake: { active: true, label: '1 hour' }, hz: 60, scale: 1.5, theme: 'hackerman', recording: true })
-assert.deepEqual(minis.map(m => m.key), ['awake', 'power', 'display', 'theme', 'record', 'clipboard'])
-assert.deepEqual(minis.map(m => m.sub), ['1 hour', '60 Hz', '1.5× scale', 'hackerman', 'Stop', 'History'])
-assert.deepEqual(minis.map(m => m.on), [true, false, false, false, true, false])
+let minis = C.minis({ awake: { active: true, label: '1 hour' }, hz: 60, scale: 1.5, theme: 'hackerman', recording: true,
+    nightlight: { available: true, on: true, temperature: 4000, until: '07:00' } })
+// The night light takes the Power mode mini's place; its rate moves to Display.
+assert.deepEqual(minis.map(m => m.key), ['awake', 'nightlight', 'display', 'theme', 'record', 'clipboard'])
+assert.deepEqual(minis.map(m => m.sub), ['1 hour', 'Until 07:00', '1.5× · 60 Hz', 'hackerman', 'Stop', 'History'])
+assert.deepEqual(minis.map(m => m.on), [true, true, false, false, true, false])
+assert.deepEqual(minis.map(m => m.sheet ?? ''), ['awake', 'nightlight', '', '', '', ''], 'the two minis with a sheet show its chevron')
+assert.ok(!minis[1].opens, 'a press toggles while hyprsunset answers')
+assert.equal(minis[1].icon, 'sunset', 'not the moon: Do not disturb has it')
 minis = C.minis({ awake: { active: false }, scale: 2 })
 assert.equal(minis[0].sub, 'Off')
-assert.equal(minis[1].sub, 'Auto', 'no rate read yet')
-assert.equal(minis[2].sub, '2× scale')
+assert.equal(minis[1].sub, 'Unavailable', 'no night light read yet')
+assert.ok(!minis[1].on)
+assert.ok(minis[1].opens, 'and opens the sheet while it does not')
+assert.equal(minis[2].sub, '2× scale', 'no rate read yet')
+assert.equal(C.minis({ hz: 120 })[2].sub, '120 Hz')
+assert.equal(C.minis({})[2].sub, 'Built-in')
+assert.deepEqual(['on until', 'on no edge', 'off until', 'off', 'down while on'].map((_, i) => C.nightSub([
+    { available: true, on: true, temperature: 3500, until: '07:00' },
+    { available: true, on: true, temperature: 3500, until: '' },
+    { available: true, on: false, until: '20:00' },
+    { available: true, on: false, until: '' },
+    { available: false, on: true, until: '07:00' }][i])), ['Until 07:00', '3500 K', 'From 20:00', 'Off', 'Unavailable'])
+assert.ok(!C.minis({ nightlight: { available: false, on: true } })[1].on, 'lit only while hyprsunset holds it')
 
 // ---- notes ----
 const notes = C.notes({ notifications: [
@@ -276,6 +292,43 @@ assert.equal(C.sheetName('net'), 'wifi')
 assert.equal(C.sheetName('audio'), 'sound')
 assert.equal(C.sheetName('tailscale'), 'tailscale')
 assert.equal(C.sheetName('bogus'), '')
+assert.equal(C.sheetName('nightlight'), 'nightlight')
+assert.equal(C.sheetName('night'), 'nightlight')
+assert.equal(C.sheetName('sunset'), 'nightlight')
+
+// ---- the night light ----
+const NL = require('../lib/NightLight.js')
+assert.deepEqual([C.NIGHT_MIN_K, C.NIGHT_MAX_K], [NL.MIN_K, NL.MAX_K], 'the sheet and the rules share a range')
+for (const k of [2500, 3100, 4000, 6000]) assert.equal(C.nightFraction(k), NL.fraction(k), 'and a slider: ' + k)
+let night = C.nightlight({ available: true, on: true, temperature: 3500, schedule: 'custom', from: '20:00', to: '07:00', until: '07:00' })
+assert.equal(night.status, 'On until 07:00')
+assert.ok(night.switchOn && night.switchEnabled && night.hasSwitch)
+assert.deepEqual(night.groups.map(g => g.label), ['Warmth', 'Schedule'])
+const warmth = night.groups[0].rows[0]
+assert.equal(warmth.trail, '3500 K')
+assert.equal(warmth.slider, NL.fraction(3500))
+assert.equal(warmth.step, NL.FRACTION_STEP, 'one key step is 100 K')
+assert.deepEqual(night.groups[1].rows.map(r => r.key), ['off', 'custom', 'from', 'to'])
+assert.deepEqual(night.groups[1].rows.map(r => r.on === true), [false, true, false, false])
+assert.deepEqual(night.groups[1].rows.map(r => r.stepper === true), [false, false, true, true])
+assert.deepEqual(night.groups[1].rows.slice(2).map(r => r.trail), ['20:00', '07:00'])
+assert.equal(night.groups[1].rows[1].sub, 'From 20:00 to 07:00')
+assert.ok(!night.groups.some(g => g.rows.some(r => /sunset to sunrise/i.test(r.title))), 'no sunset to sunrise: no location source')
+night = C.nightlight({ available: true, on: false, temperature: 4000, schedule: 'off', from: '21:00', to: '06:30', until: '' })
+assert.equal(night.status, 'Off')
+assert.deepEqual(night.groups[1].rows.map(r => r.key), ['off', 'custom'], 'no times without a schedule')
+assert.equal(night.groups[1].rows[1].sub, 'From 21:00 to 06:30', 'the times it would use')
+assert.equal(C.nightlight({ available: true, on: false, schedule: 'custom', until: '20:00' }).status, 'Off until 20:00')
+night = C.nightlight({ available: false, reason: 'stopped', message: 'hyprsunset is not running', on: true, temperature: 9000 })
+assert.equal(night.status, 'Unavailable')
+assert.ok(!night.switchOn && !night.switchEnabled, 'the switch waits for hyprsunset')
+assert.deepEqual(night.groups[0].rows.map(r => [r.key, r.action, r.inert === true]), [['start', 'start', false]], 'the explicit start')
+assert.equal(night.groups[1].rows[0].trail, '6000 K', 'clamped')
+for (const reason of ['dry', 'session', 'checking', 'error']) {
+    const r = C.nightlight({ available: false, reason, message: 'invalid command' }).groups[0].rows[0]
+    assert.ok(r.inert && r.action === undefined, reason + ': nothing to press, the shell never starts it by itself')
+}
+assert.equal(C.nightlight({ available: false, reason: 'error', message: 'invalid command' }).groups[0].rows[0].sub, 'invalid command')
 assert.equal(C.scaleText(1.25), '1.25×')
 assert.equal(C.lastSeen(0, now), 'Offline')
 
