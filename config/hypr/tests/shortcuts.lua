@@ -37,6 +37,10 @@ hl = setmetatable({
     body()
     submap = outer
   end,
+  -- No compositor here, so no monitors: main's single-window.lua walks
+  -- hl.get_monitors() at load and would stop on nil (its own test runs it
+  -- the same way, with none).
+  get_monitors = function() return {} end,
 }, { __index = function() return proxy end })
 io.popen = function() return nil end
 local real_dofile = dofile
