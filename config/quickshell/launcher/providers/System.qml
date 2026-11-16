@@ -75,7 +75,10 @@ Item {
     { id: "look-bridge", parent: "bar", title: "Look: Bridge", subtitle: "Riker's on the bridge", keywords: "island look style lcars star trek stardate", preference: "look:bridge" },
     { id: "look-arcade", parent: "bar", title: "Look: Arcade", subtitle: "Insert coin", keywords: "island look style 8-bit pixel invaders", preference: "look:arcade" },
     { id: "look-liner", parent: "bar", title: "Look: Liner Notes", subtitle: "Ink on good paper", keywords: "island look style handwritten zine", preference: "look:liner" },
-    { id: "look-outrun", parent: "bar", title: "Look: Outrun", subtitle: "Tape hiss and neon grids", keywords: "island look style neon synthwave", preference: "look:outrun" }
+    { id: "look-outrun", parent: "bar", title: "Look: Outrun", subtitle: "Tape hiss and neon grids", keywords: "island look style neon synthwave", preference: "look:outrun" },
+    // Rounded screen corners (ScreenCorners.qml; the Display sheet has the
+    // same switch). The subtitle says whether they are on (commandRow).
+    { id: "screen-corners", parent: "bar", title: "Toggle Rounded Corners", keywords: "screen corners rounded radius bezel display square", preference: "corners", intentFamily: "toggle" }
   ]
 
   function navRow(menu, order) {
@@ -91,7 +94,9 @@ Item {
     var opens = !!(command.page || command.island)
     // An island command names its host the way runsLabel does: "Island" in
     // island mode, "Bar" where the classic bar's panel shows it.
-    var subtitle = command.island ? (Desktop.Prefs.barMode === "island" ? "Island" : "Bar") : (command.subtitle || "")
+    var subtitle = command.island ? (Desktop.Prefs.barMode === "island" ? "Island" : "Bar")
+                 : command.preference === "corners" ? (Desktop.Prefs.screenCorners ? "On, " + Desktop.Prefs.screenCornerRadius + " px" : "Off")
+                 : (command.subtitle || "")
     return { id: command.id, parent: command.parent, title: command.title, subtitle: subtitle,
       keywords: command.keywords || "", icon: "󰒓", section: "Desktop", verb: opens ? "Open" : "Run",
       tier: "item", order: order, score: 1, remember: true, action: effect,
@@ -162,6 +167,10 @@ Item {
       var status = "Bar preference updated"
       if (action.value === "cycle") Desktop.Prefs.cycleBarMode()
       else if (action.value === "translucent") Desktop.Prefs.toggleTranslucent()
+      else if (action.value === "corners") {
+        Desktop.Prefs.toggleScreenCorners()
+        status = Desktop.Prefs.screenCorners ? "Rounded corners on" : "Rounded corners off"
+      }
       else if (action.value.indexOf("form:") === 0) { Desktop.Prefs.setIslandForm(action.value.slice(5)); status = "Island form updated" }
       else if (action.value.indexOf("look:") === 0) {
         var said = Desktop.Look.set(action.value.slice(5))

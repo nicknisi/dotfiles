@@ -267,6 +267,16 @@ const dispDefault = C.display({ barMode: 'island', looks })
 const group = (d, label) => d.groups.find(g => g.label === label)
 assert.deepEqual([group(dispDefault, 'Island form').rows.find(r => r.on).key, group(dispDefault, 'Look').rows.find(r => r.on).key], ['float', 'crew'], 'defaults: float, crew')
 assert.ok(!disp.hasSwitch)
+// Rounded screen corners: a Screen corners group after the Look, Rounded or
+// Square (DisplaySheet: Prefs.setScreenCorners), when they are given.
+const dispCorners = C.display({ barMode: 'island', looks, corners: { on: true, radius: 14 } })
+assert.deepEqual(dispCorners.groups.map(g => g.label), ['Brightness', 'Bar', 'Island form', 'Look', 'Screen corners'])
+assert.deepEqual(group(dispCorners, 'Screen corners').rows.map(r => [r.key, r.title, r.sub, r.icon, r.on, r.action]),
+  [['rounded', 'Rounded', '14 px, painted black', 'corner', true, 'corners'], ['square', 'Square', "The panel's own corners", 'monitor', false, 'corners']])
+const cornersOff = group(C.display({ barMode: 'pill', corners: { on: false, radius: 20 } }), 'Screen corners').rows
+assert.deepEqual(cornersOff.map(r => [r.key, r.on]), [['rounded', false], ['square', true]])
+assert.equal(cornersOff[0].sub, '20 px, painted black')
+assert.equal(group(disp, 'Screen corners'), undefined, 'no corners given, no group')
 const awake = C.awake({ active: true, selected: 60, status: 'On for 1 hour', options: [{ minutes: 30, label: '30 minutes' }, { minutes: 60, label: '1 hour' }, { minutes: -1, label: 'Until turned off' }] })
 assert.deepEqual(awake.groups[0].rows.map(r => r.on), [false, true, false])
 assert.equal(awake.status, 'On for 1 hour')

@@ -1654,6 +1654,16 @@ ShellRoot {
                     test.check(v.islandState === "notif" && v.machine.item?.id === -7 && !v.raised, "and it comes back after the power menu and the palette, the island lowered");
                     v.apply(IslandMachine.drop(v.machine, -7));
                     test.check(v.islandState === "rest", "back to rest");
+                    // Super+Alt+C and D over a fullscreen window
+                    // (PanelShortcuts): the island rises to Overlay for the
+                    // panel and goes back down when it closes; a press that
+                    // opens nothing leaves it down.
+                    test.check(v.toggleRaised("cc") === "ok" && v.islandState === "cc" && v.raised && !v.scrimShown, "toggleRaised opens cc with the island raised, no dim");
+                    test.check(v.toggleRaised("cc") === "ok" && v.islandState === "rest" && !v.raised, "the second press closes it and lowers the island");
+                    test.check(v.toggleRaised("cal") === "ok" && v.islandState === "cal" && v.raised, "the calendar rises too");
+                    v.close();
+                    test.check(v.islandState === "rest" && !v.raised, "closed any other way, the island goes back down");
+                    test.check(v.toggleRaised("cc/nope").indexOf("error") === 0 && v.islandState === "rest" && !v.raised, "a refused press leaves it down");
                     finished = true;
                     stop();
                 }
@@ -1691,7 +1701,14 @@ ShellRoot {
             anchors.fill: parent
             view: m4Bar
             monitor: ({ name: "check-m4", width: 1920, height: 1200 })
+            corners: m4Corners
         }
+    }
+    // ScreenCorners' radius drawn (ScreenCorners.drawn: 0 while off): the
+    // host paints the screen corners over the power menu's scrim.
+    QtObject {
+        id: m4Corners
+        property real drawn: 14
     }
     Timer {
         id: barCheck
@@ -1733,6 +1750,7 @@ ShellRoot {
                     test.check(h.seamFrom === 0 && h.seamTo === 0, "no seam on the pill");
                 } else if (step === 2) {
                     test.check(settled() && h.drawnWidth === 760 && h.drawnHeight === 560, "cc grew to 760 x 560: " + h.progress);
+                    test.check(h.inspect().corners === 0, "no scrim under cc, so no corners of the host's own: " + h.inspect().corners);
                     test.check(h.ccLayer.current && h.ccLayer.visible && h.ccLayer.content.shown, "the control center shows");
                     test.check(JSON.stringify(h.frame.drawn.radii) === JSON.stringify(h.shape.radii) && JSON.stringify(h.frame.drawn.hairline) === JSON.stringify(h.shape.hairline), "the frame draws the shape's corners and sides");
                     test.check(h.hitItem.width === 760 && h.hitItem.x === h.shape.x, "the input region is the panel");
@@ -1789,6 +1807,19 @@ ShellRoot {
                 } else if (step === 7) {
                     test.check(settled() && h.powerLayer.current && h.inspect().scrim === 1 && h.leaving === "", "the power menu over the scrim");
                     test.check(h.inspect().scrimRect.y === 40 && h.inspect().scrimRect.height === 1160, "the scrim stops at the strip, one piece with the panel");
+                    // The screen corners over the scrim (it would grey the
+                    // corner strips, mapped before this Overlay surface): the
+                    // last thing the host draws, filling it, at the radius
+                    // ScreenCorners draws; none while the corners are off.
+                    const cs = test.child(h, "hostCorners");
+                    test.check(cs !== null && h.inspect().corners === 14 && cs.visible && cs.x === 0 && cs.y === 0 && cs.width === 1920 && cs.height === 1200, "the power menu paints the screen corners over its scrim: " + h.inspect().corners);
+                    // The full strip's edge: the scrim stops at the strip, so
+                    // the top two are the strips' own; the bottom two its.
+                    const shown = [0, 1, 2, 3].map(i => cs.children[i].corner + ":" + cs.children[i].visible + ":" + cs.children[i].radius).join(" ");
+                    test.check(h.children[h.children.length - 1] === cs && h.inspect().cornersSkip === "top" && shown === "topLeft:false:14 topRight:false:14 bottomLeft:true:14 bottomRight:true:14", "over everything the host draws, the bottom two at 14 px: " + shown);
+                    m4Corners.drawn = 0;
+                    test.check(h.inspect().corners === 0 && !cs.visible, "none while the corners are off");
+                    m4Corners.drawn = 14;
                     test.check(String(Tokens.scrim) === String(Qt.rgba(Tokens.bg.r, Tokens.bg.g, Tokens.bg.b, 0.56)) || Tokens.scrim.a > 0.55, "the scrim is rgba(bg, .56)");
                     test.check(h.runPower("lock") === "ok" && h.powerRan === "lock" && b.openMenu === "", "a power item runs (a dry run here) and closes");
                     test.check(h.runPower("nope").indexOf("error") === 0, "no such item");

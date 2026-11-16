@@ -200,7 +200,23 @@ end
 
 -- The launcher already lives inside Quickshell, so this only sends its toggle
 -- message. It gives each chosen app its own uwsm scope before disappearing.
-hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
+--
+-- The shell's own keys are global shortcuts: the compositor hands the press to
+-- Quickshell's GlobalShortcut (appid "quickshell") over the
+-- hyprland-global-shortcuts protocol, in order, with no process started. An
+-- exec of `qs ipc call ...` started a qs client per press (a round trip of
+-- 64 ms median on milhouse); in the sandbox, key to open fell from 168 to 99 ms
+-- median for Super+Space and from 154 to 76 ms for Super+V
+-- (.shell-rebuild/specs/shots/keys/keys.sh). The IPC targets stay for
+-- scripts. A non-release bind delivers both the press and the release; the
+-- shell acts on the press.
+--
+-- A global bind does nothing until a running shell registers its name, and a
+-- shell from before these binds registers none of the launcher, voice,
+-- clipboard, control center or calendar ones. When switching over, move the
+-- running shell to the commit with these binds first, then this file
+-- (Hyprland reloads it on save).
+hl.bind("SUPER + SPACE", hl.dsp.global("quickshell:launcher-toggle"))
 pcall(dofile, hypr .. "/launcher-voice.lua")
 -- Hotkeys set from the launcher (Ctrl+B on a result) live in their own file,
 -- written by Quickshell. Sourced inside the registration window so the
@@ -213,13 +229,14 @@ pcall(dofile, hypr .. "/launcher-hotkeys.lua")
 hl.define_submap("keystroke-capture", function()
   hl.bind("ESCAPE", hl.dsp.submap("reset"), { non_consuming = true })
 end)
--- Global clipboard history. Ctrl+Shift+V remains direct terminal paste.
-hl.bind(
-  "SUPER + V",
-  hl.dsp.exec_cmd([[
-  qs ipc call clipboard toggle "$(hyprctl activeworkspace -j | jq -r .monitor)"
-]])
-)
+-- Global clipboard history. Ctrl+Shift+V remains direct terminal paste. The
+-- shell opens it on the focused monitor (Hyprland.focusedMonitor), which the
+-- old bind looked up with hyprctl and jq on every press.
+hl.bind("SUPER + V", hl.dsp.global("quickshell:clipboard-toggle"))
+-- The island's control center and calendar (in the pill, full and rail modes,
+-- the panels the bar's status module and clock open).
+hl.bind("SUPER + ALT + C", hl.dsp.global("quickshell:control-center-toggle"))
+hl.bind("SUPER + ALT + D", hl.dsp.global("quickshell:calendar-toggle"))
 
 -- Capture. The launcher exposes every target; these are the fast paths.
 hl.bind("PRINT", hl.dsp.exec_cmd("capture shot region"))

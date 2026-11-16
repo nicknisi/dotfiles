@@ -60,6 +60,9 @@ QtObject {
     property real shadowAlpha: Number(p.shadow_alpha ?? d.shadowAlpha)
 
     // ---- derived here, not in colors.json -------------------------------------
+    // The panel's own black around a rounded screen (ScreenCorners.qml): the
+    // bezel, whatever the theme.
+    readonly property color bezel: "#000000"
     property color slate: d.slate
     property real shadow2Alpha: d.shadow2Alpha
 

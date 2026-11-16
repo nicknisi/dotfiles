@@ -29,6 +29,9 @@ PanelWindow {
     // shell.qml's ThemePicker: Appearance's Theme packs, the control center's
     // Theme mini and `bar open theme` open it on this screen (M7).
     property var pickerHost: null
+    // shell.qml's ScreenCorners (through Bar): AnchoredView paints the
+    // corners over the power menu's scrim.
+    property var corners: null
 
     readonly property alias content: anchored
     readonly property bool shown: anchored.shown
@@ -84,5 +87,6 @@ PanelWindow {
         barOrigin: host.barOrigin
         now: host.now
         pickerHost: host.pickerHost
+        corners: host.corners
     }
 }

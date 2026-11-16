@@ -1040,6 +1040,18 @@ Item {
     function toggle(state: string): string {
         return isOpen(state) && state !== "rest" ? close() : open(state);
     }
+    // toggle() over a fullscreen window (Hosts/PanelShortcuts: Super+Alt+C
+    // and D). The island is on Top there, under the window, so it rises to
+    // Overlay before the panel opens, as for the power menu (Top -> Overlay
+    // keeps the keys), and goes back down when the panel closes
+    // (onMachineChanged). A press that changes nothing leaves it as it was.
+    function toggleRaised(state: string): string {
+        const was = view.raised, before = view.machine;
+        view.raised = true;
+        const said = toggle(state);
+        if (view.machine === before) view.raised = was;
+        return said;
+    }
 
     function inspect() {
         return {

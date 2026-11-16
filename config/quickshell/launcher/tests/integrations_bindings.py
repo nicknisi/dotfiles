@@ -19,18 +19,18 @@ process.stdout.write(ctx.apply('', 'SUPER + SPACE'));
     assert 'pcall(dofile, hypr .. "/launcher-voice.lua")' in (hypr / 'hyprland.lua').read_text()
     code = '''
 local binds = {}
-hl = { dsp = { exec_cmd = function(s) return s end },
+hl = { dsp = { exec_cmd = function(s) return "exec:" .. s end, global = function(s) return "global:" .. s end },
   bind = function(key, command, options) table.insert(binds, {key, command, options}) end }
 dofile(%s)
 assert(#binds == 4)
-assert(binds[1][1] == "SUPER + SPACE" and binds[1][2] == "qs ipc call launcher voiceHold")
+assert(binds[1][1] == "SUPER + SPACE" and binds[1][2] == "global:quickshell:launcher-voice-hold")
 assert(binds[1][3].long_press)
 for i, key in ipairs({"SPACE", "Super_L", "Super_R"}) do
   local b = binds[i + 1]
-  assert(b[1] == key and b[2] == "qs ipc call launcher voiceRelease")
+  assert(b[1] == key and b[2] == "global:quickshell:launcher-voice-release")
   assert(b[3].release and b[3].ignore_mods and b[3].submap_universal and b[3].non_consuming)
 end
-print("PASS native hl.bind, universal modifier releases, dedicated source and generated block agreement")
+print("PASS native hl.bind, global shortcuts, universal modifier releases, dedicated source and generated block agreement")
 ''' % json.dumps(str(hypr / 'launcher-voice.lua'))
     result = subprocess.run(['lua', '-'], input=code, env=env, text=True, capture_output=True, check=True)
     print(result.stdout.strip())

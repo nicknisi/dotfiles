@@ -134,7 +134,7 @@ assert config['hostTest'] is True
 assert config['providers']['local.host-test']['enabled'] is False
 assert json.loads((root / 'state/keystroke/usage.json').read_text())
 bindings = (root / 'home/.config/hypr/launcher-voice.lua').read_text()
-assert 'hl.bind' in bindings and 'qs ipc call launcher voiceHold' in bindings
+assert 'hl.bind' in bindings and 'hl.dsp.global("quickshell:launcher-voice-hold")' in bindings and 'qs ipc' not in bindings
 assert 'omarchy' not in bindings
 assert not (root / 'home/.config/hypr/bindings.lua').exists(), 'legacy bindings must not change'
 hotkeys = (root / 'home/.config/hypr/launcher-hotkeys.lua').read_text()

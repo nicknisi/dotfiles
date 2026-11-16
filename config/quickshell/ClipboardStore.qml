@@ -9,13 +9,16 @@
 // The scope's Ctrl+Delete (or its "Ctrl Del Clear history" hint) asks the
 // launcher to confirm, then wipes here, as the old picker's Ctrl+Delete did.
 //
-// `qs ipc call clipboard ...` keeps its verbs, so hyprland.lua's Super+V bind
-// (toggle with the focused monitor's name) is unchanged:
+// Super+V is the global shortcut "clipboard-toggle" (appid "quickshell",
+// hyprland.lua): toggle on the focused monitor, which the shell reads from
+// Hyprland.focusedMonitor where the old bind ran hyprctl and jq first.
+// `qs ipc call clipboard ...` keeps its verbs for scripts:
 //   open SCREEN    the launcher on that screen, in the clipboard scope
 //   close          close it, when the clipboard scope is what is showing
 //   toggle SCREEN  open, or close when the clipboard scope is showing
 //   clear          wipe cliphist and the decoded media cache
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import QtQuick
 
@@ -29,6 +32,13 @@ Scope {
 
     readonly property string mediaCache: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/quickshell-clipboard-media"
     readonly property string mediaIndex: (Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache") + "/cliphist/media.tsv"
+
+    GlobalShortcut {
+        appid: "quickshell"
+        name: "clipboard-toggle"
+        description: "Open or close the clipboard history"
+        onPressed: root.toggleFocused()
+    }
 
     IpcHandler {
         target: "clipboard"
@@ -100,6 +110,13 @@ Scope {
 
     function close(): void {
         if (root.opened) root.host.cancel();
+    }
+
+    // Super+V: the focused monitor's name, or the launcher's own pick when
+    // Hyprland names none (screenFor finds nothing).
+    function toggleFocused(): void {
+        if (root.opened) root.close();
+        else root.open(Hyprland.focusedMonitor?.name ?? "");
     }
 
     function clearHistory(): void {

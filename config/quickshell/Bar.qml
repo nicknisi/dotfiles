@@ -30,6 +30,9 @@ PanelWindow {
     // shell.qml's ThemePicker: the anchored host's Theme packs, Theme mini
     // and `bar open theme` open it on this screen (M7).
     property var pickerHost: null
+    // shell.qml's ScreenCorners: the anchored host paints the corners over
+    // the power menu's scrim (Hosts/AnchoredView).
+    property var corners: null
     property date now: new Date()
 
     anchors {
@@ -207,5 +210,6 @@ PanelWindow {
         barOrigin: Qt.point(bar.edge === "right" ? bar.screen.width - bar.width : 0, bar.edge === "bottom" ? bar.screen.height - bar.height : 0)
         now: bar.now
         pickerHost: bar.pickerHost
+        corners: bar.corners
     }
 }

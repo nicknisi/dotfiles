@@ -427,6 +427,128 @@ TestCase {
         slider.interactive = true;
     }
 
+    // ---- ScreenCorner ----------------------------------------------------------
+
+    // A 60 px white screen with the four 14 px corners, and a 28 px one.
+    Rectangle {
+        id: cornerStage
+        x: 460; y: 490; width: 60; height: 60
+        color: "white"
+        ScreenCorner { id: cornerTL; corner: "topLeft"; radius: 14 }
+        ScreenCorner { id: cornerTR; corner: "topRight"; radius: 14; x: 60 - 14 }
+        ScreenCorner { id: cornerBL; corner: "bottomLeft"; radius: 14; y: 60 - 14 }
+        ScreenCorner { id: cornerBR; corner: "bottomRight"; radius: 14; x: 60 - 14; y: 60 - 14 }
+    }
+    Rectangle {
+        id: cornerStage28
+        x: 530; y: 490; width: 40; height: 40
+        color: "white"
+        ScreenCorner { id: corner28; corner: "topLeft"; radius: 28 }
+    }
+
+    // Black, white or in between (the antialiased edge), by luminance.
+    function shade(pixel) {
+        const l = (pixel.r + pixel.g + pixel.b) / 3;
+        return l < 0.1 ? "black" : l > 0.6 ? "white" : "edge";
+    }
+
+    function test_screen_corner() {
+        compare(cornerTL.width, 14);
+        compare(cornerTL.height, 14);
+        compare(String(cornerTL.color), String(Tokens.bezel));
+        const img = grabImage(cornerStage);
+        // Each corner, mirrored: [x, y] in the top-left corner's frame. The
+        // arc is the circle of radius 14 centred 14 in from both edges: it
+        // leaves the edge row (y 0 to 1) between x 8.9 and 12, and crosses
+        // the diagonal at 4.1. Pixels wholly on one side read black or white.
+        const at = (c, x, y) => {
+            const px = c.atRight ? 59 - x : x, py = c.atBottom ? 59 - y : y;
+            return shade(img.pixel(px, py));
+        };
+        for (const c of [cornerTL, cornerTR, cornerBL, cornerBR]) {
+            compare(at(c, 0, 0), "black", c.corner + ": the screen's corner is black");
+            compare(at(c, 2, 2), "black", c.corner + ": inside the arc on the diagonal");
+            compare(at(c, 8, 0), "black", c.corner + ": the edge row up to the arc");
+            compare(at(c, 0, 8), "black", c.corner + ": the edge column up to the arc");
+            compare(at(c, 5, 5), "white", c.corner + ": past the arc on the diagonal");
+            compare(at(c, 12, 0), "white", c.corner + ": the edge row past the arc");
+            compare(at(c, 0, 12), "white", c.corner + ": the edge column past the arc");
+            compare(at(c, 20, 20), "white", c.corner + ": the screen beyond the corner is untouched");
+        }
+        // The edge pixel the arc crosses is antialiased, not stepped.
+        compare(shade(img.pixel(10, 0)), "edge", "the arc's crossing on the edge row is antialiased");
+        const big = grabImage(cornerStage28);
+        compare(shade(big.pixel(6, 6)), "black", "radius 28: black on the diagonal at 6");
+        compare(shade(big.pixel(10, 10)), "white", "radius 28: white on the diagonal at 10");
+        compare(shade(big.pixel(19, 0)), "black", "radius 28: the edge row is black to x 19");
+        compare(shade(big.pixel(25, 0)), "white", "radius 28: and white from 25");
+        // Radius 0 draws nothing.
+        corner28.radius = 0;
+        verify(!corner28.visible);
+        corner28.radius = 28;
+    }
+
+    // ---- ScreenCornerSet -----------------------------------------------------
+
+    // A 64 x 48 "screen" under a full-size scrim (rgba(bg, .56) over white),
+    // the set over both, as on the window switcher's and the power menu's
+    // full-screen Overlay surfaces.
+    Rectangle {
+        id: setStage
+        x: 600; y: 490; width: 64; height: 48
+        color: "white"
+        Rectangle {
+            anchors.fill: parent
+            color: Qt.rgba(0.04, 0.05, 0.09, 0.56)
+        }
+        ScreenCornerSet {
+            id: cornerSet
+            anchors.fill: parent
+            radius: 14
+        }
+    }
+
+    function test_screen_corner_set() {
+        compare(cornerSet.width, 64);
+        compare(cornerSet.height, 48);
+        const grey = p => {
+            const l = (p.r + p.g + p.b) / 3;
+            return l > 0.35 && l < 0.6;
+        };
+        let img = grabImage(setStage);
+        // The four corners of the item it fills are the bezel's black, over
+        // the scrim; past the arc and in the middle, the scrim shows.
+        for (const [x, y] of [[0, 0], [63, 0], [0, 47], [63, 47], [2, 2], [61, 2], [2, 45], [61, 45], [8, 0], [55, 47]])
+            compare(shade(img.pixel(x, y)), "black", "black at " + x + "," + y);
+        for (const [x, y] of [[5, 5], [58, 5], [5, 42], [58, 42], [12, 0], [32, 24], [0, 24], [63, 24]])
+            verify(grey(img.pixel(x, y)), "the scrim at " + x + "," + y + ": " + img.pixel(x, y));
+        // ScreenCorners.drawn is 0 with the corners off: nothing drawn.
+        cornerSet.radius = 0;
+        verify(!cornerSet.visible);
+        img = grabImage(setStage);
+        verify(grey(img.pixel(0, 0)), "no corners at radius 0: " + img.pixel(0, 0));
+        // A radius change moves all four.
+        cornerSet.radius = 20;
+        img = grabImage(setStage);
+        compare(shade(img.pixel(12, 0)), "black", "radius 20: the edge row is black at 12");
+        compare(shade(img.pixel(51, 47)), "black", "radius 20: bottom right too");
+        cornerSet.radius = 14;
+        // skipEdge leaves out one edge's two corners (where a flush strip's
+        // own wedges show, the scrim stopping short of them).
+        for (const [edge, gone, kept] of [["top", [[0, 0], [63, 0]], [[0, 47], [63, 47]]],
+                                          ["right", [[63, 0], [63, 47]], [[0, 0], [0, 47]]],
+                                          ["bottom", [[0, 47], [63, 47]], [[0, 0], [63, 0]]],
+                                          ["left", [[0, 0], [0, 47]], [[63, 0], [63, 47]]]]) {
+            cornerSet.skipEdge = edge;
+            img = grabImage(setStage);
+            for (const [x, y] of gone)
+                verify(grey(img.pixel(x, y)), "skipEdge " + edge + ": no corner at " + x + "," + y);
+            for (const [x, y] of kept)
+                compare(shade(img.pixel(x, y)), "black", "skipEdge " + edge + ": the corner at " + x + "," + y);
+        }
+        cornerSet.skipEdge = "";
+    }
+
     // ---- ListRow -------------------------------------------------------------
 
     ListRow {

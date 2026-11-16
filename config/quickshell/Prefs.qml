@@ -4,9 +4,10 @@ pragma Singleton
 // Which bar mode it uses (pill, full, rail or the island), which edge it lives
 // on and whether it is see-through, plus the island shell's own choices: the
 // island's form, the look, the motion profile, reduced motion,
-// do-not-disturb and whether the shell's polkit agent runs. They are changed
-// in the shell rather than by editing a file, so they have to be written back
-// somewhere or every reload would undo them.
+// do-not-disturb, whether the shell's polkit agent runs and the rounded
+// screen corners. They are changed in the shell rather than by editing a
+// file, so they have to be written back somewhere or every reload would undo
+// them.
 //
 // JsonAdapter does the serialising: each property below is a key in the file,
 // the file's contents land in the properties on load, and any change writes
@@ -62,6 +63,16 @@ Singleton {
     // switch-over disables hyprpolkitagent: only one agent can own the
     // session, and both would fight for it.
     readonly property bool polkitAgent: store.polkitAgent
+    // Rounded screen corners (ScreenCorners.qml): black wedges in the four
+    // corners of every screen, as if the panel itself were rounded. On by
+    // default. The radius is in logical px, a whole number from
+    // screenCornerRadii[0] to [1]; 14 by default, concentric with a tiled
+    // window's corner (decoration rounding 6 + gaps_out 8 in hyprland.lua)
+    // and the radius of the shell's cards and anchored panels.
+    readonly property var screenCornerRadii: [4, 48]
+    readonly property int screenCornerRadiusDefault: 14
+    readonly property bool screenCorners: store.screenCorners
+    readonly property int screenCornerRadius: root.validCornerRadius(store.screenCornerRadius) ? store.screenCornerRadius : root.screenCornerRadiusDefault
     // capsule.json has been read (or found missing) once. Until then every
     // value above is its default: the island waits for this before a look
     // change counts as a pick (M9 review: the stored look arriving after the
@@ -122,6 +133,18 @@ Singleton {
         if (next.edge !== store.edge) store.edge = next.edge;
         if (next.mode !== store.barMode) store.barMode = next.mode;
         store.layout = BarGeometry.LAYOUT;
+    }
+
+    function validCornerRadius(r): bool {
+        return Number.isInteger(r) && r >= root.screenCornerRadii[0] && r <= root.screenCornerRadii[1];
+    }
+    function setScreenCorners(on: bool): void { store.screenCorners = on }
+    function toggleScreenCorners(): void { store.screenCorners = !store.screenCorners }
+    // False (and nothing stored) for a radius outside screenCornerRadii.
+    function setScreenCornerRadius(r): bool {
+        if (!root.validCornerRadius(r)) return false;
+        store.screenCornerRadius = r;
+        return true;
     }
 
     function setReducedMotion(on: bool): void { store.reducedMotion = on }
@@ -185,6 +208,8 @@ Singleton {
             // The bar rules the file follows (BarGeometry.LAYOUT); 0 before M4.
             property int layout: 0
             property bool polkitAgent: false
+            property bool screenCorners: true
+            property int screenCornerRadius: 14
         }
     }
 }
