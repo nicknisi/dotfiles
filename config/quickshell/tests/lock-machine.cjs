@@ -354,4 +354,23 @@ function invariants(h) {
     assert.equal(L.bullets(null), 0)
 }
 
+// ---- the capsule springs from the island only where it draws the 360 pill --------
+{
+    const S = L.springsFromIsland
+    assert.equal(S(null), true, 'no main shell prefs: the spring, as before M10')
+    assert.equal(S({}), true, 'no bar mode in them either')
+    assert.equal(S({ barMode: 'island' }), true)
+    assert.equal(S({ barMode: 'island', islandForm: 'float', look: 'crew' }), true, 'the plain island floating')
+    for (const mode of ['pill', 'full', 'rail', 'unknown'])
+        assert.equal(S({ barMode: mode, islandForm: 'float', look: 'crew' }), false, mode + ': no pill there (M10)')
+    assert.equal(S({ barMode: 'island', islandForm: 'notch', look: 'crew' }), false, 'the notch hangs from the edge (M9)')
+    for (const look of L.LOOKS)
+        assert.equal(S({ barMode: 'island', islandForm: 'float', look }), false, look + ' packs its own bar (M9)')
+    assert.equal(S({ barMode: 'island', islandForm: 'sideways', look: 'disco' }), true, 'values Prefs refuses are its defaults')
+    assert.equal(S({ barMode: 7 }), true, 'a bar mode that is not a string is no mode')
+    // Every look but the plain island, as LookModel and Prefs name them.
+    const LM = require('../lib/LookModel.js')
+    assert.deepEqual(L.LOOKS, LM.LOOKS.filter(n => n !== 'crew'), 'LockMachine.LOOKS follows LookModel.LOOKS')
+}
+
 console.log('LOCK_MACHINE_PASS')

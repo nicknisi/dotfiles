@@ -84,7 +84,9 @@ ShellRoot {
 
     // ---- the main shell's bar --------------------------------------------------
     // The capsule springs from the island's rest pill only when the main shell
-    // shows one (LockSurface.fromIsland, M10). Its Prefs keep the bar mode in
+    // shows one (LockSurface.fromIsland, M10): island mode, the float form and
+    // the plain island (LockMachine.springsFromIsland: the notch and a look
+    // draw no 360 pill, M9). Its Prefs keep those in
     // capsule.json, in the state dir Quickshell names after the shell's path:
     // the md5 of <this dir>/shell.qml, beside this instance's own. Read once,
     // before the first frame (blockLoading), so the capsule starts where it
@@ -97,14 +99,16 @@ ShellRoot {
         blockLoading: true
         printErrors: false
     }
-    readonly property string barMode: {
+    readonly property var shellPrefsData: {
         try {
-            const mode = JSON.parse(shellPrefsFile.text() || "{}").barMode;
-            return typeof mode === "string" ? mode : "";
+            const d = JSON.parse(shellPrefsFile.text() || "{}");
+            return d !== null && typeof d === "object" ? d : {};
         } catch (e) {
-            return "";
+            return {};
         }
     }
+    readonly property string barMode: typeof shellPrefsData.barMode === "string" ? shellPrefsData.barMode : ""
+    readonly property bool fromIsland: LockMachine.springsFromIsland(shellPrefsData)
 
     FileView {
         path: "/etc/passwd"
@@ -287,7 +291,7 @@ ShellRoot {
                 media: root.media
                 status: root.status
                 shown: root.shown
-                fromIsland: root.barMode === "island" || root.barMode === ""
+                fromIsland: root.fromIsland
                 shakeHold: root.pose?.shakeHold !== undefined ? Number(root.pose.shakeHold) : -1
 
                 onWindowActiveChanged: if (windowActive && screenName !== "") root.focusedName = screenName
@@ -384,8 +388,10 @@ ShellRoot {
                 // the sandbox shots only: they include the bullet count.
                 parts: root.sandbox ? root.parts() : null,
                 // The main shell's bar mode (M10: the capsule springs from
-                // the island only in island mode).
+                // the island only in island mode), and whether it springs
+                // (M9: not from the notch or a look).
                 barMode: root.barMode,
+                fromIsland: root.fromIsland,
                 surfaces: root.views.map(v => ({ screen: v.screenName, primary: v.primary, width: v.width, height: v.height, fromIsland: v.fromIsland }))
             });
         }

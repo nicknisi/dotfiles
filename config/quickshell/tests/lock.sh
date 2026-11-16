@@ -229,6 +229,7 @@ echo "$inspect" | grep -q '"sandboxDir":false' || fail "outside the sandbox PAM 
 echo "$inspect" | grep -q '"typed":-1' || fail "inspect reports no typing outside the sandbox"
 echo "$inspect" | grep -q '"parts":null' || fail "inspect reports no part geometry (with the bullet count) outside the sandbox"
 echo "$inspect" | grep -q '"barMode":""' || fail "no main shell prefs: no bar mode (the island's spring): $inspect"
+echo "$inspect" | grep -q '"fromIsland":true,' || fail "no main shell prefs: the capsule springs from the island: $inspect"
 if ipc qs ipc -p "$qml" call lockpose pose '{}' 2>&1 | grep -q '^ok'; then fail "lockpose answers outside the sandbox"; fi
 stop
 grep -q 'Cannot start session lock' "$tmp/plain.log" || fail "offscreen, the session lock should refuse to start"
@@ -249,6 +250,7 @@ inspect=$(ipc qs ipc -p "$qml" call lock inspect)
 echo "$inspect" | grep -q '"sandbox":true' || fail "the sandbox guard: $inspect"
 echo "$inspect" | grep -q '"config":"t-pass"' && echo "$inspect" | grep -q '"sandboxDir":true' || fail "the test PAM stack in the sandbox: $inspect"
 echo "$inspect" | grep -q '"barMode":"pill"' || fail "lock.qml reads the main shell's bar mode: $inspect"
+echo "$inspect" | grep -q '"fromIsland":false,' || fail "in pill the capsule fades in place: $inspect"
 [ "$(ipc qs ipc -p "$qml" call lockpose pose '{"auth":{"phase":"unlocking"}}')" = ok ] || fail "lockpose pose"
 sleep 0.5
 inspect=$(ipc qs ipc -p "$qml" call lock inspect)

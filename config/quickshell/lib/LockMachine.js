@@ -277,6 +277,26 @@ function fail(m, result) {
     return r;
 }
 
+// ---- the main shell's island ---------------------------------------------------------
+
+// The looks that restyle the island's rest bar (Prefs.looks without "crew",
+// the plain island; tests/lock-machine.cjs keeps it in step with LookModel).
+var LOOKS = ["phosphor", "bridge", "arcade", "liner", "outrun"];
+
+// Whether the lock's capsule springs from the island's rest pill, from the
+// main shell's capsule.json values (lock.qml reads them once): only while
+// the shell draws that pill, the plain island floating 8 down, 360 x 38.
+// Pill, full and rail have no pill there (M10), the notch hangs flush from
+// the top edge 40 high, and a look packs its own bar (M9), so in each of
+// those the capsule fades in place. No file, or no bar mode in it: the
+// spring, as before M10. Values Prefs would refuse count as its defaults
+// (the float form, the plain island).
+function springsFromIsland(prefs) {
+    var p = prefs !== null && typeof prefs === "object" ? prefs : {};
+    var mode = typeof p.barMode === "string" ? p.barMode : "";
+    return (mode === "" || mode === "island") && p.islandForm !== "notch" && LOOKS.indexOf(p.look) < 0;
+}
+
 // ---- effects -----------------------------------------------------------------------
 
 // Runs r.fx against pam (start(), respond(value), abort()) and returns the
@@ -310,5 +330,5 @@ if (typeof module !== "undefined")
         initial: initial, editable: editable, running: running, hint: hint, bullets: bullets,
         type: type, erase: erase, clear: clear, wipe: wipe, submit: submit,
         startFailed: startFailed, message: message, completed: completed, errored: errored, timeout: timeout,
-        perform: perform
+        perform: perform, LOOKS: LOOKS, springsFromIsland: springsFromIsland
     };
