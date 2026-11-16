@@ -132,12 +132,8 @@ hl.config({
   dwindle = {
     preserve_split = true,
   },
-  -- Center a lone tile at 4:3; a second tile restores normal layout.
-  -- Zero tolerance keeps the narrower padding on our 16:10 panel enabled.
-  layout = {
-    single_window_aspect_ratio = { 4, 3 },
-    single_window_aspect_ratio_tolerance = 0,
-  },
+  -- Per-display single-window gaps below set both dimensions, not just width.
+  layout = { single_window_aspect_ratio = { 0, 0 } },
   -- A light dim on unfocused windows; the border already says which one has
   -- focus, this makes it readable at a glance. Set dim_inactive = false to drop it.
   decoration = { blur = { enabled = true }, dim_inactive = true, dim_strength = 0.1 },
@@ -158,6 +154,8 @@ hl.config({
     focus_on_activate = true,
   },
 })
+
+dofile(hypr .. "/single-window.lua")
 
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace", scale = 0.5 })
 hl.gesture({ fingers = 4, direction = "horizontal", action = "scroll_move" })
@@ -330,9 +328,7 @@ hl.bind("SUPER + SHIFT + SPACE", hl.dsp.window.float({ action = "toggle" }))
 -- form of: a tabbed group is the nearest thing, one window visible at a time.
 hl.bind("SUPER + SLASH", hl.dsp.layout("togglesplit"))
 hl.bind("SUPER + COMMA", hl.dsp.group.toggle())
--- Tabs inside a group: SUPER+[ and ] step through them, as ctrl-tab would in
--- a browser. Without these only the front window of a group is reachable
--- from the keyboard.
+-- Explicit tab cycling also works in scrolling; dwindle uses SUPER+J/K too.
 hl.bind("SUPER + BRACKETLEFT", hl.dsp.group.prev())
 hl.bind("SUPER + BRACKETRIGHT", hl.dsp.group.next())
 
@@ -396,6 +392,7 @@ pcall(dofile, os.getenv("HOME") .. "/.local/state/theme/current/theme/hyprland.l
 -- Packs own border colours. Keep shape and depth consistent even when a pack
 -- supplies its own decoration settings, including on a full config reload.
 hl.config({
+  group = { groupbar = { disable_when_only = true, render_titles = false, gradients = false } },
   decoration = {
     rounding = 6,
     rounding_power = 2.0,
