@@ -28,7 +28,7 @@ launcher_bindings.begin_registration()
 
 -- 2880x1800 OLED at 1.6 = 1800x1125 logical, GDK_SCALE 2.
 hl.env("GDK_SCALE", "2")
-hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1.6 })
+hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1.25 })
 local display_state = os.getenv("HOME") .. "/.local/state/display-mode"
 local display_files = io.popen("ls " .. display_state .. "/*.lua 2>/dev/null")
 if display_files then
