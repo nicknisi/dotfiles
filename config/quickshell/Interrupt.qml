@@ -25,10 +25,15 @@ Singleton {
 
     Timer { id: hide; interval: 1600; onTriggered: root.kind = "" }
 
+    // Every message, repeats included: the island's OSD restarts its own
+    // 1400 ms on each (kind alone does not change when volume-up is held).
+    signal shown(string which)
+
     function show(which: string): void {
         if (!root.primed) return;
         root.kind = which;
         hide.restart();
+        root.shown(which);
     }
 
     // Watching a bound property and reacting to its change signal is less

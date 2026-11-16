@@ -35,9 +35,19 @@ Item {
     { id: "bt", title: "Bluetooth", keywords: "bluetooth pair devices headphones", subtitle: "Pair and manage Bluetooth devices", view: true },
     { id: "display", title: "Displays", keywords: "monitor resolution scale screen brightness", subtitle: "Display modes, scaling and brightness", view: true },
     { id: "tailscale", title: "Tailscale", keywords: "vpn tailnet exit node machines files", subtitle: "Machines, exit nodes and file transfers", view: true },
+    // The control center's Night light sheet (NightLight.qml, on hyprsunset).
+    { id: "nightlight", title: "Night Light", keywords: "night light warm warmth blue light filter hyprsunset color temperature schedule evening", subtitle: "Warmth and schedule", view: true },
+    { id: "face", title: "Profile picture", keywords: "profile picture photo face user account lock screen icon", subtitle: "The picture on the lock screen and the control center", view: true },
     { id: "bar", title: "Bar Preferences", keywords: "capsule panel edge position minimal transparency", subtitle: "Position, size and transparency" }
   ]
   readonly property var commands: [
+    // The control center (launcher-pickers 5.4: "Open Control center", sub
+    // "Island"). Every mode: the island shows it in island mode, the classic
+    // bar's anchored panel (Hosts/AnchoredHost.qml, M4) in pill, full and
+    // rail, where the row's subtitle reads "Bar" (commandRow).
+    { id: "control-center", parent: "root", title: "Open Control center", subtitle: "Island", keywords: "control center quick settings toggles wifi bluetooth sound volume brightness do not disturb", island: "cc", everyMode: true },
+    // NightLight.toggle(): against a schedule, until its next edge.
+    { id: "nightlight-toggle", parent: "root", title: "Toggle Night Light", subtitle: "Warmer colours on the screen", keywords: "night light warm blue light filter hyprsunset evening", preference: "nightlight:toggle", intentFamily: "toggle" },
     { id: "action-lock", parent: "session", title: "Lock", subtitle: "Lock the current session", keywords: "screen secure", argv: ["loginctl", "lock-session"] },
     { id: "action-suspend", parent: "session", title: "Suspend", subtitle: "Suspend the computer", keywords: "sleep", argv: ["systemctl", "suspend"] },
     { id: "action-logout", parent: "session", title: "Log out", subtitle: "End the current session", keywords: "exit session uwsm", argv: ["uwsm", "stop"], dangerous: true },
@@ -52,15 +62,28 @@ Item {
     { id: "action-record-screen", parent: "capture", title: "Record Screen", subtitle: "Start recording the whole screen", keywords: "video capture wf-recorder", argv: ["capture", "record", "screen"], intentFamily: "record-start" },
     { id: "action-record-stop", parent: "capture", title: "Stop Recording", subtitle: "Stop the active wf-recorder capture", keywords: "video capture wf-recorder", argv: ["capture", "record", "stop"], intentFamily: "record-stop" },
     { id: "theme-next", parent: "theme", title: "Next Theme", keywords: "cycle appearance colors", argv: ["theme", "next"], intentFamily: "change" },
-    { id: "theme-controls", parent: "theme", title: "Theme Controls", keywords: "appearance swatches preview", page: "theme" },
+    // The theme picker (M7), which replaced ThemeMenu's page here (PLAN 1.3).
+    { id: "theme-controls", parent: "theme", title: "Theme Picker", keywords: "appearance swatches preview controls grid", argv: ["theme", "picker", "themes"], intentFamily: "navigate" },
     { id: "wallpaper-next", parent: "backgrounds", title: "Next Wallpaper", keywords: "cycle background image", argv: ["theme", "bg", "next"], intentFamily: "change" },
     { id: "wallpaper-picker", parent: "backgrounds", title: "Wallpaper Picker", keywords: "background carousel", argv: ["theme", "picker", "backgrounds"], intentFamily: "navigate" },
-    { id: "bar-cycle", parent: "bar", title: "Cycle Bar Layout", subtitle: "Pill, full bar or rail", keywords: "capsule panel mode", preference: "cycle" },
+    { id: "bar-cycle", parent: "bar", title: "Cycle Bar Layout", subtitle: "Pill, full bar, rail or island", keywords: "capsule panel mode island", preference: "cycle" },
     { id: "bar-transparency", parent: "bar", title: "Toggle Bar Transparency", keywords: "translucent opaque capsule", preference: "translucent", intentFamily: "toggle" },
     { id: "bar-top", parent: "bar", title: "Move Bar to Top", preference: "top" },
     { id: "bar-bottom", parent: "bar", title: "Move Bar to Bottom", preference: "bottom" },
     { id: "bar-left", parent: "bar", title: "Move Bar to Left", preference: "left" },
-    { id: "bar-right", parent: "bar", title: "Move Bar to Right", preference: "right" }
+    { id: "bar-right", parent: "bar", title: "Move Bar to Right", preference: "right" },
+    // The island's form and personal look (M9; the Display sheet has them too).
+    { id: "island-float", parent: "bar", title: "Island: Float", subtitle: "8 below the top edge", keywords: "island form floating notch", preference: "form:float" },
+    { id: "island-notch", parent: "bar", title: "Island: Notch", subtitle: "Flush with the top edge", keywords: "island form notch flush", preference: "form:notch" },
+    { id: "look-crew", parent: "bar", title: "Look: Crew", subtitle: "The plain island", keywords: "island look style plain none default", preference: "look:crew" },
+    { id: "look-phosphor", parent: "bar", title: "Look: Phosphor", subtitle: "Green screen, no mercy", keywords: "island look style terminal green", preference: "look:phosphor" },
+    { id: "look-bridge", parent: "bar", title: "Look: Bridge", subtitle: "Riker's on the bridge", keywords: "island look style lcars star trek stardate", preference: "look:bridge" },
+    { id: "look-arcade", parent: "bar", title: "Look: Arcade", subtitle: "Insert coin", keywords: "island look style 8-bit pixel invaders", preference: "look:arcade" },
+    { id: "look-liner", parent: "bar", title: "Look: Liner Notes", subtitle: "Ink on good paper", keywords: "island look style handwritten zine", preference: "look:liner" },
+    { id: "look-outrun", parent: "bar", title: "Look: Outrun", subtitle: "Tape hiss and neon grids", keywords: "island look style neon synthwave", preference: "look:outrun" },
+    // Rounded screen corners (ScreenCorners.qml; the Display sheet has the
+    // same switch). The subtitle says whether they are on (commandRow).
+    { id: "screen-corners", parent: "bar", title: "Toggle Rounded Corners", keywords: "screen corners rounded radius bezel display square", preference: "corners", intentFamily: "toggle" }
   ]
 
   function navRow(menu, order) {
@@ -71,17 +94,28 @@ Item {
   function commandRow(command, settings, order) {
     var effect = command.page ? { type: "system-view", page: command.page }
                : command.preference ? { type: "system-preference", value: command.preference }
+               : command.island ? { type: "system-island", state: command.island }
                : { type: "exec", argv: command.argv }
-    return { id: command.id, parent: command.parent, title: command.title, subtitle: command.subtitle || "",
-      keywords: command.keywords || "", icon: "󰒓", section: "Desktop", verb: command.page ? "Open" : "Run",
+    var opens = !!(command.page || command.island)
+    // An island command names its host the way runsLabel does: "Island" in
+    // island mode, "Bar" where the classic bar's panel shows it.
+    var subtitle = command.island ? (Desktop.Prefs.barMode === "island" ? "Island" : "Bar")
+                 : command.preference === "corners" ? (Desktop.Prefs.screenCorners ? "On, " + Desktop.Prefs.screenCornerRadius + " px" : "Off")
+                 : (command.subtitle || "")
+    return { id: command.id, parent: command.parent, title: command.title, subtitle: subtitle,
+      keywords: command.keywords || "", icon: "󰒓", section: "Desktop", verb: opens ? "Open" : "Run",
       tier: "item", order: order, score: 1, remember: true, action: effect,
-      intentFamily: command.intentFamily || (command.page ? "navigate" : "action"),
+      runsLabel: command.island ? (Desktop.Prefs.barMode === "island" ? "Shows the island's " : "Shows the bar's ") + (command.island === "cc" ? "control center" : command.island) : "",
+      intentFamily: command.intentFamily || (opens ? "navigate" : "action"),
       confirm: command.dangerous && settings.confirmDestructive !== false ? command.title + "? Unsaved work may be lost." : "" }
   }
   function allRows(settings) {
     var rows = [], i
     for (i = 0; i < root.menus.length; i++) rows.push(root.navRow(root.menus[i], i))
-    for (i = 0; i < root.commands.length; i++) rows.push(root.commandRow(root.commands[i], settings || {}, rows.length))
+    for (i = 0; i < root.commands.length; i++) {
+      if (root.commands[i].island && !root.commands[i].everyMode && Desktop.Prefs.barMode !== "island") continue
+      rows.push(root.commandRow(root.commands[i], settings || {}, rows.length))
+    }
     for (var kind = 0; kind < 2; kind++) {
       var data = kind ? root.backgrounds : root.themes
       for (i = 0; i < data.length; i++) {
@@ -132,11 +166,27 @@ Item {
       root.activePage = action.page
       return { type: "provider-view", provider: "system" }
     }
+    // Launcher.qml shows the state on the palette's island (engine `island` effect).
+    if (action.type === "system-island") return { type: "island", state: action.state }
     if (action.type === "system-preference") {
-      if (action.value === "cycle") Desktop.Prefs.cycleBarMode()
+      var status = "Bar preference updated"
+      if (action.value === "nightlight:toggle") {
+        var night = Desktop.NightLight.toggle()
+        status = night === "ok" ? (Desktop.NightLight.on ? "Night light on" : "Night light off") : "Night light: " + night.replace(/^error: /, "")
+      }
+      else if (action.value === "cycle") Desktop.Prefs.cycleBarMode()
       else if (action.value === "translucent") Desktop.Prefs.toggleTranslucent()
+      else if (action.value === "corners") {
+        Desktop.Prefs.toggleScreenCorners()
+        status = Desktop.Prefs.screenCorners ? "Rounded corners on" : "Rounded corners off"
+      }
+      else if (action.value.indexOf("form:") === 0) { Desktop.Prefs.setIslandForm(action.value.slice(5)); status = "Island form updated" }
+      else if (action.value.indexOf("look:") === 0) {
+        var said = Desktop.Look.set(action.value.slice(5))
+        status = said === "ok" ? "Look updated" : said.replace(/^ok: /, "")
+      }
       else Desktop.Prefs.setEdge(action.value)
-      if (root.host) { root.host.statusMessage = "Bar preference updated"; root.host.requery({ provider: "system" }) }
+      if (root.host) { root.host.statusMessage = status; root.host.requery({ provider: "system" }) }
       return { type: "noop" }
     }
     return action
@@ -147,7 +197,7 @@ Item {
   function routeFor(input) {
     var name = String(input || "").trim().toLowerCase().replace(/^system[\/.]/, "")
     if (name === "apps" || name === "applications") return { kind: "apps", scope: "applications", label: "Applications" }
-    var aliases = { themes: "theme", wallpaper: "backgrounds", wallpapers: "backgrounds", background: "backgrounds", network: "net", bluetooth: "bt", displays: "display", desktop: "root", system: "root", power: "session" }
+    var aliases = { themes: "theme", wallpaper: "backgrounds", wallpapers: "backgrounds", background: "backgrounds", network: "net", bluetooth: "bt", displays: "display", desktop: "root", system: "root", power: "session", night: "nightlight", "night-light": "nightlight", hyprsunset: "nightlight", profile: "face", picture: "face", "profile picture": "face", "profile-picture": "face" }
     name = aliases[name] || name
     for (var i = 0; i < root.menus.length; i++) {
       var menu = root.menus[i]
@@ -200,14 +250,33 @@ Item {
       property var host: null
       implicitWidth: 560
       implicitHeight: 540
-      function focusInput() { desktopView.forceActiveFocus() }
+      // A sheet walks its own rows (Up/Down, Enter; Esc is its back).
+      function focusInput() { if (desktopView.sheet) menuLoader.item.forceActiveFocus(); else desktopView.forceActiveFocus() }
+      // A control center sheet is loaded (it has its own header).
+      readonly property bool sheet: !!menuLoader.item && typeof menuLoader.item.backHandler !== "undefined"
+      // For the engine's inspect(): the sheet showing, its keyboard row and
+      // whether the keys are on it.
+      readonly property var sheetState: sheet ? { name: menuLoader.item.objectName, current: menuLoader.item.current,
+        keyboard: menuLoader.item.keyboard, focus: menuLoader.item.activeFocus } : null
       function dismiss() { if (menuLoader.item) menuLoader.item.shown = false }
+      // Opened by a key (Enter on the row), a sheet's row draws its focus
+      // ring at once; by a click it waits for a key (SheetFrame `keyboard`).
+      // The host is set once the view has loaded, inside the activation.
+      onHostChanged: if (desktopView.sheet && host) menuLoader.item.keyboard = host.pointerActivation !== true
       Keys.onEscapePressed: if (host) host.goBack()
+      // A sheet sits as it does in the control center: 16 in from the edges
+      // (728 wide in the 760 palette), as tall as the view, its groups
+      // scrolling between its header and footer (SheetFrame), so the
+      // keyboard's row stays in sight and the footer stays put.
       Column {
         anchors.fill: parent
-        anchors.margins: 20
+        anchors.margins: desktopView.sheet ? 16 : 20
         spacing: 16
+        // The sheets (M6) draw their own back button. Every page is a sheet
+        // since M7 (the theme page is the picker); this is for one that is not.
         Text {
+          visible: !desktopView.sheet
+          height: visible ? implicitHeight : 0
           text: "‹ Back to launcher"
           color: Desktop.Theme.fg
           font.family: Desktop.Theme.font
@@ -215,17 +284,23 @@ Item {
           MouseArea { anchors.fill: parent; onClicked: if (desktopView.host) desktopView.host.goBack() }
         }
         Flickable {
+          id: menuFlick
           width: parent.width
-          height: parent.height - 42
+          height: parent.height - (desktopView.sheet ? 0 : 42)
           clip: true
+          interactive: !desktopView.sheet
           contentWidth: width
-          contentHeight: menuLoader.item ? menuLoader.item.implicitHeight : 0
+          contentHeight: desktopView.sheet ? height : menuLoader.item ? menuLoader.item.implicitHeight : 0
           Loader {
             id: menuLoader
             width: parent.width
+            height: desktopView.sheet ? menuFlick.height : (item ? item.implicitHeight : 0)
+            // M6: the control center's sheets (Panels/Sheets), with the old
+            // menus' interface (shown, monitor, dismissed(), navigate()) plus
+            // back(). M7: no theme page; Theme Picker runs `theme picker themes`.
             source: {
-              var names = { audio: "AudioMenu", net: "NetMenu", bt: "BtMenu", display: "DisplayMenu", tailscale: "TailscaleMenu", theme: "ThemeMenu" }
-              return names[root.activePage] ? Qt.resolvedUrl("../../" + names[root.activePage] + ".qml") : ""
+              var sheets = { audio: "SoundSheet", net: "WifiSheet", bt: "BluetoothSheet", display: "DisplaySheet", tailscale: "TailscaleSheet", nightlight: "NightLightSheet", face: "FaceSheet" }
+              return sheets[root.activePage] ? Qt.resolvedUrl("../../Panels/Sheets/" + sheets[root.activePage] + ".qml") : ""
             }
             onLoaded: {
               if ("monitor" in item) item.monitor = desktopView.host && (desktopView.host.targetScreen || desktopView.host.screen) || Quickshell.screens[0] || null
@@ -236,7 +311,12 @@ Item {
             target: menuLoader.item
             ignoreUnknownSignals: true
             function onDismissed() { if (desktopView.host) desktopView.host.cancel() }
-            function onNavigate(page) { root.activePage = page }
+            // A sheet names another by its control center name (wifi, sound).
+            function onNavigate(page) {
+              var pages = { wifi: "net", sound: "audio" }
+              root.activePage = pages[page] || page
+            }
+            function onBack() { if (desktopView.host) desktopView.host.goBack() }
           }
         }
       }

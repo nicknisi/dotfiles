@@ -1,0 +1,53 @@
+{
+  "about": "M3: Context variant, a music app focused (Island board): music icon, the track title.",
+  "workspaces": [
+    {
+      "name": "S",
+      "windows": 1
+    },
+    {
+      "name": "D",
+      "windows": 2
+    },
+    {
+      "name": "special:scratch",
+      "windows": 1
+    },
+    {
+      "name": "W",
+      "windows": 3
+    },
+    {
+      "name": "N",
+      "windows": 0
+    },
+    {
+      "name": "C",
+      "windows": 1
+    }
+  ],
+  "focused": "D",
+  "clock": "10:45",
+  "date": "Saturday, November 14",
+  "today": "2026-11-14",
+  "media": {
+    "title": "Neon Grid",
+    "artist": "Night Rider",
+    "playing": false
+  },
+  "status": {
+    "wifi": true,
+    "bt": true,
+    "tailscale": true,
+    "muted": false,
+    "battery": 25
+  },
+  "context": {
+    "kind": "music",
+    "icon": "music",
+    "working": false,
+    "text": "Neon Grid",
+    "who": "Spotify",
+    "where": "Neon Grid"
+  }
+}

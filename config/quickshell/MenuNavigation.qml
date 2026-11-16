@@ -49,16 +49,23 @@ Item {
     }
     onCurrentChanged: reveal(current)
 
+    // Only while this item's own window shows. A hidden PopupWindow's items
+    // keep `visible: true`, and Qt resolves a window shortcut through the
+    // QObject parents, so the island's hidden old Hud (a PopupWindow child of
+    // IslandView, gone in M10) took Up, Down, Ctrl+J and Ctrl+K from the
+    // island window and the launcher's query field never saw them (M5 review).
+    readonly property bool live: navigation.scope.visible && navigation.Window.window !== null && navigation.Window.window.visible
+
     Shortcut {
         sequences: ["Down", "Ctrl+J"]
         context: Qt.WindowShortcut
-        enabled: navigation.scope.visible
+        enabled: navigation.live
         onActivated: navigation.move(true)
     }
     Shortcut {
         sequences: ["Up", "Ctrl+K"]
         context: Qt.WindowShortcut
-        enabled: navigation.scope.visible
+        enabled: navigation.live
         onActivated: navigation.move(false)
     }
 }

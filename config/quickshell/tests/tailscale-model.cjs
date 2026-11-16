@@ -172,4 +172,36 @@ assert.equal(model.filePath('https://example.com/tmp/a'), '')
 assert.equal(model.filePath('file://example.com/tmp/a'), '')
 assert.equal(model.filePath('file:///tmp/%E0%A4%A'), '')
 assert.equal(model.filePath('file:///tmp/bad%00name'), '')
+// Offline machines (M6): kept apart from `peers`, with LastSeen parsed, most
+// recently seen first; Go's zero time and a missing field read as 0.
+const away = model.parseStatus(JSON.stringify({
+  BackendState: 'Running',
+  Self: { HostName: 'milhouse', TailscaleIPs: ['100.64.0.1'], UserID: 1 },
+  Peer: {
+    on: { HostName: 'riker', TailscaleIPs: ['100.64.0.2'], Online: true, OS: 'linux', UserID: 1, LastSeen: '0001-01-01T00:00:00Z' },
+    old: { HostName: 'pixel', TailscaleIPs: ['100.64.0.3'], Online: false, OS: 'android', UserID: 1, LastSeen: '2026-11-14T08:45:00Z' },
+    recent: { HostName: 'mbp', TailscaleIPs: ['100.64.0.4'], Online: false, OS: 'macOS', UserID: 1, LastSeen: '2026-11-14T10:30:00Z' },
+    never: { HostName: 'zz-never', TailscaleIPs: ['100.64.0.5'], Online: false, OS: 'linux', UserID: 1 },
+    zero: { HostName: 'aa-zero', TailscaleIPs: ['100.64.0.6'], Online: false, OS: 'linux', UserID: 1, LastSeen: '0001-01-01T00:00:00Z' },
+    vpn: { HostName: 'us-nyc-wg-001', DNSName: 'us-nyc-wg-001.mullvad.ts.net.', Online: false, ExitNodeOption: true, LastSeen: '2026-11-14T10:00:00Z' }
+  }
+}))
+assert.deepEqual(away.peers.map(peer => peer.name), ['riker'], 'peers stays the online list')
+assert.equal(away.peers[0].lastSeen, 0, 'an online peer with the zero time has no LastSeen')
+assert.deepEqual(away.offline.map(peer => peer.name), ['mbp', 'pixel', 'aa-zero', 'zz-never'], 'offline: most recent first, then unknown by name')
+assert.equal(away.offline[0].lastSeen, Date.parse('2026-11-14T10:30:00Z'))
+assert.equal(away.offline[0].online, false)
+assert.equal(away.offline[0].canSend, false, 'nothing is sent to an offline machine')
+assert.equal(away.offline.some(peer => peer.mullvad), false, 'Mullvad exits are never machines')
+assert.equal(model.lastSeenMs('not a time'), 0)
+assert.equal(model.lastSeenMs(''), 0)
+const at = Date.parse('2026-11-14T10:45:00Z')
+assert.equal(model.lastSeenText(Date.parse('2026-11-14T08:45:00Z'), at), 'Last seen 2 h ago', 'the board\'s row')
+assert.equal(model.lastSeenText(Date.parse('2026-11-14T10:30:00Z'), at), 'Last seen 15 min ago')
+assert.equal(model.lastSeenText(at - 20000, at), 'Last seen just now')
+assert.equal(model.lastSeenText(at - 3 * 86400000, at), 'Last seen 3 d ago')
+assert.equal(model.lastSeenText(at - 47 * 3600000, at), 'Last seen 47 h ago')
+assert.equal(model.lastSeenText(0, at), 'Offline', 'never seen')
+// The older status fixture above: every peer it had was online.
+assert.deepEqual(status.offline.map(peer => peer.name), ['exit-old'], 'the offline selected exit node is an offline machine too')
 console.log('TAILSCALE_MODEL_PASS')

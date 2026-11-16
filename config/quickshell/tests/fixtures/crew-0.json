@@ -1,0 +1,59 @@
+{
+  "about": "PLAN M2: no agents. The rest pill has no crew zone and hover opens the big panel everywhere. crew = what `fleet list --json` and `omniwm-agents --print` print, plus `now` (epoch s) to pin idle times.",
+  "workspaces": [
+    {
+      "name": "S",
+      "windows": 1
+    },
+    {
+      "name": "D",
+      "windows": 2
+    },
+    {
+      "name": "special:scratch",
+      "windows": 1
+    },
+    {
+      "name": "W",
+      "windows": 3
+    },
+    {
+      "name": "N",
+      "windows": 0
+    },
+    {
+      "name": "C",
+      "windows": 1
+    }
+  ],
+  "focused": "D",
+  "clock": "10:45",
+  "date": "Saturday, November 14",
+  "media": {
+    "title": "Neon Grid",
+    "artist": "Night Rider"
+  },
+  "status": {
+    "wifi": true,
+    "bt": true,
+    "tailscale": true,
+    "muted": false,
+    "battery": 25
+  },
+  "crew": {
+    "now": 1794715378,
+    "fleet": {
+      "agents": []
+    },
+    "scan": {
+      "total": 0,
+      "agents": [],
+      "spend": {
+        "today": 4.37,
+        "sessions": 6,
+        "tools": [],
+        "models": []
+      }
+    }
+  }
+}

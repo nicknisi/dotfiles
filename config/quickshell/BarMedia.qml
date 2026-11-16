@@ -1,8 +1,11 @@
-// Artwork and metadata in the bar; full controls live in the media popup.
+// Artwork and metadata in the bar; the full controls are the control
+// center's media card (M4: a click opens the control center).
 import QtQuick
 import QtQuick.Layouts
+import qs
+import qs.Kit
 
-BarModule {
+BarChip {
     id: media
     property var player: Media.player
     property bool vertical: false
@@ -54,7 +57,8 @@ BarModule {
         Layout.preferredHeight: 28
         Layout.alignment: Qt.AlignVCenter
         clip: true
-        color: Theme.raised
+        radius: 6
+        color: Tokens.fillLow
         Image {
             id: cover
             objectName: "mediaArtwork"
@@ -66,14 +70,13 @@ BarModule {
             asynchronous: true
             visible: status === Image.Ready
         }
-        Text {
+        Icon {
             objectName: "mediaArtworkFallback"
             anchors.centerIn: parent
             visible: cover.status !== Image.Ready
-            text: "\uf001"
-            font.family: Theme.icons
-            font.pixelSize: 14
-            color: Theme.secondary
+            name: "music"
+            size: 14
+            color: Tokens.inkDim
         }
     }
     ColumnLayout {
@@ -85,10 +88,10 @@ BarModule {
             Layout.fillWidth: true
             text: media.player?.trackTitle || "Untitled track"
             textFormat: Text.PlainText
-            font.family: Theme.font
+            font.family: "Adwaita Sans"
             font.pixelSize: 11
-            font.weight: Font.DemiBold
-            color: Theme.fg
+            font.weight: Font.Medium
+            color: Tokens.fg
             elide: Text.ElideRight
         }
         Text {
@@ -96,9 +99,9 @@ BarModule {
             Layout.fillWidth: true
             text: media.player?.trackArtist || media.player?.identity || "Player"
             textFormat: Text.PlainText
-            font.family: Theme.font
-            font.pixelSize: 9
-            color: Theme.secondary
+            font.family: "Adwaita Sans"
+            font.pixelSize: 10
+            color: Tokens.inkDim
             elide: Text.ElideRight
         }
     }

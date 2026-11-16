@@ -4,8 +4,9 @@ import Quickshell.Io
 import "../../ClipboardModel.js" as ClipboardModel
 import "../core/Match.js" as Match
 
-// ClipboardPicker owns capture. This provider only reads its cliphist history,
-// and only while inside Clipboard. No history is catalogued for global search.
+// ClipboardStore (the shell's wl-paste watchers) owns capture. This provider
+// only reads its cliphist history, and only while inside Clipboard (Super+V
+// opens it there). No history is catalogued for global search.
 Item {
   id: root
   property var host: null
@@ -20,7 +21,8 @@ Item {
   readonly property var provider: ({
     apiVersion: 1, id: "clipboard", name: "Clipboard History", icon: "󰅌", color: "#8dbaec",
     description: "Text, images and video from the existing cliphist history",
-    settings: [{ key: "limit", type: "number", label: "Maximum entries", "default": 100, min: 1, max: 300, integer: true }],
+    // The whole history, as the old Super+V picker listed it, up to the loader's 300.
+    settings: [{ key: "limit", type: "number", label: "Maximum entries", "default": 300, min: 1, max: 300, integer: true }],
     query: function(ctx) { return root.query(ctx) },
     catalog: function(ctx) { return [root.navRow(26)] },
     opened: function() { if (root.scoped) root.refresh() }
@@ -107,10 +109,14 @@ Item {
       return s ? [root.navRow(s)] : []
     }
     if (!root.loaded) { root.refresh(); if (ctx.pending) ctx.pending() }
-    var rows = [], settings = ctx.settings || {}, limit = Math.max(1, Math.min(300, Number(settings.limit) || 100))
+    var rows = [], settings = ctx.settings || {}, limit = Math.max(1, Math.min(300, Number(settings.limit) || 300))
     for (var i = 0; i < root.entries.length && rows.length < limit; i++) {
       var entry = root.entries[i], text = entry.kind === "text"
-      var title = text ? entry.preview.replace(/\s+/g, " ").slice(0, 120) : entry.kind.charAt(0).toUpperCase() + entry.kind.slice(1) + " · Clipboard"
+      // The island's row and preview card (launcher-pickers 5.1): kind icon,
+      // "Image · 1 MiB", mono for text and links, the image's dimensions.
+      // cliphist keeps no file names, so media rows are named by kind.
+      var meta = ClipboardModel.meta(entry)
+      var title = text ? entry.preview.replace(/\s+/g, " ").slice(0, 120) : meta.label
       var score = Match.match(ctx.query, title, entry.kind, "", entry.preview)
       if (!score) continue
       var detail = root.previewResult.id === entry.id ? root.previewResult : {}
@@ -118,6 +124,7 @@ Item {
       rows.push({
         id: entry.id, clipboardId: entry.id, clipboardKind: entry.kind,
         title: title, subtitle: text ? "Text" : entry.preview, icon: "󰅌", section: "Clipboard", verb: "Copy",
+        glyph: meta.icon, meta: meta.line, mono: text, clipboardMeta: meta,
         tier: "item", score: score, order: i, remember: false, hint: "Ctrl+Enter paste",
         action: { type: "exec", argv: ["luajit", root.helperPath, "copy", entry.id, entry.mime || "text"] },
         altAction: { type: "exec", argv: ["clipboard-paste", entry.id, entry.mime, path] },

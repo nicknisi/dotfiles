@@ -95,6 +95,12 @@ local function copilot_latch()
   hl.dispatch(hl.dsp.submap("reset"))
 end
 
+-- The island's dictation Stop button (Quickshell) stops through here, so a
+-- latched session's latch resets with it and the next Copilot press starts
+-- dictating instead of stopping a session that already ended:
+--   hyprctl dispatch '(function() voxtype_copilot_stop() return hl.dsp.no_op() end)()'
+function voxtype_copilot_stop() copilot_stop() end
+
 hl.define_submap("voxtype_copilot", function()
   hl.bind("SPACE", copilot_latch, { ignore_mods = true })
   hl.bind("ESCAPE", copilot_stop)

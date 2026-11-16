@@ -1,10 +1,22 @@
+// Bar.qml - the classic bar's window (pill, full, rail; PLAN M4).
+//
+// BarView.qml draws the bar and handles its clicks, drags and wheel; this is
+// what needs Quickshell around it: the layer surface on Prefs.edge, the
+// Hyprland workspaces and the tray it shows, the Interrupt popup beside the
+// sound module, the drop target while it is dragged, and the anchored panel
+// host (Hosts/AnchoredHost.qml) that shows the control center, its sheets,
+// the power menu and the calendar against the clicked module.
+//
+// Under SHELL_SANDBOX=1 a fixture's workspaces, focused name, status and media
+// stand in for Hyprland and the services (sandbox shots).
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 import Quickshell.Services.SystemTray
 import QtQuick
 import QtQuick.Layouts
-import "BarGeometry.js" as BarGeometry
+import qs.Hosts
+import "lib/WorkspaceOrder.js" as WorkspaceOrder
 
 PanelWindow {
     id: bar
@@ -13,24 +25,14 @@ PanelWindow {
 
     readonly property string edge: Prefs.edge
     readonly property bool vertical: Prefs.vertical
-    readonly property string mode: Prefs.barMode || "pill"
-    readonly property bool full: mode === "full"
-    readonly property bool rail: mode === "rail"
-    readonly property int thick: Theme.barHeight
-    readonly property int inset: full ? 0 : Theme.barInset
-    readonly property real along: vertical ? height : width
-    readonly property real mediaExtra: Media.player ? Math.max(0, (vertical ? mediaButton.implicitHeight : mediaButton.implicitWidth) - 32) : 0
-    readonly property real targetLength: full ? along : Math.min(along - 2 * inset, rail ? along * 0.8 : 518 + mediaExtra)
-    readonly property real bodyLength: Math.max(thick, targetLength)
-    readonly property real bodyX: vertical ? inset : (full ? 0 : (width - body.width) / 2)
-    readonly property real bodyY: vertical ? (full ? 0 : (height - body.height) / 2) : inset
-    property bool suppressClicks: false
-    property string dragEdge: edge
-    property string openMenu: ""
-    // The tray icon whose menu the HUD is showing, when openMenu is "tray".
-    property var trayItem: null
-    property Item menuAnchor: systemButton
-    property string menuAlignment: "end"
+    readonly property alias view: barView
+    readonly property alias host: host
+    // shell.qml's ThemePicker: the anchored host's Theme packs, Theme mini
+    // and `bar open theme` open it on this screen (M7).
+    property var pickerHost: null
+    // shell.qml's ScreenCorners: the anchored host paints the corners over
+    // the power menu's scrim (Hosts/AnchoredView).
+    property var corners: null
     property date now: new Date()
 
     anchors {
@@ -44,577 +46,170 @@ PanelWindow {
         bar.visible = false;
         Qt.callLater(() => bar.visible = true);
     }
-    implicitWidth: vertical ? thick + 2 * inset : screen.width
-    implicitHeight: vertical ? screen.height : thick + 2 * inset
+    // The pill's window also holds its shadow (BarView.shadowRoom); the
+    // reserve stays Theme.barExtent (Reserve.qml).
+    implicitWidth: vertical ? barView.implicitWidth : screen.width
+    implicitHeight: vertical ? screen.height : barView.implicitHeight
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "quickshell-capsule"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
 
-    IdleInhibitor {
-        window: bar
-        enabled: Caffeine.active
-    }
+    // Caffeine's IdleInhibitor lives in ShellServices, on the Reserve window,
+    // so keep-awake works in every bar mode and with one inhibitor per session.
     Timer {
         interval: 1000
         running: true
         repeat: true
         onTriggered: bar.now = new Date()
     }
-    Timer {
-        id: clickReset
-        interval: 160
-        onTriggered: bar.suppressClicks = false
-    }
-
-    function consumeClick() {
-        if (!suppressClicks)
-            return false;
-        suppressClicks = false;
-        clickReset.stop();
-        return true;
-    }
-    function toggleMenu(name, item, alignment) {
-        if (consumeClick())
-            return;
-        const closing = openMenu === name && menuAnchor === item;
-        NotificationState.closeCenter();
-        menuAnchor = item;
-        menuAlignment = alignment || "end";
-        openMenu = closing ? "" : name;
-    }
-    function nearestEdge(x, y) {
-        return BarGeometry.nearestEdge(edge, screen.width, screen.height, width, height, x, y);
-    }
-    function finishDrag() {
-        const next = dragEdge;
-        if (next !== edge)
-            Prefs.setEdge(next);
-        openMenu = "";
-        suppressClicks = true;
-        clickReset.restart();
-        Qt.callLater(registerBell);
-    }
-    function registerBell() {
-        NotificationState.registerAnchor(bar.screen, notificationsButton, bar.edge);
-        if (bar.openMenu !== "")
-            hud.anchor.updateAnchor();
-    }
-    Component.onCompleted: {
-        shownWorkspaces = workspaceSource;
-        registerBell();
-    }
-    Component.onDestruction: NotificationState.unregisterAnchor(bar.screen, notificationsButton)
-    onEdgeChanged: {
-        openMenu = "";
-        Qt.callLater(registerBell);
-    }
-    onWidthChanged: Qt.callLater(registerBell)
-    onHeightChanged: Qt.callLater(registerBell)
-    Connections {
-        target: Prefs
-        function onBarModeChanged() {
-            bar.openMenu = "";
-            Qt.callLater(bar.registerBell);
-        }
-    }
-    Connections {
-        target: NotificationState
-        function onCenterOpenChanged() {
-            if (NotificationState.centerOpen)
-                bar.openMenu = "";
-        }
-    }
 
     mask: Region {
-        item: body
-        radius: bar.full ? 0 : 24
+        item: barView.body
+        radius: barView.radius
     }
 
-    readonly property string focusedName: Hyprland.focusedWorkspace?.name ?? ""
+    // The bar's own order: by Hyprland id, so creation order (today's rule);
+    // a fixture's in the sandbox, in the island's order.
+    readonly property bool fixtureWorkspaces: Array.isArray(Fixture.data.workspaces)
+    readonly property string focusedName: fixtureWorkspaces ? String(Fixture.data.focused ?? "") : (Hyprland.focusedWorkspace?.name ?? "")
     readonly property var workspaceSource: {
+        if (bar.fixtureWorkspaces)
+            return WorkspaceOrder.shown(Fixture.data.workspaces, bar.focusedName).map(w => ({ name: w.name, urgent: w.urgent, activate: () => {} }));
         // Special workspaces (the scratchpad) are overlays, not places to go.
         const list = Hyprland.workspaces.values.filter(w => !w.name.startsWith("special:") && ((w.toplevels?.values?.length ?? 0) > 0 || w.name === bar.focusedName));
         list.sort((a, b) => a.id - b.id);
-        return list;
-    }
-    property var shownWorkspaces: []
-    onWorkspaceSourceChanged: shownWorkspaces = workspaceSource
-
-    // Wheel over the strip steps through the chips in the order shown, no
-    // wrap. Touchpads send many small deltas, so they add up to one notch.
-    property real wheelAccumulator: 0
-    function stepWorkspace(delta) {
-        wheelAccumulator += delta;
-        if (Math.abs(wheelAccumulator) < 120)
-            return;
-        const direction = wheelAccumulator < 0 ? 1 : -1;
-        wheelAccumulator = 0;
-        const index = shownWorkspaces.findIndex(w => w.name === focusedName) + direction;
-        if (index >= 0 && index < shownWorkspaces.length)
-            shownWorkspaces[index].activate();
+        return list.map(w => ({
+                    name: w.name,
+                    urgent: (w.toplevels?.values ?? []).some(t => t.urgent),
+                    activate: () => w.activate()
+                }));
     }
 
-    Item {
-        id: body
-        x: bar.bodyX
-        y: bar.bodyY
-        width: bar.vertical ? bar.thick : bar.bodyLength
-        height: bar.vertical ? bar.bodyLength : bar.thick
-
-        DragHandler {
-            id: drag
-            target: null
-            acceptedButtons: Qt.LeftButton
-            grabPermissions: PointerHandler.CanTakeOverFromAnything
-            readonly property point pointer: centroid.scenePosition
-            onPointerChanged: if (active)
-                bar.dragEdge = bar.nearestEdge(pointer.x, pointer.y)
-            onActiveChanged: {
-                if (active) {
-                    bar.openMenu = "";
-                    NotificationState.closeCenter();
-                    bar.suppressClicks = true;
-                    bar.dragEdge = bar.nearestEdge(pointer.x, pointer.y);
-                } else if (bar.suppressClicks) {
-                    bar.finishDrag();
-                }
-            }
-        }
-
-        SurfaceShadow {
-            surface: surface
-            visible: !bar.full && !drag.active
-        }
-        Rectangle {
-            id: surface
-            property real expansion: !bar.full && (drag.active || bar.openMenu !== ""
-                || (NotificationState.centerOpen && NotificationState.centerScreen === bar.screen)) ? 3 : 0
-            anchors.fill: parent
-            anchors.margins: -expansion
-            // Only the shell grows. Contents, hit targets and reservation stay fixed.
-            Behavior on expansion {
-                NumberAnimation { duration: Theme.unfold; easing.type: Easing.OutBack; easing.overshoot: 1.2 }
-            }
-            radius: bar.full ? 0 : 24
-            color: Theme.alpha(Theme.surface, Prefs.translucent ? 0.62 : 1)
-            border.width: drag.active ? 1 : (bar.full ? 0 : 1)
-            border.color: drag.active ? Theme.accent : Theme.alpha(Theme.fg, 0.14)
-            clip: true
-            // Buttons above this background keep their own clicks.
-            TapHandler {
-                acceptedButtons: Qt.LeftButton
-                onDoubleTapped: Prefs.toggleTranslucent()
-            }
-            Behavior on color {
-                ColorAnimation {
-                    duration: Theme.quick
-                }
-            }
-            Rectangle {
-                visible: bar.full
-                x: bar.edge === "left" ? parent.width - 1 : 0
-                y: bar.edge === "top" ? parent.height - 1 : 0
-                width: bar.vertical ? 1 : parent.width
-                height: bar.vertical ? parent.height : 1
-                color: Theme.alpha(Theme.accent, 0.35)
-            }
-        }
-        Rectangle {
-            visible: drag.active
-            anchors.fill: parent
-            radius: surface.radius
-            color: Theme.alpha(Theme.accent, 0.12)
-            border.width: 1
-            border.color: Theme.accent
-        }
-
-        Item {
-            id: leading
-            x: bar.vertical ? 0 : 8
-            y: bar.vertical ? 8 : 0
-            width: bar.vertical ? bar.thick : workspaces.width + 12
-            height: bar.vertical ? workspaces.height + 12 : bar.thick
-            WheelHandler {
-                onWheel: event => bar.stepWorkspace(event.angleDelta.y)
-            }
-            ListView {
-                id: workspaces
-                // Not a flickable list: the wheel switches workspaces instead,
-                // and the current chip is scrolled into view by index below.
-                interactive: false
-                anchors.centerIn: parent
-                width: bar.vertical ? 30 : Math.min(contentWidth, Math.max(30, Math.min(body.width * 0.34, body.width - trailing.width - clockButton.width - 40)))
-                height: bar.vertical ? Math.min(contentHeight, Math.max(30, Math.min(body.height * 0.34, body.height - trailing.height - clockButton.height - 40))) : 28
-                orientation: bar.vertical ? ListView.Vertical : ListView.Horizontal
-                spacing: 3
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                model: bar.shownWorkspaces
-                currentIndex: bar.shownWorkspaces.findIndex(w => w.name === bar.focusedName)
-                onCurrentIndexChanged: if (currentIndex >= 0)
-                    positionViewAtIndex(currentIndex, ListView.Contain)
-                onCountChanged: if (currentIndex >= 0)
-                    positionViewAtIndex(currentIndex, ListView.Contain)
-                delegate: BarModule {
-                    id: workspaceButton
-                    required property var modelData
-                    required property int index
-                    readonly property bool selected: modelData.name === bar.focusedName
-                    // A window there wants attention (a Slack mention, a
-                    // finished download). Hyprland marks the window; the chip
-                    // shows it until that workspace is visited.
-                    readonly property bool urgent: !selected && (modelData.toplevels?.values ?? []).some(t => t.urgent)
-                    width: 30
-                    height: 28
-                    padding: 2
-                    text: "Workspace " + modelData.name + (urgent ? " · needs attention" : "")
-                    onClicked: if (!bar.consumeClick())
-                        modelData.activate()
-                    onScrolled: delta => bar.stepWorkspace(delta)
-                    background: Rectangle {
-                        radius: Theme.controlRadius
-                        color: workspaceButton.selected ? Theme.accent : workspaceButton.urgent ? Theme.alpha(Theme.yellow, 0.22) : (workspaceButton.hovered ? Theme.raised : "transparent")
-                        border.width: workspaceButton.visualFocus ? 2 : 0
-                        border.color: Theme.fg
-                    }
-                    Text {
-                        Layout.fillWidth: true
-                        text: workspaceButton.modelData.name
-                        font.family: Theme.font
-                        font.pixelSize: 11
-                        font.bold: true
-                        color: workspaceButton.selected ? Theme.accentText : workspaceButton.urgent ? Theme.yellow : Theme.secondary
-                        elide: Text.ElideRight
-                        horizontalAlignment: Text.AlignHCenter
-                    }
-                }
-            }
-        }
-
-        BarModule {
-            id: clockButton
-            readonly property real span: bar.vertical ? 54 : clockText.implicitWidth + 22
-            x: bar.vertical ? 0 : Math.max(leading.x + leading.width + 6, Math.min((body.width - width) / 2, trailing.x - width - 6))
-            y: bar.vertical ? Math.max(leading.y + leading.height + 6, Math.min((body.height - height) / 2, trailing.y - height - 6)) : 0
-            width: bar.vertical ? bar.thick : span
-            height: bar.vertical ? span : bar.thick
-            padding: 4
-            cornerRadius: Theme.controlRadius
-            text: Qt.formatDateTime(bar.now, "dddd, d MMMM")
-            highlighted: bar.openMenu === "clock"
-            onClicked: bar.toggleMenu("clock", clockButton, "center")
-            Text {
-                id: clockText
-                text: Qt.formatDateTime(bar.now, bar.vertical ? "HH\nmm" : "HH:mm")
-                font.family: Theme.font
-                font.pixelSize: 12
-                font.bold: true
-                color: Theme.fg
-                horizontalAlignment: Text.AlignHCenter
-                Layout.alignment: Qt.AlignCenter
-            }
-        }
-
-        Item {
-            id: trailing
-            readonly property real span: (bar.vertical ? status.implicitHeight : status.implicitWidth) + 12
-            x: bar.vertical ? 0 : body.width - width - 8
-            y: bar.vertical ? body.height - height - 8 : 0
-            width: bar.vertical ? bar.thick : span
-            height: bar.vertical ? span : bar.thick
-            GridLayout {
-                id: status
-                anchors.centerIn: parent
-                flow: bar.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
-                rowSpacing: 3
-                columnSpacing: 3
-
-                // Privacy. An app holding the microphone, and a running screen
-                // recording; each shows only while true. The record glyph
-                // stops the recording, the mic glyph opens the audio page,
-                // which lists who is listening.
-                StatusButton {
-                    id: micButton
-                    glyph: "\u{f036c}"
-                    visible: Audio.recorders.length > 0
-                    tint: Theme.red
-                    text: "Microphone in use · " + Audio.recorders.map(n => Audio.appFor(n)).join(", ")
-                    highlighted: bar.openMenu === "audio" && bar.menuAnchor === micButton
-                    onClicked: bar.toggleMenu("audio", micButton)
-                }
-                StatusButton {
-                    id: recordButton
-                    glyph: "\u{f044a}"
-                    visible: Capture.recording
-                    tint: Theme.red
-                    text: "Recording the screen · stop"
-                    onClicked: if (!bar.consumeClick())
-                        Capture.stop()
-                }
-                // StatusNotifierItem icons: 1Password, Slack, Discord, Spotify.
-                // Left click is the app's own primary action, then a jump to
-                // its window wherever that workspace is: the app only asks
-                // Hyprland for focus, this makes sure of it. Right click opens
-                // its menu as a HUD page, middle click is its secondary action,
-                // and the wheel scrolls.
-                Repeater {
-                    model: SystemTray.items
-                    BarModule {
-                        id: trayButton
-                        required property var modelData
-                        Layout.preferredWidth: 28
-                        Layout.preferredHeight: 32
-                        padding: 3
-                        cornerRadius: Theme.controlRadius
-                        opacity: modelData.status === Status.Passive ? 0.55 : 1
-                        text: modelData.tooltipTitle || modelData.title || modelData.id
-                        highlighted: bar.openMenu === "tray" && bar.trayItem === modelData
-                        onClicked: {
-                            if (bar.consumeClick())
-                                return;
-                            if (modelData.onlyMenu) {
-                                trayButton.openMenu();
-                                return;
-                            }
-                            modelData.activate();
-                            NotificationState.focusApp([modelData.title, modelData.tooltipTitle, modelData.id]);
-                        }
-                        onScrolled: delta => modelData.scroll(Math.round(delta / 120), false)
-                        function openMenu() {
-                            if (!modelData.hasMenu)
-                                return;
-                            bar.trayItem = modelData;
-                            bar.toggleMenu("tray", trayButton);
-                        }
-                        Image {
-                            source: trayButton.modelData.icon
-                            sourceSize.width: 16
-                            sourceSize.height: 16
-                            Layout.preferredWidth: 16
-                            Layout.preferredHeight: 16
-                            Layout.alignment: Qt.AlignCenter
-                        }
-                        // Sits over the button for the buttons it does not
-                        // take; a left press falls through to the module.
-                        Item {
-                            parent: trayButton
-                            anchors.fill: parent
-                            TapHandler {
-                                acceptedButtons: Qt.RightButton | Qt.MiddleButton
-                                onTapped: (point, button) => {
-                                    if (button === Qt.RightButton)
-                                        trayButton.openMenu();
-                                    else
-                                        trayButton.modelData.secondaryActivate();
-                                }
-                            }
-                        }
-                    }
-                }
-                StatusButton {
-                    id: awakeButton
-                    glyph: "\u{f0176}"
-                    visible: Caffeine.active
-                    tint: Theme.accent
-                    text: "Keep awake · " + Caffeine.status
-                    highlighted: bar.openMenu === "caffeine"
-                    onClicked: bar.toggleMenu("caffeine", awakeButton)
-                }
-                BarMedia {
-                    id: mediaButton
-                    vertical: bar.vertical
-                    showDetails: !vertical && bar.along >= 800
-                    suppressClicks: bar.suppressClicks
-                    consumeClick: () => bar.consumeClick()
-                    highlighted: bar.openMenu === "media"
-                    onClicked: bar.toggleMenu("media", mediaButton)
-                    Layout.preferredWidth: implicitWidth
-                    Layout.preferredHeight: implicitHeight
-                }
-                StatusButton {
-                    id: networkButton
-                    glyph: Net.portal ? "󰤩" : (Net.connected ? "󰤨" : "󰤮")
-                    tint: Net.portal ? Theme.yellow : (Net.device !== null && !Net.connected ? Theme.red : Theme.secondary)
-                    text: Net.connected ? "Network connected" : "Network disconnected"
-                    highlighted: bar.openMenu === "net"
-                    onClicked: bar.toggleMenu("net", networkButton)
-                }
-                StatusButton {
-                    id: notificationsButton
-                    glyph: NotificationState.dnd ? "" : ""
-                    tint: NotificationState.dnd ? Theme.yellow : NotificationState.unread > 0 ? Theme.accent : Theme.secondary
-                    text: NotificationState.dnd ? "Notifications · do not disturb on" : NotificationState.count + " notifications"
-                    highlighted: NotificationState.centerOpen && NotificationState.centerScreen === bar.screen
-                    onClicked: {
-                        if (bar.consumeClick())
-                            return;
-                        bar.openMenu = "";
-                        bar.registerBell();
-                        NotificationState.toggleCenter(bar.screen);
-                    }
-                    Accessible.description: "Left-click for notifications; right-click to toggle do not disturb"
-                    Item {
-                        parent: notificationsButton
-                        anchors.fill: parent
-                        TapHandler {
-                            acceptedButtons: Qt.RightButton
-                            onTapped: {
-                                if (!bar.consumeClick())
-                                    NotificationState.toggleDnd();
-                            }
-                        }
-                    }
-                }
-                StatusButton {
-                    id: audioButton
-                    glyph: Audio.outputIcon
-                    tint: Audio.muted ? Theme.red : Theme.secondary
-                    text: (Audio.muted ? "Muted" : "Volume " + Math.round(Audio.volume * 100) + "%") + " · " + Audio.labelFor(Audio.sink)
-                    enabled: Audio.ready
-                    highlighted: bar.openMenu === "audio"
-                    onClicked: bar.toggleMenu("audio", audioButton)
-                    onScrolled: delta => {
-                        if (delta !== 0)
-                            Audio.setVolume(Audio.sink, Audio.volume + (delta > 0 ? 0.02 : -0.02));
-                    }
-                }
-                BarModule {
-                    id: systemButton
-                    Layout.preferredWidth: bar.vertical ? 32 : systemContent.implicitWidth + 12
-                    Layout.preferredHeight: 32
-                    padding: 3
-                    cornerRadius: Theme.controlRadius
-                    text: "System controls · appearance and bar placement"
-                    highlighted: bar.openMenu === "home" || bar.openMenu === "appearance"
-                    onClicked: bar.toggleMenu("home", systemButton)
-                    RowLayout {
-                        id: systemContent
-                        Layout.alignment: Qt.AlignCenter
-                        spacing: 6
-                        Text {
-                            text: ""
-                            font.family: Theme.icons
-                            font.pixelSize: 15
-                            color: Theme.fg
-                        }
-                        Text {
-                            visible: Battery.present && !bar.vertical
-                            text: Battery.percent + "%"
-                            font.family: Theme.font
-                            font.pixelSize: 10
-                            color: Battery.low ? Theme.red : Battery.charging ? Theme.green : Theme.secondary
-                        }
-                    }
-                    Rectangle {
-                        parent: systemButton
-                        x: parent.width - 5
-                        y: 1
-                        width: 5
-                        height: 5
-                        radius: 2.5
-                        color: Battery.low ? Theme.red : Theme.yellow
-                        visible: Battery.low || Net.portal || (Net.device !== null && !Net.connected)
-                    }
-                }
-            }
-        }
+    // A fixture's media as a stand-in player: title, artist, playing.
+    readonly property var fixturePlayer: {
+        const m = Fixture.data.media;
+        if (!m) return null;
+        return {
+            trackTitle: m.title ?? "",
+            trackArtist: m.artist ?? "",
+            identity: m.title ?? "",
+            trackArtUrl: "",
+            isPlaying: m.playing === true,
+            canTogglePlaying: false,
+            canGoNext: false,
+            canGoPrevious: false
+        };
     }
 
-    component StatusButton: BarModule {
-        id: statusButton
-        property string glyph
-        property color tint: Theme.secondary
-        Layout.preferredWidth: 32
-        Layout.preferredHeight: 32
-        padding: 3
-        cornerRadius: Theme.controlRadius
-        Text {
-            text: statusButton.glyph
-            font.family: Theme.icons
-            font.pixelSize: 14
-            color: statusButton.tint
-            Layout.alignment: Qt.AlignCenter
-        }
+    BarView {
+        id: barView
+        anchors.fill: parent
+        screen: bar.screen
+        now: bar.now
+        workspaces: bar.workspaceSource
+        focusedName: bar.focusedName
+        trayItems: SystemTray.items
+        status: Fixture.data.status ?? null
+        player: Fixture.data.media !== undefined ? bar.fixturePlayer : Media.player
+        seamFrom: host.seamFrom
+        seamTo: host.seamTo
+        seamStartLine: host.seamStartLine
+        seamEndLine: host.seamEndLine
+        dpr: bar.devicePixelRatio > 0 ? bar.devicePixelRatio : 1
     }
 
+    // Volume, brightness and the mic, beside the sound module, while no panel
+    // is open.
     PopupWindow {
         id: feedback
-        anchor.item: audioButton
-        anchor.rect.x: bar.vertical ? (bar.edge === "left" ? audioButton.width + 8 : -implicitWidth - 8) : (audioButton.width - implicitWidth) / 2
-        anchor.rect.y: bar.vertical ? 0 : (bar.edge === "top" ? audioButton.height + 8 : -implicitHeight - 8)
+        readonly property Item target: barView.audioButton
+        anchor.item: target
+        anchor.rect.x: bar.vertical ? (bar.edge === "left" ? target.width + 8 : -implicitWidth - 8) : (target.width - implicitWidth) / 2
+        anchor.rect.y: bar.vertical ? 0 : (bar.edge === "top" ? target.height + 8 : -implicitHeight - 8)
         anchor.adjustment: PopupAdjustment.Slide
-        visible: Interrupt.active && bar.openMenu === "" && !NotificationState.centerOpen
+        visible: Interrupt.active && barView.openMenu === "" && !host.shown
         color: "transparent"
         implicitWidth: 210
         implicitHeight: 40
         mask: Region {}
-        ShellSurface {
+        Rectangle {
             anchors.fill: parent
+            radius: height / 2
+            color: Tokens.surface
+            border.width: 1
+            border.color: Tokens.hairline
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 10
+                anchors.leftMargin: 14
+                anchors.rightMargin: 14
                 spacing: 10
                 Text {
                     text: Interrupt.glyph
                     font.family: Theme.icons
-                    color: Theme.accent
+                    color: Tokens.accent
                     font.pixelSize: 14
                 }
                 Rectangle {
                     Layout.fillWidth: true
                     height: 3
-                    color: Theme.raised
+                    radius: 1.5
+                    color: Tokens.fillHigh
                     visible: Interrupt.metered
                     Rectangle {
                         width: parent.width * Math.max(0, Math.min(1, Interrupt.fraction))
                         height: 3
-                        color: Theme.accent
+                        radius: 1.5
+                        color: Tokens.accent
                     }
                 }
                 Text {
                     text: Interrupt.label
-                    font.family: Theme.font
+                    font.family: "Adwaita Sans"
                     font.pixelSize: 11
-                    color: Theme.fg
+                    color: Tokens.fg
                 }
             }
         }
     }
 
+    // Where a drop lands, while the bar is dragged toward another edge.
     PanelWindow {
         screen: bar.screen
-        visible: drag.active && bar.dragEdge !== bar.edge
-        anchors { top: true; bottom: true; left: true; right: true }
+        visible: barView.dragging && barView.dragEdge !== bar.edge
+        anchors {
+            top: true
+            bottom: true
+            left: true
+            right: true
+        }
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "quickshell-bar-drop-target"
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
         mask: Region {}
         Rectangle {
-            readonly property bool vertical: bar.dragEdge === "left" || bar.dragEdge === "right"
+            readonly property bool vertical: barView.dragEdge === "left" || barView.dragEdge === "right"
             width: vertical ? 4 : 180
             height: vertical ? 180 : 4
-            x: bar.dragEdge === "left" ? 8 : bar.dragEdge === "right" ? parent.width - width - 8 : (parent.width - width) / 2
-            y: bar.dragEdge === "top" ? 8 : bar.dragEdge === "bottom" ? parent.height - height - 8 : (parent.height - height) / 2
+            x: barView.dragEdge === "left" ? 8 : barView.dragEdge === "right" ? parent.width - width - 8 : (parent.width - width) / 2
+            y: barView.dragEdge === "top" ? 8 : barView.dragEdge === "bottom" ? parent.height - height - 8 : (parent.height - height) / 2
             radius: 2
-            color: Theme.accent
+            color: Tokens.accent
         }
     }
 
-    Hud {
-        id: hud
-        anchorItem: bar.menuAnchor
-        alignment: bar.menuAlignment
-        edge: bar.edge
-        monitor: bar.screen
+    // The control center, its sheets, the power menu and the calendar, against
+    // the clicked module (island-modes 12.4).
+    AnchoredHost {
+        id: host
+        barWindow: bar
+        view: barView
+        // Where the bar window sits on its screen: the top-left for the top
+        // and left edges, flush with the far edge for the bottom and right.
+        barOrigin: Qt.point(bar.edge === "right" ? bar.screen.width - bar.width : 0, bar.edge === "bottom" ? bar.screen.height - bar.height : 0)
         now: bar.now
-        page: bar.openMenu
-        trayItem: bar.trayItem
-        onNavigate: page => bar.openMenu = page
-        onDismissed: {
-            bar.openMenu = "";
-            bar.menuAnchor?.forceActiveFocus();
-        }
+        pickerHost: bar.pickerHost
+        corners: bar.corners
     }
 }

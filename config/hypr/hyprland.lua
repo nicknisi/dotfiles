@@ -152,6 +152,13 @@ hl.config({
     -- link is opened from elsewhere. Off, Hyprland only marks the window
     -- urgent (the yellow chip) and leaves you where you were.
     focus_on_activate = true,
+    -- A lock screen that crashes can be relaunched: bin/shell-lock's watcher
+    -- starts a new one, which takes the dead lock over, instead of leaving
+    -- the "lockscreen crashed" screen until a TTY login (PLAN DECISION 4).
+    -- The cost: any process running as you can also take over a lock, a
+    -- live one too (Hyprland admits any new lock while this is on); it can
+    -- already end a dead one with hl.clear_crashed_lockscreen().
+    allow_session_lock_restore = true,
   },
 })
 
@@ -159,6 +166,14 @@ dofile(hypr .. "/single-window.lua")
 
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace", scale = 0.5 })
 hl.gesture({ fingers = 4, direction = "horizontal", action = "scroll_move" })
+
+-- The shell's spatial spring (PLAN M9, main-tokens 1.10): the island's own
+-- morph curve, mass 1, stiffness 600, damping 49 (critically damped at
+-- 2 * sqrt(600) = 49). Defined, not yet used: how `speed` scales a spring is
+-- unsettled, so windows stay on the beziers below until it is tried on the
+-- live session (SWITCHOVER.md, "M9": swap bezier = "default" on the global
+-- leaf for spring = "shellSpatial").
+hl.curve("shellSpatial", { type = "spring", mass = 1, stiffness = 600, damping = 49 })
 
 -- The 8ds default takes 800ms. Keep the motion, but get it out of the way.
 hl.animation({ leaf = "global", enabled = true, speed = 2.5, bezier = "default" })
@@ -184,7 +199,23 @@ end
 
 -- The launcher already lives inside Quickshell, so this only sends its toggle
 -- message. It gives each chosen app its own uwsm scope before disappearing.
-hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs ipc call launcher toggle"))
+--
+-- The shell's own keys are global shortcuts: the compositor hands the press to
+-- Quickshell's GlobalShortcut (appid "quickshell") over the
+-- hyprland-global-shortcuts protocol, in order, with no process started. An
+-- exec of `qs ipc call ...` started a qs client per press (a round trip of
+-- 64 ms median on milhouse); in the sandbox, key to open fell from 168 to 99 ms
+-- median for Super+Space and from 154 to 76 ms for Super+V
+-- (.shell-rebuild/specs/shots/keys/keys.sh). The IPC targets stay for
+-- scripts. A non-release bind delivers both the press and the release; the
+-- shell acts on the press.
+--
+-- A global bind does nothing until a running shell registers its name, and a
+-- shell from before these binds registers none of the launcher, voice,
+-- clipboard, control center or calendar ones. When switching over, move the
+-- running shell to the commit with these binds first, then this file
+-- (Hyprland reloads it on save).
+hl.bind("SUPER + SPACE", hl.dsp.global("quickshell:launcher-toggle"))
 pcall(dofile, hypr .. "/launcher-voice.lua")
 -- Hotkeys set from the launcher (Ctrl+B on a result) live in their own file,
 -- written by Quickshell. Sourced inside the registration window so the
@@ -197,13 +228,14 @@ pcall(dofile, hypr .. "/launcher-hotkeys.lua")
 hl.define_submap("keystroke-capture", function()
   hl.bind("ESCAPE", hl.dsp.submap("reset"), { non_consuming = true })
 end)
--- Global clipboard history. Ctrl+Shift+V remains direct terminal paste.
-hl.bind(
-  "SUPER + V",
-  hl.dsp.exec_cmd([[
-  qs ipc call clipboard toggle "$(hyprctl activeworkspace -j | jq -r .monitor)"
-]])
-)
+-- Global clipboard history. Ctrl+Shift+V remains direct terminal paste. The
+-- shell opens it on the focused monitor (Hyprland.focusedMonitor), which the
+-- old bind looked up with hyprctl and jq on every press.
+hl.bind("SUPER + V", hl.dsp.global("quickshell:clipboard-toggle"))
+-- The island's control center and calendar (in the pill, full and rail modes,
+-- the panels the bar's status module and clock open).
+hl.bind("SUPER + ALT + C", hl.dsp.global("quickshell:control-center-toggle"))
+hl.bind("SUPER + ALT + D", hl.dsp.global("quickshell:calendar-toggle"))
 
 -- Capture. The launcher exposes every target; these are the fast paths.
 hl.bind("PRINT", hl.dsp.exec_cmd("capture shot region"))
@@ -300,7 +332,7 @@ hl.window_rule({
 })
 hl.bind("SUPER + SHIFT + RETURN", hl.dsp.exec_cmd("sh -c 'uwsm-app -- \"$(xdg-settings get default-web-browser)\"'"))
 hl.bind("SUPER + Q", hl.dsp.window.close())
-hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("loginctl lock-session")) -- hypridle runs hyprlock
+hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("loginctl lock-session")) -- hypridle runs shell-lock (hyprlock as fallback)
 hl.bind("SUPER + SHIFT + ESCAPE", hl.dsp.exec_cmd("uwsm stop"))
 
 -- Native compositor cursor zoom (SUPER+=/- and SUPER+SHIFT+0).
@@ -410,15 +442,28 @@ hl.config({
 -- it, and a layer surface asks through a rule. The capsule's window spans the
 -- whole edge with the pill drawn in the middle, so ignore_alpha keeps the
 -- fully transparent rest of it (and the shadow's faint edge) from smearing
--- the desktop; blur_popups covers the HUD menus, which are popups of that
+-- the desktop; blur_popups covers the volume feedback, a popup of that
 -- layer. Opaque surfaces are unaffected: this only shows once the capsule's
 -- translucent mode is on (double-click the pill, or "Toggle Bar Transparency").
+-- The island's surfaces (the island, the launcher, the theme picker, the
+-- classic modes' notification banners) are opaque with one shadow and no blur
+-- (Tokens board), so their namespaces stay out of this rule: a shadow pixel
+-- above ignore_alpha would blur (M10).
 hl.layer_rule({
   name = "shell-blur",
-  match = { namespace = "^(quickshell|quickshell-capsule|launcher|clipboard-history|theme-picker|quickshell-voxtype-osd)$" },
+  match = { namespace = "^(quickshell-capsule|quickshell-voxtype-osd)$" },
   blur = true,
   blur_popups = true,
   ignore_alpha = 0.3,
+})
+
+-- The sleep fade (quickshell SleepNights.qml): its black layer fades itself
+-- over 400 ms before sleep and back up on wake. A layer animation on map
+-- would grow or fade a second copy of it over the first frames.
+hl.layer_rule({
+  name = "shell-sleep",
+  match = { namespace = "^quickshell-sleep$" },
+  no_anim = true,
 })
 
 -- Workspaces: 1-9, the lettered set, and the tab bindings.

@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import QtQuick.Dialogs
 import "TailscaleModel.js" as Model
 
 Singleton {
@@ -31,6 +32,9 @@ Singleton {
     readonly property bool receiving: receiver.running
     readonly property var self: status.self ?? ({})
     readonly property var peers: running ? (status.peers ?? []) : []
+    // Machines that are away, most recently seen first, each with `lastSeen`
+    // (epoch ms, 0 when unknown): the control center's Tailscale sheet (M6).
+    readonly property var offlinePeers: running ? (status.offline ?? []) : []
     readonly property var exitNodes: running ? (status.exitNodes ?? []) : []
     readonly property string accountId: accounts.find(a => a.selected)?.id ?? ""
     readonly property string accountName: accounts.find(a => a.selected)?.label ?? status.tailnet ?? ""
@@ -178,6 +182,31 @@ Singleton {
         sender.running = true;
     }
 
+    // Taildrop's file chooser for the control center's Tailscale sheet (M6).
+    // It lives here, not in the sheet: the chooser is its own window, so a
+    // click into it clears the island's focus grab, the control center closes
+    // and its sheet goes with it. The sheet closes its host first and the
+    // send still lands. False when that machine cannot take files now.
+    // `filePicker` is that dialog (tests/tailscale.qml drives it).
+    readonly property alias filePicker: taildropFiles
+    function chooseFiles(peerId, title) {
+        const peer = peers.find(p => p.id === peerId);
+        if (busy || !peer?.canSend) return false;
+        taildropFiles.peerId = peerId;
+        taildropFiles.profile = accountId;
+        taildropFiles.title = title || "Send to " + peer.name;
+        taildropFiles.open();
+        return true;
+    }
+    FileDialog {
+        id: taildropFiles
+        objectName: "taildropFiles"
+        property string peerId: ""
+        property string profile: ""
+        fileMode: FileDialog.OpenFiles
+        onAccepted: root.sendFiles(peerId, profile, selectedFiles.map(url => String(url)))
+    }
+
     Timer { interval: root.awaitingLogin ? 2000 : root.statusError ? 5000 : 30000; running: true; repeat: true; triggeredOnStart: true; onTriggered: root.refresh() }
     Timer { id: messageTimer; interval: 3000; onTriggered: if (!root.busy) root.message = "" }
 
@@ -226,7 +255,10 @@ Singleton {
     Process {
         id: receiver
         command: ["env", "taildrop", "receive"]
-        running: root.wantReceiver && !receiveRetry.running
+        // Never in the screenshot sandbox: it would take the live tailnet's
+        // incoming files away from the real shell.
+        // Nor under SHELL_DRY_RUN=1 (tests/check.sh, M6), for the same reason.
+        running: root.wantReceiver && !receiveRetry.running && Quickshell.env("SHELL_SANDBOX") !== "1" && Quickshell.env("SHELL_DRY_RUN") !== "1"
         stdout: SplitParser {
             onRead: line => {
                 try {

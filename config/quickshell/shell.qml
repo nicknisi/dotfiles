@@ -2,9 +2,16 @@
 // the other .qml files in this directory are picked up by name.
 //
 // Run it with `qs`. Files are watched, so saving any of them reloads the shell in
-// place. Backup of the original single-file bar is in shell.qml.bak.
+// place.
+//
+// SHELL_SANDBOX=1 marks a screenshot sandbox run (.shell-rebuild/tmp/shoot.sh):
+// ShellServices leaves out what would change the real machine, a few services
+// skip their writers, and Fixture registers its `fixture` IPC target.
 import Quickshell
 import Quickshell.Io
+import QtQuick
+import qs.Island
+import qs.Hosts
 
 ShellRoot {
     id: root
@@ -17,33 +24,186 @@ ShellRoot {
         function reload(): void { Theme.reload() }
     }
 
-    // One capsule per connected monitor, created and destroyed as displays
-    // come and go, and beside each one the 1px window that holds its exclusive
-    // zone (see Reserve.qml for why that is not the capsule's own job).
-    Variants {
-        model: Quickshell.screens
-        delegate: Bar {}
+    // `qs ipc call look set <name>` (M9): the island's personal look, separate
+    // from the theme pack (Look.qml). crew (or none) is the plain island;
+    // phosphor, bridge, arcade, liner, outrun. bin/bar calls set and list on
+    // Linux. form sets the island's form, float or notch (Prefs.islandForm).
+    IpcHandler {
+        target: "look"
+        function set(name: string): string { return Look.set(name) }
+        function get(): string { return Look.name }
+        function list(): string { return Look.list() }
+        function form(name: string): string {
+            if (!Prefs.islandForms.includes(name)) return "error: unknown form \"" + name + "\" (forms: " + Prefs.islandForms.join(" ") + ")";
+            Prefs.setIslandForm(name);
+            return "ok";
+        }
     }
+
+    // Per connected monitor, created and destroyed as displays come and go:
+    // the classic bar (pill, full, rail) or the island, whichever
+    // Prefs.barMode names, and beside it the 1px window that holds the
+    // exclusive zone in every mode (see Reserve.qml for why that is not the
+    // bar's own job). Only one of the two loaders is active, so a mode change
+    // destroys one window and builds the other.
     Variants {
+        id: screens
         model: Quickshell.screens
-        delegate: Reserve {}
+        delegate: Scope {
+            id: screenScope
+            required property var modelData
+            readonly property var reserve: reserveWindow
+            readonly property var island: islandLoader.item
+            readonly property var classicBar: barLoader.item
+
+            LazyLoader {
+                id: barLoader
+                active: Prefs.barMode !== "island"
+                Bar {
+                    modelData: screenScope.modelData
+                    // Appearance's Theme packs and the control center's
+                    // Theme mini open the theme picker here (M7).
+                    pickerHost: themePicker
+                    // The power menu's scrim paints the screen corners.
+                    corners: screenCorners
+                }
+            }
+            LazyLoader {
+                id: islandLoader
+                active: Prefs.barMode === "island"
+                Island {
+                    modelData: screenScope.modelData
+                    // The island's own states (M3): banners from the one
+                    // notification server, dictation from the launcher's voice.
+                    notifications: notificationServer
+                    voice: launcher.launcherHost.voice
+                    // The palette and the control center hand the island to
+                    // each other in place (IslandView, Launcher.qml).
+                    paletteHost: launcher
+                    // The theme and wallpaper pickers become island states (M7).
+                    pickerHost: themePicker
+                    // A polkit request (M8) shows on the screen that was
+                    // focused when it started.
+                    polkitFlow: services.polkitFlow
+                    polkitHere: services.polkitScreen === "" || services.polkitScreen === screenScope.modelData.name
+                }
+            }
+            Reserve {
+                id: reserveWindow
+                modelData: screenScope.modelData
+            }
+        }
+    }
+
+    // Mode-independent services: the tray watcher, Caffeine's idle inhibitor
+    // (bound to a Reserve window, which exists in every bar mode) and the
+    // refresh-rate policy, plus the guards that keep a SHELL_SANDBOX=1 run from
+    // touching the real machine. See ShellServices.qml.
+    ShellServices {
+        id: services
+        reserves: screens.instances.map(s => s.reserve)
+        polkitWindow: polkitWindowLoader.item
+    }
+    // A polkit request in the classic bar modes (M8): the island draws it in
+    // island mode. Built only while a flow exists (the agent, Prefs.polkitAgent,
+    // off until the switch-over; a fixture in the sandbox), and kept while it
+    // fades out.
+    LazyLoader {
+        id: polkitWindowLoader
+        active: Prefs.barMode !== "island" && (services.polkitFlow !== null || (polkitWindowLoader.item?.showing ?? false))
+        PolkitWindow {
+            flow: services.polkitFlow
+            screenName: services.polkitScreen
+            corners: screenCorners
+        }
+    }
+    // A request in the classic modes takes the screen from whatever was open,
+    // as it takes the island in island mode (where the palette and the
+    // pickers close through launcherLeft and pickerLeft): the launcher's and
+    // the pickers' free panels and every bar's anchored panel close, so
+    // nothing waits under the prompt (a theme preview tinting it included)
+    // or takes the keys back once it ends.
+    Connections {
+        target: services
+        function onPolkitFlowChanged() {
+            if (services.polkitFlow === null || Prefs.barMode === "island")
+                return;
+            if (launcher.opened)
+                launcher.close();
+            themePicker.close();
+            for (const s of screens.instances)
+                s.classicBar?.host.close();
+        }
+    }
+
+    // `qs ipc call island ...`: open, close, toggle, mode, inspect. Present in
+    // every mode so `island mode island` can leave the pill.
+    IslandIpc {
+        islands: screens.instances.map(s => s.island).filter(i => i)
+        launcher: launcher
+    }
+    // `qs ipc call bar ...`: the classic bars' anchored panels (M4).
+    BarIpc {
+        bars: screens.instances.map(s => s.classicBar).filter(b => b)
+        notifs: notifHost
+    }
+    // Super+Alt+C and Super+Alt+D (global shortcuts): the control center
+    // and the calendar on the focused monitor, the island's or the bar's.
+    PanelShortcuts {
+        islands: screens.instances.map(s => s.island).filter(i => i)
+        bars: screens.instances.map(s => s.classicBar).filter(b => b)
+        paletteHost: launcher
     }
 
     // Global rather than per-monitor: one D-Bus notification server for the
-    // session. The OSD that used to live beside it is gone; volume, brightness
-    // and the mic are messages the capsule delivers itself, through Interrupt.
-    Notifications {}
-    NotificationCenter {}
-    ThemePicker {}
-    Launcher { id: launcher }
+    // session (NotificationServer.qml), whatever the bar mode. The island
+    // shows its banners; the classic modes show the same banner on cards of
+    // their own (Hosts/NotifHost.qml, M10). The history is the control
+    // center's Notifications sheet in every mode. The OSD that used to live
+    // beside it is gone; volume, brightness and the mic are messages the bar
+    // or the island delivers itself, through Interrupt.
+    NotificationServer {
+        id: notificationServer
+    }
+    NotifHost {
+        id: notifHost
+        source: notificationServer
+    }
+    // The theme and wallpaper pickers: the island's themes and wallpapers
+    // states in island mode, a free panel in the classic modes (M7).
+    ThemePicker {
+        id: themePicker
+        islands: screens.instances.map(s => s.island).filter(i => i)
+    }
+    // The palette: the island's launcher state in island mode, its own panel
+    // in the classic modes (Launcher.qml).
+    Launcher {
+        id: launcher
+        islands: screens.instances.map(s => s.island).filter(i => i)
+        classicBars: screens.instances.map(s => s.classicBar).filter(b => b)
+    }
+    // Dictation from the daemon (the Copilot key): this bottom popup in the
+    // classic modes, the island's dict state in island mode.
     VoxtypeOsd {
         voice: launcher.launcherHost.voice
         onVisibleChanged: if (visible) screen = launcher.targetScreen()
     }
-    ClipboardPicker {}
-    WindowSwitcher {}
-
-    // Refresh rate follows the charger. Global, not per-monitor: it drives the
-    // internal panel only, and one UPower watcher is enough for the session.
-    PowerMode {}
+    // Clipboard history capture (the wl-paste watchers) in every bar mode, and
+    // the `clipboard` IPC that Super+V uses: the launcher's clipboard scope.
+    ClipboardStore {
+        launcher: launcher
+    }
+    WindowSwitcher {
+        corners: screenCorners
+    }
+    // Rounded screen corners on every screen, above everything (`corners`
+    // IPC). The full-screen Overlay surfaces with a scrim (the window
+    // switcher, the polkit window, a bar's power menu) map after the strips
+    // and would grey them, so they paint the corners themselves.
+    ScreenCorners {
+        id: screenCorners
+    }
+    // Every screen fades to black before sleep and back up after, holding a
+    // logind delay inhibitor while awake (SleepFade.qml; the `sleep` IPC).
+    SleepFade {}
 }

@@ -1,5 +1,14 @@
 pragma Singleton
-// Session notification history shared by the popup server and HUD.
+// NotificationState.qml - the session's notification history (the control
+// center's Notifications sheet lists it), Do not disturb, the
+// `notifications` IPC target and open(): the one way a banner's Open, a
+// click or the IPC goes to a notification's sender.
+//
+// The center API (centerOpen, openCenter, toggleCenter, closeCenter, the
+// anchors) is kept for its signature and tests/check.qml only: the old
+// NotificationCenter that drew it went in M10, nothing in the shell calls it,
+// and nothing draws it. The bell and `cc/notifications` open the control
+// center's Notifications sheet directly.
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -9,7 +18,20 @@ import QtQuick
 Singleton {
     id: root
 
+    // Do not disturb: the one flag the classic banners, the server, the
+    // island and the control center read. It is kept in Prefs.dnd (capsule.json), so it
+    // survives a shell reload (PLAN 1.6, M6): set here, Prefs follows; a
+    // Prefs load or another writer, this follows. Both directions compare
+    // first, so neither change bounces back.
     property bool dnd: false
+    onDndChanged: if (Prefs.dnd !== dnd) Prefs.setDnd(dnd)
+    Connections {
+        target: Prefs
+        function onDndChanged() {
+            if (root.dnd !== Prefs.dnd) root.dnd = Prefs.dnd;
+        }
+    }
+    Component.onCompleted: if (Prefs.dnd) root.dnd = true
     property bool centerOpen: false
     property var centerScreen: null
     property int unread: 0
@@ -110,7 +132,7 @@ Singleton {
 
     function markRead(): void { unread = 0 }
 
-    // The window behind a notification: Slack's toast means the Slack window,
+    // The window behind a notification: Slack's banner means the Slack window,
     // whatever workspace it is on. desktopEntry is the sender's own id when it
     // sends one ("slack", "brave-origin"); appName is the fallback. A window
     // already marked urgent wins, since that is the one that pinged.
@@ -139,13 +161,14 @@ Singleton {
         win.activate();
         return true;
     }
-    // The popup server, set by Notifications.qml, for the toasts still up.
+    // The notification server, set by NotificationServer.qml, for the
+    // notifications still up.
     property var server: null
 
-    // What a click on a toast does: the window first, so it is on screen,
+    // What a click on a banner does: the window first, so it is on screen,
     // then the sender's default action (Slack jumps to the message), then the
-    // toast goes. The window comes first because invoking the action may
-    // close the notification, and with it the toast whose handler is running.
+    // banner goes. The window comes first because invoking the action may
+    // close the notification, and with it the banner whose handler is running.
     function open(notification): bool {
         if (!notification) return false;
         const appName = String(notification.appName || ""), desktopEntry = String(notification.desktopEntry || "");
@@ -165,8 +188,8 @@ Singleton {
         return list.length > 0 ? open(list[list.length - 1]) : false;
     }
 
-    // `qs ipc call notifications open` acts on the newest toast as a click
-    // would (a bind can do it without reaching for the mouse); `focus slack`
+    // `qs ipc call notifications open` acts on the newest notification as a
+    // click on its banner would (a bind can do it without reaching for the mouse); `focus slack`
     // is the window jump alone, and the way to check the matching.
     IpcHandler {
         target: "notifications"

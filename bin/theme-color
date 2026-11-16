@@ -26,8 +26,8 @@ Template tokens:
   {{ hyprland_active_border_lua }}    the pack's hyprland_active_border, or its accent,
                                       as the Lua literal hl.config takes; _inactive_ likewise
 Shell tokens (surface, raised, overlay, hairline, fill_low, fill_high, ink_dim,
-ink_mid, faint, accent_tint, on_accent, bad, darker, shadow_alpha) follow the
-island shell's token rules; see shell_tokens(). They are in --json too, so
+ink_mid, faint, accent_tint, on_accent, on_fg, bad, darker, shadow_alpha) follow
+the island shell's token rules; see shell_tokens(). They are in --json too, so
 Quickshell reads the same values Plymouth is rendered with.
 An unknown token is left in place and reported on stderr, so a typo in a
 template is visible in the rendered file rather than silently blank.
@@ -195,10 +195,24 @@ def shell_tokens(p, raw):
     if contrast(on, accent) < 4.5:
         on = "#ffffff" if contrast("#ffffff", accent) >= contrast("#000000", accent) else "#000000"
     t["on_accent"] = on
+    # ink on an fg fill (the control center's play button). on_accent is picked
+    # against accent, so it can vanish on fg (rose-pine: 2.89:1); bg reads on fg
+    # in every pack (rose-pine is the lowest, 6.66:1), black or white if not.
+    on = bg
+    if contrast(on, fg) < 4.5:
+        on = "#ffffff" if contrast("#ffffff", fg) >= contrast("#000000", fg) else "#000000"
+    t["on_fg"] = on
     # errors in a red that reads as red: hackerman's "red" is a green, like its accent
     hd = abs(_hue(p["red"]) - _hue(accent))
     near = min(hd, 360 - hd) < 40
-    t["bad"] = ("#ff6b6b" if dark else "#d20f39") if near else p["red"]
+    base = ("#ff6b6b" if dark else "#d20f39") if near else p["red"]
+    # and that reads at 4.5:1 on surface, stepping toward fg like ink_dim (nord's
+    # red is 2.75:1). An integer step, so the search never drifts past fg.
+    bad, n = base, 0
+    while contrast(bad, surface) < 4.5 and n < 50:
+        n += 1
+        bad = _mix_js(base, fg, n / 50)
+    t["bad"] = bad
     # the pack's own darker_background, else a shallower step than the resolver's 50%
     own = raw.get("darker_background") or raw.get("darker_bg")
     t["darker"] = own if own and is_hex(own) else _mix_js(bg, "#000000", 0.3 if dark else 0.06)

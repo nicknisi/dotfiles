@@ -1,34 +1,21 @@
 #!/usr/bin/env bash
+# MenuNavigation (the arrow and Ctrl+J/K walk the classic bars' Appearance
+# page uses on the anchored host's page frame) inside BarMenu, under
+# qmltestrunner with a stub Tokens. The old menus and their controls went in
+# M10; this keeps the navigation itself covered with plain Qt controls.
 set -euo pipefail
 root=$(cd -- "$(dirname -- "$0")/.." && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
-cp "$root"/{BarMenu,BarModule,MenuAction,MenuSlider,PopupSurface,ShellSurface,MenuRule,MenuHint,TrayMenu,TrayMenuEntries,TrayMenuEntry}.qml "$tmp/"
-[[ ! -f "$root/MenuNavigation.qml" ]] || cp "$root/MenuNavigation.qml" "$tmp/"
-cp "$root/tests/"tst_{menu_keys,motion,tray_menu}.qml "$tmp/"
-printf 'singleton Theme 1.0 Theme.qml\n' > "$tmp/qmldir"
-cat > "$tmp/Theme.qml" <<'QML'
+cp "$root"/{BarMenu,MenuNavigation}.qml "$tmp/"
+cp "$root/tests/tst_menu_keys.qml" "$tmp/"
+printf 'singleton Tokens 1.0 Tokens.qml\n' > "$tmp/qmldir"
+cat > "$tmp/Tokens.qml" <<'QML'
 pragma Singleton
 import QtQuick
 QtObject {
     readonly property color fg: "#eeeeee"
-    readonly property color surface: "#171c1e"
-    readonly property color raised: "#242b2c"
-    readonly property color secondary: "#abb1ab"
-    readonly property color accent: "#e9b291"
-    readonly property color glowFill: "#33302c"
-    readonly property string font: "monospace"
-    readonly property int fontSize: 13
-    readonly property int controlRadius: 12
-    readonly property int panelRadius: 28
-    readonly property color borderIdle: "#444444"
-    readonly property color muted: "#666666"
-    readonly property string uiFont: "sans-serif"
-    readonly property string icons: "monospace"
-    readonly property real surfaceOpacity: 1
-    function alpha(color, a) { return Qt.rgba(color.r, color.g, color.b, a) }
-    readonly property int quick: 90
-    readonly property int base: 160
+    readonly property color inkDim: "#abb1ab"
 }
 QML
 runner=$(command -v qmltestrunner || printf /usr/lib/qt6/bin/qmltestrunner)

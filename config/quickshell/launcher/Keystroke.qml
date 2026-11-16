@@ -20,6 +20,7 @@ import "core/Intent.js" as Intent
 import "core/Patterns.js" as Patterns
 import "core/SmartMatch.js" as SmartMatch
 import "core/Motion.js" as Motion
+import "core/Glyphs.js" as Glyphs
 import "matching" as Matching
 
 // Native shell host for the MIT-licensed Keystroke command palette.
@@ -645,7 +646,8 @@ Item {
   property int dmenuWidth: 300
   property int dmenuMaxHeight: 0
   property bool requestActive: false
-  property string fontFamily: Theme.uiFont
+  property string fontFamily: "Adwaita Sans"
+  readonly property string monoFamily: "Monaspace Argon"
   property string scope: ""
   property string scopeTitle: ""
   property var history: []
@@ -664,9 +666,12 @@ Item {
   property string errorMessage: ""
   property string statusMessage: ""
   property var confirmPending: null       // { message, confirmText, run }
+  // A confirm opened by a Ctrl chord (Ctrl+Delete, Ctrl+B) takes the focus,
+  // so the field never sees Ctrl come up: drop the Ctrl+digit badges here.
+  onConfirmPendingChanged: if (root.confirmPending) root.ctrlHeld = false
   readonly property var current: rows.length && selected >= 0 && selected < rows.length ? rows[selected] : ({})
   readonly property bool compact: paletteSettings.density !== "comfortable"
-  readonly property color accent: Theme.accent
+  readonly property color accent: Tokens.accent
   readonly property int shellRadius: Theme.panelRadius
   readonly property int controlRadius: Theme.controlRadius
   readonly property string headingFamily: Theme.headingFont
@@ -742,28 +747,42 @@ Item {
     NumberAnimation { target: root; property: "levelOpacity"; to: 1; duration: levelAnim.duration; easing.type: Easing.OutQuad }
   }
 
-  // Theme surfaces, same tokens as the stock menu.
-  readonly property color background: Theme.surface
-  readonly property color foreground: ShellColor.menu.text
-  readonly property color scrim: ShellColor.menu.scrim
-  readonly property color selectedBackground: Theme.glowFill
-  readonly property color selectedText: ShellColor.menu.text
-  readonly property var borderSpec: Border.surfaceSpec("menu", "border", Theme.borderIdle, Math.max(1, Style.space(1)))
-  readonly property var selectedBorderSpec: Border.none()
-  readonly property color hairline: Util.alpha(foreground, 0.12)
-  readonly property color muted: Theme.secondary
+  // The island's tokens (main-tokens 1.3, launcher-pickers 5.5). Provider
+  // views (Codex, Settings, the device menus) paint with these through host.
+  readonly property color background: Tokens.surface
+  readonly property color foreground: Tokens.fg
+  readonly property color scrim: Tokens.scrim
+  readonly property color selectedBackground: Tokens.accentTint
+  readonly property color selectedText: Tokens.fg
+  readonly property color hairline: Tokens.hairline
+  readonly property color muted: Tokens.inkDim
+  readonly property color danger: Tokens.bad
+  readonly property color raised: Tokens.raised
+  readonly property color fillLow: Tokens.fillLow
+  readonly property color fillHigh: Tokens.fillHigh
+  // The Codex view's repo chip: the focused window's repository and branch
+  // (Context's git probe), "" when it is not in one. Read only while a
+  // provider view shows, so the palette alone never starts Context.
+  // The sandbox has no focused window, so a fixture's launcherRepo
+  // ({ name, branch }) stands in for Context there.
+  readonly property var fixtureRepo: Fixture.data.launcherRepo ?? null
+  readonly property string repoName: root.fixtureRepo ? String(root.fixtureRepo.name || "")
+    : root.providerViewActive && Context.top ? String(Context.top).replace(/\/+$/, "").split("/").pop() : ""
+  readonly property string repoBranch: root.fixtureRepo ? String(root.fixtureRepo.branch || "")
+    : root.providerViewActive && Context.top ? Context.branch : ""
 
   // Type scale for provider views. A view covers the whole card, so it has to
   // carry the palette's own sizes -- including the density bump -- or it reads
   // a step smaller than the results it replaced. Ladder: fontInput is the
   // search field, fontTitle a row title, fontBody a preview body, fontLabel a
   // row subtitle or footer, fontCaption a keycap or the breadcrumb brand.
-  readonly property int fontInput: compact ? Style.font.heading + 3 : Style.font.heading + 5
-  readonly property int searchFontSize: compact ? Style.space(44) : Style.space(50)
-  readonly property int fontTitle: compact ? Style.font.title : Style.font.title + 1
-  readonly property int fontBody: Style.font.body
-  readonly property int fontLabel: Style.font.bodySmall
-  readonly property int fontCaption: Style.font.caption
+  // The island's sizes (launcher-pickers 4): the query 16, row titles 13,
+  // bodies 13, subtitles and the footer 11 or 12, keycaps 11.
+  readonly property int fontInput: 16
+  readonly property int fontTitle: 13
+  readonly property int fontBody: 13
+  readonly property int fontLabel: 12
+  readonly property int fontCaption: 11
   // Tells a provider view it need not paint its own backdrop; an older
   // host leaves this undefined, so a view can still fall back.
   readonly property bool paintsViewBackdrop: true
@@ -775,7 +794,7 @@ Item {
   Providers.Registry { id: providerRegistry; host: root }
   readonly property var registry: providerRegistry
   ListModel { id: resultModel }
-  PointerMoveGate { id: pointerGate; referenceItem: card }
+  PointerMoveGate { id: pointerGate; referenceItem: root.viewItem }
 
   // ---------------------------------------------------------------- opening
   function resetSelection() {
@@ -1013,7 +1032,7 @@ Item {
   function runQuery() {
     if (!root.opened || root.providerViewActive) return
     debounce.stop(); refresh.stop()
-    if (root.dmenuActive) { root.applyRows(root.dmenuRows()); root.pending = false; root.afterRows(); return }
+    if (root.dmenuActive) { root.matchQuery = ""; root.applyRows(root.dmenuRows()); root.pending = false; root.afterRows(); return }
     root.generation++
     var raw = root.voiceRawText || search.text, sc = root.scope
     var filePrefix = !root.dictationMode && (!sc || sc === "files") && FileSearch.prefixed(raw)
@@ -1056,7 +1075,14 @@ Item {
                                    catalog ? catalog.chrome : false, catalog ? catalog.lexical : null)
     } else matchingSession.cancelRequest()
     var ranked = Match.rank(collected, root.bonusFor)
-    root.applyRows(ranked.slice(0, 120))
+    root.matchQuery = root.dictationMode ? "" : q
+    // The clipboard scope lists its whole history (the provider's limit, up
+    // to 300), as the old picker did; elsewhere the best 120.
+    var shown = ranked.slice(0, sc === "clipboard" ? 300 : 120)
+    // A query or a scope can mix sections, and the view then draws a header
+    // per section: gather each section under its best row (Match.groupSections).
+    if (q || sc) shown = Match.groupSections(shown)
+    root.applyRows(shown)
     root.lastPatterns = matchedPatterns
     root.pending = pend || (smart && matchingSession.requestedKey !== "" && matchingSession.busy)
     if (smart && matchingSession.error) errors.push(matchingSession.error)
@@ -1135,10 +1161,12 @@ Item {
     return rows
   }
 
+  // Every key is always set: a ListModel fixes its roles at the first insert.
   function display(row, index, previousSection) {
     return { uid: row.uid, providerKey: row.providerKey, title: row.title, subtitle: row.subtitle, icon: row.icon, iconFont: row.iconFont, iconSource: row.iconSource,
              tint: row.tint, section: row.section, sectionStart: row.section !== previousSection, verb: row.verb, accessory: row.accessory,
-             disabled: row.disabled, badge: row.badge, answer: row.tier === "answer", hint: row.hint }
+             disabled: row.disabled, badge: row.badge, answer: row.tier === "answer", hint: row.hint,
+             ranges: root.rangesFor(row), glyph: Glyphs.forRow(row), meta: String(row.meta || ""), mono: row.mono === true }
   }
 
   // Reconcile by uid so delegates update in place while typing.
@@ -1175,7 +1203,7 @@ Item {
   // highlight reads the list's current item, so re-assert the index after
   // every reconcile and whenever the selection moves.
   function syncCurrent() {
-    if (resultList.currentIndex !== root.selected) resultList.currentIndex = root.selected
+    resultList.sync(root.selected)
   }
 
   function afterRows() {
@@ -1271,6 +1299,15 @@ Item {
   }
 
   // --------------------------------------------------------------- actions
+  // True while a pointer (a row's click, the card's Run) runs the activation:
+  // a provider view it opens waits for a key before drawing its focus ring
+  // (the System view's control center sheets, main-tokens 2.6). Keys run
+  // activate() itself.
+  property bool pointerActivation: false
+  function activateFromPointer(alternate) {
+    root.pointerActivation = true
+    try { root.activate(alternate) } finally { root.pointerActivation = false }
+  }
   // Ctrl+↵ is the alternate activation: a row's altAction when it has one,
   // otherwise its action; the provider's activate() sees ctx.alternate.
   function activate(alternate) {
@@ -1332,6 +1369,28 @@ Item {
                             run: function() { root.cancel(); root.appLibrary.remove(id, name) } }
   }
 
+  // Ctrl+Delete in the clipboard scope, or its footer hint: the old Super+V
+  // picker's wipe of the whole history, now behind a confirm. ClipboardStore
+  // (the shell's) runs it on the signal; the scope then reloads empty.
+  signal clipboardWipeConfirmed()
+  // An `island` effect (perform below): the host shows that island state.
+  signal islandRequested(string state)
+  function requestClipboardWipe() {
+    if (!root.opened || root.scope !== "clipboard" || root.dmenuActive || root.confirmPending || root.capturing) return false
+    root.confirmPending = { message: "Clear the whole clipboard history? This can't be undone.", confirmText: "Clear history",
+                            run: function() { root.clipboardWipeConfirmed() } }
+    return true
+  }
+
+  // Ctrl+K: the selected row's provider settings (Settings itself for a
+  // setting row). Also under the detail card's Actions.
+  function openProviderSettings() {
+    if (root.dmenuActive) return
+    var row = root.current
+    var key = row.providerKey && row.providerKey !== "settings" ? "settings/" + row.providerKey : "settings"
+    root.navigate(key, row.providerName || "Settings")
+  }
+
   function perform(effect, row) {
     var type = effect.type
     if (type === "matching-retry") { matchingSession.retry(); root.requery(); return }
@@ -1360,6 +1419,10 @@ Item {
     if (type === "notify") { Quickshell.execDetached(["notify-send", "--", String(effect.headline || "Launcher"), String(effect.body || "")]); return }
     if (type === "voice-bindings") { root.installVoiceBindings(); return }
     if (type === "close") { root.cancel(); return }
+    // An island state (the System provider's Open Control center): the host
+    // (Launcher.qml) moves the island there first, so it morphs from the
+    // palette straight to that state, then the palette closes.
+    if (type === "island") { root.islandRequested(String(effect.state || "")); root.cancel(); return }
     // Everything below leaves the palette: drop the keyboard-grabbing layer first, like the stock menu.
     root.cancel()
     if (type === "shell") Util.execDetached(String(effect.command || ""))
@@ -1390,488 +1453,102 @@ Item {
   }
   function inspect() {
     var appEntries = root.appLibrary ? root.appLibrary.sortedEntries("") : []
-    return JSON.stringify({ opened: root.opened, mode: root.mode, view: root.activeProviderKey, scope: root.scope, query: search.text, count: root.rows.length,
+    var viewItem = providerView.item
+    return JSON.stringify({ opened: root.opened, host: root.hostKind, attached: !!root.attachedView, mode: root.mode, view: root.activeProviderKey, scope: root.scope, query: search.text, count: root.rows.length,
+      // A provider view's own report (the System view's sheet: its name, row, keys), else null.
+      viewState: viewItem && viewItem.sheetState !== undefined ? viewItem.sheetState : null,
       titles: root.rows.map(function(r) { return r.title }), selected: root.selected, pending: root.pending, patterns: root.lastPatterns,
       current: { uid: root.current.uid || "", icon: root.current.icon || "", iconSource: root.current.iconSource || "", badge: root.current.badge || "", tier: root.current.tier || "" },
       modelCount: resultModel.count, providers: providerRegistry.entries.map(function(e) { return e.key }), problems: providerRegistry.problems,
       applications: { library: !!root.appLibrary, entries: appEntries.length },
       matching: { mode: root.matchingSettings.mode, model: root.matchingSettings.model, loaded: matchingSession.loaded, status: matchingSession.status, error: matchingSession.error },
       error: root.errorMessage, configError: root.configError, status: root.statusMessage,
+      confirm: root.confirmPending ? String(root.confirmPending.confirmText || "") : "",
+      actions: !!(root.attachedView && root.attachedView.cardItem && root.attachedView.cardItem.menuOpen),
       hotkeys: { path: root.hotkeysPath, known: root.hotkeysKnown, entries: root.hotkeys.entries, capturing: root.capturing, chord: root.captureChord, check: root.captureCheck },
       voice: { backend: "voxtype", state: voice.phase, trigger: root.voiceTrigger, enabled: root.voiceEnabled, detected: voice.detected, version: voice.version,
                command: voice.command, daemon: voice.daemonState, bindings: root.voiceBindingsStatus, frames: voice.history.length, live: voice.liveText } })
   }
 
   // ------------------------------------------------------------------ view
-  readonly property int headerHeight: Style.space(compact ? 118 : 128)
-  readonly property int crumbHeight: Style.space(34)
-  readonly property int footerHeight: Style.space(48)
-  readonly property int rowHeight: Style.space(compact ? 49 : 54)
-  readonly property int rowSpacing: Style.space(3)
-  readonly property int dmenuRowsHeight: {
-    var count = Math.max(1, resultModel.count)
-    var maxRows = root.dmenuMaxHeight > 0 ? Math.max(1, Math.floor(Style.space(root.dmenuMaxHeight) / (rowHeight + rowSpacing))) : 12
-    return Math.min(count, maxRows) * (rowHeight + rowSpacing)
+  // The palette's view is ui/LauncherContent.qml. Launcher.qml hosts it in
+  // the island's `launcher` state (island mode) or in its free panel (pill,
+  // full, rail). The engine above drives whichever content is showing through
+  // three stand-ins, which that content registers its items with (attach()).
+  // With nothing attached they keep their values, so the engine also runs
+  // headless (palette hotkeys, tests, a host that has not built its view yet).
+  QtObject {
+    id: search
+    property string text: ""
+    property int cursorPosition: 0
+    property Item field: null
+    onCursorPositionChanged: if (field && field.cursorPosition !== cursorPosition) field.cursorPosition = Math.min(cursorPosition, field.text.length)
+    function forceActiveFocus() { if (field) field.forceActiveFocus() }
   }
-
-  PanelWindow {
-    id: panel
-    visible: root.opened || root.closing
-    screen: root.targetScreen
-    anchors { top: true; bottom: true; left: true; right: true }
-    color: "transparent"
-    exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.namespace: "launcher"
-    WlrLayershell.layer: WlrLayer.Overlay
-    // A launch must find the keyboard free at once, however long the fade-out runs.
-    WlrLayershell.keyboardFocus: root.opened ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-    mask: Region { width: root.opened ? panel.width : 0; height: root.opened ? panel.height : 0 }
-
-    MouseArea { objectName: "launcher-dismiss-area"; anchors.fill: parent; onClicked: root.cancel() }
-
-    SurfaceShadow { surface: card }
-
-    ShellSurface {
-      id: card
-      prominent: true
-      readonly property real borderTop: outlineWidth
-      readonly property real borderRight: borderTop
-      readonly property real borderBottom: borderTop
-      readonly property real borderLeft: borderTop
-      width: Math.min(root.dmenuActive ? Style.space(root.dmenuWidth) : Style.space(root.compact ? 562 : 620), panel.width - Style.gapsOut * 2)
-      height: root.dmenuActive
-        ? Math.min(root.headerHeight + (root.mode === "input" ? Style.space(12) : root.dmenuRowsHeight + Style.space(20)), panel.height - Style.gapsOut * 2)
-        : Math.min(Style.space(root.compact ? 459 : 520), panel.height - Style.gapsOut * 2)
-      anchors.horizontalCenter: parent.horizontalCenter
-      y: Math.max(Style.gapsOut, Math.round((panel.height - height) / 2))
-      opacity: root.reveal
-      radius: root.shellRadius
-      fill: root.background
-      outlineWidth: root.borderSpec ? Math.max(0, root.borderSpec.width || 0) : 0
-      outlineColor: root.borderSpec?.color || Theme.accent
-      clip: true
-      Accessible.role: Accessible.Dialog
-      Accessible.name: "Launcher command palette"
-      MouseArea { anchors.fill: parent; onClicked: {} }
-
-      // A provider view covers the palette, so the host paints the backdrop
-      // it needs and keeps both inside the card's border. Filling the card
-      // outright would paint over the border ring, which BorderSurface draws
-      // as the surface itself (or as an overlay child below this z).
-      Rectangle {
-        id: viewBackdrop
-        visible: !!providerView.item
-        z: 4
-        anchors.fill: parent
-        anchors.topMargin: card.borderTop; anchors.rightMargin: card.borderRight
-        anchors.bottomMargin: card.borderBottom; anchors.leftMargin: card.borderLeft
-        radius: Math.max(0, card.radius - Math.max(card.borderTop, card.borderLeft))
-        color: root.background
-      }
-
-      Loader {
-        id: providerView
-        anchors.fill: viewBackdrop
-        z: 5
-        transform: levelShift
-        opacity: root.levelOpacity
-        onLoaded: { item.host = root; Qt.callLater(root.focusInput) }
-      }
-
-      // Header: search field
-      Item {
-        id: header
-        visible: !root.providerViewActive
-        x: Style.space(root.compact ? 27 : 30); y: Style.space(4)
-        width: parent.width - x * 2
-        height: root.headerHeight - Style.space(4)
-        Item {
-          id: glyph
-          anchors.right: parent.right
-          anchors.verticalCenter: parent.verticalCenter
-          width: Style.space(28); height: width
-          Text {
-            visible: !voice.active
-            anchors.centerIn: parent
-            text: "›"
-            textFormat: Text.PlainText
-            color: root.muted
-            font.family: root.headingFamily
-            font.pixelSize: Style.space(32)
-            font.weight: Font.Medium
-          }
-          // Recording dot, swelling with the microphone.
-          Rectangle {
-            visible: voice.active
-            anchors.centerIn: parent
-            width: Style.space(10); height: width; radius: width / 2
-            color: voice.phase === "listening" ? root.accent : Util.alpha(root.accent, 0.55)
-            scale: voice.phase === "listening" ? 1 + 0.6 * voice.level : 1
-            Behavior on scale { NumberAnimation { duration: 60 } }
-          }
-        }
-        VoiceWave {
-          id: wave
-          visible: voice.active
-          anchors.right: escCap.left
-          anchors.rightMargin: Style.space(12)
-          anchors.verticalCenter: parent.verticalCenter
-          // Switching away from two horizontal anchors does not restore a
-          // constant width. Keep one anchor and bind both widths explicitly.
-          width: root.liveText ? Math.min(Style.space(96), fieldWidth * 0.22) : fieldWidth
-          readonly property real fieldWidth: Math.max(0, escCap.x - Style.space(12) - glyph.x - glyph.width - Style.space(14))
-          height: Style.space(40)
-          mode: voice.phase
-          level: voice.level
-          history: voice.history
-          accent: root.accent
-          foreground: root.foreground
-        }
-        TextInput {
-          id: search
-          anchors.left: parent.left
-          anchors.leftMargin: 0
-          anchors.right: root.liveText ? wave.left : glyph.left
-          anchors.rightMargin: Style.space(12)
-          anchors.verticalCenter: parent.verticalCenter
-          height: root.searchFontSize + Style.space(12)
-          verticalAlignment: TextInput.AlignVCenter
-          color: root.foreground
-          selectionColor: Util.alpha(root.accent, 0.45)
-          selectedTextColor: root.foreground
-          font.family: root.headingFamily
-          font.pixelSize: root.searchFontSize
-          font.weight: Font.DemiBold
-          font.letterSpacing: -1.4
-          selectByMouse: true
-          clip: true
-          focus: true
-          opacity: voice.active && !root.liveText ? 0 : 1   // the string takes the field until words arrive; focus and keys stay here
-          Accessible.name: root.dmenuActive ? root.dmenuPrompt : "Search commands, apps and extensions"
-          Text {
-            anchors.fill: parent
-            verticalAlignment: Text.AlignVCenter
-            text: root.dictationMode ? "Speak…" : root.dmenuActive ? root.dmenuPrompt + "…" : root.scope ? "Search " + root.scopeTitle.toLowerCase() + "…" : "Open…"
-            textFormat: Text.PlainText
-            color: Util.alpha(root.foreground, 0.42)
-            font: parent.font
-            visible: !parent.text && !parent.preeditText && !voice.active
-            elide: Text.ElideRight
-          }
-          onTextEdited: { clipboardTransfer.cancel(); root.voiceCancel(); root.edited() }
-          Keys.priority: Keys.BeforeItem
-          Keys.onReleased: function(event) {
-            // Hold mode ends when the modifier comes up (Hyprland swallows the
-            // hotkey's own release, and its release bind only fires while the
-            // modifier is still down). A tap's release must not end anything.
-            if (voice.active && root.voiceTrigger === "hold" && root.isSuperKey(event.key)) { root.voiceStop(); event.accepted = true }
-            if (event.key === Qt.Key_Control) root.ctrlHeld = false
-            if (root.capturing && !root.captureChord && root.isModifierKey(event.key)) root.capturePartial = ""
-          }
-          Keys.onPressed: function(event) {
-            // Ctrl's own press carries no modifier flag yet; a chord pressed
-            // with Ctrl already down (before the palette opened) does.
-            root.ctrlHeld = event.key === Qt.Key_Control || !!(event.modifiers & Qt.ControlModifier)
-            if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && event.isAutoRepeat) { event.accepted = true; return }
-            if (root.confirmPending) { confirmDialog.handleKey(event); event.accepted = true; return }
-            if (root.capturing) { root.captureKey(event); event.accepted = true; return }
-            if (voice.active) {
-              if (event.key === Qt.Key_Escape) { root.cancel(); event.accepted = true; return }
-              if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                if (root.dictationMode) root.dictationAccept(!!(event.modifiers & Qt.ControlModifier))
-                else root.voiceStop()
-                event.accepted = true; return
-              }
-              if (root.isModifierKey(event.key)) { event.accepted = true; return }
-              root.voiceCancel() // typing and navigation supersede speech immediately
-            }
-            var ctrl = event.modifiers & Qt.ControlModifier
-            var atEnd = cursorPosition === text.length
-            if (event.key === Qt.Key_Escape) { root.cancel(); event.accepted = true }
-            else if (ctrl && event.key === Qt.Key_U) { text = ""; root.edited(); event.accepted = true }
-            else if (event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_N)) { root.select(1); event.accepted = true }
-            else if (event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_P)) { root.select(-1); event.accepted = true }
-            else if (event.key === Qt.Key_PageDown) { root.selectPage(6); event.accepted = true }
-            else if (event.key === Qt.Key_PageUp) { root.selectPage(-6); event.accepted = true }
-            else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) { root.select(event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier) ? -1 : 1); event.accepted = true }
-            else if (ctrl && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)) { root.activate(true); event.accepted = true }
-            else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) { root.activate(); event.accepted = true }
-            else if (event.key === Qt.Key_Right && (atEnd || !text) && !root.dmenuActive && root.rows.length) { root.activate(); event.accepted = true }
-            else if ((event.key === Qt.Key_Left || event.key === Qt.Key_Backspace) && !text && !preeditText && (root.scope || root.history.length)) { root.goBack(); event.accepted = true }
-            else if (event.key === Qt.Key_Delete && !text && root.current.appId) { root.requestUninstall(); event.accepted = true }
-            else if (ctrl && event.key >= Qt.Key_1 && event.key <= Qt.Key_8) { root.activateAt(event.key - Qt.Key_1); event.accepted = true }
-            else if (ctrl && event.key === Qt.Key_Comma && !root.dmenuActive) { root.navigate("settings", "Settings"); event.accepted = true }
-            else if (ctrl && event.key === Qt.Key_B && !root.dmenuActive) { root.beginCapture(); event.accepted = true }
-            else if (ctrl && event.key === Qt.Key_K && !root.dmenuActive) {
-              var key = root.current.providerKey && root.current.providerKey !== "settings" ? "settings/" + root.current.providerKey : "settings"
-              root.navigate(key, root.current.providerName || "Settings")
-              event.accepted = true
-            }
-          }
-        }
-        Keycap { id: escCap; visible: false; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; label: "esc"; foreground: root.foreground }
-      }
-      Rectangle { x: Style.space(27); y: root.headerHeight - Style.space(16); width: parent.width - Style.space(54); height: 1; color: root.accent; opacity: search.activeFocus ? 1 : 0.35 }
-
-      // Scope line (palette mode)
-      Row {
-        id: crumbs
-        visible: !root.dmenuActive
-        transform: levelShift
-        opacity: root.levelOpacity
-        x: Style.space(27); y: root.headerHeight - Style.space(4)
-        height: root.crumbHeight
-        spacing: Style.space(6)
-        Repeater {
-          model: [{label: "All", route: ""}, {label: "Applications", route: "applications"}, {label: "Files", route: "files"}, {label: "Commands", route: "system"}]
-          delegate: BarModule {
-            id: scopeButton
-            required property var modelData
-            objectName: "scope-" + (modelData.route || "all")
-            readonly property bool selected: modelData.route ? root.scope === modelData.route || root.scope.indexOf(modelData.route + "/") === 0 : !root.scope
-            height: root.crumbHeight - Style.space(4)
-            padding: Style.space(7)
-            text: modelData.label
-            highlighted: selected
-            onClicked: root.openRoute(modelData.route || "root", {query: search.text})
-            Text { text: scopeButton.modelData.label; color: scopeButton.selected ? root.accent : root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; font.weight: scopeButton.selected ? Font.DemiBold : Font.Normal }
-          }
-        }
-      }
-
-      // Results and preview
-      Item {
-        id: content
-        transform: levelShift
-        opacity: root.levelOpacity
-        x: Style.space(17)
-        y: root.dmenuActive ? root.headerHeight + Style.space(10) : root.headerHeight + root.crumbHeight - Style.space(2)
-        width: parent.width - Style.space(34)
-        height: parent.height - y - (root.dmenuActive ? Style.space(10) : root.footerHeight + Style.space(8))
-
-        ListView {
-          id: resultList
-          anchors.left: parent.left
-          anchors.top: parent.top
-          anchors.bottom: parent.bottom
-          width: root.previewVisible ? Math.round(parent.width * 0.55) : parent.width
-          model: resultModel
-          clip: true
-          spacing: root.rowSpacing
-          boundsBehavior: Flickable.StopAtBounds
-          cacheBuffer: root.rowHeight * 4
-          // One highlight glides between rows instead of each row painting
-          // its own; its geometry is bound here so it covers the row and not
-          // the delegate's section header.
-          highlightFollowsCurrentItem: false
-          highlight: BorderSurface {
-            readonly property var row: resultList.currentItem
-            z: 0
-            visible: !!row && root.rows.length > 0
-            width: resultList.width
-            height: row ? row.rowHeight : root.rowHeight
-            y: row ? row.y + row.rowY : 0
-            opacity: row && row.disabled ? 0.62 : 1
-            radius: root.controlRadius
-            color: root.selectedBackground
-            borderSpec: root.selectedBorderSpec
-            Behavior on y { enabled: root.selectionTouched && root.motion.selection > 0; NumberAnimation { duration: root.motion.selection; easing.type: Easing.OutCubic } }
-          }
-          delegate: Column {
-            id: delegateRoot
-            z: 1
-            readonly property real rowY: rowItem.y
-            readonly property real rowHeight: rowItem.height
-            required property int index
-            required property string uid
-            required property string providerKey
-            required property string title
-            required property string subtitle
-            required property string icon
-            required property string iconFont
-            required property string iconSource
-            required property string tint
-            required property string section
-            required property bool sectionStart
-            required property string verb
-            required property string accessory
-            required property bool disabled
-            required property string badge
-            required property bool answer
-            required property string hint
-            width: resultList.width
-            // The idle root lists one row per provider, so headers would label single items there;
-            // they return as soon as a query or a scope groups real sets.
-            readonly property bool showHeader: false
-            Item {
-              width: parent.width
-              height: delegateRoot.showHeader ? Style.space(root.compact ? 22 : 26) : 0
-              visible: delegateRoot.showHeader
-              Text {
-                x: Style.space(14); anchors.bottom: parent.bottom; anchors.bottomMargin: Style.space(3)
-                text: delegateRoot.section
-                textFormat: Text.PlainText
-                color: Util.alpha(root.foreground, 0.5)
-                font.family: root.headingFamily; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold; font.letterSpacing: 0.3
-              }
-            }
-            ResultRow {
-              id: rowItem
-              width: parent.width
-              paintsSelection: false
-              flashRise: root.motion.flashRise; flashFall: root.motion.flashFall
-              title: delegateRoot.title; subtitle: delegateRoot.providerKey === "applications" ? "" : delegateRoot.subtitle; icon: delegateRoot.icon; iconFont: delegateRoot.iconFont
-              iconSource: delegateRoot.iconSource; tint: delegateRoot.tint; verb: delegateRoot.verb; accessory: delegateRoot.accessory
-              badge: delegateRoot.badge; hint: delegateRoot.providerKey === "applications" ? "" : delegateRoot.hint; disabled: delegateRoot.disabled; answer: delegateRoot.answer
-              shortcut: root.ctrlHeld && !root.dmenuActive && delegateRoot.index < root.shortcutRows ? String(delegateRoot.index + 1) : ""
-              compact: root.compact
-              selected: root.selected === delegateRoot.index
-              accent: root.accent; foreground: root.foreground
-              selectedBackground: root.selectedBackground; selectedText: root.selectedText; selectedBorderSpec: root.selectedBorderSpec
-              onHovered: function(item, mouse) { root.selectFromPointer(delegateRoot.index, item, mouse) }
-              onActivated: { root.selectionTouched = true; root.selected = delegateRoot.index; root.activate() }
-              Connections { target: root; function onFlashed(uid) { if (uid === delegateRoot.uid) rowItem.flash() } }
-            }
-          }
-        }
-        Rectangle { visible: root.previewVisible; x: resultList.width + Style.space(12); width: 1; height: parent.height - Style.space(12); color: root.hairline }
-        PreviewPane {
-          visible: root.previewVisible
-          x: resultList.width + Style.space(30)
-          width: parent.width - x - Style.space(10)
-          height: parent.height
-          row: root.current
-          compact: root.compact
-          accent: root.accent
-          foreground: root.foreground
-        }
-        Column {
-          visible: root.rows.length === 0 && root.mode !== "input" && (!root.pending || root.showLoading)
-          anchors.centerIn: parent
-          spacing: Style.space(12)
-          Text { anchors.horizontalCenter: parent.horizontalCenter; text: "✳"; textFormat: Text.PlainText; color: root.accent; font.family: Style.font.iconFamily; font.pixelSize: Style.space(40) }
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: root.pending ? "Finding your next move…" : search.text ? "No matches for “" + search.text + "”" : root.scope === "clipboard" ? "Your clipboard is empty" : root.scope === "files" ? "Type to search your home folder" : "Nothing here yet"
-            textFormat: Text.PlainText; color: root.foreground; opacity: 0.8; font.family: root.fontFamily; font.pixelSize: Style.font.title
-          }
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: root.scope === "converter" ? "Try 2m in feet or 10 am in London" : root.dmenuActive ? "" : "Search by name. Follow your curiosity."
-            textFormat: Text.PlainText; color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.body
-          }
-        }
-      }
-
-      // Footer (palette mode)
-      Rectangle { visible: !root.dmenuActive; x: 0; y: parent.height - root.footerHeight; width: parent.width; height: 1; color: root.hairline }
-      Item {
-        visible: !root.dmenuActive
-        x: Style.space(22); y: parent.height - root.footerHeight; width: parent.width - Style.space(44); height: root.footerHeight
-        Row {
-          anchors.verticalCenter: parent.verticalCenter; spacing: Style.space(8)
-          Text {
-            text: voice.phase === "listening" ? (root.voiceTrigger === "hold" ? "Listening… release to finish" : "Listening… tap the hotkey again or press ↵ to finish")
-                : voice.phase === "transcribing" ? "Finishing transcript…" : voice.phase === "starting" ? "Starting voxtype…"
-                : root.pending && root.showLoading ? "Searching…" : root.errorMessage ? "Needs attention: " + root.errorMessage : root.statusMessage || (root.current.providerName ? root.current.providerName : "Launcher")
-            textFormat: Text.PlainText; elide: Text.ElideRight; width: Math.min(implicitWidth, card.width * 0.5)
-            color: root.errorMessage ? ShellColor.urgent : root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall
-            anchors.verticalCenter: parent.verticalCenter
-          }
-        }
-        Row {
-          anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: Style.space(8)
-          Text { text: root.dictationMode ? "Copy" : voice.active ? "Finish" : root.current.verb || "Select"; textFormat: Text.PlainText; color: Util.alpha(root.foreground, 0.8); font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
-          Keycap { label: "↵"; bright: true; foreground: root.foreground }
-          Item { width: Style.space(8); height: 1 }
-          Text { visible: root.hotkeyHint; text: root.hotkeysByRoute[root.current.uid] ? "Rebind" : "Hotkey"; textFormat: Text.PlainText; color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
-          Keycap { visible: root.hotkeyHint; label: "ctrl B"; foreground: root.foreground }
-          Item { visible: root.hotkeyHint; width: Style.space(8); height: 1 }
-          Text { text: root.clipboardChoice ? "Paste" : root.compact ? "Settings" : "Provider settings"; textFormat: Text.PlainText; color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
-          Keycap { label: root.clipboardChoice ? "ctrl ↵" : "ctrl K"; foreground: root.foreground }
-        }
-      }
-
-      // Hotkey recorder: covers the results while a chord is captured.
-      Rectangle {
-        id: recorder
-        visible: root.capturing
-        z: 9
-        anchors.fill: parent
-        anchors.margins: card.borderTop
-        radius: Math.max(0, card.radius - card.borderTop)
-        color: root.background
-        MouseArea { anchors.fill: parent }
-        Column {
-          anchors.centerIn: parent
-          width: parent.width - Style.space(80)
-          spacing: Style.space(14)
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: root.captureCurrent ? "Change the hotkey for" : "Set a hotkey for"
-            textFormat: Text.PlainText; color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall
-          }
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: parent.width
-            horizontalAlignment: Text.AlignHCenter
-            text: root.captureRow ? root.captureRow.title : ""
-            textFormat: Text.PlainText; elide: Text.ElideRight
-            color: root.foreground; font.family: root.headingFamily; font.pixelSize: root.fontTitle; font.weight: Font.DemiBold
-          }
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: parent.width
-            horizontalAlignment: Text.AlignHCenter
-            text: root.captureChord ? UserHotkeys.display(root.captureChord)
-                : root.capturePartial ? UserHotkeys.displayPartial(root.capturePartial)
-                : root.captureCurrent ? UserHotkeys.display(root.captureCurrent.combo) : "Press keys…"
-            textFormat: Text.PlainText; elide: Text.ElideRight
-            color: root.captureChord ? root.foreground : Util.alpha(root.foreground, 0.5)
-            font.family: root.headingFamily; font.pixelSize: root.searchFontSize; font.weight: Font.DemiBold; font.letterSpacing: -1.4
-          }
-          Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: parent.width
-            horizontalAlignment: Text.AlignHCenter
-            text: root.captureChord ? root.captureCheck.message
-                : root.captureCurrent ? "Press a new combination, or ⌫ to remove it" : "Hold a modifier, then press a key"
-            textFormat: Text.PlainText; elide: Text.ElideRight
-            color: !root.captureChord ? root.muted : root.captureReady ? (root.captureCheck.state === "available" ? root.muted : root.accent) : ShellColor.urgent
-            font.family: root.fontFamily; font.pixelSize: Style.font.body
-          }
-          Row {
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: Style.space(8)
-            Text { text: "Bind"; textFormat: Text.PlainText; color: Util.alpha(root.foreground, root.captureReady ? 0.8 : 0.35); font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
-            Keycap { label: "↵"; bright: root.captureReady; foreground: root.foreground }
-            Item { width: Style.space(8); height: 1 }
-            Text { visible: !!root.captureCurrent; text: root.captureChord ? "Clear" : "Remove"; textFormat: Text.PlainText; color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
-            Keycap { visible: !!root.captureCurrent; label: "⌫"; foreground: root.foreground }
-            Item { visible: !!root.captureCurrent; width: Style.space(8); height: 1 }
-            Text { text: "Cancel"; textFormat: Text.PlainText; color: root.muted; font.family: root.fontFamily; font.pixelSize: Style.font.bodySmall; anchors.verticalCenter: parent.verticalCenter }
-            Keycap { label: "esc"; foreground: root.foreground }
-          }
-        }
-      }
-
-      ConfirmDialog {
-        id: confirmDialog
-        anchors.fill: parent
-        z: 10
-        opened: root.confirmPending !== null
-        message: root.confirmPending ? root.confirmPending.message : ""
-        confirmText: root.confirmPending ? root.confirmPending.confirmText : "Confirm"
-        background: root.background
-        foreground: root.foreground
-        scrim: root.scrim
-        selectedBackground: root.selectedBackground
-        selectedText: root.selectedText
-        fontFamily: root.fontFamily
-        cornerRadius: Style.cornerRadius
-        onCanceled: { root.confirmPending = null; Qt.callLater(root.focusInput) }
-        onConfirmed: { var run = root.confirmPending ? root.confirmPending.run : null; root.confirmPending = null; if (run) run(); Qt.callLater(root.focusInput) }
-      }
+  QtObject {
+    id: resultList
+    property Item view: null
+    property int currentIndex: -1
+    // The list follows a surviving delegate when rows above it go, so its own
+    // index can drift from `selected`; sync() puts it back either way.
+    function sync(index) {
+      currentIndex = index
+      if (view && view.currentIndex !== index) view.currentIndex = index
     }
+    function positionViewAtIndex(index, mode) { if (view && index >= 0) view.positionViewAtIndex(index, mode) }
+    function positionViewAtBeginning() { if (view) view.positionViewAtBeginning() }
   }
+  // A provider view (Codex, the device menus, a community view): the content
+  // loads sourceComponent and reports the item back.
+  QtObject {
+    id: providerView
+    property Component sourceComponent: null
+    property var item: null
+  }
+  readonly property var searchProxy: search
+  readonly property var listProxy: resultList
+  readonly property var viewProxy: providerView
+  readonly property var results: resultModel
+  readonly property var levelTransform: levelShift
+  // The content showing the palette, and its root item (the pointer gate
+  // measures moves in it).
+  property Item attachedView: null
+  // Which host shows it: "island" (the island's launcher state), "panel"
+  // (Launcher.qml's free panel) or "" (headless). Set by Launcher.qml.
+  property string hostKind: ""
+  readonly property Item viewItem: attachedView
+  function attach(view, field, list) {
+    if (root.attachedView && root.attachedView !== view && typeof root.attachedView.detached === "function") root.attachedView.detached()
+    root.attachedView = view
+    search.field = field
+    resultList.view = list
+    pointerGate.reset()
+    resultList.sync(root.selected)
+  }
+  function detach(view) {
+    if (root.attachedView !== view) return
+    root.attachedView = null
+    search.field = null
+    resultList.view = null
+    providerView.item = null
+  }
+  // The field's own edit (typing, paste, IME commit), after the view copied
+  // its text here: typing supersedes speech and a pending clipboard transfer.
+  function typed(text) {
+    search.text = String(text)
+    clipboardTransfer.cancel()
+    root.voiceCancel()
+    root.edited()
+  }
+  // The visible rows' title highlight (core/Match.js ranges()), as JSON pairs.
+  property string matchQuery: ""
+  function rangesFor(row) {
+    if (!root.matchQuery || row.tier === "answer") return "[]"
+    return JSON.stringify(Match.ranges(root.matchQuery, row.title))
+  }
+  // For the Colors answer: the bg its contrast row measures against, and the
+  // pack its caption names a colour from.
+  readonly property string contrastBackground: Tokens.hex(Tokens.bg)
+  readonly property var themePalette: Theme.palette
+  readonly property string themeName: Theme.name
 }

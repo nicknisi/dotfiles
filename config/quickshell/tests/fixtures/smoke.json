@@ -1,0 +1,4 @@
+{
+  "about": "Tooling smoke test: shoot.sh loads it to prove the fixture IPC round trip. No surface reads it.",
+  "probe": "fixture-ok"
+}

@@ -11,7 +11,8 @@ TestCase {
         var lines = b.split("\n")
         compare(lines.length, 10)
         verify(lines[0].indexOf("-- >>> keystroke voice") === 0)
-        compare(lines[1], "hl.bind(\"SUPER + SPACE\", hl.dsp.exec_cmd(\"qs ipc call launcher voiceHold\"), { long_press = true })")
+        // Global shortcuts (Launcher.qml), not a qs client per key.
+        compare(lines[1], "hl.bind(\"SUPER + SPACE\", hl.dsp.global(\"quickshell:launcher-voice-hold\"), { long_press = true })")
         verify(lines[2].indexOf("\"SUPER + SHIFT + code:201\"") > 0 && lines[2].indexOf("long_press") > 0)
         verify(lines[3].indexOf('hl.bind("SPACE"') === 0)
         verify(lines[4].indexOf('hl.bind("Super_L"') === 0)
@@ -19,9 +20,10 @@ TestCase {
         verify(lines[6].indexOf('hl.bind("code:201"') === 0)
         for (var i = 3; i < 9; i++) {
             verify(lines[i].indexOf("release = true, ignore_mods = true, submap_universal = true, non_consuming = true") > 0)
-            verify(lines[i].indexOf("qs ipc call launcher voiceRelease") > 0)
+            verify(lines[i].indexOf("hl.dsp.global(\"quickshell:launcher-voice-release\")") > 0)
         }
         compare(lines[9], "-- <<< keystroke voice")
+        verify(b.indexOf("exec_cmd") < 0 && b.indexOf("qs ipc") < 0, "no line starts a process")
     }
     function test_keys_are_trimmed_deduplicated_and_escaped() {
         compare(VoiceBindings.parseKeys("  SUPER +  SPACE ,, super + space,SUPER + SPACE, "), ["SUPER + SPACE", "super + space"])

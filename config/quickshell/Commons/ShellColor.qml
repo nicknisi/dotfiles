@@ -7,7 +7,7 @@ QtObject {
     readonly property color accent: Theme.accent
     readonly property color urgent: Theme.red
     readonly property var menu: ({
-        background: Theme.surface,
+        background: Tokens.surface,
         text: Theme.fg,
         scrim: Theme.alpha(Theme.sunken, 0.76),
         border: Theme.borderActive,

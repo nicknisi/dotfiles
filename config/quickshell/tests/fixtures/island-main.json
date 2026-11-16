@@ -1,0 +1,54 @@
+{
+  "about": "M3: the Main board's island. W C D S with D focused, 10:45 on Saturday 14 November 2026, Neon Grid paused, the status pill, and Claude Code in dotfiles on main +2 as the Context lane (waiting, so the sparkle holds still for the shot). Hover, the calendar and the notification shots load it.",
+  "workspaces": [
+    {
+      "name": "S",
+      "windows": 1
+    },
+    {
+      "name": "D",
+      "windows": 2
+    },
+    {
+      "name": "special:scratch",
+      "windows": 1
+    },
+    {
+      "name": "W",
+      "windows": 3
+    },
+    {
+      "name": "N",
+      "windows": 0
+    },
+    {
+      "name": "C",
+      "windows": 1
+    }
+  ],
+  "focused": "D",
+  "clock": "10:45",
+  "date": "Saturday, November 14",
+  "today": "2026-11-14",
+  "media": {
+    "title": "Neon Grid",
+    "artist": "Night Rider",
+    "playing": false
+  },
+  "status": {
+    "wifi": true,
+    "bt": true,
+    "tailscale": true,
+    "muted": false,
+    "battery": 25
+  },
+  "context": {
+    "kind": "agent",
+    "icon": "sparkle",
+    "working": false,
+    "text": "dotfiles",
+    "who": "Claude Code",
+    "where": "dotfiles",
+    "detail": "main +2"
+  }
+}

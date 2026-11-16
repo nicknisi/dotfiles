@@ -1,0 +1,292 @@
+#!/usr/bin/env bash
+# shell-lock - lock the session with the Quickshell lock screen, or hyprlock.
+#
+#   shell-lock            lock now (hypridle's lock_cmd; SUPER+ESCAPE and
+#                         `loginctl lock-session` reach it through hypridle)
+#   shell-lock --unlocked hypridle's on_unlock_cmd: Hyprland reports the session
+#                         unlocked, so any lock instance still running holds
+#                         nothing; mark it done and end it
+#   shell-lock --help     this text, the TTY recovery steps and the real-PAM
+#                         test steps
+#
+# What it does:
+#   1. Nothing when a lock already holds the session: hyprlock is running, or
+#      the Quickshell lock answers `secure` true.
+#   2. Starts `qs -n -p ~/.config/quickshell/lock.qml` (its own instance, -n
+#      so a second one never starts beside it) and asks it
+#      `qs ipc -p <lock.qml> call lock secure` every 0.1 s.
+#   3. Exits 0 as soon as that answers true: the compositor has committed the
+#      lock (every output covered by a lock surface). A watcher stays behind
+#      (`shell-lock --watch`, its own session): when the lock instance ends
+#      without having unlocked (a crash, a kill), it runs shell-lock again,
+#      and the new lock takes the dead one over (misc:allow_session_lock_
+#      restore = true, PLAN DECISION 4). After 3 relaunches in a row it runs
+#      hyprlock instead. lock.qml marks a real unlock by creating the file
+#      named in SHELL_LOCK_DONE; without that file the lock died locked.
+#   4. Otherwise, after 2 s, stops it and execs hyprlock, which can also take
+#      over a lock the compositor had already granted. If the instance exits
+#      early because another shell-lock run's lock is still starting (two
+#      lock requests at once: SUPER+ESCAPE then a lid close), it keeps asking
+#      for the rest of the 2 s; unless that lock has committed by then, it
+#      runs hyprlock itself. Only a committed lock counts as locked: a second
+#      locker is harmless, a skipped one is not. The fallback stays installed
+#      until the Quickshell lock has survived real use.
+#   5. With allow_session_lock_restore on, Hyprland admits a new lock over a
+#      live one. The displaced lock instance keeps answering `secure` after
+#      the newcomer unlocks, which would make every later run of step 1 a
+#      no-op. hypridle's on_unlock_cmd runs `shell-lock --unlocked` on every
+#      real unlock and ends such instances, so the next request locks again.
+#
+# Exit status: 0 locked by the Quickshell lock (or already locked, or another
+# run's lock committed); otherwise hyprlock's, which this process becomes.
+#
+# Environment, for tests (bin/tests/shell-lock.sh):
+#   SHELL_LOCK_QML       the lock config (default ~/.config/quickshell/lock.qml)
+#   SHELL_LOCK_FALLBACK  the fallback command (default hyprlock)
+#   SHELL_LOCK_WAIT      polls of 0.1 s before falling back (default 20 = 2 s)
+#   SHELL_LOCK_LOG       where the lock instance's output goes (default
+#                        /dev/null; Quickshell keeps its own log either way)
+#   SHELL_LOCK_WATCH     seconds between the watcher's checks (default 1)
+#   SHELL_LOCK_RELAUNCH  relaunches so far in this chain (the watcher sets it)
+#
+# Linux only: Quickshell, Hyprland and the session lock protocol do not exist
+# on macOS. Plain bash with no GNU-only flags, so it still parses there.
+set -euo pipefail
+
+help() {
+  cat <<'EOF'
+shell-lock: lock the session with the Quickshell lock screen (lock.qml), or
+hyprlock when that does not report a committed lock within 2 s.
+
+  shell-lock          lock now
+  shell-lock --help   this text
+
+If the lock screen crashes
+  The session stays locked: Hyprland shows "lockscreen crashed" and keeps
+  every output covered. Within about a second shell-lock's watcher starts a
+  new lock, which takes the dead one over (misc:allow_session_lock_restore =
+  true in hyprland.lua, PLAN DECISION 4; the cost, also from the PLAN: any
+  process running as you can take over a dead lock, as it can already end
+  one with hl.clear_crashed_lockscreen(); a live one too, as Hyprland admits
+  any new lock while the option is on). After 3 relaunches in a row the
+  watcher runs hyprlock instead.
+  If another locker takes the session over and unlocks it, hypridle's
+  on_unlock_cmd (shell-lock --unlocked) ends the displaced lock, so the next
+  lock request locks again. Without hypridle running, end it by hand:
+         pkill -f 'qs -n -p .*lock.qml'
+  If the crash screen stays (the option is off, or no lock can start),
+  recover from a text console:
+    1. Ctrl+Alt+F3 and log in.
+    2. Either lock again, which keeps the session locked:
+         XDG_RUNTIME_DIR=/run/user/$(id -u) HYPRLAND_INSTANCE_SIGNATURE=$(ls
+         /run/user/$(id -u)/hypr | head -1) WAYLAND_DISPLAY=wayland-1 shell-lock
+       or unlock without a password:
+         hyprctl --instance 0 eval 'hl.clear_crashed_lockscreen()'
+       (`hyprctl instances` lists the instance if 0 is not it)
+    3. Ctrl+Alt+F1, or whichever VT Hyprland runs on (`loginctl show-session
+       "$XDG_SESSION_ID" -p VTNr` from inside the session).
+    4. A broken lock that keeps coming back: from the TTY,
+       pkill -f 'shell-lock --watch'; pkill -f 'qs -n -p .*lock.qml'
+       then hl.clear_crashed_lockscreen() as above.
+
+Testing real PAM (only with a TTY logged in first)
+  The tests never use the real password or /etc/pam.d. Before trusting the
+  lock on this machine:
+    1. Ctrl+Alt+F3, log in, leave that console logged in, Ctrl+Alt+F1.
+    2. Run shell-lock from a terminal (not hypridle). The lock screen shows on
+       every output within 2 s; `qs ipc -p ~/.config/quickshell/lock.qml call
+       lock secure` from the TTY (with XDG_RUNTIME_DIR and
+       HYPRLAND_INSTANCE_SIGNATURE of the session) prints true.
+    3. Type a wrong password, Enter: the card shakes, "Wrong password" in red,
+       the field is empty, the session stays locked.
+    4. Type the right password, Enter: "Checking…", then the lock fades out and
+       the desktop returns. `pgrep -f lock.qml` prints nothing a moment later.
+    5. Lock again, then from the TTY: `pkill -KILL -f 'qs -n -p .*lock.qml'`.
+       Back on the session VT a new lock screen is up (the crash screen shows
+       for at most a second or two) and nothing unlocks; the right password
+       unlocks it. Without allow_session_lock_restore the crash screen stays;
+       recover as above.
+    6. Lock, close the lid or `systemctl suspend`, resume: the lock is up
+       before the desktop ever shows (hypridle inhibit_sleep = 3).
+    7. Optional, costs 2 minutes: ten wrong passwords in a row (pam_faillock
+       deny = 10, unlock_time = 120). The next attempt, even the right
+       password, fails with faillock's message in the card and the session
+       stays locked; after 2 minutes the right one works. sudo and new TTY
+       logins are refused for those 2 minutes too, so keep the TTY from step 1.
+       `faillock --user "$USER"` lists the attempts.
+  If any step leaves the session unusable, recover as above.
+EOF
+}
+
+case "${1:-}" in
+  -h|--help) help; exit 0 ;;
+  --watch|--unlocked) ;;
+  "") ;;
+  *) echo "shell-lock: unknown argument $1 (see --help)" >&2; exit 2 ;;
+esac
+
+if [ "$(uname -s)" != Linux ]; then
+  echo "shell-lock: Linux only" >&2
+  exit 1
+fi
+
+self=$0
+qml=${SHELL_LOCK_QML:-$HOME/.config/quickshell/lock.qml}
+fallback=${SHELL_LOCK_FALLBACK:-hyprlock}
+wait_polls=${SHELL_LOCK_WAIT:-20}
+log=${SHELL_LOCK_LOG:-/dev/null}
+watch_every=${SHELL_LOCK_WATCH:-1}
+relaunches=${SHELL_LOCK_RELAUNCH:-0}
+case "$wait_polls" in ''|*[!0-9]*) wait_polls=20 ;; esac
+case "$relaunches" in ''|*[!0-9]*) relaunches=0 ;; esac
+case "$watch_every" in ''|*[!0-9.]*) watch_every=1 ;; esac
+max_relaunches=3
+uid=$(id -u)
+
+fall_back() {
+  echo "shell-lock: $1; falling back to $fallback" >&2
+  # shellcheck disable=SC2086 # the fallback may carry its own arguments
+  exec $fallback
+}
+
+secure() {
+  [ "$(qs ipc -p "$qml" call lock secure 2>/dev/null || true)" = true ]
+}
+
+# Another lock instance of this config is locking: it runs, and it either
+# has no IPC yet (still loading) or reports locked (asked the compositor). An
+# instance left over after an unlock reports locked false and does not count.
+lock_pending() {
+  pgrep -u "$uid" -f "qs -n -p $qml" >/dev/null 2>&1 || return 1
+  local r
+  r=$(qs ipc -p "$qml" call lock inspect 2>/dev/null || true)
+  case "$r" in
+    '') return 0 ;;
+    *'"locked":true'*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# shell-lock --unlocked (hypridle's on_unlock_cmd). Hyprland just reported
+# the session unlocked, so no lock instance of this config holds it. Mark each
+# watched lock done first, so its watcher does not relaunch it, then end every
+# instance. Only marks under this user's runtime dir are touched.
+if [ "${1:-}" = --unlocked ]; then
+  rundir=${XDG_RUNTIME_DIR:-}
+  watchers=$(pgrep -u "$uid" -a -f "shell-lock --watch [0-9]+ " 2>/dev/null || true)
+  while read -r line; do
+    mark=${line##* }
+    case "$mark" in
+      "$rundir"/shell-lock.*.unlocked) [ -n "$rundir" ] && [ ! -L "$mark" ] && touch -- "$mark" ;;
+    esac
+  done <<EOF
+$watchers
+EOF
+  pkill -u "$uid" -f "qs -n -p $qml" 2>/dev/null || true
+  exit 0
+fi
+
+# shell-lock --watch PID DONE: wait for the lock instance PID to end. It ends
+# after a real unlock (lock.qml created DONE first) or because it died with
+# the session still locked; then a new lock takes over.
+if [ "${1:-}" = --watch ]; then
+  pid=${2:-}
+  done_file=${3:-}
+  case "$pid" in ''|*[!0-9]*) echo "shell-lock: --watch PID DONE" >&2; exit 2 ;; esac
+  [ -n "$done_file" ] || { echo "shell-lock: --watch PID DONE" >&2; exit 2; }
+  while kill -0 "$pid" 2>/dev/null; do
+    sleep "$watch_every"
+  done
+  # lock.qml creates DONE about 200 ms before it ends; allow for a slow disk.
+  sleep 0.5
+  # Trust only what lock.qml's touch makes: a regular file of this user, not
+  # a symlink. Anything else there counts as no unlock, so a new lock starts.
+  if [ -f "$done_file" ] && [ ! -L "$done_file" ] && [ -O "$done_file" ]; then
+    rm -f "$done_file"
+    exit 0
+  fi
+  if [ "$relaunches" -ge "$max_relaunches" ]; then
+    fall_back "the lock screen died while locked $relaunches times in a row"
+  fi
+  echo "shell-lock: the lock screen died while locked; starting a new one" >&2
+  export SHELL_LOCK_RELAUNCH=$((relaunches + 1))
+  exec bash "$self"
+fi
+
+# 1. Already locked. Only this user's hyprlock counts; another user's process
+# proves nothing. A process of this user named hyprlock could fake it, but a
+# process of this user can already end any lock (kill the locker, then
+# hl.clear_crashed_lockscreen), so that is no new hole.
+if pgrep -u "$uid" -x hyprlock >/dev/null 2>&1; then
+  exit 0
+fi
+command -v qs >/dev/null 2>&1 || fall_back "qs is not installed"
+[ -f "$qml" ] || fall_back "no lock config at $qml"
+if secure; then
+  exit 0
+fi
+
+# 2. Start the lock in its own session, so it outlives this script and the
+# hypridle process that ran it. Its log goes to Quickshell's own log file.
+# DONE: lock.qml creates it right after a real unlock (the watcher's sign).
+# The mark lives only in this user's runtime dir (logind makes it 0700), never
+# in a shared /tmp where another user could plant one.
+rundir=${XDG_RUNTIME_DIR:-}
+if [ -z "$rundir" ] || [ ! -d "$rundir" ] || [ -L "$rundir" ] || [ ! -O "$rundir" ]; then
+  fall_back "XDG_RUNTIME_DIR is not a directory owned by this user"
+fi
+done_file="$rundir/shell-lock.$$.$RANDOM.unlocked"
+rm -f "$done_file"
+if command -v setsid >/dev/null 2>&1; then
+  SHELL_LOCK_DONE=$done_file setsid qs -n -p "$qml" --no-color >>"$log" 2>&1 </dev/null &
+else
+  SHELL_LOCK_DONE=$done_file qs -n -p "$qml" --no-color >>"$log" 2>&1 </dev/null &
+fi
+pid=$!
+
+# The watcher, in its own session too (hypridle's process group can go).
+watch_lock() {
+  if command -v setsid >/dev/null 2>&1; then
+    setsid bash "$self" --watch "$pid" "$done_file" >>"$log" 2>&1 </dev/null &
+  else
+    bash "$self" --watch "$pid" "$done_file" >>"$log" 2>&1 </dev/null &
+  fi
+}
+
+# 3. Wait for the compositor's commit.
+mine=1
+i=0
+while [ "$i" -lt "$wait_polls" ]; do
+  if secure; then
+    [ "$mine" = 1 ] && watch_lock
+    exit 0
+  fi
+  if [ "$mine" = 1 ] && ! kill -0 "$pid" 2>/dev/null; then
+    secure && exit 0
+    # -n refuses a second instance of the same config: another run's lock
+    # may still be coming up. Keep asking it for the rest of the wait; that
+    # run owns its timeout and fallback (two fallbacks would race the lock).
+    lock_pending || fall_back "the lock screen exited before locking"
+    mine=0
+  fi
+  sleep 0.1
+  i=$((i + 1))
+done
+
+if [ "$mine" = 0 ]; then
+  # Another run's lock. Only a committed lock counts: one still pending after
+  # the whole wait (or silent on IPC), or a hyprlock process, proves nothing.
+  secure && exit 0
+  fall_back "the other lock screen did not report a committed lock in time"
+fi
+
+# 4. Not committed in time: stop it, then hyprlock. If the compositor had
+# taken the lock already, hyprlock takes it over (allow_session_lock_restore).
+kill -TERM "$pid" 2>/dev/null || true
+j=0
+while kill -0 "$pid" 2>/dev/null && [ "$j" -lt 10 ]; do
+  sleep 0.1
+  j=$((j + 1))
+done
+kill -KILL "$pid" 2>/dev/null || true
+fall_back "the lock screen did not report a committed lock in time"

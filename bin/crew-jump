@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+"""crew-jump: bring a Crew agent to the front (the Quickshell island, PLAN M2).
+
+  crew-jump --pane %2 [--session S] [--window @1]
+        a tmux agent: switch the attached tmux client to the pane's session,
+        window and pane, then focus the terminal window showing that client
+  crew-jump --pid 1234
+        an agent in a terminal outside tmux: focus the window hosting it
+  --dry-run   print the commands instead of running them
+  --json      print the plan as JSON (what would run, and why)
+
+Ghostty runs every window from one process, so a pid names a window only when
+that process owns exactly one. With several, the title tmux sets on the
+terminal (`#{T:set-titles-string}`, read before switching) picks the window
+when exactly one window carries it. Anything still ambiguous is left alone:
+the tmux pane is selected and the window focus is skipped. Outside tmux there
+is no title to go on, so a terminal with several windows is not focused.
+
+Session and window are looked up from the pane; --session and --window are
+only fallbacks for a tmux too old to answer.
+
+Exit status: 0 done (the message says whether a window was focused), 1 the
+pane or client is gone, 2 usage, 3 nothing to do. The window focus needs
+Hyprland (hyprctl); the tmux part works anywhere. Python 3.9 compatible.
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+PROC = Path("/proc")
+ADDRESS = re.compile(r"^0x[0-9a-fA-F]+$")
+
+
+def run(*cmd, timeout=5):
+    """(exit code, stdout). A missing tool reads as exit 127."""
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        return p.returncode, p.stdout
+    except (OSError, subprocess.SubprocessError):
+        return 127, ""
+
+
+def parent_of(pid):
+    """The parent pid from /proc (comm in parentheses may hold spaces), or 0."""
+    try:
+        text = (PROC / str(pid) / "stat").read_text()
+        return int(text.rpartition(")")[2].split()[1])
+    except (OSError, ValueError, IndexError):
+        return 0
+
+
+def chain(pid):
+    """pid, its parent, and so on up to (not including) init."""
+    out, seen = [], set()
+    while pid > 1 and pid not in seen:
+        seen.add(pid)
+        out.append(pid)
+        pid = parent_of(pid)
+    return out
+
+
+def hypr_clients():
+    code, out = run("hyprctl", "clients", "-j")
+    if code != 0:
+        return []
+    try:
+        return [{"address": str(c.get("address", "")), "pid": int(c.get("pid", -1)), "title": str(c.get("title", ""))}
+                for c in json.loads(out)]
+    except (ValueError, TypeError, AttributeError):
+        return []
+
+
+def choose_window(clients, pids, title):
+    """(client or None, why). The nearest process in `pids` that owns a window decides."""
+    for pid in pids:
+        mine = [c for c in clients if c["pid"] == pid]
+        if not mine:
+            continue
+        if len(mine) == 1:
+            return mine[0], "the only window of pid %d" % pid
+        if title:
+            same = [c for c in mine if c["title"] == title]
+            if len(same) == 1:
+                return same[0], "the one window of pid %d titled %r" % (pid, title)
+            return None, "pid %d has %d windows and %d titled %r" % (pid, len(mine), len(same), title)
+        return None, "pid %d has %d windows and no title to tell them apart" % (pid, len(mine))
+    return None, "no window belongs to the process tree"
+
+
+def focus_command(client):
+    address = client["address"]
+    if not ADDRESS.match(address):
+        return None
+    return ["hyprctl", "dispatch", 'hl.dsp.focus({ window = "address:%s" })' % address]
+
+
+def tmux_lines(*args):
+    code, out = run("tmux", *args)
+    return code, [line for line in out.splitlines() if line.strip()]
+
+
+def plan_pane(pane, session="", window=""):
+    if not re.match(r"^%\d+$", pane):
+        return {"code": 2, "message": "not a tmux pane id: %r" % pane, "commands": []}
+    code, info = tmux_lines("display-message", "-p", "-t", pane, "#{session_name}\t#{window_id}")
+    if code != 0 or not info:
+        return {"code": 1, "message": "tmux pane %s is gone" % pane, "commands": []}
+    parts = info[0].split("\t")
+    session = parts[0] or session
+    window = (parts[1] if len(parts) > 1 else "") or window
+    _, rows = tmux_lines("list-clients", "-F", "#{client_tty}\t#{client_pid}\t#{client_session}\t#{client_activity}")
+    clients = []
+    for row in rows:
+        f = row.split("\t")
+        if len(f) == 4 and f[1].isdigit():
+            clients.append({"tty": f[0], "pid": int(f[1]), "session": f[2],
+                            "activity": int(f[3]) if f[3].isdigit() else 0})
+    if not clients:
+        return {"code": 1, "message": "no tmux client is attached to show %s" % pane, "commands": []}
+    # The client already on that session, else the one used last (what tmux
+    # itself picks for switch-client without -c).
+    pool = [c for c in clients if c["session"] == session] or clients
+    client = max(pool, key=lambda c: c["activity"])
+    title = ""
+    _, on = tmux_lines("show-options", "-gv", "set-titles")
+    if on and on[0].strip() == "on":
+        _, t = tmux_lines("display-message", "-p", "-c", client["tty"], "#{T:set-titles-string}")
+        title = t[0] if t else ""
+    commands = [["tmux", "switch-client", "-c", client["tty"], "-t", session]]
+    if window:
+        commands.append(["tmux", "select-window", "-t", window])
+    commands.append(["tmux", "select-pane", "-t", pane])
+    win, why = choose_window(hypr_clients(), chain(client["pid"]), title)
+    focus = focus_command(win) if win else None
+    if focus:
+        commands.append(focus)
+    message = "tmux %s selected on %s; %s" % (pane, client["tty"],
+                                              "window %s focused (%s)" % (win["address"], why) if focus
+                                              else "window not focused: " + why)
+    return {"code": 0, "message": message, "commands": commands, "title": title, "client": client["tty"]}
+
+
+def plan_pid(pid):
+    if not (PROC / str(pid)).exists():
+        return {"code": 1, "message": "pid %d is gone" % pid, "commands": []}
+    pids = chain(pid)
+    win, why = choose_window(hypr_clients(), pids, "")
+    focus = focus_command(win) if win else None
+    if not focus:
+        return {"code": 3, "message": "window not focused: " + why, "commands": []}
+    return {"code": 0, "message": "window %s focused (%s)" % (win["address"], why), "commands": [focus]}
+
+
+def parse(argv):
+    opts = {"pane": "", "session": "", "window": "", "pid": 0, "dry": False, "json": False}
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a in ("--pane", "--session", "--window", "--pid") and i + 1 < len(argv):
+            key = a[2:]
+            opts[key] = argv[i + 1]
+            i += 2
+            continue
+        if a == "--dry-run":
+            opts["dry"] = True
+        elif a == "--json":
+            opts["json"] = True
+        elif a in ("-h", "--help"):
+            return None
+        else:
+            raise ValueError("unknown argument %r" % a)
+        i += 1
+    if opts["pid"]:
+        if not str(opts["pid"]).isdigit():
+            raise ValueError("--pid takes a number")
+        opts["pid"] = int(opts["pid"])
+    if bool(opts["pane"]) == bool(opts["pid"]):
+        raise ValueError("give --pane or --pid")
+    return opts
+
+
+def main(argv):
+    try:
+        opts = parse(argv)
+    except ValueError as e:
+        print("crew-jump: %s" % e, file=sys.stderr)
+        return 2
+    if opts is None:
+        print(__doc__.strip())
+        return 0
+    plan = plan_pane(opts["pane"], opts["session"], opts["window"]) if opts["pane"] else plan_pid(opts["pid"])
+    if opts["json"]:
+        print(json.dumps(plan))
+    if opts["dry"] or plan["code"] != 0:
+        if not opts["json"]:
+            for cmd in plan["commands"]:
+                print(" ".join(cmd))
+            print(plan["message"], file=sys.stderr if plan["code"] else sys.stdout)
+        return plan["code"]
+    for cmd in plan["commands"]:
+        code, _ = run(*cmd)
+        if code != 0 and cmd[0] == "tmux":
+            print("crew-jump: %s failed (%d)" % (" ".join(cmd), code), file=sys.stderr)
+            return 1
+    if not opts["json"]:
+        print(plan["message"])
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

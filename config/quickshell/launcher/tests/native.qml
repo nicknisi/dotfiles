@@ -3,6 +3,7 @@ import QtQuick as Quick
 import Quickshell
 import "../core" as Core
 import "../providers" as Providers
+import "../.." as Desktop
 
 Scope {
     id: suite
@@ -70,11 +71,70 @@ Scope {
         equal(rows.find(function(row) { return row.title === "Wallpaper: Fixture wallpaper" }).action.argv, ["theme", "bg", "/tmp/fixture name.png"], "wallpaper argv is literal")
         equal(desktop.activate(desktop.navRow(desktop.menus[4], 4)), { type: "provider-view", provider: "system" }, "native provider view contract")
         equal(desktop.activePage, "audio", "audio menu selected")
+        // Open Control center (launcher-pickers 5.4): an island row, listed in
+        // every mode (M4: the classic bars host the control center too).
+        var ccCommand = desktop.commands.find(function(c) { return c.id === "control-center" })
+        var ccRow = ccCommand ? desktop.commandRow(ccCommand, {}, 0) : null
+        equal(ccRow && ccRow.action, { type: "system-island", state: "cc" }, "Open Control center is an island row")
+        equal(ccRow && desktop.activate(ccRow), { type: "island", state: "cc" }, "it asks the host for the island's cc state")
+        check(ccRow && ccRow.parent === "root" && ccRow.verb === "Open" && ccRow.runsLabel === (Desktop.Prefs.barMode === "island" ? "Shows the island's control center" : "Shows the bar's control center"), "it sits at the Desktop root and says what it opens")
+        check(ccRow && ccRow.subtitle === (Desktop.Prefs.barMode === "island" ? "Island" : "Bar"), "its subtitle names the host: " + (ccRow && ccRow.subtitle))
+        check(desktop.catalog({ settings: {} }).some(function(row) { return row.id === "control-center" }), "listed in every mode (" + Desktop.Prefs.barMode + ")")
         equal(desktop.query({ scope: "files", query: "", settings: {} }), [], "system scope isolation")
         check(desktop.query({ scope: "system/bar", sub: "bar", query: "", settings: {} }).length >= 6, "bar preferences searchable")
+        // The island's form and look (M9): searchable from the root, and a pick goes to Prefs.
+        var lookRows = desktop.query({ scope: "", query: "look phosphor", settings: {} })
+        check(lookRows.some(function(row) { return row.id === "look-phosphor" }), "look phosphor finds the Phosphor look: " + lookRows.map(function(r) { return r.id }).join(" "))
+        check(desktop.query({ scope: "", query: "notch", settings: {} }).some(function(row) { return row.id === "island-notch" }), "notch finds the island form")
+        var oldLook = Desktop.Prefs.look, oldForm = Desktop.Prefs.islandForm
+        var phosphor = desktop.commandRow(desktop.commands.find(function(c) { return c.id === "look-phosphor" }), {}, 0)
+        equal(desktop.activate(phosphor), { type: "noop" }, "a look is a preference, not a launch")
+        equal(Desktop.Prefs.look, "phosphor", "and it sets the look")
+        desktop.activate(desktop.commandRow(desktop.commands.find(function(c) { return c.id === "island-notch" }), {}, 0))
+        equal(Desktop.Prefs.islandForm, "notch", "the form too")
+        Desktop.Prefs.setLook(oldLook)
+        Desktop.Prefs.setIslandForm(oldForm)
+        equal(desktop.commands.filter(function(c) { return /^look-/.test(c.id) }).map(function(c) { return c.id.slice(5) }), Desktop.Prefs.looks, "one row per look, in Prefs' order")
+        // Rounded screen corners: found by "corners", a toggle of the pref
+        // whose subtitle says whether they are on.
+        var cornerRows = desktop.query({ scope: "", query: "rounded corners", settings: {} })
+        check(cornerRows.some(function(row) { return row.id === "screen-corners" }), "rounded corners finds the corners row: " + cornerRows.map(function(r) { return r.id }).join(" "))
+        var oldCorners = Desktop.Prefs.screenCorners
+        Desktop.Prefs.setScreenCorners(true)
+        var corners = desktop.commandRow(desktop.commands.find(function(c) { return c.id === "screen-corners" }), {}, 0)
+        equal([corners.parent, corners.subtitle, corners.action], ["bar", "On, " + Desktop.Prefs.screenCornerRadius + " px", { type: "system-preference", value: "corners" }], "the corners row sits in Bar Preferences and says they are on")
+        equal(desktop.activate(corners), { type: "noop" }, "toggling the corners is a preference, not a launch")
+        check(!Desktop.Prefs.screenCorners && testHost.statusMessage === "Rounded corners off", "and it turns them off: " + testHost.statusMessage)
+        equal(desktop.commandRow(desktop.commands.find(function(c) { return c.id === "screen-corners" }), {}, 0).subtitle, "Off", "the row then says Off")
+        desktop.activate(corners)
+        check(Desktop.Prefs.screenCorners && testHost.statusMessage === "Rounded corners on", "a second run turns them back on")
+        Desktop.Prefs.setScreenCorners(oldCorners)
         check(desktop.query({ scope: "", query: "reboot", settings: {} }).some(function(row) { return row.id === "action-reboot" && row.confirm }), "root session search retains confirmation")
-        for (var name of ["AudioMenu", "NetMenu", "BtMenu", "DisplayMenu", "TailscaleMenu", "ThemeMenu"]) {
-            var component = Qt.createComponent(Qt.resolvedUrl("../../" + name + ".qml"))
+        // The night light: its sheet as a System page, and a toggle at the root.
+        var nightMenu = desktop.menus.find(function(m) { return m.id === "nightlight" })
+        equal(nightMenu && desktop.navRow(nightMenu, 0).action, { type: "system-view", page: "nightlight" }, "Night Light opens its sheet as a System page")
+        var nightRows = desktop.query({ scope: "", query: "night light", settings: {} }).map(function(row) { return row.id })
+        check(nightRows.indexOf("nightlight") >= 0 && nightRows.indexOf("nightlight-toggle") >= 0, "night light finds the page and the toggle: " + nightRows.join(" "))
+        check(desktop.query({ scope: "", query: "hyprsunset", settings: {} }).some(function(row) { return row.id === "nightlight-toggle" }), "hyprsunset finds the toggle")
+        var nightToggle = desktop.commandRow(desktop.commands.find(function(c) { return c.id === "nightlight-toggle" }), {}, 0)
+        equal(nightToggle.action, { type: "system-preference", value: "nightlight:toggle" }, "the toggle is a preference row")
+        check(nightToggle.parent === "root" && nightToggle.intentFamily === "toggle" && nightToggle.verb === "Run", "at the root, a toggle")
+        equal(desktop.routeFor("night").scope, "system/nightlight", "night routes to the page")
+        // No Hyprland session here (native.sh unsets the signature): refused,
+        // said so, and no hyprctl runs (native.sh fails on one).
+        testHost.statusMessage = ""
+        equal(desktop.activate(nightToggle), { type: "noop" }, "the toggle stays in the launcher")
+        check(testHost.statusMessage === "Night light: no Hyprland session" && !Desktop.NightLight.on, "and says why it did nothing: " + testHost.statusMessage)
+        // The System view's pages are the control center's sheets (M6); the
+        // old menus are gone (M10), and the theme page is the picker (M7).
+        // The profile picture (a System row, the control center's FaceSheet).
+        equal(desktop.routeFor("face").scope, "system/face", "the profile picture route")
+        equal(desktop.routeFor("profile picture").scope, "system/face", "by its name too")
+        var faceMenu = desktop.menus.find(function(m) { return m.id === "face" })
+        check(!!faceMenu && faceMenu.title === "Profile picture" && faceMenu.view === true, "Profile picture is a System row with a view")
+        check(desktop.query({ scope: "", query: "profile picture", settings: {} }).some(function(row) { return row.title === "Profile picture" }), "Profile picture is searchable from the root")
+        for (var name of ["SoundSheet", "WifiSheet", "BluetoothSheet", "DisplaySheet", "TailscaleSheet", "NightLightSheet", "FaceSheet"]) {
+            var component = Qt.createComponent(Qt.resolvedUrl("../../Panels/Sheets/" + name + ".qml"))
             check(component.status === Component.Ready, name + " compiles: " + component.errorString())
         }
         for (var providerName of ["Converter", "Files"]) {

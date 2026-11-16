@@ -1,0 +1,366 @@
+{
+  "about": "M6: every service on, for the control center and its sheets. The island-main workspaces and clock; Neon Grid paused at 1:42 of 4:31; Wi-Fi on home-5g, Bluetooth with headphones, Tailscale connected, Do not disturb on; volume 62 on the speakers, brightness 48; keep awake for an hour; 60 Hz at 1.5x; two notifications; 25% on battery; four tray items. `sheets` feeds each sheet. Every press is a dry run (Fixture.dryRun, and a fixture's own data).",
+  "workspaces": [
+    {
+      "name": "S",
+      "windows": 1
+    },
+    {
+      "name": "D",
+      "windows": 2
+    },
+    {
+      "name": "special:scratch",
+      "windows": 1
+    },
+    {
+      "name": "W",
+      "windows": 3
+    },
+    {
+      "name": "N",
+      "windows": 0
+    },
+    {
+      "name": "C",
+      "windows": 1
+    }
+  ],
+  "focused": "D",
+  "clock": "10:45",
+  "date": "Saturday, November 14",
+  "today": "2026-11-14",
+  "media": {
+    "title": "Neon Grid",
+    "artist": "Night Rider",
+    "playing": false,
+    "canPrevious": true,
+    "canNext": true,
+    "canSeek": true,
+    "position": 102,
+    "length": 271
+  },
+  "status": {
+    "wifi": true,
+    "bt": true,
+    "tailscale": true,
+    "muted": false,
+    "battery": 25
+  },
+  "cc": {
+    "now": 1794674700000,
+    "wifi": {
+      "present": true,
+      "radioOn": true,
+      "connected": true,
+      "ssid": "home-5g"
+    },
+    "bt": {
+      "present": true,
+      "enabled": true,
+      "device": "Headphones"
+    },
+    "tailscale": {
+      "installed": true,
+      "running": true,
+      "state": "Connected"
+    },
+    "dnd": true,
+    "volume": {
+      "value": 0.62,
+      "muted": false,
+      "present": true,
+      "device": "Speakers"
+    },
+    "brightness": {
+      "value": 0.48,
+      "present": true
+    },
+    "awake": {
+      "active": true,
+      "label": "1 hour"
+    },
+    "hz": 60,
+    "scale": 1.5,
+    "recording": false,
+    "notifications": [
+      {
+        "summary": "Session finished",
+        "appName": "Claude Code",
+        "body": "Island mocks are ready for review",
+        "created": 1794674580000
+      },
+      {
+        "summary": "Recording saved",
+        "appName": "capture",
+        "body": "Region recording, 0:42",
+        "created": 1794673860000
+      }
+    ],
+    "count": 3,
+    "user": "nicknisi",
+    "battery": {
+      "present": true,
+      "percent": 25,
+      "charging": false,
+      "pluggedIn": false
+    },
+    "tray": [
+      {
+        "id": "1password",
+        "title": "1Password",
+        "glyph": "shield"
+      },
+      {
+        "id": "slack",
+        "title": "Slack",
+        "glyph": "bell"
+      },
+      {
+        "id": "discord",
+        "title": "Discord",
+        "glyph": "gamepad"
+      },
+      {
+        "id": "spotify",
+        "title": "Spotify",
+        "glyph": "music"
+      }
+    ]
+  },
+  "sheets": {
+    "wifi": {
+      "present": true,
+      "radioOn": true,
+      "portal": false,
+      "networks": [
+        {
+          "ssid": "home-5g",
+          "connected": true,
+          "known": true,
+          "secured": true,
+          "bars": 4
+        },
+        {
+          "ssid": "Nisi Office",
+          "known": true,
+          "secured": true,
+          "bars": 3
+        },
+        {
+          "ssid": "Test Hotel",
+          "known": true,
+          "secured": false,
+          "bars": 2
+        },
+        {
+          "ssid": "Bean There",
+          "secured": true,
+          "bars": 2
+        },
+        {
+          "ssid": "Library Guest",
+          "secured": false,
+          "bars": 1
+        }
+      ]
+    },
+    "sound": {
+      "sink": "Speakers",
+      "muted": false,
+      "volume": 0.62,
+      "micVolume": 0.8,
+      "sinks": [
+        {
+          "key": "speakers",
+          "name": "Speakers",
+          "transport": "Built-in",
+          "isDefault": true
+        },
+        {
+          "key": "xm5",
+          "name": "WH-1000XM5",
+          "transport": "Bluetooth",
+          "headphones": true
+        },
+        {
+          "key": "hdmi",
+          "name": "Studio Display",
+          "transport": "HDMI"
+        }
+      ],
+      "sources": [
+        {
+          "key": "mic",
+          "name": "Built-in mic",
+          "transport": "Built-in",
+          "isDefault": true
+        }
+      ],
+      "recorders": [
+        "Zoom"
+      ],
+      "streams": [
+        {
+          "key": "firefox",
+          "app": "Firefox",
+          "volume": 0.8
+        },
+        {
+          "key": "spotify",
+          "app": "Spotify",
+          "volume": 0.55
+        },
+        {
+          "key": "zoom",
+          "app": "Zoom",
+          "volume": 1
+        }
+      ]
+    },
+    "tailscale": {
+      "now": 1794674700000,
+      "installed": true,
+      "running": true,
+      "state": "Connected",
+      "exitName": "",
+      "self": {
+        "name": "milhouse",
+        "ipv4": "100.101.12.4"
+      },
+      "peers": [
+        {
+          "id": "riker",
+          "name": "riker",
+          "os": "linux",
+          "ipv4": "100.88.3.21",
+          "canSend": true
+        },
+        {
+          "id": "mbp",
+          "name": "nick-mbp",
+          "os": "macOS",
+          "ipv4": "100.71.40.9",
+          "canSend": true
+        }
+      ],
+      "offline": [
+        {
+          "id": "pixel",
+          "name": "pixel-9",
+          "os": "android",
+          "ipv4": "100.90.1.7",
+          "lastSeen": 1794667500000
+        }
+      ]
+    },
+    "bt": {
+      "present": true,
+      "enabled": true,
+      "discovering": false,
+      "connected": [
+        {
+          "key": "xm5",
+          "name": "WH-1000XM5",
+          "status": "connected",
+          "battery": 80,
+          "icon": "audio-headset"
+        }
+      ],
+      "known": [
+        {
+          "key": "mxkeys",
+          "name": "MX Keys",
+          "status": "paired",
+          "battery": -1,
+          "icon": "input-keyboard",
+          "paired": true
+        },
+        {
+          "key": "mxmaster",
+          "name": "MX Master 3S",
+          "status": "paired",
+          "battery": -1,
+          "icon": "input-mouse",
+          "paired": true
+        }
+      ],
+      "nearby": [
+        {
+          "key": "tv",
+          "name": "Living Room TV",
+          "status": "",
+          "icon": "video-display"
+        }
+      ]
+    },
+    "notifications": {
+      "now": 1794674700000,
+      "dnd": true,
+      "items": [
+        {
+          "summary": "Session finished",
+          "appName": "Claude Code",
+          "body": "Island mocks are ready for review",
+          "created": 1794674580000
+        },
+        {
+          "summary": "Recording saved",
+          "appName": "capture",
+          "body": "Region recording, 0:42",
+          "created": 1794673860000
+        },
+        {
+          "summary": "Battery low",
+          "appName": "battery",
+          "body": "25% left",
+          "created": 1794670920000,
+          "critical": true
+        }
+      ]
+    },
+    "display": {
+      "brightness": {
+        "value": 0.48
+      },
+      "current": {
+        "width": 2880,
+        "height": 1800,
+        "hz": 60,
+        "scale": 1.5
+      },
+      "modes": [
+        {
+          "mode": "2880x1800@120",
+          "label": "2880×1800 @ 120 Hz"
+        },
+        {
+          "mode": "2880x1800@60",
+          "label": "2880×1800 @ 60 Hz",
+          "current": true
+        }
+      ],
+      "scales": [
+        {
+          "value": 1.25,
+          "label": "1.25×"
+        },
+        {
+          "value": 1.5,
+          "label": "1.5×",
+          "current": true
+        },
+        {
+          "value": 2,
+          "label": "2×"
+        }
+      ],
+      "barMode": "island"
+    },
+    "awake": {
+      "active": true,
+      "selected": 60,
+      "status": "On for 1 hour"
+    }
+  }
+}

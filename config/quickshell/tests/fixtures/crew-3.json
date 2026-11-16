@@ -1,0 +1,99 @@
+{
+  "about": "PLAN M2: three agents: Pi needs you (tmux, a question), Claude Code working, Codex asleep for 12 min.",
+  "workspaces": [
+    {
+      "name": "S",
+      "windows": 1
+    },
+    {
+      "name": "D",
+      "windows": 2
+    },
+    {
+      "name": "special:scratch",
+      "windows": 1
+    },
+    {
+      "name": "W",
+      "windows": 3
+    },
+    {
+      "name": "N",
+      "windows": 0
+    },
+    {
+      "name": "C",
+      "windows": 1
+    }
+  ],
+  "focused": "D",
+  "clock": "10:45",
+  "date": "Saturday, November 14",
+  "media": {
+    "title": "Neon Grid",
+    "artist": "Night Rider"
+  },
+  "status": {
+    "wifi": true,
+    "bt": true,
+    "tailscale": true,
+    "muted": false,
+    "battery": 25
+  },
+  "crew": {
+    "now": 1794715378,
+    "fleet": {
+      "agents": [
+        {
+          "pane": "%2",
+          "windowId": "@1",
+          "session": "projects",
+          "label": "Make a detailed artifact",
+          "agentType": "pi",
+          "status": "QUESTION",
+          "needsAttention": true,
+          "ts": 1794715378,
+          "timestampKind": "observed",
+          "hookTs": 0,
+          "project": "~/Developer/dotfiles"
+        },
+        {
+          "pane": "%0",
+          "windowId": "@0",
+          "session": "projects",
+          "label": "island mocks",
+          "agentType": "claude",
+          "status": "BUSY",
+          "needsAttention": false,
+          "ts": 1794715378,
+          "timestampKind": "observed",
+          "hookTs": 0,
+          "project": "~/Developer/dotfiles"
+        },
+        {
+          "pane": "%3",
+          "windowId": "@2",
+          "session": "projects",
+          "label": "tests",
+          "agentType": "codex",
+          "status": "IDLE",
+          "needsAttention": false,
+          "ts": 1794714658,
+          "timestampKind": "state_change",
+          "hookTs": 0,
+          "project": "~/Developer/dotfiles"
+        }
+      ]
+    },
+    "scan": {
+      "total": 0,
+      "agents": [],
+      "spend": {
+        "today": 4.37,
+        "sessions": 6,
+        "tools": [],
+        "models": []
+      }
+    }
+  }
+}

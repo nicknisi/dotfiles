@@ -7,12 +7,13 @@ pragma Singleton
 // ~/.local/state/theme/current/colors.json on every switch. The file is watched
 // (and `qs ipc call theme reload` is a belt to that suspender), so the bar
 // retints without a restart. The literals below are Tokyo Night, the look until
-// theme has run once on a machine.
+// theme has run once on a machine. $THEME_COLORS overrides the path (sandbox).
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 import QtQml
 import QtQuick
+import "BarGeometry.js" as BarGeometry
 
 Singleton {
     id: root
@@ -82,8 +83,16 @@ Singleton {
     readonly property int fontSize:  13
     readonly property int iconSize:  14
     readonly property int barHeight: 40
-    readonly property int barInset: Prefs.barMode === "full" ? 0 : 8
-    readonly property int barExtent: barHeight + 2 * barInset
+    // 8 for the floating pill; the full strip and the rail are flush (M4).
+    readonly property int barInset: BarGeometry.inset(Prefs.barMode)
+    // The exclusive zone Reserve holds along the bar's edge: 56 for the pill,
+    // 40 for the full strip and the rail, 46 for the island (40 in its notch form). The island is 38
+    // high, 8 under the top edge, and Hyprland adds gaps_out (8) below the zone
+    // itself, so 46 puts window edges 8 under the island (Main board: y 54).
+    // The notch form (M9, Prefs.islandForm) is flush with the top edge and
+    // 40 high, so it reserves 40: window edges 8 under it once more.
+    readonly property int islandExtent: Prefs.islandForm === "notch" ? 40 : 46
+    readonly property int barExtent: Prefs.barMode === "island" ? islandExtent : barHeight + 2 * barInset
 
     // A light accent wash for selected controls, independent of theme mode.
     readonly property color glowFill: alpha(accent, 0.14)
@@ -138,9 +147,14 @@ Singleton {
 
     function reload() { file.reload() }
 
+    // $THEME_COLORS, when set, names another colors.json: the sandbox renders any
+    // pack with `bin/theme-color --json` and points the shell at that file.
+    readonly property string colorsPath: Quickshell.env("THEME_COLORS")
+        || Quickshell.env("HOME") + "/.local/state/theme/current/colors.json"
+
     FileView {
         id: file
-        path: Quickshell.env("HOME") + "/.local/state/theme/current/colors.json"
+        path: root.colorsPath
         watchChanges: true
         onFileChanged: reload()
         onLoaded: {

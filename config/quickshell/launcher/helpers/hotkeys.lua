@@ -9,7 +9,7 @@ M.IDENTITY_FIELDS={'arg','key','keycode','modmask','submap','release','longPress
 local defaults={'','',0,0,'',false,false,false,false}
 local modifiers={{64,'SUPER'},{1,'SHIFT'},{4,'CTRL'},{8,'ALT'},{2,'CAPS'},{16,'MOD2'},{32,'MOD3'},{128,'MOD5'}}
 local labels={
- ['SUPER + SPACE']='Launcher',['SUPER + V']='Clipboard History',
+ ['SUPER + SPACE']='Launcher',['SUPER + V']='Clipboard History',['SUPER ALT + C']='Control center',['SUPER ALT + D']='Calendar',
  PRINT='Screenshot Region',['SHIFT + PRINT']='Screenshot Screen',['ALT + PRINT']='Annotate Screenshot',
  ['SUPER + PRINT']='Record Region',['SUPER SHIFT + PRINT']='Stop Recording',['SUPER + RETURN']='Terminal',
  ['SUPER SHIFT + RETURN']='Browser',['SUPER + Q']='Close window',['SUPER + ESCAPE']='Lock',

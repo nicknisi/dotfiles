@@ -1,442 +1,504 @@
-// ThemePicker.qml - the theme (and wallpaper) switcher overlay: a carousel of
-// wallpaper cards, the chosen one expanded in the middle and the rest as skewed
-// slices to either side, dimmed. Left/Right/Tab move, typing filters, Enter
-// applies, Esc clears the filter and then closes, a click outside closes.
-//
-// Drawn with this bar's Theme tokens. Each card is a wallpaper, with the pack's
-// palette swatches and its tagline under the label.
-//
-// Opened over IPC, which is what `theme picker [themes|backgrounds]` does
-// (and what the "Theme" / "Wallpaper" entries in wofi run):
+// ThemePicker.qml - the theme and wallpaper pickers' host (PLAN M7,
+// launcher-pickers 7). Opened over IPC, which is what `theme picker
+// [themes|backgrounds]` does (and the "Theme" / "Wallpaper" desktop entries,
+// the launcher's Wallpaper Picker and the control center's Theme mini):
 //     qs ipc call picker open themes
-// Rows come from `theme _rows <kind>` as JSON; images are the thumbnails
-// `theme thumbs` caches under ~/.cache/theme/thumbs, or the originals until
-// that has run once.
+//
+// The view is Panels/ThemesPanel.qml and Panels/WallpapersPanel.qml over
+// Panels/PickerModel.qml (state and keys); this picks where they show each
+// time the picker opens, as Launcher.qml does for the palette:
+//
+//   island mode   the island on the target screen becomes them: its `themes`
+//                 and `wallpapers` states (1240 x 600, 780 x 252 or 444),
+//                 morphing between the two on Tab. Leaving those states any
+//                 other way (an outside click on the island's focus grab,
+//                 `island close`, the palette opening) closes the picker.
+//   pill, full,   a free panel: a full-screen transparent overlay (an outside
+//   rail          click closes) with the content top centre, 8 under the
+//                 bar's reserved zone (PLAN 1.6), on the island material,
+//                 opaque, radius 28, the one shadow. It grows from its top
+//                 edge on the spatial spring, fades in over effects, and
+//                 follows the content's size on the spring when Tab switches.
+//   fullscreen    in island mode, over a fullscreen window: the free panel
+//                 where the island would put it (y 8); the island's Top layer
+//                 is under the window (Launcher.qml's islandFor).
+//
+// Live preview (7.4): while a theme card other than the applied one has
+// focus, Tokens.previewPalette is that pack's palette (`theme _rows` carries
+// it), so everything drawn from Tokens (the island, these panels, the
+// launcher) retints on the effects spring. Nothing is written until Enter.
+// Esc, an outside click or Tab to the wallpapers fades back. Enter runs
+// `theme <name>` (Panels/PickerRun.qml) and keeps the preview pinned to the
+// chosen pack until colors.json names it (Theme.name), or 15 s pass, so the
+// island does not flash back to the old theme in between. Windows,
+// terminals and the wallpaper change only once bin/theme has run. A run that
+// fails drops the pin at once and says so in a notification, with the last
+// lines bin/theme printed (launcher-pickers 7.4).
+//
+// Rows come from `theme _rows <kind>` as JSON, reloaded on every open (the
+// last rows stay on screen meanwhile), and the other kind's on the first Tab.
+// Images are the thumbnails `theme thumbs` caches under ~/.cache/theme/thumbs,
+// or the originals until that has run once. In the screenshot sandbox a
+// fixture's `picker: { themes, backgrounds }` stands in, and under
+// Fixture.dryRun nothing runs bin/theme (lastRun records what would have).
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import Quickshell.Wayland
+import Quickshell.Widgets
 import QtQuick
 import QtQuick.Effects
-import QtQuick.Shapes
+import qs
+import qs.Kit
+import qs.Panels
+import "lib/FindBin.js" as FindBin
 
 Scope {
     id: root
 
-    // ~/.config/quickshell is a symlink into the dotfiles checkout; .. walks the
-    // real parent, so this lands on dotfiles/bin/theme without hard-coding it.
-    readonly property string themeBin: Quickshell.shellDir + "/../../bin/theme"
-
-    property string kind: "themes"
-    property var rows: []
-    property int selectedIndex: 0
-    property string filterText: ""
-    property bool opened: false
-    property bool loaded: false
-
-    // Logical pixels; the panel is 1800 wide at scale 1.6.
-    readonly property int expandedWidth: 720
-    readonly property int expandedHeight: 450
-    readonly property int sliceWidth: 96
-    readonly property int sliceHeight: 405
-    readonly property int sliceSpacing: -26
-    readonly property int skew: 26
-    readonly property int chromeHeight: 120
-
-    IpcHandler {
-        target: "picker"
-        function open(kind: string): void { root.open(kind) }
-        function close(): void { root.close() }
-        function toggle(kind: string): void { if (root.opened) root.close(); else root.open(kind) }
-    }
-
-    function open(kind) {
-        root.kind = kind === "backgrounds" ? "backgrounds" : "themes"
-        root.filterText = ""
-        root.loaded = false
-        root.rows = []
-        root.opened = true
-        rowsProc.running = false
-        rowsProc.command = [root.themeBin, "_rows", root.kind]
-        rowsProc.running = true
-    }
-
-    function close() {
-        root.opened = false
-        root.filterText = ""
-    }
-
+    // bin/theme. ~/.config/quickshell is a link into the dotfiles checkout,
+    // and .. walks the link's target, so this path finds the checkout's own
+    // (a worktree run by path finds its own too). Only while it is that link,
+    // though: a link farm in its place has no ../../bin. lib/FindBin.js
+    // settles it once at startup: that path, then for the session's own
+    // config alone $DOTFILES/bin/theme and `theme` on PATH, through realpath
+    // (M10). A copy (the sandbox's, a test's) gets its own or nothing, so a
+    // stray Enter there can never theme the live desktop.
+    readonly property string localThemeBin: Quickshell.shellDir + "/../../bin/theme"
+    readonly property bool themeFallbacks: FindBin.fallbacksFor(Quickshell.shellDir, Quickshell.env("HOME"), Quickshell.env("XDG_CONFIG_HOME"), Fixture.dryRun)
+    property string themeBin: root.localThemeBin
     Process {
-        id: rowsProc
+        id: findTheme
+        running: true
+        command: FindBin.command("theme", root.localThemeBin, root.themeFallbacks)
         stdout: StdioCollector {
             waitForEnd: true
             onStreamFinished: {
-                if (!root.opened) return
-                let parsed = []
-                try { parsed = JSON.parse(text) } catch (e) { console.log("picker: bad rows: " + e) }
-                root.rows = Array.isArray(parsed) ? parsed : []
-                root.selectedIndex = 0
-                for (let i = 0; i < root.rows.length; i++) {
-                    if (root.rows[i].current) { root.selectedIndex = i; break }
-                }
-                root.loaded = true
-                Qt.callLater(() => carousel.forceActiveFocus())
+                const found = text.trim();
+                if (found !== "") root.themeBin = found;
+            }
+        }
+        onExited: code => {
+            if (code !== 0) console.warn("picker: no bin/theme at " + root.localThemeBin + (root.themeFallbacks ? ", in $DOTFILES/bin or on PATH" : " (not the session's config: no $DOTFILES or PATH fallback)"));
+        }
+    }
+
+    // Island.qml instances (shell.qml), one per screen; empty outside island mode.
+    property var islands: []
+    // The island showing the picker, or null while the free panel does
+    // (Panels/PickerRouter.qml). Chosen on every open, kept through the close.
+    readonly property var shownIsland: router.shownIsland
+    readonly property bool islandHosting: router.islandHosting
+    property var targetScreen: null
+
+    readonly property alias model: picker
+    readonly property bool opened: picker.opened
+    readonly property string kind: picker.kind
+
+    // What the last Enter ran (or, under a dry run, would have): "hackerman",
+    // "bg /path/to/image". For inspect() and the sandbox.
+    property string lastRun: ""
+    // The kinds whose rows have been asked for since this open.
+    property var asked: ({})
+
+    PickerModel {
+        id: picker
+        onApplied: (row, kind) => root.apply(row, kind)
+        onCloseRequested: root.close()
+    }
+
+    // The live preview, and the pin that holds an applied theme until
+    // colors.json names it (Panels/PickerPreview.qml).
+    PickerPreview {
+        id: preview
+        model: picker
+    }
+
+    // Which island shows the picker, and the close when one leaves it.
+    PickerRouter {
+        id: router
+        model: picker
+    }
+
+    // Enter's bin/theme runs, and what a failed one says.
+    PickerRun {
+        id: runs
+        onEnded: (argv, code, output) => root.runEnded(argv, code, output)
+    }
+
+    // ---- opening and closing ---------------------------------------------------------
+    function targetScreenNow() {
+        const screens = Quickshell.screens;
+        const active = Hyprland.activeToplevel;
+        const monitors = [active ? active.monitor : null, Hyprland.focusedMonitor];
+        for (const monitor of monitors) {
+            if (!monitor || !monitor.name) continue;
+            for (const screen of screens) {
+                if (screen.name === monitor.name && screen.width > 0 && screen.height > 0) return screen;
+            }
+        }
+        return screens.length ? screens[0] : null;
+    }
+    function kindOf(k: string): string {
+        return k === "backgrounds" || k === "wallpapers" ? "backgrounds" : "themes";
+    }
+    function open(kind: string) {
+        root.openOn(null, kind);
+    }
+    // The picker on `screen` (the focused one when null): the island's
+    // `island open themes` and the control center's Theme mini.
+    function openOn(screen, kind: string) {
+        root.targetScreen = screen || root.targetScreenNow();
+        root.asked = ({});
+        picker.open(root.kindOf(kind));
+        root.load(picker.kind);
+        root.place();
+    }
+    function close() {
+        if (!picker.opened) return;
+        picker.close();
+    }
+    function toggle(kind: string) {
+        if (picker.opened) root.close();
+        else root.open(kind);
+    }
+
+    function load(kind: string) {
+        if (root.asked[kind]) return;
+        root.asked = Object.assign({}, root.asked, { [kind]: true });
+        const fixture = Fixture.data.picker;
+        if (fixture && Array.isArray(fixture[kind])) {
+            picker.setRows(kind, fixture[kind]);
+            return;
+        }
+        const proc = kind === "backgrounds" ? wallsProc : themesProc;
+        proc.running = false;
+        proc.running = true;
+    }
+    function accept(kind: string, text: string) {
+        let parsed = [];
+        try {
+            parsed = JSON.parse(text);
+        } catch (e) {
+            console.log("picker: bad rows: " + e);
+        }
+        picker.setRows(kind, Array.isArray(parsed) ? parsed : []);
+    }
+    Process {
+        id: themesProc
+        command: [root.themeBin, "_rows", "themes"]
+        stdout: StdioCollector {
+            waitForEnd: true
+            onStreamFinished: root.accept("themes", text)
+        }
+    }
+    Process {
+        id: wallsProc
+        command: [root.themeBin, "_rows", "backgrounds"]
+        stdout: StdioCollector {
+            waitForEnd: true
+            onStreamFinished: root.accept("backgrounds", text)
+        }
+    }
+
+    function apply(row, kind: string) {
+        const argv = kind === "backgrounds" ? [root.themeBin, "bg", row.name] : [root.themeBin, row.name];
+        root.lastRun = argv.slice(1).join(" ");
+        if (kind === "themes") preview.pin(row);
+        if (!Fixture.dryRun) runs.run(argv);
+        root.close();
+    }
+    // A run ended. A failure unpins its theme (the shell goes back to the
+    // applied one) and posts what bin/theme printed last, its error line
+    // first, as a banner shows one line of the body.
+    function runEnded(argv, code: int, output: string) {
+        if (code === 0) return;
+        const what = argv.slice(1).join(" ");
+        const lines = output.split("\n").filter(l => l.trim() !== "");
+        console.warn("picker: theme " + what + " exited " + code + (output ? ": " + lines.join(" | ") : ""));
+        if (argv[1] !== "bg" && preview.pinnedName === argv[1]) preview.unpin();
+        const body = (lines.length ? lines[lines.length - 1] + "\n" : "") + "theme " + what + " exited " + code;
+        Quickshell.execDetached(["notify-send", "--app-name=Theme", "--", argv[1] === "bg" ? "Wallpaper not set" : "Theme not applied", body]);
+    }
+
+    // ---- the hosts -------------------------------------------------------------------
+    // The island on `screen`, or null for the free panel: outside island mode,
+    // and over a fullscreen window (Launcher.qml's rule and its reason).
+    function fullscreenOn(screen) {
+        const monitor = screen ? Hyprland.monitorFor(screen) : null;
+        const workspace = monitor ? monitor.activeWorkspace : null;
+        return !!workspace && workspace.hasFullscreen === true;
+    }
+    function islandFor(screen) {
+        if (Prefs.barMode !== "island" || !screen || root.fullscreenOn(screen)) return null;
+        return (root.islands || []).find(i => i && i.screen && i.screen.name === screen.name) ?? null;
+    }
+    function place() {
+        router.place(picker.opened ? root.islandFor(root.targetScreen) : null);
+    }
+    Connections {
+        target: picker
+        function onOpenedChanged() {
+            root.place();
+        }
+        // Tab: the other kind's rows on first use, and the island morphs to it.
+        function onKindChanged() {
+            if (!picker.opened) return;
+            root.load(picker.kind);
+            root.place();
+            card.focusContent();
+        }
+    }
+    // An island leaving its picker state without the picker closing it
+    // closes the picker (PickerRouter's pickerLeft). A mode change while
+    // open: the island went (the free panel carries on) or came (it takes
+    // the picker over).
+    onIslandsChanged: {
+        router.forget(root.islands);
+        if (picker.opened) Qt.callLater(root.place);
+    }
+    // The free panel took over an open picker: it grows in as on an open.
+    onIslandHostingChanged: if (!root.islandHosting && picker.opened) panelIn.restart()
+
+    // ---- the free panel (pill, full, rail; island mode over a fullscreen window) ----
+    property bool panelClosing: false
+    Connections {
+        target: picker
+        function onOpenedChanged() {
+            panelOut.stop();
+            if (picker.opened) {
+                root.panelClosing = false;
+                if (!root.islandHosting) panelIn.restart();
+            } else {
+                root.panelClosing = !root.islandHosting;
+                if (root.panelClosing) panelOut.restart();
             }
         }
     }
-
-    // ── Model helpers ──────────────────────────────────────────────────
-
-    function matches(i) {
-        if (i < 0 || i >= rows.length) return false
-        const needle = filterText.toLowerCase()
-        if (!needle) return true
-        const r = rows[i]
-        return String(r.name || "").toLowerCase().includes(needle)
-            || String(r.label || "").toLowerCase().includes(needle)
-    }
-
-    function filteredPosition(i) {
-        if (!filterText) return i
-        let p = 0
-        for (let k = 0; k < i; k++) if (matches(k)) p++
-        return p
-    }
-
-    function selectedFilteredPosition() {
-        if (!filterText) return selectedIndex
-        return matches(selectedIndex) ? filteredPosition(selectedIndex) : 0
-    }
-
-    function matchCount() {
-        if (!filterText) return rows.length
-        let n = 0
-        for (let i = 0; i < rows.length; i++) if (matches(i)) n++
-        return n
-    }
-
-    function select(i) {
-        if (i >= 0 && i < rows.length && matches(i)) selectedIndex = i
-    }
-
-    function selectAdjacent(direction) {
-        const n = rows.length
-        let i = selectedIndex
-        for (let k = 0; k < n; k++) {
-            i = (i + direction + n) % n
-            if (matches(i)) { selectedIndex = i; return }
+    ParallelAnimation {
+        id: panelIn
+        NumberAnimation {
+            target: card
+            property: "grow"
+            from: 0
+            to: 1
+            duration: Motion.spatial
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Motion.spring
+        }
+        NumberAnimation {
+            target: card
+            property: "opacity"
+            from: 0
+            to: 1
+            duration: Motion.effects
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Motion.spring
         }
     }
-
-    function selectEnd(fromStart) {
-        if (fromStart) { for (let i = 0; i < rows.length; i++) if (matches(i)) { selectedIndex = i; return } }
-        else { for (let i = rows.length - 1; i >= 0; i--) if (matches(i)) { selectedIndex = i; return } }
+    NumberAnimation {
+        id: panelOut
+        target: card
+        property: "opacity"
+        to: 0
+        duration: Motion.exitFade
+        onFinished: root.panelClosing = false
     }
-
-    function updateFilter(text) {
-        filterText = text
-        if (!matches(selectedIndex)) selectEnd(true)
-    }
-
-    function current() {
-        return (rows.length > 0 && matches(selectedIndex)) ? rows[selectedIndex] : null
-    }
-
-    function apply() {
-        const r = current()
-        if (!r) { close(); return }
-        const cmd = root.kind === "backgrounds" ? [root.themeBin, "bg", r.name] : [root.themeBin, r.name]
-        Quickshell.execDetached(cmd)
-        close()
-    }
-
-    function fileUrl(path) {
-        if (!path) return ""
-        return "file://" + String(path).split("/").map(encodeURIComponent).join("/")
-    }
-
-    // Backspace / Ctrl+Backspace / Ctrl+U edit the filter; anything with Alt or
-    // Meta belongs to the compositor and is left alone.
-    function editsFilter(event) {
-        if (!filterText) return false
-        if (event.modifiers & (Qt.AltModifier | Qt.MetaModifier)) return false
-        if (event.key === Qt.Key_U) return event.modifiers === Qt.ControlModifier
-        return event.key === Qt.Key_Backspace
-    }
-
-    function editedFilter(event) {
-        if (event.key === Qt.Key_U) return ""
-        if (event.modifiers & Qt.ControlModifier) return filterText.replace(/\s+$/, "").replace(/\S+$/, "")
-        return filterText.slice(0, -1)
-    }
-
-    // ── The overlay ─────────────────────────────────────────────────────
 
     PanelWindow {
         id: panel
-
-        visible: root.opened
-        anchors { top: true; bottom: true; left: true; right: true }
+        visible: !root.islandHosting && (picker.opened || root.panelClosing)
+        screen: root.targetScreen
+        anchors {
+            top: true
+            bottom: true
+            left: true
+            right: true
+        }
         color: "transparent"
+        exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "theme-picker"
         WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: root.opened ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-        exclusionMode: ExclusionMode.Ignore
-
-        Rectangle {
-            anchors.fill: parent
-            color: Theme.alpha(Theme.bg, 0.72)
+        // The keyboard goes back the moment it closes, however long the fade runs.
+        WlrLayershell.keyboardFocus: picker.opened && !root.islandHosting ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        mask: Region {
+            width: picker.opened ? panel.width : 0
+            height: picker.opened ? panel.height : 0
         }
+        onVisibleChanged: if (visible) card.focusContent()
 
         MouseArea {
+            objectName: "picker-dismiss-area"
             anchors.fill: parent
             onClicked: root.close()
         }
 
-        Text {
-            anchors.centerIn: parent
-            visible: root.opened && root.loaded && root.rows.length === 0
-            text: root.kind === "backgrounds" ? "this theme has no wallpapers" : "no themes found"
-            color: Theme.fg
-            font.family: Theme.font
-            font.pixelSize: 18
+        RectangularShadow {
+            anchors.fill: card
+            opacity: card.opacity
+            radius: card.radius
+            offset: Qt.vector2d(0, 10)
+            blur: 28
+            color: Tokens.shadow
         }
-
-        Item {
+        ClippingRectangle {
             id: card
-            visible: root.loaded && root.rows.length > 0
-            anchors.centerIn: parent
-            width: Math.min(parent.width - 80, root.expandedWidth + 14 * (root.sliceWidth + root.sliceSpacing) + 40)
-            height: root.expandedHeight + 30 + root.chromeHeight
+            readonly property int gaps: 16
+            readonly property real dpr: panel.devicePixelRatio > 0 ? panel.devicePixelRatio : 1
+            // Top centre, 8 under the bar's reserved zone when the bar is on
+            // the top edge, else 8 under the screen's top; in island mode (a
+            // fullscreen window) where the island would be, y 8.
+            readonly property real topY: Prefs.barMode !== "island" && Prefs.edge === "top" ? Theme.barExtent + 8 : 8
+            readonly property Item content: (picker.themes ? themesLoader.item : wallsLoader.item) ?? null
+            readonly property real targetWidth: Math.min(content ? content.implicitWidth : (picker.themes ? 1240 : 780), panel.width - 2 * gaps)
+            readonly property real targetHeight: Math.min(content ? content.implicitHeight : (picker.themes ? 600 : 444), panel.height - topY - gaps)
+            // Follows the content on the spring once it is up (Tab between the two).
+            property bool settled: false
+            property real shownWidth: targetWidth
+            property real shownHeight: targetHeight
+            Behavior on shownWidth {
+                enabled: card.settled
+                NumberAnimation {
+                    duration: Motion.spatial
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Motion.spring
+                }
+            }
+            Behavior on shownHeight {
+                enabled: card.settled
+                NumberAnimation {
+                    duration: Motion.spatial
+                    easing.type: Easing.BezierSpline
+                    easing.bezierCurve: Motion.spring
+                }
+            }
+            // 0 -> 1 as it opens: from the 64 px header down to its height.
+            property real grow: 1
+            width: Math.round(shownWidth * dpr) / dpr
+            height: Math.round((Math.min(64, shownHeight) + (shownHeight - Math.min(64, shownHeight)) * grow) * dpr) / dpr
+            x: Math.round((panel.width - width) / 2 * dpr) / dpr
+            y: Math.round(topY * dpr) / dpr
+            opacity: 0
+            radius: 28
+            color: Tokens.surface
+            border.width: 1
+            border.color: Tokens.hairline
+            contentUnderBorder: true
+            Accessible.role: Accessible.Dialog
+            Accessible.name: picker.themes ? "Theme picker" : "Wallpaper picker"
 
-            // A click on the card is not a click outside it.
-            MouseArea { anchors.fill: parent; onClicked: {} }
+            function focusContent() {
+                Qt.callLater(() => {
+                    if (card.content && panel.visible) card.content.forceActiveFocus();
+                });
+            }
+            Connections {
+                target: panel
+                function onVisibleChanged() {
+                    card.settled = false;
+                    if (panel.visible) Qt.callLater(() => card.settled = panel.visible);
+                }
+            }
 
-            Item {
-                id: carousel
-                anchors.top: parent.top
-                anchors.topMargin: 30
+            // Clicks on the card stay on it.
+            MouseArea {
+                anchors.fill: parent
+            }
+
+            Layer {
+                id: themesLayer
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: parent.width - 40
-                height: root.expandedHeight
-                clip: false
-                focus: true
-
-                readonly property real step: root.sliceWidth + root.sliceSpacing
-                readonly property real previewX: (width - root.expandedWidth) / 2
-
-                Keys.priority: Keys.BeforeItem
-                Keys.onPressed: function(event) {
-                    if (event.key === Qt.Key_Escape) {
-                        if (root.filterText) root.updateFilter("")
-                        else root.close()
-                    } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                        root.apply()
-                    } else if (root.editsFilter(event)) {
-                        root.updateFilter(root.editedFilter(event))
-                    } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Backtab
-                               || (event.key === Qt.Key_Tab && (event.modifiers & Qt.ShiftModifier))) {
-                        root.selectAdjacent(-1)
-                    } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
-                        root.selectAdjacent(1)
-                    } else if (event.key === Qt.Key_Home) {
-                        root.selectEnd(true)
-                    } else if (event.key === Qt.Key_End) {
-                        root.selectEnd(false)
-                    } else if (event.text && event.text.length === 1
-                               && event.text.charCodeAt(0) >= 32 && event.text.charCodeAt(0) !== 127
-                               && (event.modifiers === Qt.NoModifier || event.modifiers === Qt.ShiftModifier)) {
-                        root.updateFilter(root.filterText + event.text)
-                    } else {
-                        return
+                y: 0
+                width: themesLoader.item ? themesLoader.item.implicitWidth : 1240
+                height: themesLoader.item ? themesLoader.item.implicitHeight : 600
+                current: picker.opened && picker.themes && !root.islandHosting
+                Loader {
+                    id: themesLoader
+                    anchors.fill: parent
+                    active: themesLayer.current || themesLayer.visible
+                    sourceComponent: ThemesPanel {
+                        picker: root.model
+                        active: themesLayer.current
+                        dpr: card.dpr
+                        availableWidth: panel.width
                     }
-                    event.accepted = true
-                }
-
-                Repeater {
-                    model: root.rows.length
-
-                    delegate: Item {
-                        id: item
-                        required property int index
-
-                        readonly property var row: root.rows[index] || ({})
-                        readonly property bool matched: root.matches(index)
-                        readonly property int rel: root.filteredPosition(index) - root.selectedFilteredPosition()
-                        readonly property bool selected: matched && index === root.selectedIndex
-                        readonly property bool nearby: matched && Math.abs(rel) <= 16
-                        // Load images as they come near, and keep them loaded so
-                        // moving back and forth does not tear textures down.
-                        property bool activated: nearby
-                        onNearbyChanged: if (nearby) activated = true
-
-                        visible: nearby
-                        x: selected ? carousel.previewX
-                         : (rel < 0 ? carousel.previewX + rel * carousel.step
-                                    : carousel.previewX + root.expandedWidth + root.sliceSpacing + (rel - 1) * carousel.step)
-                        width: selected ? root.expandedWidth : root.sliceWidth
-                        height: selected ? root.expandedHeight : root.sliceHeight
-                        y: selected ? 0 : (root.expandedHeight - root.sliceHeight) / 2
-                        z: selected ? 100 : 50 - Math.min(Math.abs(rel), 40)
-
-                        // A parallelogram: the top edge sits `skew` px to the right of the bottom.
-                        readonly property real topLeft: root.skew
-                        readonly property real topRight: width
-                        readonly property real bottomRight: width - root.skew
-                        readonly property real bottomLeft: 0
-
-                        Item {
-                            id: maskShape
-                            anchors.fill: parent
-                            visible: false
-                            layer.enabled: true
-
-                            Shape {
-                                anchors.fill: parent
-                                antialiasing: true
-                                preferredRendererType: Shape.CurveRenderer
-                                ShapePath {
-                                    fillColor: "white"
-                                    strokeColor: "transparent"
-                                    startX: item.topLeft; startY: 0
-                                    PathLine { x: item.topRight; y: 0 }
-                                    PathLine { x: item.bottomRight; y: item.height }
-                                    PathLine { x: item.bottomLeft; y: item.height }
-                                    PathLine { x: item.topLeft; y: 0 }
-                                }
-                            }
-                        }
-
-                        Item {
-                            anchors.fill: parent
-                            layer.enabled: true
-                            layer.smooth: true
-                            layer.effect: MultiEffect {
-                                maskEnabled: true
-                                maskSource: maskShape
-                                maskThresholdMin: 0.3
-                                maskSpreadAtMin: 0.3
-                            }
-
-                            Image {
-                                anchors.fill: parent
-                                source: item.activated ? root.fileUrl(item.row.image) : ""
-                                // Bounds the decode when the row still points at a 4K original.
-                                sourceSize: Qt.size(1440, 900)
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                cache: true
-                                smooth: true
-                            }
-
-                            Rectangle {
-                                anchors.fill: parent
-                                color: Theme.alpha(Theme.bg, item.selected ? 0 : 0.42)
-                            }
-                        }
-
-                        Shape {
-                            anchors.fill: parent
-                            antialiasing: true
-                            preferredRendererType: Shape.CurveRenderer
-                            ShapePath {
-                                fillColor: "transparent"
-                                strokeColor: item.selected ? Theme.accent : Theme.alpha(Theme.fg, 0.28)
-                                strokeWidth: item.selected ? 3 : 1
-                                startX: item.topLeft; startY: 0
-                                PathLine { x: item.topRight; y: 0 }
-                                PathLine { x: item.bottomRight; y: item.height }
-                                PathLine { x: item.bottomLeft; y: item.height }
-                                PathLine { x: item.topLeft; y: 0 }
-                            }
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: item.selected ? root.apply() : root.select(item.index)
-                        }
-                    }
+                    onLoaded: card.focusContent()
                 }
             }
-
-            Column {
-                id: chrome
-                anchors.top: carousel.bottom
-                anchors.topMargin: 16
-                anchors.horizontalCenter: carousel.horizontalCenter
-                width: root.expandedWidth
-                spacing: 6
-
-                readonly property var cur: root.current()
-
-                Text {
-                    width: parent.width
-                    textFormat: Text.PlainText
-                    text: chrome.cur ? chrome.cur.label : (root.filterText ? "no matches" : "")
-                    color: Theme.fg
-                    style: Text.Outline
-                    styleColor: Theme.alpha(Theme.bg, 0.7)
-                    font.family: Theme.font
-                    font.pixelSize: 26
-                    font.weight: Font.DemiBold
-                    horizontalAlignment: Text.AlignHCenter
-                    elide: Text.ElideRight
-                }
-
-                Row {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: 10
-                    visible: chrome.cur !== null
-
-                    Row {
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 4
-                        Repeater {
-                            model: chrome.cur ? (chrome.cur.swatches || []) : []
-                            delegate: Rectangle {
-                                required property var modelData
-                                width: 14; height: 14; radius: 3
-                                color: modelData
-                                border.width: 1
-                                border.color: Theme.alpha(Theme.bg, 0.5)
-                            }
-                        }
+            Layer {
+                id: wallsLayer
+                anchors.horizontalCenter: parent.horizontalCenter
+                y: 0
+                width: 780
+                height: wallsLoader.item ? wallsLoader.item.implicitHeight : 444
+                current: picker.opened && !picker.themes && !root.islandHosting
+                Loader {
+                    id: wallsLoader
+                    anchors.fill: parent
+                    active: wallsLayer.current || wallsLayer.visible
+                    sourceComponent: WallpapersPanel {
+                        picker: root.model
+                        active: wallsLayer.current
+                        dpr: card.dpr
                     }
-
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        textFormat: Text.PlainText
-                        text: {
-                            const c = chrome.cur
-                            if (!c) return ""
-                            if (root.kind === "backgrounds")
-                                return (root.selectedFilteredPosition() + 1) + " / " + root.matchCount() + "  ·  " + c.tagline
-                            return c.tagline || ""
-                        }
-                        color: Theme.alpha(Theme.fg, 0.85)
-                        style: Text.Outline
-                        styleColor: Theme.alpha(Theme.bg, 0.7)
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fontSize
-                        font.italic: true
-                    }
-                }
-
-                Text {
-                    width: parent.width
-                    visible: root.filterText !== ""
-                    textFormat: Text.PlainText
-                    text: "› " + root.filterText
-                    color: Theme.fg
-                    opacity: 0.85
-                    style: Text.Outline
-                    styleColor: Theme.alpha(Theme.bg, 0.7)
-                    font.family: Theme.font
-                    font.pixelSize: 16
-                    horizontalAlignment: Text.AlignHCenter
-                    elide: Text.ElideRight
+                    onLoaded: card.focusContent()
                 }
             }
+        }
+    }
+
+    // Item -> { x, y, width, height } in its window, or null when hidden.
+    function box(item) {
+        if (!item || !item.visible) return null;
+        const p = item.mapToItem(null, 0, 0);
+        return { x: Math.round(p.x * 100) / 100, y: Math.round(p.y * 100) / 100, width: item.width, height: item.height };
+    }
+
+    function inspect() {
+        const content = card.content;
+        return {
+            opened: picker.opened,
+            kind: picker.kind,
+            host: !picker.opened ? "" : root.islandHosting ? "island" : "panel",
+            screen: root.targetScreen?.name ?? "",
+            loaded: picker.loaded,
+            rows: picker.rows.length,
+            matches: picker.matchCount,
+            index: picker.index,
+            focused: picker.focused?.name ?? "",
+            filter: picker.filter,
+            columns: picker.columns,
+            preview: Tokens.previewPalette?.name ?? "",
+            pinned: preview.pinnedName,
+            lastRun: root.lastRun,
+            dryRun: Fixture.dryRun,
+            surface: Tokens.hex(Tokens.surface),
+            // The free panel's card and its content's focus (the island's own
+            // are in `island inspect`).
+            panel: root.islandHosting ? null : root.box(card),
+            panelFocus: !root.islandHosting && !!content && content.activeFocus
+        };
+    }
+
+    IpcHandler {
+        target: "picker"
+        function open(kind: string): void {
+            root.open(kind);
+        }
+        function close(): void {
+            root.close();
+        }
+        function toggle(kind: string): void {
+            root.toggle(kind);
+        }
+        // Focus a card by name (a theme's slug, a wallpaper's file name), as
+        // the arrow keys or the pointer would: a theme previews.
+        function select(name: string): string {
+            if (!picker.opened) return "error: the picker is closed";
+            return picker.focusName(name) ? "ok" : "error: no card named \"" + name + "\" in " + picker.kind;
+        }
+        function inspect(): string {
+            return JSON.stringify(root.inspect());
         }
     }
 }
