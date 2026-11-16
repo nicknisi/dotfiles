@@ -44,11 +44,11 @@ assert.equal(M.click(cc), cc)
 const open = M.STATES.filter(s => M.panelOpen(M.go(rest, s)))
 assert.deepEqual(open.sort(), ['cal', 'cc', 'crew', 'hover', 'launcher', 'polkit', 'power', 'themes', 'wallpapers'].sort(), 'panels plus pinned hover and crew')
 assert.equal(M.panelOpen(hover), false, 'unpinned hover is not a panel')
-for (const s of ['rest', 'notif', 'osd', 'dict', 'flash', 'hail', 'vibes']) assert.equal(M.panelOpen(M.go(rest, s)), false, s + ' is not a panel')
+for (const s of ['rest', 'notif', 'osd', 'dict', 'flash', 'hail', 'vibes', 'moment']) assert.equal(M.panelOpen(M.go(rest, s)), false, s + ' is not a panel')
 assert.deepEqual(M.PANELS.slice().sort(), ['cal', 'cc', 'launcher', 'polkit', 'power', 'themes', 'wallpapers'])
 
 // ---- timers ----------------------------------------------------------------------
-assert.deepEqual(M.TIMERS, { notif: 4200, osd: 1400, flash: 1400, hail: 5000, vibes: 4000 })
+assert.deepEqual(M.TIMERS, { notif: 4200, osd: 1400, flash: 1400, hail: 5000, vibes: 4000, moment: 5000 })
 const osd1 = M.go(rest, 'osd')
 assert.equal(osd1.timer, 1400)
 const osd2 = M.go(osd1, 'osd')
@@ -65,7 +65,7 @@ assert.equal(M.DWELL, 250, 'hover opens after a 250 ms dwell (DECISION 1)')
 assert.equal(M.LEAVE_GRACE, 150)
 
 // ---- priority --------------------------------------------------------------------
-assert.deepEqual(M.PRIORITY, ['polkit', 'panel', 'dict', 'osd', 'notif', 'hail', 'flash', 'vibes', 'live', 'rest'])
+assert.deepEqual(M.PRIORITY, ['polkit', 'panel', 'dict', 'osd', 'notif', 'hail', 'flash', 'vibes', 'moment', 'live', 'rest'])
 const rank = s => M.rank(M.go(rest, s))
 assert.ok(rank('polkit') < rank('cc') && rank('cc') === rank('launcher') && rank('cc') === rank('hover'))
 assert.ok(rank('cc') < rank('dict') && rank('dict') < rank('osd') && rank('osd') < rank('notif') && rank('notif') < rank('flash'))
@@ -80,7 +80,7 @@ assert.equal(M.radiusFor(136), 28, 'radius min(28, h/2)')
 assert.equal(M.radiusFor(560), 28)
 const dims = { rest: [360, 38], hover: [720, 136], launcher: [760, 472], cc: [760, 560], cal: [400, 368], notif: [520, 92],
     osd: [340, 44], dict: [360, 48], polkit: [480, 272], power: [600, 156], flash: [360, 52],
-    crew: [460, 332], hail: [360, 52], vibes: [240, 44], themes: [1240, 600], wallpapers: [780, 444] }
+    crew: [460, 332], hail: [360, 52], vibes: [240, 44], themes: [1240, 600], wallpapers: [780, 444], moment: [360, 40] }
 assert.deepEqual(M.DIMS, dims)
 for (const s of M.STATES) assert.ok(M.DIMS[s], s + ' has a size')
 assert.equal(M.WINDOW_HEIGHT, 648, 'window: 8 + 600 (the themes picker, M7) + 40')
@@ -396,4 +396,60 @@ assert.deepEqual([h.released, h.holders.length], [[], 1], 'B still holds 2')
 h = M.holdIds(h.holders, B, [])
 assert.deepEqual([h.released, h.holders], [[2], []], 'and its release empties the list')
 assert.deepEqual(M.holdIds(undefined, A, [3]).holders, [{ owner: A, ids: [3] }])
+
+// ---- M9: a look's moment, and the notch form -----------------------------------
+// The moment peeks for 5 s like a hail, ranks just under vibes, takes rest or
+// unpinned hover, waits for nothing (dropped behind anything else), and is
+// never returned to.
+const mo = M.offer(rest, 'moment')
+assert.deepEqual([mo.state, mo.timer, mo.pinned], ['moment', 5000, false], 'a moment peeks from rest')
+assert.equal(M.offer(M.go(rest, 'cc'), 'moment').state, 'cc', 'behind an open panel it is dropped')
+assert.equal(M.offer(M.offer(rest, 'vibes'), 'moment').state, 'vibes', 'vibes outranks it')
+assert.equal(M.offer(mo, 'vibes').state, 'vibes', 'and takes over from it')
+assert.equal(M.offer(mo, 'hail').state, 'hail', 'a hail takes over from it')
+assert.equal(M.finish(M.offer(mo, 'hail')).state, 'rest', 'and does not come back to it')
+assert.equal(M.expire(mo, mo.seq).state, 'rest', 'its timer returns to rest')
+assert.equal(M.panelOpen(mo), false, 'not a panel')
+assert.deepEqual(M.size(mo, 431), [432, 40], 'it hugs its line')
+// The pointer on a peeking moment acts as on the rest pill (M9 review): the
+// dwell opens hover, a click pins it.
+assert.deepEqual([M.enter(mo).state, M.enter(mo).pinned], ['hover', false], 'resting on a moment opens hover')
+assert.deepEqual([M.enter(mo, 'crew').state], ['crew'])
+assert.deepEqual([M.click(mo).state, M.click(mo).pinned], ['hover', true], 'a click on a moment pins hover')
+// A look's rest bar hugs its row with no 360 floor; the plain pill keeps it.
+assert.deepEqual(M.size(rest, 301), [360, 38], 'the plain pill: at least 360')
+assert.deepEqual(M.size(rest, 301, 0, 0), [304, 38], 'a look: its own width, to the step')
+assert.deepEqual(M.size(M.go(rest, 'hover'), 301, 0, 0), [304, 136], 'min replaces the state minimum')
+// The notch silhouette (island-modes 8.1): the Island board's 444 x 40 path,
+// moved left by its 12 px shoulder.
+assert.equal(M.notchRadius(40), 18, 'the rest notch rounds 18')
+assert.equal(M.notchRadius(136), 28, 'tall states 28')
+assert.equal(M.notchRadius(48), 21.6)
+assert.equal(M.notchPath(420, 40, 18), 'M -12 0 L 432 0 Q 420 0 420 12 L 420 22 Q 420 40 402 40 L 18 40 Q 0 40 0 22 L 0 12 Q 0 0 -12 0 Z')
+const board = 'M0 0 L444 0 Q432 0 432 12 L432 22 Q432 40 414 40 L30 40 Q12 40 12 22 L12 12 Q12 0 0 0 Z'
+const nums = p => (p.match(/-?\d+(\.\d+)?/g) || []).map(Number)
+const shifted = nums(M.notchPath(420, 40, 18))
+const want = nums(board)
+assert.equal(shifted.length, want.length, 'same commands as the board')
+// x and y alternate in every command's pairs; the board's x are 12 to the right.
+for (let i = 0; i < want.length; i += 2) {
+    assert.equal(shifted[i] + 12, want[i], 'x ' + i)
+    assert.equal(shifted[i + 1], want[i + 1], 'y ' + i)
+}
+assert.equal(M.notchBodyPath(420, 40, 18), 'M 0 0 L 420 0 L 420 22 Q 420 40 402 40 L 18 40 Q 0 40 0 22 Z', 'the content mask has no shoulders')
+// The hairline's corners are circles of the body's radius (the ClippingRectangle's
+// own), so the ring never leaves the fill at mid-arc (M9 review).
+assert.equal(M.notchRingPath(420, 40, 18, 1), 'M 419.5 12 L 419.5 22 A 17.5 17.5 0 0 1 402 39.5 L 18 39.5 A 17.5 17.5 0 0 1 0.5 22 L 0.5 12', 'the hairline: sides and bottom, half a stroke in, circular corners')
+assert.equal(M.notchRingPath(420, 40, 0, 2), 'M 419 12 L 419 39 L 1 39 L 1 12', 'a square body (Arcade) has a square ring')
+// Every point of the arc is R - i from the corner's centre: inside the fill.
+{
+    const R = 18, i = 0.5, W = 420, H = 40
+    for (let k = 0; k <= 8; k++) {
+        const a = (k / 8) * Math.PI / 2
+        const x = W - R + (R - i) * Math.cos(a), y = H - R + (R - i) * Math.sin(a)
+        assert.ok(Math.hypot(x - (W - R), y - (H - R)) <= R - i + 1e-9 && x <= W && y <= H, 'arc point ' + k + ' inside the body')
+    }
+}
+assert.ok(!/NaN|undefined/.test(M.notchPath(undefined, null, 'x')), 'junk in, a path out')
+assert.equal(M.NOTCH_REST_HEIGHT, 40)
 console.log('ISLAND_MACHINE_PASS')

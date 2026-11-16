@@ -168,6 +168,14 @@ hl.config({
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace", scale = 0.5 })
 hl.gesture({ fingers = 4, direction = "horizontal", action = "scroll_move" })
 
+-- The shell's spatial spring (PLAN M9, main-tokens 1.10): the island's own
+-- morph curve, mass 1, stiffness 600, damping 49 (critically damped at
+-- 2 * sqrt(600) = 49). Defined, not yet used: how `speed` scales a spring is
+-- unsettled, so windows stay on the beziers below until it is tried on the
+-- live session (SWITCHOVER.md, "M9": swap bezier = "default" on the global
+-- leaf for spring = "shellSpatial").
+hl.curve("shellSpatial", { type = "spring", mass = 1, stiffness = 600, damping = 49 })
+
 -- The 8ds default takes 800ms. Keep the motion, but get it out of the way.
 hl.animation({ leaf = "global", enabled = true, speed = 2.5, bezier = "default" })
 hl.curve("workspaceSettle", { type = "bezier", points = { { 0.5, 0.5 }, { 0.75, 1 } } })
@@ -422,9 +430,12 @@ hl.config({
 -- the desktop; blur_popups covers the HUD menus, which are popups of that
 -- layer. Opaque surfaces are unaffected: this only shows once the capsule's
 -- translucent mode is on (double-click the pill, or "Toggle Bar Transparency").
+-- The launcher and the theme picker's free panels are opaque cards now (M5,
+-- M7) and stay out, so their shadows never blur the desktop (opaque surfaces,
+-- no blur, PLAN M9's carried list); so does the island (quickshell-island).
 hl.layer_rule({
   name = "shell-blur",
-  match = { namespace = "^(quickshell|quickshell-capsule|launcher|clipboard-history|theme-picker|quickshell-voxtype-osd)$" },
+  match = { namespace = "^(quickshell|quickshell-capsule|clipboard-history|quickshell-voxtype-osd)$" },
   blur = true,
   blur_popups = true,
   ignore_alpha = 0.3,

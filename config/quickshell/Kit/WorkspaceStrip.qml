@@ -2,6 +2,7 @@ import QtQuick
 import qs
 import "../lib/Celestial.js" as Celestial
 import "../lib/Spring.js" as Spring
+import "../lib/WorkspaceOrder.js" as WorkspaceOrder
 
 // WorkspaceStrip.qml - the island's workspace letters (rest pill, left zone).
 //
@@ -96,14 +97,11 @@ Item {
         focusMemory.seen = true;
     }
 
+    // lib/WorkspaceOrder.js wheel(): 120 a notch, no wrap (the looks share it).
     function step(delta) {
-        wheelAccumulator += delta;
-        if (Math.abs(wheelAccumulator) < 120) return;
-        const direction = wheelAccumulator < 0 ? 1 : -1;
-        wheelAccumulator = 0;
-        const index = root.focusedIndex + direction;
-        if (root.focusedIndex >= 0 && index >= 0 && index < root.names.length)
-            root.activated(root.names[index]);
+        const r = WorkspaceOrder.wheel(root.wheelAccumulator, delta, root.names, root.focusedName);
+        root.wheelAccumulator = r.acc;
+        if (r.name !== "") root.activated(r.name);
     }
 
     WheelHandler {

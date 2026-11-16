@@ -27,8 +27,10 @@ import qs.Kit
 // Monaspace `fg` [GUESS, main-tokens 2.5.9], as RichText: StyledText drops
 // a <font face>, so the path came out in Adwaita Sans and the message fit on
 // one line where the board wraps it to two (M8 review). RichText ignores
-// maximumLineCount and elide, so the item is cut to three 18 px lines
-// (`messageLines`). The label: the flow's own
+// maximumLineCount and elide, so a message past three 18 px lines is cut
+// to the longest start that fits three with an ellipsis (`fit`, measured on
+// a hidden copy in the same RichText, M9's carried list), and the item still
+// clips at three lines (`messageLines`). The label: the flow's own
 // prompt when it is more than "Password:", else "Password for <user>".
 // Errors: supplementaryMessage in `bad` when supplementaryIsError, else
 // "Wrong password" after a failure.
@@ -130,6 +132,39 @@ Layer {
     }
     // The message's lines, at most three (RichText reports no lineCount).
     readonly property int messageLines: Math.max(1, Math.min(3, Math.round(messageText.contentHeight / 18)))
+    // polkit's text, and the fitted RichText shown for it. Set by fit(), not
+    // bound: fitting lays out the hidden copy, whose size a binding would
+    // then depend on.
+    readonly property string message: String(polkit.flow?.message ?? "")
+    onMessageChanged: polkit.fit()
+    function fits(text: string): bool {
+        messageFit.text = text;
+        return messageFit.contentHeight <= 3 * 18 + 0.5;
+    }
+    function fit(): void {
+        const whole = polkit.styled(polkit.message);
+        if (messageText.width <= 0 || polkit.fits(whole)) {
+            messageText.text = whole;
+            return;
+        }
+        // The longest start (cut at a space where one is near) that fits with "…".
+        let lo = 0, hi = polkit.message.length;
+        while (lo < hi) {
+            const mid = Math.ceil((lo + hi) / 2);
+            if (polkit.fits(polkit.styled(polkit.message.slice(0, mid).replace(/\s+$/, "") + "…"))) lo = mid;
+            else hi = mid - 1;
+        }
+        let cut = polkit.message.slice(0, lo);
+        const space = cut.lastIndexOf(" ");
+        if (space > lo - 12 && space > 0) cut = cut.slice(0, space);
+        messageText.text = polkit.styled(cut.replace(/\s+$/, "") + "…");
+    }
+    Connections {
+        target: Tokens
+        function onFgChanged() {
+            polkit.fit();
+        }
+    }
 
     Keys.onPressed: event => {
         if (field.keyIntent(event.key, event.text, event.modifiers)) {
@@ -180,8 +215,22 @@ Layer {
                     // The board's 18 px line boxes, whole lines only.
                     height: polkit.messageLines * 18
                     clip: true
-                    text: polkit.styled(String(polkit.flow?.message ?? ""))
+                    onWidthChanged: polkit.fit()
+                    Component.onCompleted: polkit.fit()
                     color: Tokens.inkDim
+                    wrapMode: Text.Wrap
+                    textFormat: Text.RichText
+                    font.family: "Adwaita Sans"
+                    font.pixelSize: 12
+                    lineHeightMode: Text.FixedHeight
+                    lineHeight: 18
+                }
+                // The hidden copy fit() measures on: messageText's type, unclipped.
+                Text {
+                    id: messageFit
+                    width: messageText.width
+                    height: 0
+                    visible: false
                     wrapMode: Text.Wrap
                     textFormat: Text.RichText
                     font.family: "Adwaita Sans"

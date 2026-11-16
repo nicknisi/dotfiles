@@ -199,7 +199,7 @@ function footer(src) {
 }
 
 function mediaCard(media) {
-    if (!media) return { present: false, title: "Ready when you are", artist: "Start something in your favourite player.", playing: false, progress: 0, elapsed: "", total: "", canPrevious: false, canNext: false, canSeek: false, length: 0 };
+    if (!media) return { present: false, title: "Ready when you are", artist: "Start something in your favourite player.", playing: false, progress: 0, elapsed: "", total: "", canPrevious: false, canNext: false, canSeek: false, length: 0, art: "" };
     var length = num(media.length, 0);
     var position = Math.max(0, Math.min(length > 0 ? length : Infinity, num(media.position, 0)));
     return {
@@ -213,7 +213,9 @@ function mediaCard(media) {
         canPrevious: media.canPrevious !== false,
         canNext: media.canNext !== false,
         canSeek: media.canSeek === true && length > 0,
-        length: length
+        length: length,
+        // The player's cover (MPRIS artUrl): a file, http(s) or data URL, else "".
+        art: /^(file|https?|data):/.test(text(media.artUrl)) ? text(media.artUrl) : ""
     };
 }
 
@@ -567,6 +569,14 @@ var BAR_MODES = [
 // scale }, modes: [{ mode, label, current }], scales: [{ value, label,
 // current }], barMode, error }. Brightness, the Bar mode (PLAN 1.6: the
 // Display mini switches it [GUESS where]), then DisplayMenu's modes and scales.
+// With `looks` ([{ key, title, sub }], Look.qml's) also the island's form
+// (`islandForm`: float or notch) and its look (`look`), after the Bar (M9:
+// no board draws a picker for either; this is the settings home PLAN M9
+// asks for).
+var ISLAND_FORMS = [
+    { key: "float", title: "Float", sub: "8 below the top edge" },
+    { key: "notch", title: "Notch", sub: "Flush with the top edge" }
+];
 function display(src) {
     var s = src || {};
     var light = s.brightness || {};
@@ -578,6 +588,14 @@ function display(src) {
     groups.push({ label: "Bar", rows: BAR_MODES.map(function (m) {
         return { key: m.key, title: m.title, sub: m.sub, icon: m.key === "island" ? "sparkle" : "window", on: s.barMode === m.key, action: "bar" };
     }) });
+    if (Array.isArray(s.looks) && s.looks.length) {
+        groups.push({ label: "Island form", rows: ISLAND_FORMS.map(function (f) {
+            return { key: f.key, title: f.title, sub: f.sub, icon: "sparkle", on: (text(s.islandForm) || "float") === f.key, action: "form" };
+        }) });
+        groups.push({ label: "Look", rows: s.looks.map(function (l) {
+            return { key: text(l.key), title: text(l.title) || text(l.key), sub: text(l.sub), icon: "sparkle", on: (text(s.look) || "crew") === text(l.key), action: "look" };
+        }) });
+    }
     var modes = (s.modes || []).map(function (m) {
         return { key: text(m.mode), title: text(m.label) || text(m.mode), icon: "monitor", on: m.current === true, action: "mode" };
     });
@@ -639,5 +657,5 @@ if (typeof module !== "undefined")
         home: home, tiles: tiles, levels: levels, minis: minis, notes: notes, footer: footer, mediaCard: mediaCard,
         wifi: wifi, sound: sound, tailscale: tailscale, bluetooth: bluetooth, notifications: notifications, display: display, awake: awake,
         batteryIcon: batteryIcon, outputKind: outputKind, outputName: outputName, ago: ago, plain: plain, clock: clock, scaleText: scaleText, transport: transport, appIcon: appIcon, osIcon: osIcon, btIcon: btIcon,
-        lastSeen: lastSeen, wifiIcon: wifiIcon, sheetName: sheetName, SHEETS: SHEETS, ALIASES: ALIASES, BAR_MODES: BAR_MODES, POWER_COMMANDS: POWER_COMMANDS
+        lastSeen: lastSeen, wifiIcon: wifiIcon, sheetName: sheetName, SHEETS: SHEETS, ALIASES: ALIASES, BAR_MODES: BAR_MODES, ISLAND_FORMS: ISLAND_FORMS, POWER_COMMANDS: POWER_COMMANDS
     };

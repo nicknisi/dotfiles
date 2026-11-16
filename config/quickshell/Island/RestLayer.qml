@@ -49,6 +49,9 @@ Layer {
     // The recording dot breathes only while this holds: a fixture's `still`
     // (a sandbox shot), never idle.
     property bool dotAnimated: true
+    // The gap between the letters' cells: 2, or 0 in the notch form, whose
+    // cells touch (island-modes 5.2 and 8.2, the Island board's notch).
+    property real cellGap: 2
 
     signal workspaceActivated(string name)
     signal pin
@@ -102,6 +105,7 @@ Layer {
         x: IslandMachine.REST_PADDING
         anchors.verticalCenter: parent.verticalCenter
         items: rest.workspaces
+        gap: rest.cellGap
         onActivated: name => rest.workspaceActivated(name)
     }
 

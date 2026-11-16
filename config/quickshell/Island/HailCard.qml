@@ -20,6 +20,10 @@ import "../lib/IslandMachine.js" as IslandMachine
 // (closed when it leaves), pinned by a click, dismissed by Go, Esc (once
 // clicked, so it has the keyboard), an outside click or the attention
 // clearing. The ring's lone bot runs its own clock: the card is short-lived.
+//
+// In a look with no hail of its own (Phosphor, Liner Notes, Outrun: M9), the
+// card keeps its layout and takes the look's type and inks (`skin`, from
+// lib/LookModel.js skin()); null is the plain island's.
 Layer {
     id: card
 
@@ -30,6 +34,11 @@ Layer {
     property real dpr: 1
     // The host's gate on the bot's loop (the session not idle).
     property bool animated: true
+    // { font, italic, upper, spacing, scale, ink, dim, accent, button, buttonInk }, or null.
+    property var skin: null
+
+    readonly property string family: card.skin?.font ?? "Adwaita Sans"
+    readonly property real scale: card.skin?.scale ?? 1
 
     signal go
     signal pin
@@ -66,10 +75,11 @@ Layer {
         radius: 18
         color: "transparent"
         border.width: 2
-        border.color: Tokens.accent
+        border.color: card.skin?.accent ?? Tokens.accent
         CrewBot {
             anchors.centerIn: parent
             mood: "needs"
+            tint: card.skin?.accent ?? Tokens.accent
             // The card is the moment: the board's hop, without the rest pill's pause.
             frames: CrewModel.HOP
             period: CrewModel.HOP_PERIOD
@@ -88,20 +98,26 @@ Layer {
             id: title
             width: parent.width
             text: card.words.title
-            color: Tokens.fg
+            color: card.skin?.ink ?? Tokens.fg
             elide: Text.ElideRight
-            font.family: "Adwaita Sans"
-            font.pixelSize: 13
+            font.family: card.family
+            font.italic: card.skin?.italic === true
+            font.capitalization: card.skin?.upper === true ? Font.AllUppercase : Font.MixedCase
+            font.letterSpacing: card.skin?.spacing ?? 0
+            font.pixelSize: Math.round(13 * card.scale)
             font.weight: Font.Medium
         }
         Text {
             id: subtitle
             width: parent.width
             text: card.words.subtitle
-            color: Tokens.inkDim
+            color: card.skin?.dim ?? Tokens.inkDim
             elide: Text.ElideRight
-            font.family: "Adwaita Sans"
-            font.pixelSize: 12
+            font.family: card.family
+            font.italic: card.skin?.italic === true
+            font.capitalization: card.skin?.upper === true ? Font.AllUppercase : Font.MixedCase
+            font.letterSpacing: card.skin?.spacing ?? 0
+            font.pixelSize: Math.round(12 * card.scale)
         }
     }
 
@@ -113,7 +129,10 @@ Layer {
         width: Math.ceil(label.implicitWidth) + 28
         height: 32
         radius: 16
-        color: press.pressed ? Tokens.fillLow : Tokens.fillHigh
+        // Held down: a step toward its ink, in a look's skin as in the plain card.
+        color: card.skin ? (press.pressed ? (card.skin.buttonPressed ?? card.skin.button) : card.skin.button) : press.pressed ? Tokens.fillLow : Tokens.fillHigh
+        border.width: card.skin && card.skin.button === card.skin.ground ? 1 : 0
+        border.color: card.skin?.buttonInk ?? Tokens.fg
         Accessible.role: Accessible.Button
         Accessible.name: card.words.button
         Accessible.onPressAction: card.go()
@@ -121,9 +140,11 @@ Layer {
             id: label
             anchors.centerIn: parent
             text: card.words.button
-            color: Tokens.fg
-            font.family: "Adwaita Sans"
-            font.pixelSize: 12
+            color: card.skin?.buttonInk ?? Tokens.fg
+            font.family: card.family
+            font.capitalization: card.skin?.upper === true ? Font.AllUppercase : Font.MixedCase
+            font.letterSpacing: card.skin?.spacing ?? 0
+            font.pixelSize: Math.round(12 * card.scale)
         }
         MouseArea {
             id: press

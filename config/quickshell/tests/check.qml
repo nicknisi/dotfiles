@@ -11,6 +11,7 @@ import "BarGeometry.js" as BarGeometry
 import "lib/WorkspaceOrder.js" as WorkspaceOrder
 import "lib/CrewModel.js" as CrewModel
 import "lib/IslandMachine.js" as IslandMachine
+import "lib/LookModel.js" as LookModel
 import "lib/Calendar.js" as Calendar
 import "lib/Anchored.js" as Anchored
 import "launcher/core/Match.js" as Match
@@ -155,6 +156,191 @@ ShellRoot {
             dpr: 1.5
             monitor: ({ name: "check-crew", width: 1000, height: 700 })
             workspaces: WorkspaceOrder.shown([{ name: "W", windows: 1 }, { name: "D", windows: 1 }], "D")
+        }
+    }
+
+    // Looks and the notch (PLAN M9) on their own island, with its own crew
+    // (crew-4, Pi waiting): the look and the form are global (Prefs), so the
+    // check runs once every other island check is done, and puts both back.
+    QtObject {
+        id: m9Crew
+        readonly property var model: CrewModel.build(fakeCrew.four(true), fakeCrew.now)
+        readonly property var agents: model.agents
+        readonly property int total: model.total
+        readonly property var spendToday: model.spendToday
+        property bool stale: false
+        signal hailed(var agent)
+        signal vibes
+        function jump(id) { return "ok"; }
+    }
+    FloatingWindow {
+        visible: true
+        implicitWidth: 1000
+        implicitHeight: 608
+        IslandView {
+            id: m9View
+            anchors.fill: parent
+            crew: m9Crew
+            interrupt: quietInterrupt
+            liveData: ({})
+            dpr: 1.5
+            monitor: ({ name: "check-m9", width: 1000, height: 700 })
+            workspaces: WorkspaceOrder.shown([
+                { name: "S", windows: 1 }, { name: "D", windows: 2 }, { name: "W", windows: 3 }, { name: "C", windows: 1 }], "D")
+        }
+    }
+    Timer {
+        id: m9Check
+        interval: 450
+        repeat: true
+        property int step: 0
+        property bool finished: false
+        property var oldPalette: null
+        property real restBefore: 0
+        onTriggered: {
+            try {
+                const v = m9View;
+                const hex = c => Tokens.hex(c);
+                if (step === 0) {
+                    // Wait for every island check: the look and the form are everyone's.
+                    if (!styleCheck.finished || !islandCheck.finished || !crewCheck.finished || !m3Check.finished || launcherCheck.running || m6Check.running || m8Check.running || mergeCheck.running || !barCheck.finished || !pickerCheck.finished) return;
+                    test.check(Prefs.look === "crew" && !Look.active && Look.current === "crew" && Look.momentKind === "", "no look until one is picked: the plain island");
+                    test.check(v.lookCell === "" && v.lookMaterial === null && v.lookRest.content === null && v.rest.current, "the plain island loads no look: " + v.lookCell);
+                    test.check(hex(v.body.fill) === hex(Tokens.surface) && v.body.border.width === 1 && v.body.radius === 19 && v.body.y === 8, "and keeps its material: surface, a 1 px ring, radius 19, 8 down");
+                    test.check(Look.fonts.antonio === "Antonio" && Look.fonts.pressStart === "Press Start 2P", "the looks' fonts load from assets/fonts: " + JSON.stringify(Look.fonts));
+                    // The stored look is read before a change counts as a pick (M9 review).
+                    test.check(Prefs.loaded && v.lastLookName === "crew", "Prefs has read capsule.json, and the view noted the look");
+                    test.check(Look.set("sky").startsWith("error: unknown look") && Prefs.look === "crew", "an unknown look is refused");
+                    test.check(Look.list().split("\n").length === 6 && Look.list().startsWith("* crew"), "the list marks the look set");
+                    test.check(v.open("moment").startsWith("error: the plain island"), "the plain island has no moment line");
+                    // A tagline to sign off with, under the same pack name (no switch).
+                    oldPalette = Theme.palette;
+                    Theme.palette = Object.assign({}, oldPalette, { tagline: "green phosphor, no mercy" });
+                    test.check(Look.set("phosphor") === "ok" && Prefs.look === "phosphor", "look set phosphor");
+                } else if (step === 1) {
+                    const m = LookModel.material("phosphor", "rest", Look.tokens);
+                    test.check(v.machine.state === "moment" && v.lookMoment.current, "picking Phosphor peeks its sign-off: " + v.machine.state);
+                    v.close();
+                    test.check(Look.active && v.lookCell === "rest" && v.lookRest.current && !v.rest.current, "a look takes the rest pill's place");
+                    test.check(v.lookRest.content !== null && v.lookRest.content.restRow.tabs.children.length >= 4, "Phosphor's tabs are built");
+                    test.check(v.targetSize[1] === 36 && v.body.targetRadius === 4 && hex(v.body.fill) === m.fill && hex(v.body.ring) === m.ring && v.body.border.width === 1, "Phosphor's body: 36 high, radius 4, darker, a 1 px ink ring");
+                    test.check(hex(v.body.shadowColor) === hex(Tokens.alpha(m.glow, 0.35)) && v.body.shadowOffset === 0 && v.body.shadowBlur === 14, "and its glow in place of the shadow");
+                    // The board's packed row, with no 360 floor (M9 review).
+                    const row = v.lookRest.content.restRow;
+                    test.check(v.targetSize[0] === IslandMachine.size({ state: "rest" }, v.lookRest.hugWidth, 0, 0)[0] && v.restAnchor.width === v.lookRest.width && v.lookRest.width === v.targetSize[0], "the island hugs the look's bar: " + v.targetSize[0]);
+                    test.check(v.lookRest.hugWidth === 28 + Math.ceil(row.implicitWidth) && row.spacing === 18 && Math.abs(row.x - (v.lookRest.width - row.width) / 2) <= 0.5, "Phosphor packs its bar: padding 14, gap 18, centred: " + row.x);
+                    test.check(row.cursor.x - (row.clockText.x + row.clockText.width) === 5, "the cursor sits 5 after the clock");
+                    // The pointer (M9 review): a tab click, the wheel, the Crew zone and Stop reach the view.
+                    const used = [];
+                    const onUsed = name => used.push(name);
+                    v.workspaceActivated.connect(onUsed);
+                    let tab = null;
+                    for (const c of row.tabs.children)
+                        if (c.ws && c.ws.name === "W") tab = c;
+                    let area = null;
+                    for (const c of (tab ? tab.children : []))
+                        if (c.cursorShape === Qt.PointingHandCursor) area = c;
+                    if (area) area.clicked(null);
+                    v.lookRest.step(-60);
+                    v.lookRest.step(-60);
+                    v.workspaceActivated.disconnect(onUsed);
+                    test.check(JSON.stringify(used) === '["W","S"]', "a tab click activates it, two half notches step to the next: " + JSON.stringify(used));
+                    test.check(v.lookRest.content.crewZone === row.faces && !v.lookRest.crewHovered, "the faces are Phosphor's Crew zone");
+                    v.lookRest.content.pinCrew();
+                    test.check(v.machine.state === "crew" && v.machine.pinned && v.crewPanel.width >= v.lookRest.width, "a click on the faces pins the Crew panel, as wide as the bar: " + v.machine.state);
+                    v.close();
+                    // The live segment stays in a look (a recording is a privacy signal).
+                    restBefore = v.lookRest.hugWidth;
+                    v.liveData = { recording: true, elapsed: "0:42" };
+                    test.check(row.segment.visible && row.segment.recording && row.segment.inks === Look.ink.live, "a recording shows in Phosphor's bar, in its ink");
+                    let stops = 0;
+                    const onStop = () => stops++;
+                    v.lookRest.stopRecording.connect(onStop);
+                    row.segment.stop();
+                    v.lookRest.stopRecording.disconnect(onStop);
+                    test.check(stops === 1, "and its Stop reaches the view");
+                } else if (step === 2) {
+                    const row = v.lookRest.content.restRow;
+                    test.check(v.lookRest.hugWidth > restBefore && v.targetSize[0] >= v.lookRest.hugWidth && row.segment.x > row.cursor.x, "the bar grows round the segment, after the clock: " + restBefore + " -> " + v.lookRest.hugWidth);
+                    test.check(v.lookRest.dotBreathes || Fixture.data.still === true || !Motion.loops, "its dot breathes on the layer's clock");
+                    v.liveData = ({});
+                    test.check(v.open("moment") === "ok", "island open moment in a sign-off look");
+                } else if (step === 3) {
+                    test.check(v.machine.state === "moment" && v.lookCell === "signoff" && v.lookMoment.current && v.targetSize[1] === 36, "Phosphor's sign-off: the moment line, 36 high");
+                    test.check(v.machine.timer === 5000, "it peeks for 5 s");
+                    // A look change closes the old look's moment (M9 review).
+                    test.check(Look.set("bridge") === "ok" && v.machine.state === "rest" && !v.lookMoment.current, "picking Bridge closes Phosphor's sign-off: " + v.machine.state);
+                    test.check(v.open("hail") === "ok", "Bridge, and a hail");
+                } else if (step === 4) {
+                    test.check(v.machine.state === "hail" && v.lookCell === "hail" && v.lookMoment.current && !v.hailCard.current, "Bridge draws its own hail");
+                    test.check(v.targetSize[1] === 32 && v.body.targetRadius === 16 && hex(v.body.fill) === "#000000" && v.body.border.width === 0, "on the black body: 32 high, radius 16, no ring");
+                    test.check(v.lookMoment.content.hailRow.name.label.indexOf("hailing") > 0 && v.lookMoment.content.hailRow.screen.label === "On screen", "\"{name} hailing\" and On screen");
+                    test.check(v.open("moment").startsWith("error: the bridge look's moment line is its hail"), "a hail look's moment is its hail");
+                    test.check(Look.set("phosphor") === "ok", "back to Phosphor, which has no hail of its own");
+                } else if (step === 5) {
+                    test.check(v.machine.state === "hail" && v.lookCell === "card" && v.hailCard.current && !v.lookMoment.current, "Phosphor's hail is the Crew card");
+                    test.check(v.hailCard.skin !== null && v.hailCard.family === "Monaspace Argon" && hex(v.hailCard.ring.border.color) === Look.skin.accent, "in Phosphor's type and ink");
+                    test.check(v.targetSize[1] === 52 && v.body.targetRadius === 4, "at the card's height, in Phosphor's body");
+                    v.close();
+                    test.check(Look.set("arcade") === "ok" && v.open("vibes") === "ok", "Arcade, and vibes");
+                } else if (step === 6) {
+                    test.check(v.vibesCard.current && v.vibesCard.line === "STAGE CLEAR" && v.vibesCard.skin.voice === "Press Start 2P", "Arcade's vibes: STAGE CLEAR in Press Start 2P");
+                    test.check(v.body.targetRadius === 0 && v.body.ringWidth === 2, "square, a 2 px ring");
+                    v.close();
+                    test.check(Look.set("outrun") === "ok" && v.open("moment") === "error: nothing is playing", "Outrun's line needs a track");
+                    test.check(Look.set("none") === "ok" && Prefs.look === "crew" && !Look.active, "none is the plain island");
+                    Prefs.setIslandForm("notch");
+                } else if (step === 7) {
+                    test.check(Theme.islandExtent === 40 && (Prefs.barMode !== "island" || Theme.barExtent === 40), "the notch reserves 40: " + Theme.islandExtent);
+                    test.check(v.body.notch && v.body.y === 0 && v.targetSize[1] === 40 && v.body.targetRadius === 18, "the notch: flush at y 0, 40 high, bottom corners 18");
+                    test.check(v.body.topLeftRadius === 0 && v.body.topRightRadius === 0 && v.body.border.width === 0 && v.body.shoulders.visible && v.body.notchRing.visible, "square top corners, the shoulders, and the ring on the sides and bottom only");
+                    test.check(v.restAnchor.y === 0 && v.restAnchor.height === 40 && v.rest.height === 40, "the rest anchor and the rest layer follow it");
+                    test.check(v.rest.strip.gap === 0 && v.body.shadowOffset === 8 && v.body.shadowBlur === 18, "the notch's cells touch, and its shadow is 0 8 18");
+                    test.check(v.body.notchRing.parent === v.body && /A /.test(IslandMachine.notchRingPath(v.body.width, v.body.height, v.body.shownRadius, 1)), "its ring is outside the content's mask, with arc corners");
+                    v.open("hover");
+                } else if (step === 8) {
+                    test.check(v.machine.state === "hover" && v.body.y === 0 && v.targetSize[1] === 136 && v.body.targetRadius === 28, "hover morphs from the edge: 136 high, corners 28");
+                    v.close();
+                    Prefs.setIslandForm("float");
+                    // A named pack first: a switch is from one name to another.
+                    Theme.palette = Object.assign({}, oldPalette, { name: "m9-a", tagline: "first" });
+                } else if (step === 9) {
+                    test.check(Theme.islandExtent === 46 && v.body.y === 8 && !v.body.notch && v.targetSize[1] === 38 && v.body.topLeftRadius === 19, "float again: 46 reserved, 8 down, 38 high");
+                    test.check(v.rest.strip.gap === 2 && v.body.shadowOffset === 10 && v.body.shadowBlur === 28, "with the float's gap and shadow");
+                    // A theme switch peeks a sign-off look's line (OmniWM's PEEK on a pack change).
+                    test.check(v.machine.state === "rest", "a pack switch in the plain look peeks nothing");
+                    // Picking a sign-off look peeks its line.
+                    test.check(Look.set("liner") === "ok", "look set liner");
+                } else if (step === 10) {
+                    test.check(v.machine.state === "moment" && v.lookCell === "signoff", "picking Liner Notes peeks its sign-off: " + v.machine.state);
+                    test.check(v.lookMoment.content.momentRow.line.text === "first" && v.targetSize[1] === 40, "the tagline, 40 high");
+                    // Liner's letters fade once: the mixed ink, at full opacity (M9 review).
+                    let faded = null;
+                    for (const c of v.lookRest.content.restRow.letters.children)
+                        if (c.ws && c.ws.focused === false) faded = c;
+                    test.check(faded !== null && faded.opacity === 1 && hex(faded.color) === Look.ink.faded, "Liner's unfocused letters: " + (faded ? hex(faded.color) + " at " + faded.opacity : "none"));
+                    // The pointer on a moment acts as on the rest pill: a click pins hover.
+                    v.clickPill();
+                    test.check(v.machine.state === "hover" && v.machine.pinned, "a click on the sign-off pins hover: " + v.machine.state);
+                    v.close();
+                    // And so does a pack switch.
+                    Theme.palette = Object.assign({}, oldPalette, { name: "m9-check", tagline: "checked, no mercy" });
+                } else if (step === 11) {
+                    test.check(v.machine.state === "moment" && v.tagline === "checked, no mercy", "a pack switch peeks the sign-off: " + v.machine.state + " " + v.tagline);
+                    v.close();
+                    Look.set("crew");
+                    Theme.palette = oldPalette;
+                } else {
+                    test.check(Prefs.look === "crew" && Prefs.islandForm === "float" && v.rest.current && hex(v.body.fill) === hex(Tokens.surface), "the check leaves the plain float island");
+                    finished = true;
+                    stop();
+                    return;
+                }
+                step++;
+            } catch (error) {
+                console.error("CAPSULE_TEST_FAIL: " + error.message);
+                Qt.quit();
+            }
         }
     }
 
@@ -702,7 +888,7 @@ ShellRoot {
                     test.check(runner.visible && runner.running && !greeting.visible, "drag overrides menu costumes");
                 } else {
                     // The crew check's eleven beats outlast this timer's two: wait a round.
-                    if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running || m8Check.running || mergeCheck.running || barCheck.running || !barCheck.finished || pickerCheck.running || !pickerCheck.finished) return;
+                    if (crewCheck.running || m3Check.running || launcherCheck.running || m6Check.running || m8Check.running || mergeCheck.running || barCheck.running || !barCheck.finished || pickerCheck.running || !pickerCheck.finished || !m9Check.finished) return;
                     test.check(avatarFrames.changes > 0, "running frames actually advance");
                     avatar.visible = false;
                     test.check(!runner.running, "hidden runner stops animating");
@@ -720,6 +906,7 @@ ShellRoot {
                     test.check(mergeCheck.finished, "the launcher and control center check ran to the end");
                     test.check(barCheck.finished, "the M4 bar check ran to the end");
                     test.check(pickerCheck.finished, "the picker check ran to the end");
+                    test.check(m9Check.finished, "the M9 looks and notch check ran to the end");
                     test.check(Tokens.hex(Tokens.surface) === Tokens.d.surface && Tokens.hex(Tokens.onAccent) === Tokens.d.onAccent, "tokens settle on the switched palette");
                     console.log("CAPSULE_TEST_PASS");
                     Qt.quit();
@@ -2273,6 +2460,7 @@ ShellRoot {
                 crewCheck.start();
                 m3Check.start();
                 launcherCheck.start();
+                m9Check.start();
                 avatarCheck.start();
             } catch (error) {
                 console.error("CAPSULE_TEST_FAIL: " + error.message);

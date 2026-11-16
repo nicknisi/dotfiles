@@ -96,7 +96,8 @@ Item {
             canNext: p.canGoNext !== false,
             canSeek: p.canSeek === true && p.positionSupported === true,
             position: p.positionSupported ? p.position : 0,
-            length: p.lengthSupported ? p.length : 0
+            length: p.lengthSupported ? p.length : 0,
+            artUrl: p.trackArtUrl || ""
         };
     }
 

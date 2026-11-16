@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import qs
 import qs.Kit
 
@@ -19,16 +20,19 @@ import qs.Kit
 // animation: the island body is a ClippingRectangle, and a smooth loop would
 // redraw it at the display's rate for as long as music plays. It holds where
 // it is while paused (frozen, not reset) and runs only while `animated`.
+// When the player has a cover (MPRIS artUrl, M9's carried list) the well
+// shows it instead, cropped to fill and masked to the well's corners, and
+// the bars and their clock stop.
 //
 // The play button is `fg` with its icon in `bg` [DEVIATION, control-lock 2.4:
 // the board's `onAccent` lands at 2.89:1 on rose-pine's fg].
 //
 // media: CcData.mediaCard(...): { present, title, artist, playing, progress,
-// elapsed, total, canPrevious, canNext, canSeek, length }.
+// elapsed, total, canPrevious, canNext, canSeek, length, art }.
 Rectangle {
     id: card
 
-    property var media: ({ present: false, title: "", artist: "", playing: false, progress: 0, elapsed: "", total: "", canPrevious: false, canNext: false, canSeek: false, length: 0 })
+    property var media: ({ present: false, title: "", artist: "", playing: false, progress: 0, elapsed: "", total: "", canPrevious: false, canNext: false, canSeek: false, length: 0, art: "" })
     property bool animated: true
 
     signal previous
@@ -46,6 +50,9 @@ Rectangle {
     readonly property alias eqClock: eqClock
     readonly property alias titleText: titleText
     readonly property bool playing: media?.playing === true
+    readonly property alias cover: cover
+    // The cover has loaded: it takes the well from the bars.
+    readonly property bool hasArt: card.media?.present === true && cover.status === Image.Ready
 
     readonly property var eqPeriods: [800, 930, 1060, 1190]
     readonly property var eqOffsets: [0, 230, 460, 690]
@@ -70,7 +77,7 @@ Rectangle {
     CrewClock {
         id: eqClock
         step: card.playing ? 100 : 0
-        running: card.animated && Motion.loops && card.media?.present === true
+        running: card.animated && Motion.loops && card.media?.present === true && !card.hasArt
     }
 
     Rectangle {
@@ -81,7 +88,33 @@ Rectangle {
         height: 120
         radius: 12
         color: Tokens.fillHigh
+        Image {
+            id: cover
+            anchors.fill: parent
+            visible: false
+            source: card.media?.present === true ? (card.media.art ?? "") : ""
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+            sourceSize: Qt.size(240, 240)
+        }
+        Rectangle {
+            id: coverMask
+            anchors.fill: parent
+            radius: 12
+            visible: false
+            layer.enabled: card.hasArt
+        }
+        MultiEffect {
+            anchors.fill: parent
+            visible: card.hasArt
+            source: cover
+            maskEnabled: true
+            maskSource: coverMask
+            maskThresholdMin: 0.5
+            maskSpreadAtMin: 1
+        }
         Row {
+            visible: !card.hasArt
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 32

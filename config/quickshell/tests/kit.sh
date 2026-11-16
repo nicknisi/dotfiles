@@ -19,7 +19,7 @@ if grep -nE '^\s*import\s+Quickshell' "$root"/Kit/*.qml; then
     echo "KIT_TEST_FAIL: Kit components must not import Quickshell" >&2
     exit 1
 fi
-if grep -nE 'NickAvatar|assets/nick' "$root"/Kit/* "$root/Motion.qml" "$root"/lib/* "$root"/Island/* "$root"/tools/* "$root/tests/gallery/shell.qml"; then
+if grep -nE 'NickAvatar|assets/nick' "$root"/Kit/* "$root/Motion.qml" "$root"/lib/* "$root"/Island/* "$root"/Looks/* "$root/Look.qml" "$root"/tools/* "$root/tests/gallery/shell.qml"; then
     echo "KIT_TEST_FAIL: NickAvatar is retired" >&2
     exit 1
 fi
@@ -31,7 +31,7 @@ fi
 qs="$tmp/qs"
 mkdir -p "$qs/lib" "$qs/Kit" "$qs/tests"
 cp "$root/Motion.qml" "$qs/"
-cp "$root/lib/Spring.js" "$root/lib/Celestial.js" "$root/lib/CrewModel.js" "$qs/lib/"
+cp "$root/lib/Spring.js" "$root/lib/Celestial.js" "$root/lib/CrewModel.js" "$root/lib/WorkspaceOrder.js" "$qs/lib/"
 cp "$root"/Kit/*.qml "$root"/Kit/*.js "$qs/Kit/"
 cp "$root/tests/tst_spring.qml" "$root/tests/tst_kit.qml" "$root/tests/tst_workspace_strip.qml" \
     "$root/tests/tst_pixel_sprite.qml" "$qs/tests/"

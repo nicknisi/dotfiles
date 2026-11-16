@@ -82,6 +82,19 @@ Scope {
         check(desktop.catalog({ settings: {} }).some(function(row) { return row.id === "control-center" }), "listed in every mode (" + Desktop.Prefs.barMode + ")")
         equal(desktop.query({ scope: "files", query: "", settings: {} }), [], "system scope isolation")
         check(desktop.query({ scope: "system/bar", sub: "bar", query: "", settings: {} }).length >= 6, "bar preferences searchable")
+        // The island's form and look (M9): searchable from the root, and a pick goes to Prefs.
+        var lookRows = desktop.query({ scope: "", query: "look phosphor", settings: {} })
+        check(lookRows.some(function(row) { return row.id === "look-phosphor" }), "look phosphor finds the Phosphor look: " + lookRows.map(function(r) { return r.id }).join(" "))
+        check(desktop.query({ scope: "", query: "notch", settings: {} }).some(function(row) { return row.id === "island-notch" }), "notch finds the island form")
+        var oldLook = Desktop.Prefs.look, oldForm = Desktop.Prefs.islandForm
+        var phosphor = desktop.commandRow(desktop.commands.find(function(c) { return c.id === "look-phosphor" }), {}, 0)
+        equal(desktop.activate(phosphor), { type: "noop" }, "a look is a preference, not a launch")
+        equal(Desktop.Prefs.look, "phosphor", "and it sets the look")
+        desktop.activate(desktop.commandRow(desktop.commands.find(function(c) { return c.id === "island-notch" }), {}, 0))
+        equal(Desktop.Prefs.islandForm, "notch", "the form too")
+        Desktop.Prefs.setLook(oldLook)
+        Desktop.Prefs.setIslandForm(oldForm)
+        equal(desktop.commands.filter(function(c) { return /^look-/.test(c.id) }).map(function(c) { return c.id.slice(5) }), Desktop.Prefs.looks, "one row per look, in Prefs' order")
         check(desktop.query({ scope: "", query: "reboot", settings: {} }).some(function(row) { return row.id === "action-reboot" && row.confirm }), "root session search retains confirmation")
         for (var name of ["AudioMenu", "NetMenu", "BtMenu", "DisplayMenu", "TailscaleMenu", "ThemeMenu"]) {
             var component = Qt.createComponent(Qt.resolvedUrl("../../" + name + ".qml"))

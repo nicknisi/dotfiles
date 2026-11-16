@@ -86,12 +86,12 @@ Singleton {
     // 8 for the floating pill; the full strip and the rail are flush (M4).
     readonly property int barInset: BarGeometry.inset(Prefs.barMode)
     // The exclusive zone Reserve holds along the bar's edge: 56 for the pill,
-    // 40 for the full strip and the rail, 46 for the island. The island is 38
+    // 40 for the full strip and the rail, 46 for the island (40 in its notch form). The island is 38
     // high, 8 under the top edge, and Hyprland adds gaps_out (8) below the zone
     // itself, so 46 puts window edges 8 under the island (Main board: y 54).
-    // The notch form (40) arrives with its body in M9; until then the island
-    // always draws the float form, so it always reserves 46.
-    readonly property int islandExtent: 46
+    // The notch form (M9, Prefs.islandForm) is flush with the top edge and
+    // 40 high, so it reserves 40: window edges 8 under it once more.
+    readonly property int islandExtent: Prefs.islandForm === "notch" ? 40 : 46
     readonly property int barExtent: Prefs.barMode === "island" ? islandExtent : barHeight + 2 * barInset
 
     // A light accent wash for selected controls, independent of theme mode.

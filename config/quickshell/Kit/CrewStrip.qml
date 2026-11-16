@@ -35,6 +35,9 @@ Item {
     property real gap: 6
     property real rowHeight: 18
     property bool animated: true
+    // A look's colours per mood ({ needs, working, asleep }, M9 Outrun), or
+    // null for the bots' own (CrewBot's tint).
+    property var tints: null
 
     signal clicked
 
@@ -109,9 +112,16 @@ Item {
             property int builds: 0
             model: strip.ids
             delegate: CrewBot {
+                id: bot
                 required property string modelData
                 required property int index
                 readonly property var agent: strip.byId[modelData] ?? null
+                Binding {
+                    target: bot
+                    property: "tint"
+                    value: strip.tints?.[bot.mood] ?? "#ffffff"
+                    when: strip.tints !== null && strip.tints[bot.mood] !== undefined
+                }
                 y: strip.rowHeight - height
                 mood: agent?.mood ?? "asleep"
                 riker: agent?.riker === true

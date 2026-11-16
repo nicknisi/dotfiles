@@ -106,6 +106,12 @@ Item {
             flow.message = "word ".repeat(200);
             compare(pk.messageLines, 3, "at most three lines");
             compare(pk.messageText.height, 54);
+            // Past three lines it ends in an ellipsis, cut at a word, and fits (M9).
+            verify(pk.messageText.text.endsWith("word…"), "a long message ends in an ellipsis: " + pk.messageText.text.slice(-20));
+            verify(pk.messageText.contentHeight <= 54.5, "and fits three lines: " + pk.messageText.contentHeight);
+            flow.message = "Authentication is needed to run /usr/bin/pacman as the super user. " + "More words here. ".repeat(30);
+            verify(pk.messageText.text.indexOf(">/usr/bin/pacman</span>") > 0 && pk.messageText.text.endsWith("…"), "the path keeps its type in a cut message");
+            verify(pk.messageText.contentHeight <= 54.5, "and that fits too: " + pk.messageText.contentHeight);
             flow.message = "Authentication is needed to run /usr/bin/pacman as the super user.";
             flow.inputPrompt = "Fingerprint or PIN:";
             compare(pk.label, "Fingerprint or PIN", "a prompt other than Password: is the label");

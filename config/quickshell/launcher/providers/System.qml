@@ -66,7 +66,16 @@ Item {
     { id: "bar-top", parent: "bar", title: "Move Bar to Top", preference: "top" },
     { id: "bar-bottom", parent: "bar", title: "Move Bar to Bottom", preference: "bottom" },
     { id: "bar-left", parent: "bar", title: "Move Bar to Left", preference: "left" },
-    { id: "bar-right", parent: "bar", title: "Move Bar to Right", preference: "right" }
+    { id: "bar-right", parent: "bar", title: "Move Bar to Right", preference: "right" },
+    // The island's form and personal look (M9; the Display sheet has them too).
+    { id: "island-float", parent: "bar", title: "Island: Float", subtitle: "8 below the top edge", keywords: "island form floating notch", preference: "form:float" },
+    { id: "island-notch", parent: "bar", title: "Island: Notch", subtitle: "Flush with the top edge", keywords: "island form notch flush", preference: "form:notch" },
+    { id: "look-crew", parent: "bar", title: "Look: Crew", subtitle: "The plain island", keywords: "island look style plain none default", preference: "look:crew" },
+    { id: "look-phosphor", parent: "bar", title: "Look: Phosphor", subtitle: "Green screen, no mercy", keywords: "island look style terminal green", preference: "look:phosphor" },
+    { id: "look-bridge", parent: "bar", title: "Look: Bridge", subtitle: "Riker's on the bridge", keywords: "island look style lcars star trek stardate", preference: "look:bridge" },
+    { id: "look-arcade", parent: "bar", title: "Look: Arcade", subtitle: "Insert coin", keywords: "island look style 8-bit pixel invaders", preference: "look:arcade" },
+    { id: "look-liner", parent: "bar", title: "Look: Liner Notes", subtitle: "Ink on good paper", keywords: "island look style handwritten zine", preference: "look:liner" },
+    { id: "look-outrun", parent: "bar", title: "Look: Outrun", subtitle: "Tape hiss and neon grids", keywords: "island look style neon synthwave", preference: "look:outrun" }
   ]
 
   function navRow(menu, order) {
@@ -150,10 +159,16 @@ Item {
     // Launcher.qml shows the state on the palette's island (engine `island` effect).
     if (action.type === "system-island") return { type: "island", state: action.state }
     if (action.type === "system-preference") {
+      var status = "Bar preference updated"
       if (action.value === "cycle") Desktop.Prefs.cycleBarMode()
       else if (action.value === "translucent") Desktop.Prefs.toggleTranslucent()
+      else if (action.value.indexOf("form:") === 0) { Desktop.Prefs.setIslandForm(action.value.slice(5)); status = "Island form updated" }
+      else if (action.value.indexOf("look:") === 0) {
+        var said = Desktop.Look.set(action.value.slice(5))
+        status = said === "ok" ? "Look updated" : said.replace(/^ok: /, "")
+      }
       else Desktop.Prefs.setEdge(action.value)
-      if (root.host) { root.host.statusMessage = "Bar preference updated"; root.host.requery({ provider: "system" }) }
+      if (root.host) { root.host.statusMessage = status; root.host.requery({ provider: "system" }) }
       return { type: "noop" }
     }
     return action
