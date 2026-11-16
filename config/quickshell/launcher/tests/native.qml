@@ -95,6 +95,20 @@ Scope {
         Desktop.Prefs.setLook(oldLook)
         Desktop.Prefs.setIslandForm(oldForm)
         equal(desktop.commands.filter(function(c) { return /^look-/.test(c.id) }).map(function(c) { return c.id.slice(5) }), Desktop.Prefs.looks, "one row per look, in Prefs' order")
+        // Rounded screen corners: found by "corners", a toggle of the pref
+        // whose subtitle says whether they are on.
+        var cornerRows = desktop.query({ scope: "", query: "rounded corners", settings: {} })
+        check(cornerRows.some(function(row) { return row.id === "screen-corners" }), "rounded corners finds the corners row: " + cornerRows.map(function(r) { return r.id }).join(" "))
+        var oldCorners = Desktop.Prefs.screenCorners
+        Desktop.Prefs.setScreenCorners(true)
+        var corners = desktop.commandRow(desktop.commands.find(function(c) { return c.id === "screen-corners" }), {}, 0)
+        equal([corners.parent, corners.subtitle, corners.action], ["bar", "On, " + Desktop.Prefs.screenCornerRadius + " px", { type: "system-preference", value: "corners" }], "the corners row sits in Bar Preferences and says they are on")
+        equal(desktop.activate(corners), { type: "noop" }, "toggling the corners is a preference, not a launch")
+        check(!Desktop.Prefs.screenCorners && testHost.statusMessage === "Rounded corners off", "and it turns them off: " + testHost.statusMessage)
+        equal(desktop.commandRow(desktop.commands.find(function(c) { return c.id === "screen-corners" }), {}, 0).subtitle, "Off", "the row then says Off")
+        desktop.activate(corners)
+        check(Desktop.Prefs.screenCorners && testHost.statusMessage === "Rounded corners on", "a second run turns them back on")
+        Desktop.Prefs.setScreenCorners(oldCorners)
         check(desktop.query({ scope: "", query: "reboot", settings: {} }).some(function(row) { return row.id === "action-reboot" && row.confirm }), "root session search retains confirmation")
         // The System view's pages are the control center's sheets (M6); the
         // old menus are gone (M10), and the theme page is the picker (M7).

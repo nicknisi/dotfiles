@@ -16,6 +16,9 @@ Scope {
     property var entries: []
     property int selected: -1
     readonly property var current: entries[selected] || null
+    // shell.qml's ScreenCorners: the scrim covers the whole screen on
+    // Overlay, so the panel paints the corners over it (corners.drawn).
+    property var corners: null
 
     function windows() {
         const rows = [];
@@ -113,7 +116,8 @@ Scope {
                 if (item) previews.push({ id: item.modelData.id, hasContent: item.hasPreview });
             }
             return JSON.stringify({ opened: root.opened, selected: root.selected,
-                ids: root.entries.map(w => w.id), titles: root.entries.map(w => w.title), previews: previews });
+                ids: root.entries.map(w => w.id), titles: root.entries.map(w => w.title), previews: previews,
+                corners: switcherCorners.visible ? switcherCorners.radius : 0 });
         }
     }
 
@@ -285,6 +289,14 @@ Scope {
                     }
                 }
             }
+        }
+
+        // Over the scrim and the card: the rounded screen corners
+        // (ScreenCorners.drawn), which the scrim would otherwise grey.
+        ScreenCornerSet {
+            id: switcherCorners
+            anchors.fill: parent
+            radius: root.corners?.drawn ?? 0
         }
     }
 }

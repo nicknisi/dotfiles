@@ -17,7 +17,9 @@ import "../../lib/LookModel.js" as LookModel
 // shows, applied with `display-mode set <output> <mode> <scale>`, exactly as
 // DisplayMenu does. Island form and Look (M9): the island's form (float or
 // notch, Prefs.setIslandForm) and its personal look (Look.set), applied in
-// place: the sheet stays open, and the island behind it changes.
+// place: the sheet stays open, and the island behind it changes. Screen
+// corners, Rounded or Square: Prefs.setScreenCorners (ScreenCorners.qml),
+// also in place.
 //
 // A fixture's `sheets.display` stands in, and then, as under Fixture.dryRun,
 // nothing runs.
@@ -41,12 +43,15 @@ SheetFrame {
             islandForm: Prefs.islandForm,
             look: Prefs.look,
             looks: LookModel.LOOKS.map(k => ({ key: k, title: LookModel.META[k].label, sub: LookModel.META[k].sub })),
+            corners: { on: Prefs.screenCorners, radius: Prefs.screenCornerRadius },
             error: sheet.error
         })
 
     objectName: "ccSheet-display"
     title: "Display"
-    sheetData: CcData.display(sheet.fixture ?? sheet.live)
+    // The corners are a preference, not a service: a fixture without them
+    // shows the live ones.
+    sheetData: CcData.display(sheet.fixture ? Object.assign({ corners: sheet.live.corners }, sheet.fixture) : sheet.live)
 
     onShownChanged: {
         sheet.error = "";
@@ -92,6 +97,8 @@ SheetFrame {
             Prefs.setIslandForm(row.key);
         } else if (row.action === "look") {
             Look.set(row.key);
+        } else if (row.action === "corners") {
+            Prefs.setScreenCorners(row.key === "rounded");
         } else if (row.action === "mode") {
             sheet.apply(row.key, Number(cur.scale) || 1);
         } else if (row.action === "scale") {

@@ -6,7 +6,8 @@
 #   - start the text, image and video watchers (wl-paste --watch ... store),
 #     so what each fake "copies" lands in the fake history;
 #   - open the launcher's clipboard scope for `clipboard open/toggle SCREEN`
-#     (Super+V) and close only that scope;
+#     and the Super+V global shortcut (toggleFocused, the focused monitor),
+#     and close only that scope;
 #   - wipe the history and the decoded media when the scope's confirmed
 #     Ctrl+Delete says so (the engine's clipboardWipeConfirmed), then reload
 #     the open scope;
@@ -120,6 +121,13 @@ ShellRoot {
             try {
                 test.check(launcher.opens.length === 4 && launcher.opens[3] === "clipboard", "the open scope reloads after the wipe: " + launcher.opens);
                 launcher.launcherHost.cancel();
+                // Super+V (the clipboard-toggle global shortcut): the focused
+                // monitor's scope, and a second press closes it.
+                test.check(typeof store.toggleFocused === "function", "the store has toggleFocused for the Super+V shortcut");
+                store.toggleFocused();
+                test.check(store.opened && launcher.launcherHost.opened && launcher.opens.length === 5, "Super+V opens the clipboard scope");
+                store.toggleFocused();
+                test.check(!store.opened && !launcher.launcherHost.opened, "a second Super+V closes it");
                 console.log("CLIPBOARD_STORE_PASS");
             } catch (e) {
                 console.error("CLIPBOARD_STORE_FAIL: " + e.message);

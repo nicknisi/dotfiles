@@ -284,6 +284,31 @@ Scope {
         }
     }
 
+    // Super+Space and hold-to-talk (config/hypr/hyprland.lua and the
+    // launcher-voice.lua block Keystroke Settings › Voice writes). The
+    // compositor hands these over in order with no process per key, where
+    // `qs ipc call launcher ...` started one (64 ms each on milhouse). A
+    // non-release bind also delivers its release, which only the release
+    // shortcut acts on. The IPC below keeps every verb for scripts.
+    GlobalShortcut {
+        appid: "quickshell"
+        name: "launcher-toggle"
+        description: "Open or close the launcher"
+        onPressed: root.toggle()
+    }
+    GlobalShortcut {
+        appid: "quickshell"
+        name: "launcher-voice-hold"
+        description: "Dictate while the launcher hotkey is held"
+        onPressed: host.voiceHold()
+    }
+    GlobalShortcut {
+        appid: "quickshell"
+        name: "launcher-voice-release"
+        description: "Stop dictating when the launcher hotkey is let go"
+        onReleased: host.voiceRelease()
+    }
+
     IpcHandler {
         target: "launcher"
         function open(): void { root.open() }

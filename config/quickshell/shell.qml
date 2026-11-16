@@ -64,6 +64,8 @@ ShellRoot {
                     // Appearance's Theme packs and the control center's
                     // Theme mini open the theme picker here (M7).
                     pickerHost: themePicker
+                    // The power menu's scrim paints the screen corners.
+                    corners: screenCorners
                 }
             }
             LazyLoader {
@@ -112,6 +114,7 @@ ShellRoot {
         PolkitWindow {
             flow: services.polkitFlow
             screenName: services.polkitScreen
+            corners: screenCorners
         }
     }
     // A request in the classic modes takes the screen from whatever was open,
@@ -143,6 +146,13 @@ ShellRoot {
     BarIpc {
         bars: screens.instances.map(s => s.classicBar).filter(b => b)
         notifs: notifHost
+    }
+    // Super+Alt+C and Super+Alt+D (global shortcuts): the control center
+    // and the calendar on the focused monitor, the island's or the bar's.
+    PanelShortcuts {
+        islands: screens.instances.map(s => s.island).filter(i => i)
+        bars: screens.instances.map(s => s.classicBar).filter(b => b)
+        paletteHost: launcher
     }
 
     // Global rather than per-monitor: one D-Bus notification server for the
@@ -183,5 +193,14 @@ ShellRoot {
     ClipboardStore {
         launcher: launcher
     }
-    WindowSwitcher {}
+    WindowSwitcher {
+        corners: screenCorners
+    }
+    // Rounded screen corners on every screen, above everything (`corners`
+    // IPC). The full-screen Overlay surfaces with a scrim (the window
+    // switcher, the polkit window, a bar's power menu) map after the strips
+    // and would grey them, so they paint the corners themselves.
+    ScreenCorners {
+        id: screenCorners
+    }
 }

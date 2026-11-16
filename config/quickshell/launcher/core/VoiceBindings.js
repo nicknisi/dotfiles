@@ -9,11 +9,23 @@
 // keyboard repeat delay. Universal, non-consuming release bindings ignore
 // modifiers and cover the chord's modifiers too, so either release order
 // stops recording even if the palette no longer has keyboard focus.
+//
+// Both are global shortcuts (Launcher.qml's GlobalShortcuts, appid
+// "quickshell"), not `qs ipc call launcher voiceHold|voiceRelease`: the exec
+// started a qs client for every hold and for every release of Space or Super
+// anywhere. A release bind delivers one `released` to the shortcut on key up,
+// nothing on the press, and fires in exactly the cases the exec ran its
+// command, in the same order, with the same keys reaching the focused window:
+// ten sequences (taps, holds, Super let go before Space, Super_R, plain
+// typing, a key after a hold, Super alone, two in the keystroke-capture
+// submap) in .shell-rebuild/specs/shots/keys/release-probe.sh, in the
+// sandbox. The long-press bind delivers `pressed` at the repeat delay and
+// `released` on key up. The IPC functions stay for scripts.
 
 var BEGIN = "-- >>> keystroke voice: hold the palette hotkey to dictate (written by Keystroke Settings › Voice)"
 var END = "-- <<< keystroke voice"
-var HOLD = "qs ipc call launcher voiceHold"
-var RELEASE = "qs ipc call launcher voiceRelease"
+var HOLD = "quickshell:launcher-voice-hold"
+var RELEASE = "quickshell:launcher-voice-release"
 
 function parseKeys(text) {
   var out = [], parts = String(text || "").split(",")
@@ -33,13 +45,13 @@ function block(keys) {
     SHIFT: ["Shift_L", "Shift_R"], CTRL: ["Control_L", "Control_R"], CONTROL: ["Control_L", "Control_R"],
     ALT: ["Alt_L", "Alt_R"], MOD1: ["Alt_L", "Alt_R"] }
   for (var i = 0; i < combos.length; i++) {
-    lines.push("hl.bind(" + lua(combos[i]) + ", hl.dsp.exec_cmd(" + lua(HOLD) + "), { long_press = true })")
+    lines.push("hl.bind(" + lua(combos[i]) + ", hl.dsp.global(" + lua(HOLD) + "), { long_press = true })")
     var parts = combos[i].split(/\s*\+\s*/), key = parts.pop()
     releases.push(key)
     for (var j = 0; j < parts.length; j++) releases = releases.concat(modifiers[parts[j].toUpperCase()] || [])
   }
   releases.filter((key, index) => releases.indexOf(key) === index).forEach(function(key) {
-    lines.push("hl.bind(" + lua(key) + ", hl.dsp.exec_cmd(" + lua(RELEASE) + "), { release = true, ignore_mods = true, submap_universal = true, non_consuming = true })")
+    lines.push("hl.bind(" + lua(key) + ", hl.dsp.global(" + lua(RELEASE) + "), { release = true, ignore_mods = true, submap_universal = true, non_consuming = true })")
   })
   lines.push(END)
   return lines.join("\n")

@@ -601,6 +601,16 @@ function display(src) {
             return { key: text(l.key), title: text(l.title) || text(l.key), sub: text(l.sub), icon: "sparkle", on: (text(s.look) || "crew") === text(l.key), action: "look" };
         }) });
     }
+    // Rounded screen corners (ScreenCorners.qml), when the caller says what
+    // they are: a choice of two like the groups above, Rounded or Square.
+    if (s.corners && typeof s.corners === "object") {
+        var rounded = s.corners.on === true;
+        var radius = Math.round(num(s.corners.radius, 0));
+        groups.push({ label: "Screen corners", rows: [
+            { key: "rounded", title: "Rounded", sub: radius > 0 ? radius + " px, painted black" : "Painted black", icon: "corner", on: rounded, action: "corners" },
+            { key: "square", title: "Square", sub: "The panel's own corners", icon: "monitor", on: !rounded, action: "corners" }
+        ] });
+    }
     var modes = (s.modes || []).map(function (m) {
         return { key: text(m.mode), title: text(m.label) || text(m.mode), icon: "monitor", on: m.current === true, action: "mode" };
     });

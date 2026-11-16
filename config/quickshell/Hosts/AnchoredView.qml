@@ -59,6 +59,11 @@ Item {
     property date now: new Date()
     // shell.qml's ThemePicker (openOn(screen, kind)), or null.
     property var pickerHost: null
+    // shell.qml's ScreenCorners (through Bar and AnchoredHost), or null. The
+    // host's window is a full-screen Overlay surface mapped after the corner
+    // strips, so the power menu's scrim would grey them: it paints the
+    // corners over it (corners.drawn).
+    property var corners: null
     // What the last theme hand-off did: "picker" or "exec" (tests, inspect).
     property string themesRan: ""
     // Device pixels per logical px: the bar's window (always mapped; this
@@ -387,7 +392,9 @@ Item {
             scrimRect: { x: scrim.x, y: scrim.y, width: scrim.width, height: scrim.height },
             seamLines: { start: host.seamStartLine, end: host.seamEndLine },
             leaving: host.leaving,
-            dpr: host.dpr
+            dpr: host.dpr,
+            corners: hostCorners.visible ? hostCorners.radius : 0,
+            cornersSkip: hostCorners.skipEdge
         };
     }
 
@@ -582,5 +589,16 @@ Item {
                 }
             }
         }
+    }
+
+    // Over the power menu's scrim: the rounded screen corners, but for the
+    // two on a flush strip's edge, where the scrim stops and the strips' own
+    // show. No panel reaches a screen corner, so nothing else needs them.
+    ScreenCornerSet {
+        id: hostCorners
+        objectName: "hostCorners"
+        anchors.fill: parent
+        radius: scrim.visible ? (host.corners?.drawn ?? 0) : 0
+        skipEdge: scrim.side
     }
 }

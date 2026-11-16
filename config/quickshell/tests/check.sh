@@ -52,6 +52,15 @@ node "$root/tests/calendar.cjs"
 # ranges, clipboard metadata and the Colors contrast row are qmltests in
 # launcher/tests (check.sh above); the island and panel hosts run in check.qml.
 bash "$root/tests/clipboard-store.sh"
+# The shell's keys as Hyprland global shortcuts, not a qs client per press
+# (Super+Space, its hold-to-talk, Super+V, Super+Alt+C and Super+Alt+D): the
+# binds name registered shortcuts; the control center and calendar shortcuts
+# (raising the island over a fullscreen window) and the rounded screen
+# corners' IPC run offscreen, and tests/corner-cover.py keeps every scrim
+# surface painting the corners over its scrim (tst_kit and check.qml read
+# the pixels and the power menu's).
+bash "$root/../hypr/tests/shortcuts.sh"
+bash "$root/tests/shortcuts.sh"
 # The control center, its sheets and the power menu (PLAN M6): Tailscale's
 # offline peers, lib/CcData.js and the leaf panels under qmltestrunner
 # (tst_cc_layout, tst_sheet_nav, tst_power_keys, tst_cc_live). The Wi-Fi sheet's portal

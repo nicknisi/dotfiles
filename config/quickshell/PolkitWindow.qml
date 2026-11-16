@@ -28,6 +28,9 @@ PanelWindow {
     property var flow: null
     // The screen focused when the request started; "" for the first.
     property string screenName: ""
+    // shell.qml's ScreenCorners: the scrim covers the whole screen on
+    // Overlay, so this window paints the corners over it (corners.drawn).
+    property var corners: null
 
     readonly property bool waiting: win.flow !== null && win.flow.isCompleted !== true
     // Set just after the window is built, so the scrim and the card fade in
@@ -53,7 +56,8 @@ PanelWindow {
             card: { x: card.x, y: card.y, width: card.width, height: card.height },
             typed: Fixture.sandbox ? layer.buffer.length : -1,
             fieldFocus: layer.field.activeFocus,
-            keyboardHere: layer.field.keyboardHere
+            keyboardHere: layer.field.keyboardHere,
+            corners: polkitCorners.visible ? polkitCorners.radius : 0
         };
     }
 
@@ -110,5 +114,13 @@ PanelWindow {
             flow: win.flow
             user: Quickshell.env("USER") ?? ""
         }
+    }
+
+    // Over the scrim and the card: the rounded screen corners
+    // (ScreenCorners.drawn), which the scrim would otherwise grey.
+    ScreenCornerSet {
+        id: polkitCorners
+        anchors.fill: parent
+        radius: win.corners?.drawn ?? 0
     }
 }
