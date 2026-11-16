@@ -442,6 +442,15 @@ hl.layer_rule({
   ignore_alpha = 0.3,
 })
 
+-- The sleep fade (quickshell SleepNights.qml): its black layer fades itself
+-- over 400 ms before sleep and back up on wake. A layer animation on map
+-- would grow or fade a second copy of it over the first frames.
+hl.layer_rule({
+  name = "shell-sleep",
+  match = { namespace = "^quickshell-sleep$" },
+  no_anim = true,
+})
+
 -- Workspaces: 1-9, the lettered set, and the tab bindings.
 dofile(hypr .. "/workspaces.lua")
 

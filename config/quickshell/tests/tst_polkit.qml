@@ -85,9 +85,37 @@ Item {
             const f = pk.field.mapToItem(pk, 0, 0);
             compare(f.x, 20);
             compare(f.y, 114, "the field's top sits where the board's does, under a two-line message");
+            // The user's circle before the label: 18 px, on the label's line.
+            compare(pk.face.objectName, "polkitFace");
+            compare(pk.face.size, 18);
+            const fc = pk.face.mapToItem(pk, 0, 0);
+            compare(fc.x, 20);
+            verify(fc.y + 18 <= f.y - 4, "the circle clears the field: " + (fc.y + 18) + " <= " + (f.y - 4));
+            compare(pk.face.initialText.text, "N", "the initial for nicknisi");
             const a = pk.authButton.mapToItem(pk, 0, 0);
             compare(a.x + pk.authButton.width, 460, "the footer ends at the padding");
             verify(a.y + 34 <= 272 - 20 + 0.5, "the footer fits inside the bottom padding: " + (a.y + 34));
+        }
+
+        // The session user's picture, never another identity's.
+        function test_face() {
+            compare(pk.face.initialText.text, "N");
+            pk.faceSources = [Qt.resolvedUrl("face.png")];
+            verify(pk.ownIdentity, "no identity named: the session's user");
+            tryCompare(pk.face, "pictureShown", true, 3000);
+            compare(pk.field.mapToItem(pk, 0, 0).y, 114, "nothing below moves");
+            flow.selectedIdentity = { username: "root", displayName: "root", isGroup: false };
+            verify(!pk.ownIdentity, "root's prompt");
+            compare(pk.face.sources.length, 0, "root's prompt gets no picture of ours");
+            tryCompare(pk.face, "pictureShown", false, 2000);
+            compare(pk.face.initialText.text, "R");
+            flow.selectedIdentity = { username: "nicknisi", displayName: "Nick Nisi", isGroup: false };
+            verify(pk.ownIdentity, "the session's user by name");
+            compare(pk.label, "Password for Nick Nisi");
+            flow.selectedIdentity = { username: "nicknisi", displayName: "wheel", isGroup: true };
+            verify(!pk.ownIdentity, "a group is nobody's picture");
+            flow.selectedIdentity = null;
+            pk.faceSources = [];
         }
 
         function test_text() {

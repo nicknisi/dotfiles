@@ -109,6 +109,7 @@ PanelWindow {
             current: win.shown
             flow: win.flow
             user: Quickshell.env("USER") ?? ""
+            faceSources: Face.urls
         }
     }
 }

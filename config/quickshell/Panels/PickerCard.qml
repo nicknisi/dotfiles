@@ -28,6 +28,9 @@ Item {
     property string image: ""
     property size thumbSize: Qt.size(0, 0)
     property real imageHeight: 80
+    // The image's corner radius: the board's 10; the Profile picture
+    // sheet's circles (FaceGrid) pass half the image's width.
+    property real thumbRadius: 10
     property string title: ""
     property int titleWeight: Font.Medium
     property string note: ""
@@ -103,6 +106,7 @@ Item {
         y: 6
         width: card.width - 12
         height: card.imageHeight
+        radius: card.thumbRadius
         source: card.image
         sourceSize: card.thumbSize
     }

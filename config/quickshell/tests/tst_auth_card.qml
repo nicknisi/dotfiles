@@ -122,6 +122,24 @@ Item {
             compare(card.initial, "N");
         }
 
+        // The profile picture (Kit/FacePicture): the initial with no
+        // picture, the picture with one, and the card the same size either way.
+        function test_face() {
+            const h = card.height;
+            compare(card.face.size, 44);
+            compare(card.face.width, 44);
+            compare(card.face.initialText.text, "N");
+            verify(card.face.initialText.visible && !card.face.pictureShown, "no picture: the initial, as the board draws it");
+            card.faceSources = [Qt.resolvedUrl("text.png"), Qt.resolvedUrl("face.png")];
+            tryCompare(card.face, "pictureShown", true, 3000);
+            compare(card.face.tried, 1, "past the file that is not an image");
+            compare(card.height, h, "the card keeps its height");
+            compare(card.face.mapToItem(card, 0, 0).x, 20, "where the circle was");
+            card.faceSources = [];
+            verify(!card.face.pictureShown);
+            tryCompare(card.face.initialText, "visible", true, 2000);
+        }
+
         function test_field_holds_no_text() {
             verify(card.field.text === undefined, "SecretField has no text property");
             card.keyIntent(Qt.Key_H, "h", 0);

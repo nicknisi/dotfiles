@@ -41,6 +41,21 @@ Item {
         }
     }
 
+    // The UI thread's pulse while a picture decodes under the lock-in motion.
+    property real lastTick: 0
+    property real worstGap: 0
+    property int baseMotion: -1
+    Timer {
+        id: pulse
+        interval: 8
+        repeat: true
+        onTriggered: {
+            const t = Date.now();
+            if (root.lastTick > 0) root.worstGap = Math.max(root.worstGap, t - root.lastTick);
+            root.lastTick = t;
+        }
+    }
+
     SignalSpy {
         id: runs
         target: lock
@@ -134,6 +149,122 @@ Item {
             root.height = 1200;
             wait(50);
             compare(clockLayer.y + clockLayer.height, 602 - 120);
+        }
+
+        // The profile picture reaches the primary card only; the wallpaper
+        // settles (no file here) so lock.qml may load it.
+        function test_face_primary_only() {
+            verify(lock.wallSettled, "no wallpaper file: settled at once");
+            const urls = [Qt.resolvedUrl("face.png")];
+            lock.faceSources = urls;
+            compare(lock.card.faceSources.length, 1);
+            tryCompare(lock.card.face, "pictureShown", true, 3000);
+            lock.primary = false;
+            compare(lock.card.faceSources.length, 0, "a secondary screen's card loads nothing");
+            lock.primary = true;
+            lock.faceSources = [];
+            verify(!lock.card.face.pictureShown);
+        }
+
+        // Sleep: everything darkens to night over 400 ms and comes back; the
+        // card, the keys and the record carry on under it.
+        function test_sleep_darkens_only() {
+            const night = findChild(lock, "lockNight");
+            verify(night !== null);
+            compare(night.opacity, 0);
+            verify(!night.visible, "nothing drawn awake");
+            compare(String(night.color), "#000000");
+            compare(night.width, 1920);
+            const authBefore = JSON.stringify(lock.auth);
+            lock.asleep = true;
+            wait(200);
+            verify(night.opacity > 0.05 && night.opacity < 0.95, "mid-fade at 200 ms: " + night.opacity);
+            tryCompare(night, "opacity", 1, 1000);
+            verify(night.z >= 0 && lock.card.parent.visible && lock.card.visible, "the card is still there, under it");
+            keyClick(Qt.Key_Z);
+            compare(root.typedText.join(""), "z", "keys still reach the buffer");
+            compare(JSON.stringify(lock.auth), authBefore, "the record is untouched");
+            verify(lock.shown, "shown untouched");
+            lock.asleep = false;
+            tryCompare(night, "opacity", 0, 1000);
+            verify(!night.visible);
+        }
+
+        // A lock started while the machine is going to sleep (hypridle's
+        // before_sleep_cmd): lock.qml holds nightSnaps until its watch's
+        // first reading, so `night` jumps to black the moment it learns,
+        // never fading in over the lock-in motion; built asleep, it starts
+        // black. Once settled, the 400 ms fade as before.
+        function test_night_snaps_until_settled() {
+            const s = createTemporaryObject(arriving, root, { focus: false, nightSnaps: true });
+            const night = findChild(s, "lockNight");
+            compare(night.opacity, 0);
+            s.shown = true;
+            wait(30);
+            s.asleep = true;
+            compare(night.opacity, 1, "black at once, mid lock-in");
+            verify(night.visible);
+            s.asleep = false;
+            compare(night.opacity, 0, "and back at once while unsettled");
+            s.nightSnaps = false;
+            s.asleep = true;
+            wait(150);
+            verify(night.opacity > 0.02 && night.opacity < 0.98, "settled: the fade again: " + night.opacity);
+            tryCompare(night, "opacity", 1, 1000);
+            const built = createTemporaryObject(arriving, root, { focus: false, asleep: true });
+            compare(findChild(built, "lockNight").opacity, 1, "built asleep: black from the first frame");
+        }
+
+        // A bad picture never holds the lock-in motion back (tests/face.sh
+        // covers the file check and the config load; this is the card's own
+        // decode, started before `shown` so it overlaps the whole motion):
+        // the card and the wallpaper are in as fast as with no picture, the
+        // UI thread keeps ticking, the field and the record are untouched,
+        // and the circle keeps the initial (or shows the 50 MP file once
+        // decoded small).
+        function test_lock_in_with_bad_faces_data() {
+            return [
+                { tag: "none", files: [] },
+                { tag: "missing", files: ["missing.png"] },
+                { tag: "empty", files: ["empty.png"] },
+                { tag: "text", files: ["text.png"] },
+                { tag: "loop", files: ["loop.png"] },
+                { tag: "big", files: ["big.png"] }
+            ];
+        }
+        function test_lock_in_with_bad_faces(data) {
+            const urls = data.files.map(f => Qt.resolvedUrl(f));
+            const s = createTemporaryObject(arriving, root, { focus: false, faceSources: urls });
+            wait(50);
+            compare(s.card.parent.opacity, 0, "not in before shown");
+            compare(s.card.faceSources.length, urls.length, "the card has the files");
+            const auth = JSON.stringify(s.auth);
+            root.lastTick = 0;
+            root.worstGap = 0;
+            pulse.start();
+            const t0 = Date.now();
+            s.shown = true;
+            tryVerify(() => s.card.parent.opacity === 1 && s.wall.opacity === 1, 2000, "the card and wallpaper come in");
+            const took = Date.now() - t0;
+            pulse.stop();
+            if (data.tag === "none") root.baseMotion = took;
+            console.log("lock-in with " + data.tag + ": " + took + " ms (none: " + root.baseMotion + " ms), worst UI gap " + root.worstGap + " ms");
+            verify(root.baseMotion > 0, "the no-picture case ran first");
+            verify(took <= root.baseMotion + 150, data.tag + ": the motion took " + took + " ms against " + root.baseMotion);
+            verify(root.worstGap < 120, data.tag + ": the UI thread kept ticking: worst gap " + root.worstGap + " ms");
+            tryVerify(() => JSON.stringify(box(s.card.field)) === JSON.stringify(box(lock.card.field)), 1500, "the field settles where it always is: " + JSON.stringify(box(s.card.field)));
+            compare(s.card.field.length, 0);
+            compare(JSON.stringify(s.auth), auth, "the record is untouched");
+            const face = s.card.face;
+            if (data.tag === "big") {
+                tryVerify(() => face.pictureShown || face.tried >= 1, 10000, "the 50 MP file decodes small or is refused");
+                if (face.pictureShown) compare(face.image.sourceSize.width, 88);
+            } else {
+                tryCompare(face, "tried", urls.length, 3000);
+                verify(!face.pictureShown, "no picture");
+                verify(face.initialText.visible, "the initial stays");
+                compare(face.initialText.text, "N");
+            }
         }
 
         function test_secondary_screen() {

@@ -63,6 +63,12 @@ assert.equal(C.footer({ battery: { present: true, percent: 80, charging: true } 
 assert.equal(C.footer({ battery: { present: true, percent: 100, pluggedIn: true } }).battery.text, '100% · plugged in')
 assert.equal(C.footer({ battery: { present: false } }).battery.visible, false, 'hidden with no battery')
 assert.equal(footer.tray[0].title, '1Password')
+assert.deepEqual(footer.face, [], 'no picture: the letter')
+assert.deepEqual(C.footer({ user: 'n', face: ['file:///h/.face?v=1-2', '', 3, null] }).face, ['file:///h/.face?v=1-2'], 'the profile picture\'s URLs, junk dropped')
+assert.ok(C.SHEETS.includes('face'), 'the Profile picture sheet')
+assert.equal(C.sheetName('face'), 'face')
+assert.equal(C.sheetName('profile'), 'face')
+assert.equal(C.sheetName('picture'), 'face')
 // The board's battery carries a level mark (M6 review): low, medium, full by level.
 assert.equal(footer.battery.icon, 'batteryLow', '25 % is low')
 assert.deepEqual([30, 31, 70, 71, 100].map(p => C.batteryIcon({ percent: p })), ['batteryLow', 'batteryMedium', 'batteryMedium', 'batteryFull', 'batteryFull'])

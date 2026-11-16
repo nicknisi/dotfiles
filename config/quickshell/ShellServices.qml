@@ -39,6 +39,10 @@
 //          registered: true; `pkexec true` shows the prompt.
 //       Back out: qs ipc call polkit agent off; systemctl --user enable --now
 //       hyprpolkitagent.
+//   - The profile picture (Face.qml): the probe that says what the circles
+//     show, a check at startup, and the `face` IPC target (set PATH, clear,
+//     get). Here rather than in Face.qml, which the lock instance loads too
+//     and which must register no target there.
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
@@ -135,6 +139,34 @@ Scope {
     Component {
         id: fixtureFlowComponent
         FixtureAuthFlow {}
+    }
+
+    // ---- the profile picture ----------------------------------------------------
+
+    Component.onCompleted: {
+        Face.probing = true;
+        Face.refresh();
+    }
+    IpcHandler {
+        target: "face"
+        // Copies PATH (an image, at most 32 MiB) to ~/.face atomically, once it
+        // has checked and decoded it; answers at once, `get` follows it.
+        function set(path: string): string {
+            return Face.set(path);
+        }
+        // Removes ~/.face: the AccountsService icon, or the initial, comes back.
+        function clear(): string {
+            return Face.clear();
+        }
+        // JSON: kind (face, system or initial), the file drawn, busy, the last
+        // error and each candidate's check, as of the last check.
+        function get(): string {
+            return JSON.stringify(Face.report());
+        }
+        // Checks the files again (after ~/.face changed some other way).
+        function refresh(): void {
+            Face.refresh();
+        }
     }
 
     IpcHandler {

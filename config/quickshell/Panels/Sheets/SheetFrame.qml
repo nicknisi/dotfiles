@@ -53,7 +53,10 @@ import qs.Kit
 //
 // sheetData: what lib/CcData.js's sheet functions return: { status,
 // switchOn, switchEnabled, hasSwitch, groups: [{ label, rows }], footer,
-// footerEnabled }. The group and row Repeaters count rows rather than take
+// footerEnabled }. `content`, when set, is a component drawn under the
+// groups in the same scroll (the Profile picture sheet's grid), and
+// `keyHandler(event)`, when set, gets the first say on a key the frame
+// itself holds (true: taken). The group and row Repeaters count rows rather than take
 // the arrays, so a service changing (a volume step, a rescan) updates the rows
 // in place: a slider being dragged or a row holding focus is never rebuilt.
 FocusScope {
@@ -65,6 +68,10 @@ FocusScope {
     property string switchLabel: title
     property var sheetData: ({ status: "", switchOn: false, switchEnabled: true, hasSwitch: false, groups: [], footer: "", footerEnabled: true })
     property var backHandler: null
+    // Drawn under the groups, in their scroll; its item is `contentItem`.
+    property Component content: null
+    property var keyHandler: null
+    readonly property alias contentItem: contentLoader.item
     // The row (by key) showing the passphrase field, "" for none.
     property string expandedKey: ""
     property string fieldPlaceholder: "Password"
@@ -159,6 +166,10 @@ FocusScope {
         // keys are in use from then on.
         if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
             frame.keyboard = true;
+            return;
+        }
+        if (typeof frame.keyHandler === "function" && frame.keyHandler(event)) {
+            event.accepted = true;
             return;
         }
         if (event.key === Qt.Key_Escape || event.key === Qt.Key_Backspace || (event.key === Qt.Key_Left && event.modifiers & Qt.AltModifier)) {
@@ -330,6 +341,13 @@ FocusScope {
                         }
                     }
                 }
+            }
+            Loader {
+                id: contentLoader
+                width: groups.width
+                active: frame.content !== null
+                visible: active
+                sourceComponent: frame.content
             }
         }
     }

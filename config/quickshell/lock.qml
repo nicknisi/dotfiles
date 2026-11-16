@@ -47,6 +47,40 @@
 //     the unlock reads;
 //   - Suspend, Reboot and Shut down log instead of running (also under
 //     SHELL_DRY_RUN=1).
+//   - `lockpose prepare true|false` feeds the sleep watch logind's signal (the
+//     sandbox has no system bus), which only darkens the surfaces; with
+//     SHELL_SLEEP_WATCH=1 the sleep watch listens as it does outside (a fake
+//     gdbus first on PATH), for the start-during-sleep shot.
+//
+// The profile picture (Face.qml, lib/FaceModel.js): ~/.face, then the
+// AccountsService icon, then the initial. Face.refresh() checks the files
+// once when the lock starts (one `sh`: a regular readable file of 1 byte to
+// 32 MiB, so a FIFO, a directory or a symlink loop is never opened), and the
+// card's Kit/FacePicture decodes it asynchronously at 88 px only once the
+// primary screen's wallpaper has decoded (or 1.5 s passed): the image
+// reader is one queue, and a 50 MP photo ahead of the wallpaper would hold
+// the wallpaper back. Nothing about the picture touches the unlock, the
+// lock-in motion or `secure`: an empty file, a non-image, a huge image or a
+// symlink loop each leave the initial (tests/lock.sh, tests/face.sh).
+//
+// Sleep (SleepWatch.qml, lib/SleepFade.js): when logind announces sleep, every
+// surface darkens to `night` over 400 ms, and fades back up on wake. Started
+// while the machine is already going to sleep (hypridle's before_sleep_cmd
+// locks after the signal), it goes black the moment the watch's first
+// reading says so, with no fade (LockSurface.nightSnaps until the watch is
+// settled). The lock-in motion waits for that reading (at most 250 ms past
+// `secure`; the sandbox's watch is settled from the start), and then, if
+// asleep, for the wake (`heldForSleep`): on wake the content comes in from
+// black. It only darkens: `secure`, the
+// unlock and what the card shows carry on under it, and nothing here waits on
+// it. Before the watch's first reading, the main shell's mark
+// ($XDG_RUNTIME_DIR/quickshell-sleep-fade, written by SleepFade.qml as the
+// screens begin to darken, read here before the first frame and fresh for
+// 10 s) stands in for it, so a lock started during the fade is black from
+// its first frame. The watch drops `preparing` after 10 s of awake time with
+// no wake signal (a missed one), so the lock comes back up and the next
+// sleep darkens it again. This lock holds no inhibitor; the main shell's (SleepFade.qml)
+// and hypridle's (inhibit_sleep = 3) are the ones logind waits for.
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -57,6 +91,7 @@ import qs
 import qs.Lock
 import "lib/CcData.js" as CcData
 import "lib/LockMachine.js" as LockMachine
+import "lib/SleepFade.js" as SleepFade
 
 ShellRoot {
     id: root
@@ -192,7 +227,77 @@ ShellRoot {
         }
         return names.length > 0 ? names[0] : "";
     }
-    Component.onCompleted: root.startName = String(Hyprland.focusedMonitor?.name ?? "")
+    Component.onCompleted: {
+        root.startName = String(Hyprland.focusedMonitor?.name ?? "");
+        root.sleepMarked = SleepFade.marked(sleepMark.text(), Date.now());
+        if (root.sleepMarked) sleepMarkExpiry.start();
+        Face.refresh();
+    }
+
+    // ---- the profile picture ------------------------------------------------------
+
+    // The primary screen's wallpaper has decoded (or failed), or 1.5 s
+    // passed: from then on the card loads the picture (see the header).
+    property bool faceReady: false
+    readonly property bool primaryWallSettled: root.views.some(v => v.primary && v.wallSettled)
+    onPrimaryWallSettledChanged: if (root.primaryWallSettled) root.faceReady = true
+    Timer {
+        interval: 1500
+        running: !root.faceReady
+        onTriggered: root.faceReady = true
+    }
+
+    // ---- sleep --------------------------------------------------------------------
+
+    // Its `stale` (10 s of awake time with no wake signal) drops `preparing`,
+    // so a missed wake brings the lock back up and the next sleep counts.
+    SleepWatch {
+        id: sleepWatch
+        listening: !root.sandbox || root.env("SHELL_SLEEP_WATCH") === "1"
+    }
+    // The main shell's mark (SleepFade.MARK): the screens began to darken
+    // under 10 s ago. Read once, before the first frame (blockLoading), and
+    // only until the watch has its own reading; a watch that never reads lets
+    // it go after 10 s.
+    FileView {
+        id: sleepMark
+        path: root.env("XDG_RUNTIME_DIR") !== "" ? root.env("XDG_RUNTIME_DIR") + "/" + SleepFade.MARK : ""
+        blockLoading: true
+        printErrors: false
+    }
+    property bool sleepMarked: false
+    Timer {
+        id: sleepMarkExpiry
+        interval: SleepFade.WATCHDOG_MS
+        onTriggered: root.sleepMarked = false
+    }
+    readonly property bool asleep: sleepWatch.settled ? sleepWatch.preparing : sleepWatch.preparing || root.sleepMarked
+    // The lock-in motion waits for the watch's first reading (at most
+    // settleCap's 250 ms), so it never starts on a guess; then, if the
+    // machine is going to sleep, it waits for the wake (under the night it
+    // would show nothing) and comes in from black.
+    property bool arriveDue: false
+    property bool settleWaited: false
+    property bool heldForSleep: false
+    onAsleepChanged: {
+        if (root.asleep || !root.heldForSleep) return;
+        root.heldForSleep = false;
+        root.arrive();
+    }
+    Connections {
+        target: sleepWatch
+        function onSettledChanged() {
+            if (sleepWatch.settled && root.arriveDue) root.arrive();
+        }
+    }
+    Timer {
+        id: settleCap
+        interval: 250
+        onTriggered: {
+            root.settleWaited = true;
+            if (root.arriveDue) root.arrive();
+        }
+    }
 
     // ---- the lock ---------------------------------------------------------------------
 
@@ -208,14 +313,27 @@ ShellRoot {
     // state (`darker`, the capsule at the island's 360) into the frame the
     // compositor commits the lock with; true once the lock is secure, which
     // runs the lock-in motion (control-lock 4.8: the wallpaper fades in, the
-    // capsule springs 360 -> 96, the clock, card and pills arrive). False
+    // capsule springs 360 -> 96, the clock, card and pills arrive) once the
+    // sleep watch has its first reading (arriveDue, at most 250 ms more), or
+    // on wake if the machine is going to sleep (heldForSleep). False
     // again once PAM said Success, for the leave motion. A surface built
     // while shown is already true (an output added while locked) shows at
     // once. Never declare it true: Kit/Layer shows a layer that is current
     // at creation without the enter rule (M8 review).
     property bool shown: false
     function arrive() {
-        if (!lockAuth.unlocking) root.shown = true;
+        if (lockAuth.unlocking || root.shown) return;
+        if (!sleepWatch.settled && !root.settleWaited) {
+            root.arriveDue = true;
+            if (!settleCap.running) settleCap.start();
+            return;
+        }
+        root.arriveDue = false;
+        if (root.asleep) {
+            root.heldForSleep = true;
+            return;
+        }
+        root.shown = true;
     }
     // A compositor slow to confirm still gets the content (offscreen, where
     // it never confirms, too); bin/shell-lock stops a lock that is not
@@ -293,6 +411,9 @@ ShellRoot {
                 shown: root.shown
                 fromIsland: root.fromIsland
                 shakeHold: root.pose?.shakeHold !== undefined ? Number(root.pose.shakeHold) : -1
+                faceSources: root.faceReady ? Face.urls : []
+                asleep: root.asleep
+                nightSnaps: !sleepWatch.settled
 
                 onWindowActiveChanged: if (windowActive && screenName !== "") root.focusedName = screenName
                 onTyped: text => lockAuth.type(text)
@@ -392,9 +513,22 @@ ShellRoot {
                 // (M9: not from the notch or a look).
                 barMode: root.barMode,
                 fromIsland: root.fromIsland,
-                surfaces: root.views.map(v => ({ screen: v.screenName, primary: v.primary, width: v.width, height: v.height, fromIsland: v.fromIsland }))
+                surfaces: root.views.map(v => ({ screen: v.screenName, primary: v.primary, width: v.width, height: v.height, fromIsland: v.fromIsland })),
+                // The profile picture: how many files passed the check, whether
+                // the card may load them yet, and whether the primary card
+                // draws one (else the initial).
+                face: root.faceState(),
+                // logind's PrepareForSleep as the lock saw it, and how dark
+                // the primary surface is.
+                sleep: { asleep: root.asleep, marked: root.sleepMarked, preparing: sleepWatch.preparing, settled: sleepWatch.settled, stales: sleepWatch.stales, listening: sleepWatch.listening, monitor: sleepWatch.running, shown: root.shown, due: root.arriveDue, held: root.heldForSleep, night: root.views.find(w => w.primary)?.night.opacity ?? 0 }
             });
         }
+    }
+
+    function faceState() {
+        const v = root.views.find(w => w.primary);
+        const f = v ? v.card.face : null;
+        return { checked: Face.checkedOnce, sources: Face.urls.length, ready: root.faceReady, picture: f ? f.pictureShown : false, loading: f ? f.loading : false, initial: f ? f.initialText.text : "" };
     }
 
     function box(item, view) {
@@ -409,6 +543,10 @@ ShellRoot {
             card: box(v.card, v),
             field: box(v.card.field, v),
             unlock: box(v.card.unlockButton, v),
+            // The profile picture's circle: whether it draws the picture.
+            face: box(v.card.face, v),
+            facePicture: v.card.face.pictureShown,
+            night: v.night.opacity,
             hint: box(v.card.hintText, v),
             capsule: box(v.capsule, v),
             clock: box(v.clock, v),
@@ -451,6 +589,12 @@ ShellRoot {
         }
         function clear(): void {
             root.pose = null;
+        }
+        // logind's PrepareForSleep as gdbus prints it: only the darkening.
+        function prepare(sleeping: bool): string {
+            if (!root.sandbox) return "error: sandbox only";
+            sleepWatch.feed(SleepFade.signalLine(sleeping));
+            return "ok";
         }
     }
 }

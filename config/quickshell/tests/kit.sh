@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Motion, lib/Spring.js and the Kit leaf components under qmltestrunner
-# (tst_spring, tst_kit, tst_workspace_strip, tst_pixel_sprite), plus the icon
+# (tst_spring, tst_kit, tst_workspace_strip, tst_pixel_sprite, tst_face_picture),
+# plus the icon
 # provenance check and the Kit import rules.
 #
 # qmltestrunner cannot load Quickshell, so this builds a stand-in `qs` module:
@@ -31,7 +32,9 @@ cp "$root/Motion.qml" "$qs/"
 cp "$root/lib/Spring.js" "$root/lib/Celestial.js" "$root/lib/CrewModel.js" "$root/lib/WorkspaceOrder.js" "$qs/lib/"
 cp "$root"/Kit/*.qml "$root"/Kit/*.js "$qs/Kit/"
 cp "$root/tests/tst_spring.qml" "$root/tests/tst_kit.qml" "$root/tests/tst_workspace_strip.qml" \
-    "$root/tests/tst_pixel_sprite.qml" "$qs/tests/"
+    "$root/tests/tst_pixel_sprite.qml" "$root/tests/tst_face_picture.qml" "$qs/tests/"
+# The profile picture's test images (generated: no photo of anyone).
+python3 -B "$root/tests/face-images.py" "$qs/tests" --big
 
 cat > "$qs/qmldir" <<'EOF'
 module qs
@@ -84,6 +87,7 @@ QtObject {
     }
     property color bad: "#ff6b6b"
     property color darker: "#06060c"
+    readonly property color night: "#000000"
     readonly property color scrim: Qt.rgba(11 / 255, 12 / 255, 22 / 255, 0.56)
     readonly property color shadow: Qt.rgba(0, 0, 0, 0.45)
 }

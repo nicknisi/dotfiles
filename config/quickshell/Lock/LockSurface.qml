@@ -51,6 +51,13 @@ import "../lib/LockMachine.js" as LockMachine
 // (Motion.effects on the spring, after Motion.stagger) and leaves on the
 // leave rule's (Motion.exitFade, linear) instead (M10).
 //
+// Sleep (lock.qml's SleepWatch, `asleep`): a `night` layer over all of it
+// fades in over 400 ms when logind announces sleep and out on wake. With
+// `nightSnaps` (lock.qml: its watch has no reading yet) it follows `asleep`
+// at once instead: a lock started during a sleep goes black the moment it
+// learns, never fading in over its own lock-in motion. It only darkens: the
+// card, the field, the keys and the unlock carry on under it.
+//
 // QtQuick only (qmltestrunner loads it).
 Item {
     id: root
@@ -71,6 +78,16 @@ Item {
     property bool fromIsland: true
     // Sandbox shots only (lock.qml): hold the shake at this keyframe.
     property int shakeHold: -1
+    // The profile picture's file URLs for the card (lock.qml: Face.urls once
+    // the wallpaper has decoded); only the primary screen's card loads them.
+    property var faceSources: []
+    // The machine is about to sleep (lock.qml's SleepWatch): everything this
+    // surface draws fades to `night` over the sleep fade's 400 ms, and back
+    // up on wake. Darkening only: nothing else reads it.
+    property bool asleep: false
+    // `night` jumps to `asleep` with no fade (see the header).
+    property bool nightSnaps: false
+    readonly property int sleepFadeMs: Motion.reduced ? 0 : 400
     property bool powerOpen: false
     // The wallpaper has faded in (set by the first `shown`).
     property bool wallIn: false
@@ -85,6 +102,11 @@ Item {
     readonly property alias powerMenu: powerMenu
     readonly property alias clock: clockText
     readonly property alias wall: wall
+    readonly property alias night: night
+    // The wallpaper has decoded (or failed, or has no file): lock.qml lets
+    // the profile picture load after it, so the two never queue behind each
+    // other in the image reader.
+    readonly property bool wallSettled: wallImage.status !== Image.Loading
     readonly property real capsuleRestWidth: Math.ceil(lockedRow.implicitWidth + 32)
 
     signal typed(string text)
@@ -276,6 +298,7 @@ Item {
             prompt: String(root.auth?.prompt ?? "")
             shakeSerial: Number(root.auth?.shake ?? 0)
             shakeHold: root.shakeHold
+            faceSources: root.primary ? root.faceSources : []
             onTyped: text => root.typed(text)
             onErased: root.erased()
             onCleared: root.cleared()
@@ -401,6 +424,27 @@ Item {
                     root.powerRun(id);
                 }
                 onCancel: root.powerOpen = false
+            }
+        }
+    }
+
+    // ---- the sleep fade --------------------------------------------------------------
+    // Over everything above, input untouched (a Rectangle takes no events).
+    // A surface built with `asleep` already true starts dark (no Behavior
+    // runs on the first value); one that learns it later while `nightSnaps`
+    // (lock.qml: before its watch's first reading) jumps to it.
+    Rectangle {
+        id: night
+        objectName: "lockNight"
+        anchors.fill: parent
+        color: Tokens.night
+        opacity: root.asleep ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity {
+            enabled: !root.nightSnaps
+            NumberAnimation {
+                duration: root.sleepFadeMs
+                easing.type: Easing.InOutSine
             }
         }
     }
