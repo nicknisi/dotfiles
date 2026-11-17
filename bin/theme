@@ -1072,8 +1072,9 @@ thumbs_background() {
 ensure_desktop_entries() { # wofi's drun list gets "Theme" and "Wallpaper"; both open the overlay
   local dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
   mkdir -p "$dir"
-  write_desktop "$dir/theme-picker.desktop" Theme "Switch the desktop theme" preferences-desktop-theme "\"$DOTFILES/bin/theme\" picker themes"
-  write_desktop "$dir/theme-wallpaper.desktop" Wallpaper "Pick a wallpaper for the current theme" preferences-desktop-wallpaper "\"$DOTFILES/bin/theme\" picker backgrounds"
+  # Resolve through the session PATH so a temporary checkout cannot strand these launchers.
+  write_desktop "$dir/theme-picker.desktop" Theme "Switch the desktop theme" preferences-desktop-theme "theme picker themes"
+  write_desktop "$dir/theme-wallpaper.desktop" Wallpaper "Pick a wallpaper for the current theme" preferences-desktop-wallpaper "theme picker backgrounds"
 }
 
 write_desktop() { # path name comment icon exec — only touched when the content changes
