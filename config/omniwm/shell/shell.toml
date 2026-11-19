@@ -1,10 +1,11 @@
-profile = "wayline"
+profile = "bridge"
 
 [profiles]
 
 [profiles.celestial]
 center = ["active-window", "media"]
 leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads"]
+theme = "wallpaper"
 trailing = ["notifications", "volume", "wifi", "battery-details", "control-center", "system-stats", "clock", "power"]
 
 [profiles.default]
@@ -31,8 +32,11 @@ enabled = true
 [profiles.wayline]
 center = []
 leading = ["apple-menu", "app-menu", "omniwm", "workspaces", "scratchpads", "active-window"]
-theme = "catppuccin"
+theme = "wallpaper"
 trailing = ["prairie", "agents", "status", "notifications", "fantastical", "control-center"]
+
+[profiles.wayline.hiddenBar]
+enabled = true
 
 [profiles.wayline.island]
 displays = "all"
