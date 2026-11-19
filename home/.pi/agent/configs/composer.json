@@ -1,20 +1,17 @@
 {
-  "boxedView": true,
-  "boxPadX": 1,
-  "menuGap": 0,
-  "extraMenuIndent": 1,
-  "borderColor": "border",
-  "prefix": "❯",
-  "prefixColor": "accent",
-  "corners": "rounded",
-  "focusIndicator": true,
-  "spinner": true,
-  "spinnerStyle": "dots",
-  "spinnerColor": "thinkingMax",
-  "glow": false,
-  "glowStyle": "pulse",
-  "glowColor": "thinkingMax",
-  "glowPeriodMs": 1800,
-  "rainbowPeriodMs": 1200,
-  "sessionNameColor": "accent"
+  "style": "box",
+  "separator": "  ",
+  "spinner": {
+    "color": "thinkingMax"
+  },
+  "working": {
+    "highlightColor": "accent"
+  },
+  "items": {
+    "statuses": {
+      "hide": [
+        "mcp"
+      ]
+    }
+  }
 }
