@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+# light — control Elgato Key Lights through their local HTTP API (port 9123). Every command is a
+# one-shot request; nothing runs in the background. All lights are set together.
+#
+#   light [status]               show each light
+#   light get                    print the first light's state as JSON
+#   light on | off | toggle
+#   light bright <3-100|+N|-N>   brightness in percent
+#   light temp <2900-7000|+N|-N> color temperature in kelvin
+#   light discover               find lights on the network (Bonjour) and save them
+#   light http                   answer one GET /<command>[/<value>] on stdin/stdout, for the
+#                                OmniWM widget (launchd runs this per connection)
+#
+# Lights come from $LIGHT_HOSTS (space-separated host[:port]) or ~/.config/elgato/hosts (one per line).
+# After each change (and on `light get`, which prints it as JSON) the state is pushed to the OmniWM bar's
+# `lights` widget via `omniwmctl shell set lights`.
+set -euo pipefail # bash 3.2 compatible: Raycast runs scripts with macOS's /bin/bash
+
+CONF=${XDG_CONFIG_HOME:-$HOME/.config}/elgato/hosts
+OMNIWMCTL=${OMNIWMCTL:-/Applications/OmniWM.app/Contents/MacOS/omniwmctl}
+
+usage() {
+  sed -n '5,12s/^# \{0,1\}//p' "$0" >&2
+  exit 2
+}
+
+load_hosts() {
+  HOSTS=()
+  local line
+  if [[ -n ${LIGHT_HOSTS:-} ]]; then
+    read -ra HOSTS <<<"$LIGHT_HOSTS"
+  elif [[ -s $CONF ]]; then
+    while read -r line; do
+      [[ -z $line || $line == \#* ]] || HOSTS+=("$line")
+    done <"$CONF"
+  fi
+  ((${#HOSTS[@]})) || { echo "light: no lights configured; run 'light discover'" >&2; exit 1; }
+}
+
+url() { [[ $1 == *:* ]] && echo "http://$1/elgato/lights" || echo "http://$1:9123/elgato/lights"; }
+
+# State of the first light that answers, as {"on":0|1,"brightness":N,"temperature":mireds}.
+current() {
+  local h
+  for h in "${HOSTS[@]}"; do
+    curl -fsS --max-time 2 "$(url "$h")" 2>/dev/null | jq -ce '.lights[0]' && return
+  done
+  echo "light: no light answered (${HOSTS[*]})" >&2
+  exit 1
+}
+
+# PUT the given fields to every light in parallel; prints the resulting state of the first one.
+apply() {
+  local body tmp i pids=() failed=0
+  body=$(jq -cn --argjson l "$1" '{numberOfLights: 1, lights: [$l]}')
+  tmp=$(mktemp -d)
+  for i in "${!HOSTS[@]}"; do
+    curl -fsS --max-time 2 -X PUT -H 'Content-Type: application/json' -d "$body" \
+      "$(url "${HOSTS[$i]}")" >"$tmp/$i" 2>/dev/null &
+    pids+=($!)
+  done
+  for i in "${!pids[@]}"; do
+    wait "${pids[$i]}" || { echo "light: ${HOSTS[$i]} did not answer" >&2; failed=$((failed + 1)); }
+  done
+  local state
+  state=$(cat "$tmp"/* 2>/dev/null | jq -cs 'map(.lights[0]) | first // empty')
+  rm -rf "$tmp"
+  [[ -n $state ]] || exit 1
+  push "$state"
+  summary "$state"
+  ((failed == 0))
+}
+
+# Tell the OmniWM widget about the change so its icon stays right without polling.
+push() {
+  [[ -x $OMNIWMCTL ]] || return 0
+  "$OMNIWMCTL" shell set lights "$1" >/dev/null 2>&1 || true
+}
+
+kelvin() { echo $(((1000000 + $1 / 2) / $1)); } # kelvin <-> mireds (same formula both ways)
+
+summary() {
+  jq -r '"\(if .on == 1 then "On" else "Off" end) · \(.brightness)% · \((1000000 / .temperature / 50 | round) * 50)K"' <<<"$1"
+}
+
+# new value for "N", "+N" or "-N" (checked by the caller) relative to $2, clamped to [$3, $4]
+adjust() {
+  local v
+  case $1 in
+    [+-]*) v=$(($2 + $1)) ;;
+    *) v=$1 ;;
+  esac
+  ((v < $3)) && v=$3
+  ((v > $4)) && v=$4
+  echo "$v"
+}
+
+discover() {
+  local browse lookup name host hosts=()
+  browse=$(mktemp) lookup=$(mktemp)
+  # dns-sd never exits on its own, so give each query a few seconds and stop it
+  dns-sd -B _elg._tcp local. >"$browse" 2>&1 & sleep 3; kill $! 2>/dev/null || true
+  while read -r name; do
+    dns-sd -L "$name" _elg._tcp local. >"$lookup" 2>&1 & sleep 2; kill $! 2>/dev/null || true
+    host=$(sed -n 's/.* can be reached at \([^ ]*\)\.:\([0-9]*\).*/\1:\2/p' "$lookup" | head -1)
+    if [[ -n $host ]]; then hosts+=("$host"); fi
+  done < <(awk '$2 == "Add" { sub(/.*_elg\._tcp\.[[:space:]]+/, ""); print }' "$browse" | sort -u)
+  rm -f "$browse" "$lookup"
+  ((${#hosts[@]})) || { echo "light: no Elgato lights found on this network" >&2; exit 1; }
+  mkdir -p "$(dirname "$CONF")"
+  printf '%s\n' "${hosts[@]}" >"$CONF"
+  printf 'saved %d light(s) to %s:\n' "${#hosts[@]}" "$CONF"
+  printf '  %s\n' "${hosts[@]}"
+}
+
+cmd=${1:-status}
+[[ $# -gt 0 ]] && shift
+# One HTTP request from launchd's socket; only the commands the widget uses are allowed.
+http() {
+  local method path line args=() out code body
+  read -r -t 2 method path _ || exit 0
+  while IFS= read -r -t 2 line && [[ -n ${line%$'\r'} ]]; do :; done # skip headers
+  path=${path%%\?*}
+  IFS=/ read -ra args <<<"${path#/}"
+  case "$method ${args[0]:-} ${#args[@]}" in
+    "GET get 1" | "GET on 1" | "GET off 1" | "GET toggle 1" | "GET bright 2" | "GET temp 2")
+      if out=$("$0" "${args[@]}" 2>&1); then code="200 OK"; else code="502 Bad Gateway"; fi ;;
+    *) code="404 Not Found" out="unknown request: $method $path" ;;
+  esac
+  body=$(tail -1 <<<"$out")
+  printf 'HTTP/1.1 %s\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: %d\r\nConnection: close\r\n\r\n%s' \
+    "$code" "$(($(printf %s "$body" | wc -c)))" "$body"
+}
+
+case $cmd in
+  discover) discover; exit ;;
+  http) http; exit ;;
+  -h | --help | help) usage ;;
+esac
+
+load_hosts
+case $cmd in
+  status)
+    for h in "${HOSTS[@]}"; do
+      if s=$(curl -fsS --max-time 2 "$(url "$h")" 2>/dev/null | jq -ce '.lights[0]'); then
+        echo "$h: $(summary "$s")"
+      else
+        echo "$h: unreachable"
+      fi
+    done
+    ;;
+  get) s=$(current) && push "$s" && echo "$s" ;;
+  on) apply '{"on":1}' ;;
+  off) apply '{"on":0}' ;;
+  toggle) s=$(current) && apply "$(jq -c '{on: (1 - .on)}' <<<"$s")" ;;
+  bright | brightness)
+    [[ $# -eq 1 && $1 =~ ^[+-]?[0-9]+$ ]] || usage
+    s=$(current)
+    b=$(jq '.brightness' <<<"$s")
+    apply "{\"on\":1,\"brightness\":$(adjust "$1" "$b" 3 100)}"
+    ;;
+  temp | temperature)
+    [[ $# -eq 1 && $1 =~ ^[+-]?[0-9]+$ ]] || usage
+    s=$(current)
+    k=$(kelvin "$(jq '.temperature' <<<"$s")")
+    m=$(kelvin "$(adjust "$1" "$k" 2900 7000)")
+    apply "{\"on\":1,\"temperature\":$(adjust "$m" 0 143 344)}" # the lights' mired range
+    ;;
+  *) usage ;;
+esac
