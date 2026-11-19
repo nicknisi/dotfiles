@@ -1,5 +1,7 @@
 {
   "mcpServers": {
+    "atlas": { "url": "https://mcp.workos.cloud/mcp" },
+    "horizon": { "url": "https://horizon.workos.tools/mcp" },
     "riker": {
       "url": "http://127.0.0.1:4319/mcp",
       "headers": {
@@ -12,9 +14,7 @@
     },
     "sessions": {
       "command": "sessions",
-      "args": [
-        "--mcp"
-      ],
+      "args": ["--mcp"],
       "cwd": "~/Developer/sessions",
       "type": "stdio"
     },
@@ -42,12 +42,7 @@
     },
     "xapi": {
       "command": "xurl",
-      "args": [
-        "--app",
-        "nicknisi-x-mcp",
-        "mcp",
-        "https://api.x.com/mcp"
-      ],
+      "args": ["--app", "nicknisi-x-mcp", "mcp", "https://api.x.com/mcp"],
       "description": "X (Twitter) API acting as Nick: search posts, users, timelines, bookmarks, trends, news, Articles"
     },
     "linear": {
