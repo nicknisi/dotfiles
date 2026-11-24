@@ -15,7 +15,8 @@ cmd([[abbr attribuet attribute]])
 
 local opt = vim.opt
 
-if not vim.env.SSH_TTY then
+-- SSH_CONNECTION, not SSH_TTY: tmux refreshes it on attach, so a stale SSH-started server doesn't disable the clipboard locally
+if not vim.env.SSH_CONNECTION then
   -- don't set the clipboard when in SSH
   opt.clipboard = "unnamedplus" -- use the system clipboard
 end
