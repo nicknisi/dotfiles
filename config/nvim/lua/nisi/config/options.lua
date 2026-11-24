@@ -15,8 +15,17 @@ cmd([[abbr attribuet attribute]])
 
 local opt = vim.opt
 
--- SSH_CONNECTION, not SSH_TTY: tmux refreshes it on attach, so a stale SSH-started server doesn't disable the clipboard locally
-if not vim.env.SSH_CONNECTION then
+local function in_ssh()
+  if vim.env.TMUX then
+    -- Ask tmux: panes keep a stale SSH_CONNECTION from whichever client started them,
+    -- but the session's copy is refreshed on every attach ("-SSH_CONNECTION" = local).
+    local out = vim.fn.system({ "tmux", "show-environment", "SSH_CONNECTION" })
+    return vim.v.shell_error == 0 and out:match("^SSH_CONNECTION=") ~= nil
+  end
+  return vim.env.SSH_CONNECTION ~= nil
+end
+
+if not in_ssh() then
   -- don't set the clipboard when in SSH
   opt.clipboard = "unnamedplus" -- use the system clipboard
 end
