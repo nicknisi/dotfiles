@@ -1,0 +1,125 @@
+#!/usr/bin/env node
+// pi-cf-models: add every model your Cloudflare AI Gateway serves (Google, OpenAI,
+// Anthropic) that pi's built-in cloudflare-ai-gateway catalog is missing.
+//
+// Usage: pi-cf-models [--dry-run]
+//
+// For each upstream it lists models live through the gateway, keeps the ones pi's
+// own catalog (~/.pi/agent/models-store.json) has metadata for, and writes them
+// into ~/.pi/agent/models.json. Entries it writes carry "_cfSync": true, so re-runs
+// replace/remove only those. Hand-written entries with the same id always win.
+import { readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+
+const dir = join(homedir(), ".pi/agent");
+const dryRun = process.argv.includes("--dry-run");
+const readJson = (f) => JSON.parse(readFileSync(join(dir, f), "utf8"));
+
+const auth = readJson("auth.json")["cloudflare-ai-gateway"];
+const { CLOUDFLARE_ACCOUNT_ID: account, CLOUDFLARE_GATEWAY_ID: gateway } = auth.env;
+const gw = `https://gateway.ai.cloudflare.com/v1/${account}/${gateway}`;
+const store = readJson("models-store.json");
+const modelsPath = join(dir, "models.json");
+const config = readJson("models.json");
+
+const upstreams = [
+  {
+    catalog: "google",
+    provider: "cloudflare-google", // custom provider; baseUrl/api/auth live on the provider
+    list: [`${gw}/google-ai-studio/v1beta/models?pageSize=1000`, (j) => j.models.map((m) => m.name.replace(/^models\//, ""))],
+  },
+  {
+    catalog: "openai",
+    provider: "cloudflare-ai-gateway",
+    baseUrl: "https://gateway.ai.cloudflare.com/v1/{CLOUDFLARE_ACCOUNT_ID}/{CLOUDFLARE_GATEWAY_ID}/openai",
+    list: [`${gw}/openai/models`, (j) => j.data.map((m) => m.id)],
+  },
+  {
+    catalog: "anthropic",
+    provider: "cloudflare-ai-gateway",
+    baseUrl: "https://gateway.ai.cloudflare.com/v1/{CLOUDFLARE_ACCOUNT_ID}/{CLOUDFLARE_GATEWAY_ID}/anthropic",
+    headers: { "anthropic-version": "2023-06-01" },
+    // shortcut: ignores has_more pagination, fine until Anthropic serves >1000 models.
+    list: [`${gw}/anthropic/v1/models?limit=1000`, (j) => j.data.map((m) => m.id)],
+  },
+];
+
+const builtin = store["cloudflare-ai-gateway"].models;
+const builtinIds = new Set(builtin.map((m) => m.id));
+const isSnapshot = (id) => /-\d{8}$|-\d{4}-\d{2}-\d{2}$/.test(id); // dated aliases of models already listed
+
+// Key tree of everything pi's own gateway entries for this api use, so copied
+// upstream metadata gets the same trimming (e.g. no promptCache, fewer compat flags).
+const shapeOf = (entries) => {
+  const shape = {};
+  const add = (into, obj) => {
+    for (const [k, v] of Object.entries(obj)) {
+      if (v && typeof v === "object" && !Array.isArray(v)) add((into[k] = into[k] === true ? {} : (into[k] ?? {})), v);
+      else into[k] ??= true;
+    }
+  };
+  for (const e of entries) add(shape, e);
+  return shape;
+};
+const pick = (obj, shape) =>
+  Object.fromEntries(
+    Object.entries(obj)
+      .filter(([k]) => k in shape)
+      .map(([k, v]) => [k, shape[k] !== true && v && typeof v === "object" && !Array.isArray(v) ? pick(v, shape[k]) : v]),
+  );
+// compat flags every gateway entry of this api sets with one value (e.g. sendSessionAffinityHeaders)
+const forcedCompat = (entries) => {
+  const out = {};
+  for (const k of new Set(entries.flatMap((e) => Object.keys(e.compat ?? {})))) {
+    const vals = new Set(entries.map((e) => JSON.stringify(e.compat?.[k])));
+    if (vals.size === 1 && !vals.has(undefined)) out[k] = entries[0].compat[k];
+  }
+  return out;
+};
+
+const toEntry = (up, m) => {
+  const { provider, baseUrl, type, ...rest } = m;
+  if (!up.baseUrl) return { ...rest, _cfSync: true }; // custom provider supplies baseUrl
+  const siblings = builtin.filter((b) => b.api === m.api);
+  const entry = pick(rest, shapeOf(siblings));
+  entry.compat = { ...entry.compat, ...forcedCompat(siblings) };
+  return { ...entry, baseUrl: up.baseUrl, _cfSync: true };
+};
+
+const sortKeys = (v) =>
+  Array.isArray(v)
+    ? v.map(sortKeys)
+    : v && typeof v === "object"
+      ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, sortKeys(v[k])]))
+      : v;
+
+const added = {};
+for (const up of upstreams) {
+  const [url, ids] = up.list;
+  const res = await fetch(url, { headers: { "cf-aig-authorization": `Bearer ${auth.key}`, ...up.headers } });
+  if (!res.ok) {
+    console.error(`${up.catalog}: gateway list failed (${res.status}), leaving its entries untouched`);
+    continue;
+  }
+  const live = new Set(ids(await res.json()));
+  const catalog = store[up.catalog].models.filter((m) => (m.type ?? "chat") === "chat");
+  const wanted = catalog.filter((m) => live.has(m.id) && !isSnapshot(m.id) && (up.baseUrl ? !builtinIds.has(m.id) : true));
+  const skipped = [...live].filter((id) => !catalog.some((m) => m.id === id));
+
+  const prov = (config.providers[up.provider] ??= { models: [] });
+  const kept = prov.models.filter((m) => !(m._cfSync && (up.baseUrl ? m.baseUrl === up.baseUrl : true)));
+  const handIds = new Set(kept.map((m) => m.id));
+  const fresh = wanted.filter((m) => !handIds.has(m.id)).map((m) => toEntry(up, m));
+  prov.models = [...kept, ...fresh];
+
+  added[up.catalog] = fresh.map((m) => `${up.provider}/${m.id}`);
+  console.log(`${up.catalog}: ${fresh.length} synced, ${live.size} live, ${skipped.length} live without pi metadata (skipped)`);
+  for (const id of added[up.catalog]) console.log(`  ${id}`);
+}
+
+if (dryRun) console.log("\n--dry-run: models.json not written");
+else {
+  writeFileSync(modelsPath, JSON.stringify(sortKeys(config), null, 2));
+  console.log(`\nwrote ${modelsPath} (run /model in pi to reload)`);
+}
