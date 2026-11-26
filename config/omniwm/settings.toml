@@ -1518,6 +1518,12 @@ monitorDisplayUUID = "06751CCE-F6B3-4F3B-9585-8020351EB9DF"
 monitorName = "EPSON PJ"
 singleWindowFit = "1600x860"
 
+[[monitorDwindleOverrides]]
+id = "FA58AAF9-AEFF-4AA1-9996-1530739A3566"
+monitorDisplayUUID = "186B4738-42DB-4079-9FF4-DAFD07C08236"
+monitorName = "LG TV"
+singleWindowFit = "1600x860"
+
 [[monitorGapOverrides]]
 id = "9C1E6F52-3B7A-4D8E-A1F0-5B2C7D9E4A11"
 monitorDisplayUUID = "2EBFAA40-3303-44D9-8466-01AAB4B286A5"
@@ -1540,7 +1546,7 @@ outerGapTop = 80.0
 id = "F926FB11-20B3-4AC4-9874-47671A605FBE"
 monitorDisplayUUID = "B5F2488F-64B8-47CB-898A-6380841F2C4D"
 monitorName = ""
-outerGapTop = 80.0
+outerGapTop = 12.0
 
 [[monitorGapOverrides]]
 id = "958302A6-63C0-4B41-8341-A936E8F0BAC7"
