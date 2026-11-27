@@ -1564,7 +1564,7 @@ outerGapTop = 80.0
 id = "C1028D6F-43BE-4ADC-9192-FC3BE0E79265"
 monitorDisplayUUID = "C839632D-4C6A-41D2-8DCC-F5B175FE7EAA"
 monitorName = ""
-outerGapTop = 80.0
+outerGapTop = 12.0
 
 [[monitorGapOverrides]]
 id = "8054A10D-C99E-42FE-98D8-4E7E3FCCEAFE"

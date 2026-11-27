@@ -1,4 +1,4 @@
-profile = "liner"
+profile = "wayline"
 
 [profiles]
 
@@ -25,9 +25,14 @@ hoverPreviewsEnabled = true
 showFloatingWindows = true
 
 [profiles.liner]
+theme = "native"
 
 [profiles.liner.hiddenBar]
 enabled = true
+
+[profiles.liner.island]
+displays = "all"
+fullscreen = "hide"
 
 [profiles.wayline]
 center = []
