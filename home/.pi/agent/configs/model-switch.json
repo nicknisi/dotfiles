@@ -18,6 +18,7 @@
       "cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-pro-0813",
       "anthropic/claude-opus-5-5",
       "cloudflare-google/gemini-4-carbon",
+      "cloudflare-google/gemini-4-neon",
       "cloudflare-ai-gateway/accounts/fireworks/routers/deepseek-v4p1-flash-1017-ultrafast"
     ],
     "personal": [

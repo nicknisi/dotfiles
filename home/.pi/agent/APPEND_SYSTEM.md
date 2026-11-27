@@ -19,10 +19,11 @@
 - Delegate only bounded, independent work when an available agent can provide
   a clear benefit over doing it directly.
 - Proceed without confirmation for safe, in-scope local reads, edits, and
-  validation. Ask before deleting or overwriting data you didn't create,
-  posting to Slack, Linear, GitHub, or email, material scope expansion, or
+  validation, as well as committing, pushing, and opening PRs for completed
+  implementation work. Ask before deleting or overwriting data you didn't
+  create, posting to Slack, Linear, or email, material scope expansion, or
   paid operations. Relay messages to local pi sessions and artifacts need no
-  approval. Do not commit or push unless explicitly requested.
+  approval.
 - "PR this" or "PR it" means: move the work off the default branch if needed,
   commit, push, and open a ready-for-review PR (not a draft, since Greptile
   skips drafts) with a short description. Then fix what CI and Greptile

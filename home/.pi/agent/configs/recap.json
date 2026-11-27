@@ -2,6 +2,6 @@
   "idleMinutes": 5,
   "model": {
     "provider": "cloudflare-ai-gateway",
-    "id": "workers-ai/@cf/zai-org/glm-5.3-flash"
+    "id": "workers-ai/@cf/zai-org/glm-5.3"
   }
 }
